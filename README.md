@@ -25,9 +25,13 @@ Specifically, this library helps with:
 * Support for animated behavior
 * Handling user input
 
-# Usage
+## Gradle
 
-## Basic
+(To be updated when this project is in a ready state)
+
+## Usage
+
+### Basic
 
 The following is equivalent to `println("Hello, World")`. In this simple case, it's definitely overkill!
 
@@ -37,7 +41,7 @@ konsole {
 }
 ```
 
-## Background work
+### Background work
 
 Konsole starts to show its strength when doing background work (or other async tasks like waiting for user input):
 
@@ -74,7 +78,7 @@ konsole {
 }
 ```
 
-## Colors
+### Colors
 
 You can call color methods directly:
 
@@ -107,14 +111,6 @@ konsole {
 }
 ```
 
-There are constants you can use for within template strings as well, if you prefer it:
-
-```kotlin
-konsole {
-    text("${RED}Hello${CLEAR} ${BLUE}World")
-}
-```
-
 If you want to change the foreground and background at the same time:
 
 ```kotlin
@@ -140,7 +136,58 @@ settings:
 KonsoleSettings.colorsEnabled = false
 ```
 
-## Animations
+### State
+
+To reduce the change of introducing unexpected bugs later, state changes (like colors) will be localized to the current
+block only:
+
+```kotlin
+konsole {
+    blue(BG)
+    red()
+    text("This text is red on blue")
+}
+
+konsole {
+    text("This text is rendered using default colors")
+}
+```
+
+If you intentionally want to set a custom, global theme, you can do this by updating the settings:
+
+```kotlin
+KonsoleSettings.baseStyle = konsoleStyle {
+    blue(BG)
+    red()
+}
+```
+
+You can also save styles into reusable variables:
+
+```kotlin
+val titleStyle = konsoleStyle {
+    red()
+    underline()
+}
+
+konsole {
+    style(titleStyle)
+    text("Objective")
+}
+
+konsole {
+    text(".......")
+}
+
+konsole {
+    style(titleStyle)
+    text("Background")
+}
+
+/* ... etc ... */
+```
+
+### Animations
 
 Blinking cursors are actually a built-in animation:
 
@@ -153,7 +200,8 @@ konsole {
 }.waitForInput { /* ... */ }
 ```
 
-But you can easily create custom animations as well, by implementing the `KonsoleAnimation` interface:
+But you can easily create custom animations as well, by implementing the `KonsoleAnimation` interface and then
+instantiating an animation instance from it:
 
 ```kotlin
 val SPINNER = object : KonsoleAnimation(Duration.ofMillis(250)) {
@@ -161,9 +209,10 @@ val SPINNER = object : KonsoleAnimation(Duration.ofMillis(250)) {
 }
 
 var finished = false
+val spinner = SPINNER.createInstance()
 konsole {
     if (!finished) {
-        animation(SPINNER)
+        animation(spinner)
     }
     else {
         text("✓")
@@ -178,8 +227,15 @@ konsole {
 }
 ```
 
-Here's a way to create the progress bar from earlier using animations. Note that you have to instantiate the animation
-yourself, so you can advance the frames manually:
+If it's a one-use animation that you don't want to share, you can create the instance directly of course:
+
+```kotlin
+val spinner = object : KonsoleAnimation(Duration.ofMillis(250)) {
+    override val frames = arrayOf("\\", "|", "/", "-") 
+}.createInstance()
+```
+
+Here's a way to create the progress bar from earlier using animations:
 
 ```kotlin
 val PROGRESS_BAR = object : KonsoleAnimation(Duration.MAX_VALUE) {
@@ -209,6 +265,44 @@ konsole {
 }
 ```
 
-# Gradle
+## Advanced
 
-(To be updated when this project is in a ready state)
+### Thread Affinity
+
+Konsole is single-threaded (implemented in a flexible way, using ThreadLocal, so that we can review this decision
+later). I made this decision so that:
+
+* I don't have to worry about multiple Konsole blocks println'ing at the same time - who likes clobbered text?
+* The API is heavily stateful, similar in some ways to an API like OpenGL, and limiting possible interactions across
+Konsole blocks means that the mental model for users will be less overloaded. 
+
+As a user of the API, you don't need to worry about setting the thread yourself. The first time you call `konsole` or
+if you change a global setting via the `KonsoleSetting` class, this will be done for you.
+
+By default, Konsole creates a separate thread, and when you call `konsole { ... }`, the current thread is blocked until
+the Konsole thread signals that everything can proceed.
+
+### Why Not Compose?
+
+Konsole's API is inspired by Compose, in that it has a core block which gets rerun for you automatically as necessary
+without you having to worry about it. Why not just Compose directly?
+
+In fact, this is exactly what [Jake Wharton's Mosaic](https://github.com/JakeWharton/mosaic) is doing. I tried using it
+first, before deciding to implement Konsole, for two reasons:
+
+1. Compose is tightly tied to the current Kotlin compiler version, which means if you are targeting a particular
+version of the Kotlin language, you can easily see the dreaded error message: `This version (x.y.z) of the Compose
+Compiler requires Kotlin version a.b.c but you appear to be using Kotlin version d.e.f which is not known to be
+compatible.` I suspect this issue with Compose will improve over time, but for the present, and for something as simple
+as a glorified console printer, I didn't want to tie things down.
+
+2. Compose is great for rendering a whole, interactive UI, but console printing is often two parts: the active part that
+the user is interacting with, and the history, which is static. To support this with Compose, you'd need to manage the
+history list yourself and keep appending to it, and it was while playing with an API thinking about this limitation that
+I instead decided to work on Konsole.
+
+### Tested Platforms
+
+* [x] Linux
+* [ ] Mac
+* [ ] Windows
