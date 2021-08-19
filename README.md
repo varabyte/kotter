@@ -2,8 +2,8 @@
 
 ```kotlin
 konsole {
-    textLine("Would you like to continue learning Konsole? (Y/n)")
-    text("> ")
+    textLine("Would you like to learn Konsole? (Y/n)")
+    text("> ");
     blinkingCursor()
 }.waitForInput { input ->
     if (input.startsWith("Y")) {
@@ -12,8 +12,10 @@ konsole {
 }
 ```
 
-Konsole aims to be a relatively thin, Kotlin-idiomatic API that provides useful common functionality for writing
-delightful command line applications. It aims to keep things simple, providing a solution a bit more useful than making
+---
+
+Konsole aims to be a relatively thin, Kotlin-idiomatic API that provides useful functionality for writing delightful
+command line applications. It strives to keep things simple, providing a solution a bit more interesting than making
 raw `println` calls but way less featured than something like _Java Curses_.
 
 Specifically, this library helps with:
@@ -31,15 +33,6 @@ The following is equivalent to `println("Hello, World")`. In this simple case, i
 
 ```kotlin
 konsole {
-  textLine("Hello, World")
-  advance()
-}
-```
-
-If your block is just static text like this, and you always want to advance, you can configure it:
-
-```kotlin
-konsole(autoAdvance = true) {
   textLine("Hello, World")
 }
 ```
@@ -86,7 +79,7 @@ konsole {
 You can call color methods directly:
 
 ```kotlin
-konsole(autoAdvance = true) {
+konsole {
     green(layer = BG)
     red() // defaults to FG layer
     text("Hello")
@@ -101,7 +94,7 @@ konsole(autoAdvance = true) {
 or you can use scoped helper versions that handle clearing colors for you automatically at the end of their block:
 
 ```kotlin
-konsole(autoAdvance = true) {
+konsole {
     green(layer = BG) {
         red {
             text("Hello")
@@ -117,7 +110,7 @@ konsole(autoAdvance = true) {
 There are constants you can use for within template strings as well, if you prefer it:
 
 ```kotlin
-konsole(autoAdvance = true) {
+konsole {
     text("${RED}Hello${CLEAR} ${BLUE}World")
 }
 ```
@@ -125,7 +118,7 @@ konsole(autoAdvance = true) {
 If you want to change the foreground and background at the same time:
 
 ```kotlin
-konsole(autoAdvance = true) {
+konsole {
     colors(fg = RED, bg = BLUE)
     text("Hello world")
     clearColors()
@@ -135,27 +128,35 @@ konsole(autoAdvance = true) {
 or the scoped helper version:
 
 ```kotlin
-konsole(autoAdvance = true) {
+konsole {
     colors(fg = RED, bg = BLUE) { text("Hello world") }
 }
 ```
 
+Finally, as some terminals don't support colors, note that they can be turned off by modifying the global Konsole
+settings:
+
+```kotlin
+KonsoleSettings.colorsEnabled = false
+```
+
 ## Animations
 
-Blinking cursors were are a built in animation:
+Blinking cursors are actually a built-in animation:
 
 ```kotlin
 konsole {
     text("Cursor >>> ")
+    // Calls something like `animation(BLINKING_CURSOR)` under the hood
     blinkingCursor()
     text(" <<<")
 }.waitForInput { /* ... */ }
 ```
 
-But you can create custom animations as well, by implementing the `KonsoleAnimation` interface:
+But you can easily create custom animations as well, by implementing the `KonsoleAnimation` interface:
 
 ```kotlin
-private val SPINNER = object : KonsoleAnimation(Duration.ofMillis(250)) {
+val SPINNER = object : KonsoleAnimation(Duration.ofMillis(250)) {
     override val frames = arrayOf("\\", "|", "/", "-") 
 }
 
@@ -174,6 +175,37 @@ konsole {
 }.waitForBackgroundWork {
     doExpensiveFileSearching()
     finished = true
+}
+```
+
+Here's a way to create the progress bar from earlier using animations. Note that you have to instantiate the animation
+yourself, so you can advance the frames manually:
+
+```kotlin
+val PROGRESS_BAR = object : KonsoleAnimation(Duration.MAX_VALUE) {
+    override val frames = arrayOf(
+        "[----------]",
+        "[*---------]",
+        "[**--------]",
+        "[***-------]",
+        "[****------]",
+        "[*****-----]",
+        "[******----]",
+        "[*******---]",
+        "[********--]",
+        "[*********-]",
+        "[**********]",
+    )
+}
+
+val progressBar = PROGRESS_BAR.createInstance()
+konsole {
+    animation(progressBar)
+}.waitForBackgroundWork {
+    while (progressBar.currFrame < progressBar.numFrames) {
+        delay(1000)
+        progressBar.advance()
+    }
 }
 ```
 
