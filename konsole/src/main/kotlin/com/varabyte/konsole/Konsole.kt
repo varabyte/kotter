@@ -2,17 +2,24 @@ package com.varabyte.konsole
 
 import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleScope
-import com.varabyte.konsole.text.RESET_COMMAND
+import com.varabyte.konsole.core.internal.executor.KonsoleExecutor
+import com.varabyte.konsole.terminal.DefaultTerminalIO
+import com.varabyte.konsole.terminal.TerminalIO
+import java.util.concurrent.ExecutorService
 
-fun konsole(block: KonsoleScope.() -> Unit) {
+fun konsole(
+    executor: ExecutorService = KonsoleExecutor,
+    terminalIO: TerminalIO = DefaultTerminalIO,
+    block: KonsoleScope.() -> Unit) {
     val konsoleBlock = KonsoleBlock()
-    val scope = KonsoleScope(konsoleBlock)
-    scope.block()
 
-    // Clear state for next block!
-    konsoleBlock.applyCommand(RESET_COMMAND)
+    executor.submit {
+        val scope = KonsoleScope(konsoleBlock)
+        scope.block()
 
-    // TODO: This needs to be done on another thread
-    print(konsoleBlock.toString())
-    System.out.flush()
+        // Clear state for next block!
+        scope.state.applyTo(konsoleBlock)
+
+        terminalIO.write(konsoleBlock.toString())
+    }.get()
 }

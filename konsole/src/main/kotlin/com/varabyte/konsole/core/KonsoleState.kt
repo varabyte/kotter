@@ -3,7 +3,8 @@ package com.varabyte.konsole.core
 import com.varabyte.konsole.text.RESET_COMMAND
 
 /**
- * Keep track of all state related commands which should be reapplied if the ansi terminal resets itself.
+ * Keep track of all state related commands which should be reapplied to the current block if the ansi terminal resets
+ * itself.
  *
  * Unfortunately, when you need to reset a single value (say, foreground color), the ANSI standard doesn't provide a
  * scapel - instead, it provides a nuke (clear EVERYTHING). Since Konsole embraces a hierarchical, nested API, e.g.

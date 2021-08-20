@@ -1,13 +1,16 @@
 import com.varabyte.konsole.konsole
+import com.varabyte.konsole.terminal.swing.SwingTerminal
 import com.varabyte.konsole.text.*
 import com.varabyte.konsole.text.ColorLayer.BG
+import kotlinx.coroutines.runBlocking
 
 fun main() {
     konsole {
         p {
-            underline {
-                textLine("Welcome to Konsole!")
+            green(BG) {
+                text("WELCOME TO KONSOLE!")
             }
+            newLine()
         }
     }
 
