@@ -3,11 +3,11 @@
 ```kotlin
 konsole {
     textLine("Would you like to learn Konsole? (Y/n)")
-    text("> ");
+    text("> $input");
     blinkingCursor()
-}.waitForInput { input ->
-    if (input.startsWith("Y")) {
-        textLine("""\(^o^)/""") 
+}.onInputEntered { evt ->
+    if (evt.input.toLowercase().startsWith("y")) {
+        p { textLine("""\(^o^)/""") }
     }
 }
 ```
@@ -52,8 +52,10 @@ konsole {
     if (result != null) {
         textLine("Done! Result = $result")
     }
-}.waitForBackgroundWork {
+}.withBackgroundWork {
     result = doNetworkFetchAndExpensiveCalculation()
+    // When background work finishes, the konsole block will run one last time
+    // and then allow the program to continue.
 }
 ```
 
@@ -69,12 +71,119 @@ konsole {
         text(if (i < numCompleteSquares) "*" else "-")
     }
     text("]")
-}.waitForBackgroundWork {
+}.withBackgroundWork(rerenderOnFinished = false) {
+    // ^ rerenderOnFinished not required because we'll call it manually
     while (percent < 100f) {
         delay(100)
         percent += 1f
         rerender()
     }
+}
+```
+
+### User input
+
+Konsole, of course, handles user input as well. 
+
+Konsole consumes keypresses, so as the user types into the console, nothing will show up unless you intentionally print
+it. You can easily do this using the `input` property, which contains the user's input typed so far (excluding control
+characters):
+
+```kotlin
+konsole {
+    text("Please enter your name: $input")
+    blinkingCursor()
+}
+```
+
+You can respond to the input as it is typed by using the `onInput` event:
+
+```kotlin
+konsole {
+    text("Please enter your name: $input")
+    blinkingCursor()
+}.onInput { evt ->
+    evt.input = evt.input.filter { it.isLetter() }
+}
+```
+
+If you don't care about intermediate states, you can also use `onInputEntered`. This will be triggered with an event
+that contains the user's input string after they pressed the ENTER key.
+
+Here, we tweak the example from the beginning of this README:
+
+```kotlin
+var wantsToLearn = false
+konsole {
+    textLine("Would you like to learn Konsole? (Y/n)")
+    text("> ")
+    blinkingCursor() 
+    // `input` is a property that contains the user's input typed so far in
+    // this konsole block. It is automatically updated and the block rerendered
+    // when it changes.
+    if ("yes".startsWith(input)) {
+        grey()
+        text("yes".substringAfter(input))
+    }
+    if (wantsToLearn) {
+        p {
+            textLine("""\(^o^)/""")
+        }
+    }
+}.onInputEntered { evt ->
+    if ("yes".startsWith(evt.input)) {
+        evt.input = "yes" // Update the input to make it feel like we autocompleted their answer
+        wantsToLearn = true
+    }
+}
+```
+
+This will cause the following to be printed to the console:
+
+```bash
+Would you like to learn Konsole? (Y/n)
+> |yes
+```
+
+After the user presses "ye":
+
+```bash
+Would you like to learn Konsole? (Y/n)
+> ye|s
+```
+
+And after the user presses enter:
+
+```bash
+Would you like to learn Konsole? (Y/n)
+> yes
+
+\(^o^)/
+
+(Next line of text will go here...)
+```
+
+A common situation in a console is preventing bad input. To prevent `onInputEntered` from advancing blindly, you can
+reject its input using `evt.rejectInput()`:
+
+```kotlin
+val VALID_ANSWERS = setOf("yes", "no")
+var errorMessage: String? = null
+konsole {
+    text("Would you like to learn Konsole? (Y/n)")
+    text("> $input");
+    blinkingCursor()
+    if (errorMessage != null) {
+        newLine()
+        red()
+        textLine(errorMessage)
+    }
+}.onInputEntered { evt ->
+    if (!VALID_ANSWERS.any { it.startsWith(evt.input) }) {
+        evt.rejectInput()
+        errorMessage = "Please try again. Reason: \"$evt.input\" was invalid"
+    }
+    else if ("yes".startsWith(evt.input)) { /* ... */ }
 }
 ```
 
@@ -129,8 +238,7 @@ konsole {
 }
 ```
 
-Finally, as some terminals don't support colors, note that they can be turned off by modifying the global Konsole
-settings:
+Colors can be turned off by modifying the global Konsole settings:
 
 ```kotlin
 KonsoleSettings.colorsEnabled = false
@@ -138,7 +246,7 @@ KonsoleSettings.colorsEnabled = false
 
 ### State
 
-To reduce the change of introducing unexpected bugs later, state changes (like colors) will be localized to the current
+To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
 block only:
 
 ```kotlin
@@ -197,7 +305,7 @@ konsole {
     // Calls something like `animation(BLINKING_CURSOR)` under the hood
     blinkingCursor()
     text(" <<<")
-}.waitForInput { /* ... */ }
+}.onInputEntered { /* ... */ }
 ```
 
 But you can easily create custom animations as well, by implementing the `KonsoleAnimation` interface and then
@@ -221,13 +329,13 @@ konsole {
     if (finished) {
         textLine(" Done!")
     }
-}.waitForBackgroundWork {
+}.withBackgroundWork {
     doExpensiveFileSearching()
     finished = true
 }
 ```
 
-If it's a one-use animation that you don't want to share, you can create the instance directly of course:
+If it's a one-use animation that you don't want to share as a template, you can create the instance directly of course:
 
 ```kotlin
 val spinner = object : KonsoleAnimation(Duration.ofMillis(250)) {
@@ -257,7 +365,7 @@ val PROGRESS_BAR = object : KonsoleAnimation(Duration.MAX_VALUE) {
 val progressBar = PROGRESS_BAR.createInstance()
 konsole {
     animation(progressBar)
-}.waitForBackgroundWork {
+}.withBackgroundWork {
     while (progressBar.currFrame < progressBar.numFrames) {
         delay(1000)
         progressBar.advance()
