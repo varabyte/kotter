@@ -1,10 +1,10 @@
 package com.varabyte.konsole.core
 
 class KonsoleScope(internal val block: KonsoleBlock) {
-    internal var state = KonsoleState()
+    internal var state = KonsoleBlockState()
 
-    internal fun pushState(): KonsoleState {
-        state = KonsoleState(state)
+    internal fun pushState(): KonsoleBlockState {
+        state = KonsoleBlockState(state)
         return state
     }
 
@@ -25,10 +25,10 @@ class KonsoleScope(internal val block: KonsoleBlock) {
 }
 
 /**
- * Run the [scopedBlock] within a fresh, new [KonsoleState] context, which gets removed afterwards.
+ * Run the [scopedBlock] within a fresh, new [KonsoleBlockState] context, which gets removed afterwards.
  *
  * This is useful if the scoped block is going to set one (or more) styles that are reflected in the
- * [KonsoleState] class and which should only apply to that block.
+ * [KonsoleBlockState] class and which should only apply to that block.
  */
 fun KonsoleScope.scopedState(scopedBlock: KonsoleBlock.() -> Unit) {
     pushState()

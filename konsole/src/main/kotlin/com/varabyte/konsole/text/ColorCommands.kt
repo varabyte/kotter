@@ -4,7 +4,7 @@ import com.varabyte.konsole.ansi.AnsiCodes
 import com.varabyte.konsole.ansi.AnsiKonsoleCommand
 import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleScope
-import com.varabyte.konsole.core.KonsoleState
+import com.varabyte.konsole.core.KonsoleBlockState
 import com.varabyte.konsole.core.scopedState
 
 enum class ColorLayer {
@@ -14,7 +14,7 @@ enum class ColorLayer {
 
 private class ColorKonsoleCommand(ansiCommand: String, private val layer: ColorLayer)
     : AnsiKonsoleCommand(ansiCommand) {
-    override fun updateState(state: KonsoleState) {
+    override fun updateState(state: KonsoleBlockState) {
         when(layer) {
             ColorLayer.FG -> state.fgColor = this
             ColorLayer.BG -> state.bgColor = this

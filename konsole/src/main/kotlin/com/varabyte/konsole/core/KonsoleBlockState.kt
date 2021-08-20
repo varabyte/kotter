@@ -24,7 +24,7 @@ import com.varabyte.konsole.text.RESET_COMMAND
  * order to, say, remove a foreground color setting, what we're really doing is nuking everything and building the whole
  * state back up again.
  */
-class KonsoleState internal constructor(internal val parent: KonsoleState? = null) {
+class KonsoleBlockState internal constructor(internal val parent: KonsoleBlockState? = null) {
     internal var isDirty = false
         private set
 
