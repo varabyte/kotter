@@ -5,8 +5,8 @@ konsole {
     textLine("Would you like to learn Konsole? (Y/n)")
     text("> $input");
     blinkingCursor()
-}.onInputEntered { evt ->
-    if (evt.input.toLowercase().startsWith("y")) {
+}.onInputEntered {
+    if (input.toLowercase().startsWith("y")) {
         p { textLine("""\(^o^)/""") }
     }
 }
@@ -41,9 +41,14 @@ konsole {
 }
 ```
 
+Konsole starts to show its strength when doing background work (or other async tasks like waiting for user input) that
+cause the block to need to update over time. So let's take a look at that!
+
 ### Background work
 
-Konsole starts to show its strength when doing background work (or other async tasks like waiting for user input):
+By default, a konsole block will run once and finish, unless there's an event handler attached to it that keeps it
+alive. The first handler we'll look at is `withBackgroundWork`, which is a suspend function that runs on a background
+thread automatically, and when it finishes, the konsole block will be rerun one last time.
 
 ```kotlin
 var result: Int? = null
@@ -62,28 +67,43 @@ konsole {
 You can use it for something like a progress bar:
 
 ```kotlin
-var percent = 0f
+const val BAR_LENGTH = 100
+var percent = 0
 konsole {
     text("[")
-    val numSquares = 10
-    val numCompleteSquares = percent * numSquares
-    for (val i in 0 until numSquares) {
-        text(if (i < numCompleteSquares) "*" else "-")
+    val numComplete = percent * BAR_LENGTH
+    for (val i in 0 until BAR_LENGTH) {
+        text(if (i < numComplete) "*" else "-")
     }
     text("]")
 }.withBackgroundWork(rerenderOnFinished = false) {
     // ^ rerenderOnFinished not required because we'll call it manually
-    while (percent < 100f) {
+    while (percent < 100) {
         delay(100)
-        percent += 1f
+        percent += 1
         rerender()
     }
 }
 ```
 
-### User input
+### Cursor
 
-Konsole, of course, handles user input as well. 
+By default, Konsole doesn't display a cursor indicator, but you can easily do it yourself by calling `blinkingCursor`:
+
+```kotlin
+konsole {
+    text("Cursor is here >>> ")
+    blinkingCursor()
+    text(" <<<")
+}.onInputEntered { /* ... */ }
+```
+
+Note that, if you use `blinkingCursor`, you're expected to tack on a callback to the konsole block to keep it from
+exiting right away, or otherwise you'll never get to see the cursor animate!
+
+The next section goes over reading in user input, which works well with the cursor.
+
+### User input
 
 Konsole consumes keypresses, so as the user types into the console, nothing will show up unless you intentionally print
 it. You can easily do this using the `input` property, which contains the user's input typed so far (excluding control
@@ -102,13 +122,14 @@ You can respond to the input as it is typed by using the `onInput` event:
 konsole {
     text("Please enter your name: $input")
     blinkingCursor()
-}.onInput { evt ->
-    evt.input = evt.input.filter { it.isLetter() }
+}.onInput {
+    // Reject invalid name characters
+    input = input.filter { it.isLetter() }
 }
 ```
 
-If you don't care about intermediate states, you can also use `onInputEntered`. This will be triggered with an event
-that contains the user's input string after they pressed the ENTER key.
+If you don't care about intermediate states, you can also use `onInputEntered`. This will be triggered whenever the user
+presses the ENTER key.
 
 Here, we tweak the example from the beginning of this README:
 
@@ -122,17 +143,18 @@ konsole {
     // this konsole block. It is automatically updated and the block rerendered
     // when it changes.
     if ("yes".startsWith(input)) {
-        grey()
-        text("yes".substringAfter(input))
+        grey {
+            text("yes".substringAfter(input))
+        }
     }
     if (wantsToLearn) {
         p {
             textLine("""\(^o^)/""")
         }
     }
-}.onInputEntered { evt ->
-    if ("yes".startsWith(evt.input)) {
-        evt.input = "yes" // Update the input to make it feel like we autocompleted their answer
+}.onInputEntered {
+    if ("yes".startsWith(input)) {
+        input = "yes" // Update the input to make it feel like we autocompleted their answer
         wantsToLearn = true
     }
 }
@@ -163,8 +185,8 @@ Would you like to learn Konsole? (Y/n)
 (Next line of text will go here...)
 ```
 
-A common situation in a console is preventing bad input. To prevent `onInputEntered` from advancing blindly, you can
-reject its input using `evt.rejectInput()`:
+A common situation in a console is responding to bad input. To prevent `onInputEntered` from advancing blindly, you can
+reject its input using `rejectInput()`:
 
 ```kotlin
 val VALID_ANSWERS = setOf("yes", "no")
@@ -178,16 +200,16 @@ konsole {
         red()
         textLine(errorMessage)
     }
-}.onInputEntered { evt ->
-    if (!VALID_ANSWERS.any { it.startsWith(evt.input) }) {
-        evt.rejectInput()
-        errorMessage = "Please try again. Reason: \"$evt.input\" was invalid"
+}.onInputEntered {
+    if (!VALID_ANSWERS.any { it.startsWith(input) }) {
+        rejectInput()
+        errorMessage = "Please try again. Reason: \"$input\" was invalid"
     }
     else if ("yes".startsWith(evt.input)) { /* ... */ }
 }
 ```
 
-### Colors
+### Text Effects
 
 You can call color methods directly:
 
@@ -196,11 +218,13 @@ konsole {
     green(layer = BG)
     red() // defaults to FG layer
     text("Hello")
-    clearColor()
+    clearColor() // defaults to FG layer
     text(" ")
     blue()
     text("World")
+    clearColor()
     clearColor(layer = BG)
+    // ^ You could also have used clearColors() instead of calling clearColor twice
 }
 ```
 
@@ -220,34 +244,43 @@ konsole {
 }
 ```
 
-If you want to change the foreground and background at the same time:
+You could do this yourself manually, using the `scopedState` method, which is what the scoped color methods are doing
+for you under the hood:
 
 ```kotlin
 konsole {
-    colors(fg = RED, bg = BLUE)
-    text("Hello world")
-    clearColors()
+    scopedState {
+        green(layer = BG)
+        scopedState {
+            red()
+            text("Hello")
+        }
+        text(" ")
+        scopedState {
+            blue()
+            text("World")
+        }
+    }
 }
 ```
 
-or the scoped helper version:
+While `scopedState` is more verbose for the single color case, it can be useful if you want to change the foreground and
+background colors at the same time:
 
 ```kotlin
 konsole {
-    colors(fg = RED, bg = BLUE) { text("Hello world") }
+    scopedState {
+        red()
+        blue(BG)
+        text("Hello world")
+    }
 }
-```
-
-Colors can be turned off by modifying the global Konsole settings:
-
-```kotlin
-KonsoleSettings.colorsEnabled = false
 ```
 
 ### State
 
 To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
-block only:
+`konsole` block only:
 
 ```kotlin
 konsole {
@@ -261,55 +294,80 @@ konsole {
 }
 ```
 
-If you intentionally want to set a custom, global theme, you can do this by updating the settings:
+If you intentionally want to set a custom style that lasts across blocks, the recommended approach is to create your own
+custom konsole method:
 
 ```kotlin
-KonsoleSettings.baseStyle = konsoleStyle {
+fun KonsoleScope.customStyle() {
     blue(BG)
     red()
 }
+
+fun customKonsole(block: KonsoleScope.() -> Unit) {
+    konsole {
+        customStyle()
+        block()
+    }
+}
+
+fun main() {
+    customKonsole {
+        text("This text is red on blue")
+    }
+}
 ```
 
-You can also save styles into reusable variables:
+You can also use this pattern for reusable styles:
 
 ```kotlin
-val titleStyle = konsoleStyle {
+fun KonsoleScope.titleStyle() {
     red()
     underline()
 }
 
 konsole {
-    style(titleStyle)
+    titleStyle()
     text("Objective")
 }
 
 konsole {
-    text(".......")
+    text("... normal text ...")
 }
 
 konsole {
-    style(titleStyle)
+    titleStyle()
     text("Background")
 }
 
 /* ... etc ... */
 ```
 
-### Animations
-
-Blinking cursors are actually a built-in animation:
+or, if you're feeling fancy, use `scopedState` and take in a block as an argument to your method:
 
 ```kotlin
+fun KonsoleScope.titleStyle(block: KonsoleScope.() -> Unit) {
+    scopedState {
+        red()
+        underline()
+        block()
+    }
+}
+
 konsole {
-    text("Cursor >>> ")
-    // Calls something like `animation(BLINKING_CURSOR)` under the hood
-    blinkingCursor()
-    text(" <<<")
-}.onInputEntered { /* ... */ }
+    titleStyle {
+        text("Objective")
+    }
+    text("... normal text ...")
+    titleStyle {
+        text("Background")
+    }
+}
 ```
 
-But you can easily create custom animations as well, by implementing the `KonsoleAnimation` interface and then
-instantiating an animation instance from it:
+### Animations
+
+You can easily create custom animations, by implementing the `KonsoleAnimation` interface and then instantiating an
+animation instance from it:
 
 ```kotlin
 val SPINNER = object : KonsoleAnimation(Duration.ofMillis(250)) {
@@ -390,24 +448,35 @@ if you change a global setting via the `KonsoleSetting` class, this will be done
 By default, Konsole creates a separate thread, and when you call `konsole { ... }`, the current thread is blocked until
 the Konsole thread signals that everything can proceed.
 
+### Virtual Terminal
+
+It's not guaranteed that every user's command line setup supports ANSI codes. For example, debugging this project with
+IntelliJ as well as Gradle are two such environments! According to many online reports, Windows is also a big offender
+here.
+
+Konsole will attempt to detect if your console does not support the features it uses, and if not, it will open up a
+fake virtual terminal backed by Swing. This workaround gives us better cross-platform support.
+
+TODO: Write how you can intentionally trigger the virtual terminal yourself when this code is done. 
+
 ### Why Not Compose?
 
 Konsole's API is inspired by Compose, in that it has a core block which gets rerun for you automatically as necessary
-without you having to worry about it. Why not just Compose directly?
+without you having to worry about it. Why not just use Compose directly?
 
 In fact, this is exactly what [Jake Wharton's Mosaic](https://github.com/JakeWharton/mosaic) is doing. I tried using it
-first, before deciding to implement Konsole, for two reasons:
+first but ultimately decided against it before deciding to write Konsole, for the following reasons:
 
-1. Compose is tightly tied to the current Kotlin compiler version, which means if you are targeting a particular
+* Compose is tightly tied to the current Kotlin compiler version, which means if you are targeting a particular
 version of the Kotlin language, you can easily see the dreaded error message: `This version (x.y.z) of the Compose
 Compiler requires Kotlin version a.b.c but you appear to be using Kotlin version d.e.f which is not known to be
 compatible.` I suspect this issue with Compose will improve over time, but for the present, and for something as simple
 as a glorified console printer, I didn't want to tie things down.
 
-2. Compose is great for rendering a whole, interactive UI, but console printing is often two parts: the active part that
+* Compose is great for rendering a whole, interactive UI, but console printing is often two parts: the active part that
 the user is interacting with, and the history, which is static. To support this with Compose, you'd need to manage the
-history list yourself and keep appending to it, and it was while playing with an API thinking about this limitation that
-I instead decided to work on Konsole.
+history list yourself and keep appending to it, and it was while thinking about an API that addresses this limitation
+that I envisioned Konsole.
 
 ### Tested Platforms
 
