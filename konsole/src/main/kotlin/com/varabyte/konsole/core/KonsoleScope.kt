@@ -3,14 +3,24 @@ package com.varabyte.konsole.core
 class KonsoleScope(internal val block: KonsoleBlock) {
     internal var state = KonsoleState()
 
-    fun pushState(): KonsoleState {
+    internal fun pushState(): KonsoleState {
         state = KonsoleState(state)
         return state
     }
 
-    fun popState() {
+    internal fun popState() {
         check(state.parent != null) { "Called popState more times than pushState"}
-        state = state.parent!!
+        state.parent!!.let { prevState ->
+            if (state.isDirty) {
+                prevState.applyTo(block, force = true)
+            }
+            state = prevState
+        }
+    }
+
+    internal fun applyCommand(command: KonsoleCommand) {
+        command.updateState(state)
+        block.applyCommand(command)
     }
 }
 
@@ -20,7 +30,7 @@ class KonsoleScope(internal val block: KonsoleBlock) {
  * This is useful if the scoped block is going to set one (or more) styles that are reflected in the
  * [KonsoleState] class and which should only apply to that block.
  */
-internal fun KonsoleScope.createScopedState(scopedBlock: KonsoleBlock.() -> Unit) {
+fun KonsoleScope.scopedState(scopedBlock: KonsoleBlock.() -> Unit) {
     pushState()
     block.scopedBlock()
     popState()

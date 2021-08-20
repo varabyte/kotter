@@ -31,3 +31,15 @@ fun KonsoleScope.newLine() {
     block.applyCommand(NewlineCommand)
 }
 
+/**
+ * Create a "paragraph" for text.
+ *
+ * This is a convenience function for wrapping a block with newlines above and below it, which is a common enough
+ * pattern that it's nice to shorten it.
+ */
+fun KonsoleScope.p(block: KonsoleScope.() -> Unit) {
+    newLine()
+    block()
+    newLine()
+}
+

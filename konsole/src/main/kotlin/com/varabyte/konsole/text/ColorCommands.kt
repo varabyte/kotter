@@ -2,6 +2,7 @@ package com.varabyte.konsole.text
 
 import com.varabyte.konsole.ansi.AnsiCodes
 import com.varabyte.konsole.core.*
+import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 
 enum class ColorLayer {
     FG,
@@ -10,7 +11,7 @@ enum class ColorLayer {
 
 private class ColorKonsoleCommand(ansiCommand: String, private val layer: ColorLayer)
     : AnsiKonsoleCommand(ansiCommand) {
-    override fun applyTo(state: KonsoleState) {
+    override fun updateState(state: KonsoleState) {
         when(layer) {
             ColorLayer.FG -> state.fgColor = this
             ColorLayer.BG -> state.bgColor = this
@@ -95,35 +96,53 @@ private fun toWhiteCommand(colorLayer: ColorLayer, isBright: Boolean) = when(col
 }
 
 fun KonsoleScope.black(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    block.applyCommand(toBlackCommand(colorLayer, isBright))
+    applyCommand(toBlackCommand(colorLayer, isBright))
+}
+
+fun KonsoleScope.grey(colorLayer: ColorLayer = ColorLayer.FG) {
+    black(colorLayer, isBright = true)
 }
 
 fun KonsoleScope.red(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    block.applyCommand(toRedCommand(colorLayer, isBright))
+    applyCommand(toRedCommand(colorLayer, isBright))
 }
 
 fun KonsoleScope.green(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    block.applyCommand(toGreenCommand(colorLayer, isBright))
+    applyCommand(toGreenCommand(colorLayer, isBright))
 }
 
 fun KonsoleScope.yellow(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    block.applyCommand(toYellowCommand(colorLayer, isBright))
+    applyCommand(toYellowCommand(colorLayer, isBright))
 }
 
 fun KonsoleScope.blue(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    block.applyCommand(toBlueCommand(colorLayer, isBright))
+    applyCommand(toBlueCommand(colorLayer, isBright))
 }
 
 fun KonsoleScope.magenta(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    block.applyCommand(toMagentaCommand(colorLayer, isBright))
+    applyCommand(toMagentaCommand(colorLayer, isBright))
 }
 
 fun KonsoleScope.cyan(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    block.applyCommand(toCyanCommand(colorLayer, isBright))
+    applyCommand(toCyanCommand(colorLayer, isBright))
 }
 
 fun KonsoleScope.white(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    block.applyCommand(toWhiteCommand(colorLayer, isBright))
+    applyCommand(toWhiteCommand(colorLayer, isBright))
+}
+
+fun KonsoleScope.clearColor(colorLayer: ColorLayer = ColorLayer.FG) {
+    when (colorLayer) {
+        ColorLayer.FG -> state.fgColor = null
+        ColorLayer.BG -> state.bgColor = null
+    }
+    state.applyTo(block)
+}
+
+fun KonsoleScope.clearColors() {
+    state.fgColor = null
+    state.bgColor = null
+    state.applyTo(block)
 }
 
 fun KonsoleScope.black(
@@ -131,10 +150,17 @@ fun KonsoleScope.black(
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
-    createScopedState {
+    scopedState {
         black(colorLayer, isBright)
         scopedBlock()
     }
+}
+
+fun KonsoleScope.grey(
+    colorLayer: ColorLayer = ColorLayer.FG,
+    scopedBlock: KonsoleBlock.() -> Unit
+) {
+    black(colorLayer, isBright = true, scopedBlock)
 }
 
 fun KonsoleScope.red(
@@ -142,7 +168,7 @@ fun KonsoleScope.red(
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
-    createScopedState {
+    scopedState {
         red(colorLayer, isBright)
         scopedBlock()
     }
@@ -153,7 +179,7 @@ fun KonsoleScope.green(
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
-    createScopedState {
+    scopedState {
         green(colorLayer, isBright)
         scopedBlock()
     }
@@ -164,7 +190,7 @@ fun KonsoleScope.yellow(
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
-    createScopedState {
+    scopedState {
         yellow(colorLayer, isBright)
         scopedBlock()
     }
@@ -175,7 +201,7 @@ fun KonsoleScope.blue(
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
-    createScopedState {
+    scopedState {
         blue(colorLayer, isBright)
         scopedBlock()
     }
@@ -186,7 +212,7 @@ fun KonsoleScope.cyan(
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
-    createScopedState {
+    scopedState {
         cyan(colorLayer, isBright)
         scopedBlock()
     }
@@ -197,7 +223,7 @@ fun KonsoleScope.magenta(
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
-    createScopedState {
+    scopedState {
         magenta(colorLayer, isBright)
         scopedBlock()
     }
@@ -208,7 +234,7 @@ fun KonsoleScope.white(
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
-    createScopedState {
+    scopedState {
         white(colorLayer, isBright)
         scopedBlock()
     }

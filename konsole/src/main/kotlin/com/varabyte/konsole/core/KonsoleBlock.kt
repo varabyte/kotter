@@ -5,7 +5,11 @@ import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 class KonsoleBlock {
     private val textArea = MutableKonsoleTextArea()
 
-    fun applyCommand(command: KonsoleCommand) {
+    internal fun applyCommand(command: KonsoleCommand) {
         command.applyTo(textArea)
+    }
+
+    override fun toString(): String {
+        return textArea.toString()
     }
 }

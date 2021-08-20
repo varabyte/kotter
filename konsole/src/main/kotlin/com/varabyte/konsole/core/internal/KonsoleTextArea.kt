@@ -29,13 +29,13 @@ class MutableKonsoleTextArea : KonsoleTextArea {
         get() = maxH
 
     fun append(c: Char): MutableKonsoleTextArea {
+        stringBuilder.append(c)
         when (c) {
             '\n' -> {
                 currLineX = 0
                 currLineY++
             }
             else -> {
-                stringBuilder.append(c)
                 currLineX++
             }
         }
@@ -57,4 +57,8 @@ class MutableKonsoleTextArea : KonsoleTextArea {
 
     fun appendLine(c: Char) = append(c).append('\n')
     fun appendLine(str: String) = append(str).append('\n')
+
+    override fun toString(): String {
+        return stringBuilder.toString()
+    }
 }
