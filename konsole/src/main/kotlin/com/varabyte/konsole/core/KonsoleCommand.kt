@@ -12,11 +12,3 @@ val NoOpCommand = object : KonsoleCommand {
     override fun applyTo(textArea: MutableKonsoleTextArea) = Unit
     override fun updateState(state: KonsoleState) = Unit
 }
-
-open class AnsiKonsoleCommand(private val ansiCode: String) : KonsoleCommand {
-    final override fun applyTo(textArea: MutableKonsoleTextArea) {
-        textArea.append(ansiCode)
-    }
-
-    override fun toString() = ansiCode.removePrefix(AnsiCodes.ESC)
-}

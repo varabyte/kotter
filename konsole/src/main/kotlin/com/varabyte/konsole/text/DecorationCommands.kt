@@ -1,8 +1,11 @@
 package com.varabyte.konsole.text
 
 import com.varabyte.konsole.ansi.AnsiCodes
-import com.varabyte.konsole.core.*
-import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
+import com.varabyte.konsole.ansi.AnsiKonsoleCommand
+import com.varabyte.konsole.core.KonsoleBlock
+import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.core.KonsoleState
+import com.varabyte.konsole.core.scopedState
 
 private val UNDERLINE_COMMAND = object : AnsiKonsoleCommand(AnsiCodes.Decorations.UNDERLINE) {
     override fun updateState(state: KonsoleState) {
