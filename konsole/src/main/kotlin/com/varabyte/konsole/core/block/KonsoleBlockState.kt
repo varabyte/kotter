@@ -1,5 +1,6 @@
-package com.varabyte.konsole.core
+package com.varabyte.konsole.core.block
 
+import com.varabyte.konsole.core.KonsoleCommand
 import com.varabyte.konsole.text.RESET_COMMAND
 
 /**

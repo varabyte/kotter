@@ -1,5 +1,7 @@
-package com.varabyte.konsole.core
+package com.varabyte.konsole.core.block
 
+import com.varabyte.konsole.core.KonsoleCommand
+import com.varabyte.konsole.core.KonsoleScope
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.TerminalIO
 import java.util.concurrent.ExecutorService
