@@ -1,13 +1,17 @@
 package com.varabyte.konsole.terminal
 
-val DefaultTerminalIO by lazy { SystemTerminalIO() }
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+
+var DefaultTerminalIOProvider: () -> TerminalIO = { SystemTerminalIO() }
+val DefaultTerminalIO by lazy { DefaultTerminalIOProvider() }
 
 /**
  * An interface for abstracting input and output for various terminal implementations.
  */
 interface TerminalIO {
     fun write(text: String)
-    suspend fun read(): Int
+    fun read(): Flow<Int>
 }
 
 /**
@@ -19,7 +23,7 @@ class SystemTerminalIO : TerminalIO {
         System.out.flush()
     }
 
-    override suspend fun read(): Int {
+    override fun read(): Flow<Int> = callbackFlow {
         TODO("Not yet implemented")
     }
 }
@@ -32,7 +36,7 @@ class VirtualTerminalIO : TerminalIO {
         TODO("Not yet implemented")
     }
 
-    override suspend fun read(): Int {
+    override fun read(): Flow<Int> {
         TODO("Not yet implemented")
     }
 }

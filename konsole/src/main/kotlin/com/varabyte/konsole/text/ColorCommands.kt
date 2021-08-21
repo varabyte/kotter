@@ -2,8 +2,8 @@ package com.varabyte.konsole.text
 
 import com.varabyte.konsole.ansi.AnsiCodes
 import com.varabyte.konsole.ansi.AnsiKonsoleCommand
-import com.varabyte.konsole.core.block.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.core.block.KonsoleBlock
 import com.varabyte.konsole.core.block.KonsoleBlockState
 import com.varabyte.konsole.core.scopedState
 

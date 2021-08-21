@@ -28,6 +28,11 @@ class MutableKonsoleTextArea : KonsoleTextArea {
     override val h: Int
         get() = maxH
 
+    fun clear(): MutableKonsoleTextArea {
+        stringBuilder.clear()
+        return this
+    }
+
     fun append(c: Char): MutableKonsoleTextArea {
         stringBuilder.append(c)
         when (c) {
