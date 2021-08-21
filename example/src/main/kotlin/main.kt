@@ -12,7 +12,7 @@ fun main() {
             }
             newLine()
         }
-    }
+    }.run()
 
     konsole {
         underline {
@@ -33,7 +33,7 @@ fun main() {
         }
         textLine("No colors again")
         newLine()
-    }
+    }.run()
 
     konsole {
         underline {
@@ -46,5 +46,5 @@ fun main() {
         textLine("Red on white")
         clearColors()
         textLine("Text back to normal")
-    }
+    }.run()
 }

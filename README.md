@@ -37,18 +37,28 @@ The following is equivalent to `println("Hello, World")`. In this simple case, i
 
 ```kotlin
 konsole {
-  textLine("Hello, World")
-}
+    textLine("Hello, World")
+}.run()
 ```
 
-Konsole starts to show its strength when doing background work (or other async tasks like waiting for user input) that
-cause the block to need to update over time. So let's take a look at that!
+`konsole { ... }` defines a `KonsoleBlock` which, on its own, is inert. It needs to be run at least once to output text
+to the console. Above, we use the `run` method above to trigger this. `run` will execute the block once, blocking the
+program until it is finished running.
+
+Only one block can run at a time, at which point it's active and dynamic. After it has finished running, it becomes
+static history, at which point a new block usually takes over.
+
+Although here we just ran once, Konsole starts to show its strength when doing background work (or other async tasks
+like waiting for user input) that cause the block to update several times, which we'll see many examples of  in the
+following sections.
 
 ### Background work
 
-By default, a konsole block will run once and finish, unless there's an event handler attached to it that keeps it
-alive. The first handler we'll look at is `withBackgroundWork`, which is a suspend function that runs on a background
-thread automatically, and when it finishes, the konsole block will be rerun one last time.
+By default, a Konsole block will run in a loop and wait for the user to call `advance`, but it's more common to register
+event handlers that do this for us.
+
+The first handler we'll look at is `withBackgroundWork`, which is a suspend function that runs on a background thread
+automatically, and when it finishes, triggers the Konsole block to rerun one last time before advancing.
 
 ```kotlin
 var result: Int? = null
@@ -76,8 +86,9 @@ konsole {
         text(if (i < numComplete) "*" else "-")
     }
     text("]")
-}.withBackgroundWork(rerenderOnFinished = false) {
-    // ^ rerenderOnFinished not required because we'll call it manually
+}.withBackgroundWork {
+    // rerenderOnFinished not required because we'll call it manually
+    rerenderOnFinished = false
     while (percent < 100) {
         delay(100)
         percent += 1
@@ -97,9 +108,6 @@ konsole {
     text(" <<<")
 }.onInputEntered { /* ... */ }
 ```
-
-Note that, if you use `blinkingCursor`, you're expected to tack on a callback to the konsole block to keep it from
-exiting right away, or otherwise you'll never get to see the cursor animate!
 
 The next section goes over reading in user input, which works well with the cursor.
 

@@ -10,16 +10,7 @@ import java.util.concurrent.ExecutorService
 fun konsole(
     executor: ExecutorService = KonsoleExecutor,
     terminalIO: TerminalIO = DefaultTerminalIO,
-    block: KonsoleScope.() -> Unit) {
-    val konsoleBlock = KonsoleBlock()
+    block: KonsoleScope.() -> Unit): KonsoleBlock {
 
-    executor.submit {
-        val scope = KonsoleScope(konsoleBlock)
-        scope.block()
-
-        // Clear state for next block!
-        scope.state.applyTo(konsoleBlock)
-
-        terminalIO.write(konsoleBlock.toString())
-    }.get()
+    return KonsoleBlock(executor, terminalIO, block)
 }
