@@ -1,8 +1,7 @@
 package com.varabyte.konsole.core.block
 
-class BackgroundWorkScope(
+class RunUntilScope(
     private val rerenderRequested: () -> Unit
 ) {
-    var rerenderOnFinished = true
     fun rerender() = rerenderRequested()
 }

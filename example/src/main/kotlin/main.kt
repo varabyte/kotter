@@ -1,18 +1,17 @@
+import com.varabyte.konsole.core.KonsoleVar
 import com.varabyte.konsole.konsole
 import com.varabyte.konsole.text.textLine
 import kotlinx.coroutines.delay
 
 fun main() {
     run {
-        var count = 0
+        var count by KonsoleVar(0)
         konsole {
-            textLine("$count: " + "*".repeat(count))
+            textLine("*".repeat(count))
         }.runUntilFinished {
-            rerenderOnFinished = false
             while (count < 10) {
-                ++count
-                rerender()
                 delay(250)
+                ++count
             }
         }
     }

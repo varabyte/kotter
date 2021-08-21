@@ -9,11 +9,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.Future
+import java.util.concurrent.atomic.AtomicReference
+
 
 class KonsoleBlock internal constructor(
     private val executor: ExecutorService,
     private val terminalIO: TerminalIO,
     private val block: KonsoleScope.() -> Unit) {
+
+    companion object {
+        private val activeReference = AtomicReference<KonsoleBlock?>(null)
+        internal val active get() = activeReference.get()
+    }
+
     private val textArea = MutableKonsoleTextArea()
 
     val userInput = terminalIO.read()
@@ -22,28 +31,42 @@ class KonsoleBlock internal constructor(
         command.applyTo(textArea)
     }
 
-    fun runOnce() {
-        executor.submit {
+    internal fun requestRerender() {
+        // TODO: If multiple requestRerenders come in, batch
+        // TODO: Test if this block is done running
+        renderOnce()
+    }
+
+    private fun renderOnceAsync(): Future<*> {
+        return executor.submit {
             textArea.clear()
             KonsoleScope(this).block()
             terminalIO.write(textArea.toString())
-        }.get()
+        }
+    }
+    private fun renderOnce() {
+        renderOnceAsync().get()
     }
 
-    fun runUntilFinished(block: suspend BackgroundWorkScope.() -> Unit) {
-        runOnce()
+    fun runOnce() {
+        activeReference.set(this)
+        renderOnce()
+        activeReference.set(null)
+    }
+
+    fun runUntilFinished(block: suspend RunUntilScope.() -> Unit) {
+        activeReference.set(this)
+        renderOnce()
         val job = CoroutineScope(Dispatchers.Default).launch {
-            val scope = BackgroundWorkScope(
+            val scope = RunUntilScope(
                 rerenderRequested = {
-                    runOnce()
+                    renderOnce()
                 }
             )
             scope.block()
-            if (scope.rerenderOnFinished) {
-                runOnce()
-            }
         }
 
         runBlocking { job.join() }
+        activeReference.set(null)
     }
 }

@@ -1,14 +1,15 @@
 # Konsole
 
 ```kotlin
+var wantsToLearn by KonsoleVar(false)
 konsole {
     textLine("Would you like to learn Konsole? (Y/n)")
-    text("> $input");
-    blinkingCursor()
-}.onInputEntered {
-    if (input.toLowercase().startsWith("y")) {
+    textLine("> $input")
+    if (wantsToLearn) {
         p { textLine("""\(^o^)/""") }
     }
+}.runUntilTextEntered {
+    onTextEntered { wantsToLearn = input.toLowercase().startsWith("y") }
 }
 ```
 
@@ -45,21 +46,57 @@ konsole {
 to the console. Above, we use the `runOnce` method above to trigger this. As you might expect, `runOnce` will execute
 the block once. At this time, the program is blocked until the render is finished running.
 
-Only one block can run at a time, at which point it's active and dynamic. After it has finished running, it becomes
-static history, at which point a new dynamic block is ready to take over.
+`runOnce` consumes the block. If you attempt to call `runOnce` a second time, Konsole will throw an exception.
 
-Although above we just ran once, Konsole starts to show its strength when doing background work (or other async tasks
-like waiting for user input) that cause the block to update several times, which we'll see many examples of in the
-following sections.
+While the above simple case is a bit verbose, Konsole starts to show its strength when doing background work (or other
+async tasks like waiting for user input) that would cause the block to update several times. We'll see many examples of
+this in the following sections.
 
 ### Background work
 
-For background work, we introduce the `runUntilFinished` method, which takes a callback that is a suspend function that
-is automatically run on a background thread for you. The konsole block, after rendering once, then waits for the
-background work to finish. At that time, it rerenders one last time before relinquishing control.
+For background work, we introduce the `runUntilFinished` method, which takes a callback that is automatically run on a
+background thread for you (as a suspend function, so you can call other suspend methods from within it).
+
+The Konsole block, after rendering once, then waits for the background work to finish, blocking the program from
+continuing until it is done.
+
+The `runUntilFinished` method includes some properties and functions in its scope, one of which is `rerender`, which you
+can call to request another render pass.
 
 ```kotlin
 var result: Int? = null
+konsole {
+    text("Calculating... ")
+    if (result != null) { text("Done! Result = $result") }
+    newLine()
+}.runUntilFinished {
+    result = doNetworkFetchAndExpensiveCalculation()
+    rerender()
+}
+```
+
+That works! But needing to remembering to call `rerender` yourself is potentially fragile and could be a source of bugs
+in the future when trying to figure out why your console doesn't update.
+
+For this purpose, Konsole provides the `KonsoleVar` class, a delegate class which, when updated, will automatically
+request a rerender to the last block that referenced it.
+
+To use a `KonsoleVar`, simply change a line like:
+
+```kotlin
+var result: Int? = null
+```
+
+to
+
+```kotlin
+var result by KonsoleVar<Int?>(null)
+```
+
+Let's apply that to the above example and remove the `rerender` call:
+
+```kotlin
+var result by KonsoleVar<Int?>(null)
 konsole {
     text("Calculating... ")
     if (result != null) {
@@ -70,12 +107,11 @@ konsole {
 }
 ```
 
-You can use it for something like a progress bar. Note here we introduce use of the `rerender` method, which triggers
-a block render before the background work has had a chance to finish:
+You can use `runUntilFinished` for something like a progress bar:
 
 ```kotlin
 const val BAR_LENGTH = 100
-var percent = 0
+var percent by KonsoleVar(0)
 konsole {
     text("[")
     val numComplete = percent * BAR_LENGTH
@@ -89,29 +125,53 @@ konsole {
     while (percent < 100) {
         delay(100)
         percent += 1
-        rerender()
     }
 }
 ```
 
 A common pattern is for the `runUntilFinished` block to wait for some sort of signal before finishing, e.g. in response
-to some callback. A simple `CompletableDeffered<Unit>` is recommended for these cases:
+to some callback. You could always use a general threading trick for this, such as a `CountDownLatch` or a simple
+`CompletableDeffered<Unit>` to stop the block from finishing until you're ready:
 
 ```kotlin
-val fileDownloader = FileDownloader("...")
+val fileDownloader by KonsoleVar(FileDownloader("..."))
 fileDownloader.start()
 konsole {
-    text("Downloading files... ")
-    if (fileDownloader.isFinished) {
-        text("Done!")
-    }
-    textLine()
+    /* ... */
 }.runUntilFinished {
     val finished = CompletableDeffered<Unit>()
     fileDownloader.onFinished += { finished.complete(Unit) }
     finished.await()
 }
 ```
+
+but, for convenience, Konsole provides the `signal` and `waitForSignal` methods, which do this for you.
+
+```kotlin
+val fileDownloader by KonsoleVar(FileDownloader("..."))
+konsole {
+    /* ... */
+}.runUntilFinished {
+    fileDownloader.onFinished += { signal() }
+    waitForSignal()
+}
+```
+
+These methods are enough in most cases. Note that if you call `signal` before you reach `waitForSignal`, then
+`waitForSignal` will just pass through without stopping.
+
+Finally, there's a `runUntilSignal` method you can use, which acts just like `runUntilFinished` but with a
+`waitForSignal` at the end, so you only need to call `signal` at some point to progress:
+
+```kotlin
+val fileDownloader by KonsoleVar(FileDownloader("..."))
+konsole {
+    /* ... */
+}.runUntilSignal {
+    fileDownloader.onFinished += { signal() }
+}
+```
+
 
 ### Cursor
 
@@ -125,9 +185,7 @@ konsole {
 }.runUntilFinished { /* ... */ }
 ```
 
-When referenced, the cursor will cause the block to auto-render itself occasionally in order to repaint its state. 
-
-The next section goes over reading in user input, which works well with the cursor.
+When referenced, the cursor will cause the block to auto-render itself occasionally in order to repaint its state.
 
 ### User input
 
@@ -141,33 +199,33 @@ konsole {
     // this konsole block. If your block references it, the block is
     // automatically rerendered when it changes.
     text("Please enter your name: $input")
-    blinkingCursor()
 }.runUntilFinished { /* ... */ }
 ```
+
+Note that the input property automatically adds a blinking cursor automatically for you. This also handles keys like
+LEFT, HOME, and DEL, moving the cursor back and forth between the bounds of the input string.
 
 You can intercept input as it is typed in using the `onInputChanged` event:
 
 ```kotlin
 konsole {
     text("Please enter your name: $input")
-    blinkingCursor()
 }.runUntilFinished {
-    onInputChanged = { 
+    onInputChanged {
         // Reject invalid characters!
-        input = input.filter { it.isLetter() } 
+        input = input.filter { it.isLetter() }
     }
     /* ... */
 }
 ```
 
-You can also use the `lastInput` property to return your input to the previous state. 
+You can also use the `lastInput` property to return your input to the previous (presumably valid) state.
 
 ```kotlin
 konsole {
     text("Please enter your name: $input")
-    blinkingCursor()
 }.runUntilFinished {
-    onInputChanged = { 
+    onInputChanged {
         if (input.any { !it.isLetter() }) {
             input = lastInput
         }
@@ -182,49 +240,47 @@ You can also use `onInputEntered`. This will be triggered whenever the user pres
 lateinit var name: String
 konsole {
     text("Please enter your name: $input")
-    blinkingCursor()
-}.runUntilFinished {
-    val nameEntered = CompletableDeferred<Unit>()
-    onInputChanged = { input = input.filter { it.isLetter() } }
-    onInputEntered = { name = input; nameEntered.complete(Unit) }
-    nameEntered.await()
+}.runUntilSignal {
+    onInputChanged { input = input.filter { it.isLetter() } }
+    onInputEntered { name = input; signal() }
+}
+```
+
+There's actually a shortcut for cases where you want to automatically signal the handler block when text is entered,
+`runUntilTextEntered`, as this is pretty common. Using it, we can slightly simplify the above example:
+
+```kotlin
+lateinit var name: String
+konsole {
+    text("Please enter your name: $input")
+}.runUntilTextEntered {
+    onInputChanged { input = input.filter { it.isLetter() } }
+    onInputEntered { name = input }
 }
 ```
 
 Putting everything together, let's tweak the example from the beginning of this README:
 
 ```kotlin
-var wantsToLearn = false
+var wantsToLearn by KonsoleVar(false)
 konsole {
     textLine("Would you like to learn Konsole? (Y/n)")
     text("> $input")
-    blinkingCursor() 
-    if ("yes".startsWith(input)) {
-        grey {
-            text("yes".substringAfter(input))
-        }
-    }
+    grey { textLine("yes".substringAfter(input)) }
     if (wantsToLearn) {
-        p {
-            textLine("""\(^o^)/""")
-        }
+        p { textLine("""\(^o^)/""") }
     }
-}.runUntilFinished {
-    val finished = CompletableDeffered<Unit>()
-    onInputChanged = {
+}.runUntilTextEntered {
+    onInputChanged {
         val isValid = ("yes".startsWith(input) || "no".startsWithInput(input))
-        if (!isValid) {
-            input = lastInput
-        }
+        if (!isValid) { input = lastInput }
     }
-    onInputEntered = {
+    onInputEntered {
         if ("yes".startsWith(input)) {
             input = "yes" // Update the input to make it feel like we autocompleted their answer
             wantsToLearn = true
         }
-        finished.complete(Unit)
     }
-    finished.await()
 }
 ```
 
@@ -257,24 +313,22 @@ A common situation in a console is responding to bad input.
 
 ```kotlin
 val VALID_ANSWERS = setOf("yes", "no")
-var errorMessage: String? = null
+var errorMessage by KonsoleVar<String>(null)
 konsole {
     text("Would you like to learn Konsole? (Y/n)")
-    text("> $input");
-    blinkingCursor()
+    textLine("> $input")
     if (errorMessage != null) {
         newLine()
         red { textLine(errorMessage) }
     }
-}.runUntilFinished {
-    onInputEntered = {
+}.runUntilSignal {
+    onInputEntered {
         if (!VALID_ANSWERS.any { it.startsWith(input) }) {
             errorMessage = "Please try again. Reason: \"$input\" was invalid"
             rerender()
         }
-        else if ("yes".startsWith(evt.input)) { /* ... */ }
+        else if ("yes".startsWith(input)) { signal() }
     }
-    /* ... */
 }
 ```
 
@@ -313,9 +367,26 @@ konsole {
 }.runOnce()
 ```
 
-You could do this yourself manually, using the `scopedState` method. What this does is creates a new scope within which
-any state will be automatically discarded after it ends. This is what the scoped color methods are doing for you under
-the hood, actually.
+### State
+
+To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
+`konsole` block only:
+
+```kotlin
+konsole {
+    blue(BG)
+    red()
+    text("This text is red on blue")
+}.runOnce()
+
+konsole {
+    text("This text is rendered using default colors")
+}.runOnce()
+```
+
+Konsole blocks also introduce the `scopedState` method. What this does is creates a new scope within which any state
+will be automatically discarded after it ends. This is what the scoped color methods are doing for you under the hood,
+actually.
 
 ```kotlin
 konsole {
@@ -347,22 +418,6 @@ konsole {
 }.runOnce()
 ```
 
-### State
-
-To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
-`konsole` block only:
-
-```kotlin
-konsole {
-    blue(BG)
-    red()
-    text("This text is red on blue")
-}.runOnce()
-
-konsole {
-    text("This text is rendered using default colors")
-}.runOnce()
-```
 
 ### Animations
 
@@ -371,7 +426,7 @@ animation instance from it:
 
 ```kotlin
 val SPINNER = object : KonsoleAnimation(Duration.ofMillis(250)) {
-    override val frames = arrayOf("\\", "|", "/", "-") 
+    override val frames = arrayOf("\\", "|", "/", "-")
 }
 
 var finished = false
@@ -398,7 +453,7 @@ If it's a one-use animation that you don't want to share as a template, you can 
 
 ```kotlin
 val spinner = object : KonsoleAnimation(Duration.ofMillis(250)) {
-    override val frames = arrayOf("\\", "|", "/", "-") 
+    override val frames = arrayOf("\\", "|", "/", "-")
 }.createInstance()
 ```
 
@@ -470,8 +525,9 @@ DefaultTerminalIoProvider = { VirtualTerminalIo() }
 
 ### Why Not Compose?
 
-Konsole's API is inspired by Compose, in that it has a core block which gets rerun for you automatically as necessary
-without you having to worry about it. Why not just use Compose directly?
+Konsole's API is inspired by Compose, which astute readers may have already noticed -- it has a core block which gets
+rerun for you automatically as necessary without you having to worry about it, and special state variables which, when
+modified, automatically "recompose" the current console block. Why not just use Compose directly?
 
 In fact, this is exactly what [Jake Wharton's Mosaic](https://github.com/JakeWharton/mosaic) is doing. I tried using it
 first but ultimately decided against it before deciding to write Konsole, for the following reasons:
@@ -480,7 +536,7 @@ first but ultimately decided against it before deciding to write Konsole, for th
 version of the Kotlin language, you can easily see the dreaded error message: `This version (x.y.z) of the Compose
 Compiler requires Kotlin version a.b.c but you appear to be using Kotlin version d.e.f which is not known to be
 compatible.`
-  * Using Kotlin v1.3 for some reason? You're out of luck. 
+  * Using Kotlin v1.3 or older for some reason? You're out of luck.
   * I suspect this issue with Compose will improve over time, but for the present, it still seems like a non-Compose
   approach could be useful to many.
 
