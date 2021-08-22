@@ -1,9 +1,9 @@
 import com.varabyte.konsole.KonsoleSettings
+import com.varabyte.konsole.ansi.commands.*
+import com.varabyte.konsole.ansi.commands.ColorLayer.BG
 import com.varabyte.konsole.core.scopedState
 import com.varabyte.konsole.konsole
 import com.varabyte.konsole.terminal.swing.SwingTerminal
-import com.varabyte.konsole.text.*
-import com.varabyte.konsole.text.ColorLayer.BG
 
 fun main() {
     // Default the example to ALWAYS using the virtual terminal. While perhaps not as nice as the system terminal, this

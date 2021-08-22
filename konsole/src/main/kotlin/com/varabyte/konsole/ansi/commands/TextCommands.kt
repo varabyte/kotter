@@ -1,4 +1,4 @@
-package com.varabyte.konsole.text
+package com.varabyte.konsole.ansi.commands
 
 import com.varabyte.konsole.core.KonsoleCommand
 import com.varabyte.konsole.core.KonsoleScope

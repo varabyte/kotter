@@ -1,6 +1,6 @@
 package com.varabyte.konsole.core
 
-import com.varabyte.konsole.text.RESET_COMMAND
+import com.varabyte.konsole.ansi.commands.RESET_COMMAND
 
 /**
  * Keep track of all state related commands which should be reapplied to the current block if the ansi terminal resets
