@@ -1,9 +1,18 @@
 package com.varabyte.konsole.terminal
 
+import com.varabyte.konsole.KonsoleSettings
+import com.varabyte.konsole.terminal.swing.SwingTerminalIO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-var DefaultTerminalIOProvider: () -> TerminalIO = { SystemTerminalIO() }
+var DefaultTerminalIOProvider: () -> TerminalIO = {
+    if (KonsoleSettings.VirtualTerminal.alwaysShow) {
+        SwingTerminalIO.create()
+    }
+    else {
+        SystemTerminalIO()
+    }
+}
 val DefaultTerminalIO by lazy { DefaultTerminalIOProvider() }
 
 /**
@@ -24,19 +33,6 @@ class SystemTerminalIO : TerminalIO {
     }
 
     override fun read(): Flow<Int> = callbackFlow {
-        TODO("Not yet implemented")
-    }
-}
-
-/**
- * A class which delegates to a virtual terminal that is opened in a standalone window.
- */
-class VirtualTerminalIO : TerminalIO {
-    override fun write(text: String) {
-        TODO("Not yet implemented")
-    }
-
-    override fun read(): Flow<Int> {
         TODO("Not yet implemented")
     }
 }
