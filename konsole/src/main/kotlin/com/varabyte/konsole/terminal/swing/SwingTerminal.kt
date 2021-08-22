@@ -2,11 +2,11 @@ package com.varabyte.konsole.terminal.swing
 
 import com.varabyte.konsole.KonsoleSettings
 import com.varabyte.konsole.ansi.AnsiCodes
-import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Colors.Bg
-import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Colors.Fg
-import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Decorations
-import com.varabyte.konsole.ansi.AnsiCodes.Sgr.RESET
-import com.varabyte.konsole.ansi.AnsiCodes.Sgr.SgrCode
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Colors.Bg
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Colors.Fg
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Decorations
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.RESET
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -121,7 +121,7 @@ private class TextPtr(val text: String, charIndex: Int = 0) {
     fun substring(length: Int): String = text.substring(charIndex, charIndex + length)
 }
 
-private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<SgrCode, MutableAttributeSet.() -> Unit>(
+private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Sgr.Code, MutableAttributeSet.() -> Unit>(
     RESET to { removeAttributes(this) },
 
     Fg.BLACK to { StyleConstants.setForeground(this, Color.BLACK) },

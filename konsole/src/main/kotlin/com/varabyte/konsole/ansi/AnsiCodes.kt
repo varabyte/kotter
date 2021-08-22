@@ -20,63 +20,66 @@ object AnsiCodes {
     }
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
-    // TODO: Cursor navigation
-
-    // https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
-    object Sgr {
-        sealed class SgrCode(val value: String) {
-            fun toFullEscapeCode(): String = "${Ctrl.ESC}${EscSeq.CSI}${value}"
-        }
-        object RESET : SgrCode("0m")
-
-        object Decorations {
-            object BOLD : SgrCode("1m")
-            object ITALIC : SgrCode("3m")
-            object UNDERLINE : SgrCode("4m")
-            object STRIKETHROUGH : SgrCode("9m")
+    object Csi {
+        abstract class Code(val value: String) {
+            final fun toFullEscapeCode(): String = "${Ctrl.ESC}${EscSeq.CSI}${value}"
         }
 
-        object Colors {
-            object INVERSE : SgrCode("7m")
+        // https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+        object Sgr {
+            abstract class Code(value: String): Csi.Code(value)
 
-            object Fg {
-                object BLACK : SgrCode("30m")
-                object RED : SgrCode("31m")
-                object GREEN : SgrCode("32m")
-                object YELLOW : SgrCode("33m")
-                object BLUE : SgrCode("34m")
-                object MAGENTA : SgrCode("35m")
-                object CYAN : SgrCode("36m")
-                object WHITE : SgrCode("37m")
+            object RESET : Code("0m")
 
-                object BLACK_BRIGHT : SgrCode("30;1m")
-                object RED_BRIGHT : SgrCode("31;1m")
-                object GREEN_BRIGHT : SgrCode("32;1m")
-                object YELLOW_BRIGHT : SgrCode("33;1m")
-                object BLUE_BRIGHT : SgrCode("34;1m")
-                object MAGENTA_BRIGHT : SgrCode("35;1m")
-                object CYAN_BRIGHT : SgrCode("36;1m")
-                object WHITE_BRIGHT : SgrCode("37;1m")
+            object Decorations {
+                object BOLD : Code("1m")
+                object ITALIC : Code("3m")
+                object UNDERLINE : Code("4m")
+                object STRIKETHROUGH : Code("9m")
             }
 
-            object Bg {
-                object BLACK : SgrCode("40m")
-                object RED : SgrCode("41m")
-                object GREEN : SgrCode("42m")
-                object YELLOW : SgrCode("43m")
-                object BLUE : SgrCode("44m")
-                object MAGENTA : SgrCode("45m")
-                object CYAN : SgrCode("46m")
-                object WHITE : SgrCode("47m")
+            object Colors {
+                object INVERSE : Code("7m")
 
-                object BLACK_BRIGHT : SgrCode("40;1m")
-                object RED_BRIGHT : SgrCode("41;1m")
-                object GREEN_BRIGHT : SgrCode("42;1m")
-                object YELLOW_BRIGHT : SgrCode("43;1m")
-                object BLUE_BRIGHT : SgrCode("44;1m")
-                object MAGENTA_BRIGHT : SgrCode("45;1m")
-                object CYAN_BRIGHT : SgrCode("46;1m")
-                object WHITE_BRIGHT : SgrCode("47;1m")
+                object Fg {
+                    object BLACK : Code("30m")
+                    object RED : Code("31m")
+                    object GREEN : Code("32m")
+                    object YELLOW : Code("33m")
+                    object BLUE : Code("34m")
+                    object MAGENTA : Code("35m")
+                    object CYAN : Code("36m")
+                    object WHITE : Code("37m")
+
+                    object BLACK_BRIGHT : Code("30;1m")
+                    object RED_BRIGHT : Code("31;1m")
+                    object GREEN_BRIGHT : Code("32;1m")
+                    object YELLOW_BRIGHT : Code("33;1m")
+                    object BLUE_BRIGHT : Code("34;1m")
+                    object MAGENTA_BRIGHT : Code("35;1m")
+                    object CYAN_BRIGHT : Code("36;1m")
+                    object WHITE_BRIGHT : Code("37;1m")
+                }
+
+                object Bg {
+                    object BLACK : Code("40m")
+                    object RED : Code("41m")
+                    object GREEN : Code("42m")
+                    object YELLOW : Code("43m")
+                    object BLUE : Code("44m")
+                    object MAGENTA : Code("45m")
+                    object CYAN : Code("46m")
+                    object WHITE : Code("47m")
+
+                    object BLACK_BRIGHT : Code("40;1m")
+                    object RED_BRIGHT : Code("41;1m")
+                    object GREEN_BRIGHT : Code("42;1m")
+                    object YELLOW_BRIGHT : Code("43;1m")
+                    object BLUE_BRIGHT : Code("44;1m")
+                    object MAGENTA_BRIGHT : Code("45;1m")
+                    object CYAN_BRIGHT : Code("46;1m")
+                    object WHITE_BRIGHT : Code("47;1m")
+                }
             }
         }
     }

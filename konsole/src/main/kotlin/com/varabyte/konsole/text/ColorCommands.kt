@@ -1,8 +1,8 @@
 package com.varabyte.konsole.text
 
-import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Colors
-import com.varabyte.konsole.ansi.AnsiCodes.Sgr.SgrCode
-import com.varabyte.konsole.ansi.AnsiSgrKonsoleCommand
+import com.varabyte.konsole.ansi.AnsiCodes.Csi
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Colors
+import com.varabyte.konsole.ansi.AnsiCsiKonsoleCommand
 import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleBlockState
 import com.varabyte.konsole.core.KonsoleScope
@@ -13,8 +13,8 @@ enum class ColorLayer {
     BG
 }
 
-private class ColorKonsoleCommand(sgrCode: SgrCode, private val layer: ColorLayer)
-    : AnsiSgrKonsoleCommand(sgrCode) {
+private class ColorKonsoleCommand(csiCode: Csi.Code, private val layer: ColorLayer)
+    : AnsiCsiKonsoleCommand(csiCode) {
     override fun updateState(state: KonsoleBlockState) {
         when(layer) {
             ColorLayer.FG -> state.fgColor = this

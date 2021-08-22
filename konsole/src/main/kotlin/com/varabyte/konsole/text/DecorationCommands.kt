@@ -1,28 +1,28 @@
 package com.varabyte.konsole.text
 
 import com.varabyte.konsole.ansi.AnsiCodes
-import com.varabyte.konsole.ansi.AnsiSgrKonsoleCommand
+import com.varabyte.konsole.ansi.AnsiCsiKonsoleCommand
 import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleBlockState
 import com.varabyte.konsole.core.KonsoleScope
 import com.varabyte.konsole.core.scopedState
 
-private val BOLD_COMMAND = object : AnsiSgrKonsoleCommand(AnsiCodes.Sgr.Decorations.BOLD) {
+private val BOLD_COMMAND = object : AnsiCsiKonsoleCommand(AnsiCodes.Csi.Sgr.Decorations.BOLD) {
     override fun updateState(state: KonsoleBlockState) {
         state.bolded = this
     }
 }
-private val ITALIC_COMMAND = object : AnsiSgrKonsoleCommand(AnsiCodes.Sgr.Decorations.ITALIC) {
+private val ITALIC_COMMAND = object : AnsiCsiKonsoleCommand(AnsiCodes.Csi.Sgr.Decorations.ITALIC) {
     override fun updateState(state: KonsoleBlockState) {
         state.italicized = this
     }
 }
-private val UNDERLINE_COMMAND = object : AnsiSgrKonsoleCommand(AnsiCodes.Sgr.Decorations.UNDERLINE) {
+private val UNDERLINE_COMMAND = object : AnsiCsiKonsoleCommand(AnsiCodes.Csi.Sgr.Decorations.UNDERLINE) {
     override fun updateState(state: KonsoleBlockState) {
         state.underlined = this
     }
 }
-private val STRIKETHROUGH_COMMAND = object : AnsiSgrKonsoleCommand(AnsiCodes.Sgr.Decorations.STRIKETHROUGH) {
+private val STRIKETHROUGH_COMMAND = object : AnsiCsiKonsoleCommand(AnsiCodes.Csi.Sgr.Decorations.STRIKETHROUGH) {
     override fun updateState(state: KonsoleBlockState) {
         state.struckThrough = this
     }
