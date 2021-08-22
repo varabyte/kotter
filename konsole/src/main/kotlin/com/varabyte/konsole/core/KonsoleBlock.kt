@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
@@ -46,31 +47,53 @@ class KonsoleBlock internal constructor(
         renderOnceAsync().get()
     }
 
-    fun runOnce() {
-        activeReference.set(this)
-        renderOnce()
+    /** Mark this block as active. Only one block can be active at a time! */
+    private fun activate(block: () -> Unit) {
+        if (!activeReference.compareAndSet(null, this)) {
+            throw IllegalStateException("Cannot run this Konsole block while another block is already running")
+        }
+        block()
         activeReference.set(null)
     }
 
-    fun runUntilFinished(block: suspend RunUntilScope.() -> Unit) {
-        activeReference.set(this)
-        renderOnce()
-        val job = CoroutineScope(Dispatchers.Default).launch {
-            val scope = RunUntilScope(
-                rerenderRequested = {
-                    renderOnce()
-                }
-            )
-            scope.block()
+    fun runOnce() {
+        activate {
+            renderOnce()
         }
+    }
 
-        runBlocking { job.join() }
-        activeReference.set(null)
+    fun runUntilFinished(block: suspend RunUntilScope.() -> Unit) {
+        activate {
+            activeReference.set(this)
+            renderOnce()
+            val job = CoroutineScope(Dispatchers.Default).launch {
+                val scope = RunUntilScope(
+                    rerenderRequested = {
+                        renderOnce()
+                    }
+                )
+                scope.block()
+            }
+
+            runBlocking { job.join() }
+        }
     }
 }
 
 class RunUntilScope(
     private val rerenderRequested: () -> Unit
 ) {
+    private val waitLatch = CountDownLatch(1)
     fun rerender() = rerenderRequested()
+    fun waitForSignal() { waitLatch.await() }
+    fun signal() { waitLatch.countDown() }
 }
+
+fun KonsoleBlock.runUntilSignal(block: suspend RunUntilScope.() -> Unit) {
+    runUntilFinished {
+        block()
+        waitForSignal()
+    }
+}
+
+// TODO: fun KonsoleBlock.runUntilTextEntered(block: suspend RunUntilScope.() -> Unit) { ... }
