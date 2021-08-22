@@ -206,7 +206,7 @@ private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<String, MutableAttributeSet.() -> 
 class SwingTerminalPane(fontSize: Int) : JTextPane() {
     init {
         isEditable = false
-        font = Font(Font.MONOSPACED, Font.BOLD, fontSize)
+        font = Font(Font.MONOSPACED, Font.PLAIN, fontSize)
     }
 
     fun processAnsiText(text: String) {

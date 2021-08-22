@@ -1,4 +1,5 @@
 import com.varabyte.konsole.KonsoleSettings
+import com.varabyte.konsole.core.scopedState
 import com.varabyte.konsole.konsole
 import com.varabyte.konsole.terminal.swing.SwingTerminalIO
 import com.varabyte.konsole.text.*
@@ -23,14 +24,41 @@ fun main() {
 //    }
 
     konsole {
-        textLine("WELCOME TO KONSOLE!")
+        bold { textLine("WELCOME TO KONSOLE!") }
         newLine()
     }.runOnce()
 
     konsole {
         underline {
-            textLine("Nested colors test")
+            textLine("Decoration test")
         }
+
+        bold { textLine("Bolded") }
+        italic { textLine("Italicized") }
+        strikethrough { textLine("Struck through") }
+
+        scopedState {
+            bold()
+            italic()
+            textLine("Bolded and italicized")
+            underline {
+                textLine("Bolded and italicized and underlined")
+            }
+            strikethrough {
+                textLine("Bolded and italicized and struck through")
+            }
+        }
+
+        textLine("Back to normal")
+        newLine()
+    }.runOnce()
+
+    konsole {
+        underline {
+            textLine("Colors test")
+        }
+
+        // Verify nested colors work
         textLine("No colors")
         white(BG) {
             black {
@@ -45,19 +73,13 @@ fun main() {
             }
         }
         textLine("No colors again")
-        newLine()
-    }.runOnce()
 
-    konsole {
-        underline {
-            textLine("clearColors test")
-        }
-
+        // Verify clearColors works
         red()
         textLine("Red text")
         white(BG)
         textLine("Red on white")
         clearColors()
-        textLine("Text back to normal")
+        textLine("No colors again")
     }.runOnce()
 }

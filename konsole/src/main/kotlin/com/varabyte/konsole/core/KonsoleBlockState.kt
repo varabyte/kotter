@@ -63,6 +63,13 @@ class KonsoleBlockState internal constructor(internal val parent: KonsoleBlockSt
                 isDirty = true
             }
         }
+    internal var struckThrough: KonsoleCommand? = null
+        set(value) {
+            if (field != value) {
+                field = value
+                isDirty = true
+            }
+        }
     internal var inverted: KonsoleCommand? = null
         set(value) {
             if (field != value) {
@@ -76,6 +83,7 @@ class KonsoleBlockState internal constructor(internal val parent: KonsoleBlockSt
     private val underlinedRecursive: KonsoleCommand? get() = underlined ?: parent?.underlinedRecursive
     private val boldedRecursive: KonsoleCommand? get() = bolded ?: parent?.boldedRecursive
     private val italicizedRecursive: KonsoleCommand? get() = italicized ?: parent?.italicizedRecursive
+    private val struckThroughRecursive: KonsoleCommand? get() = struckThrough ?: parent?.struckThroughRecursive
     private val invertedRecursive: KonsoleCommand? get() = inverted ?: parent?.invertedRecursive
 
     internal fun clear() {
@@ -95,6 +103,7 @@ class KonsoleBlockState internal constructor(internal val parent: KonsoleBlockSt
             (underlinedRecursive)?.let { block.applyCommand(it) }
             (boldedRecursive)?.let { block.applyCommand(it) }
             (italicizedRecursive)?.let { block.applyCommand(it) }
+            (struckThroughRecursive)?.let { block.applyCommand(it) }
             (invertedRecursive)?.let { block.applyCommand(it) }
         }
 
