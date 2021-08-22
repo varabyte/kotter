@@ -21,6 +21,7 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JFrame
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
+import javax.swing.border.EmptyBorder
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
@@ -57,7 +58,11 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
                 val frame = JFrame(title)
                 frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
-                frame.contentPane.add(JScrollPane(terminal.pane))
+                frame.contentPane.add(JScrollPane(terminal.pane).apply {
+                    border = EmptyBorder(5, 5, 5, 5)
+                    foreground = fgColor
+                    background = bgColor
+                })
                 frame.pack()
                 terminal.pane.text = ""
                 frame.setLocationRelativeTo(null)
