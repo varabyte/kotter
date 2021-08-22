@@ -1,6 +1,5 @@
 package com.varabyte.konsole.core
 
-import com.varabyte.konsole.core.block.KonsoleBlock
 import kotlin.reflect.KProperty
 
 class KonsoleVar<T>(private var value: T) {

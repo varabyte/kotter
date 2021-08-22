@@ -1,8 +1,5 @@
 package com.varabyte.konsole.core
 
-import com.varabyte.konsole.core.block.KonsoleBlock
-import com.varabyte.konsole.core.block.KonsoleBlockState
-
 class KonsoleScope(internal val block: KonsoleBlock) {
     internal var state = KonsoleBlockState()
 

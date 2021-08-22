@@ -1,7 +1,5 @@
-package com.varabyte.konsole.core.block
+package com.varabyte.konsole.core
 
-import com.varabyte.konsole.core.KonsoleCommand
-import com.varabyte.konsole.core.KonsoleScope
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.TerminalIO
 import kotlinx.coroutines.CoroutineScope
@@ -69,4 +67,10 @@ class KonsoleBlock internal constructor(
         runBlocking { job.join() }
         activeReference.set(null)
     }
+}
+
+class RunUntilScope(
+    private val rerenderRequested: () -> Unit
+) {
+    fun rerender() = rerenderRequested()
 }
