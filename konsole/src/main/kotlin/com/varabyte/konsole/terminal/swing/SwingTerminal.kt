@@ -6,7 +6,7 @@ import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Colors.Bg
 import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Colors.Fg
 import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Decorations
 import com.varabyte.konsole.ansi.AnsiCodes.Sgr.RESET
-import com.varabyte.konsole.terminal.TerminalIO
+import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -24,29 +24,33 @@ import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
 
-class SwingTerminalIO private constructor(private val pane: SwingTerminalPane) : TerminalIO {
+class SwingTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
     companion object {
+        /**
+         * @param terminalSize Number of characters, so 80x32 will be expanded to fit 80 characters horizontally and
+         *   32 lines vertically (before scrolling is needed)
+         */
         fun create(
             title: String = KonsoleSettings.VirtualTerminal.title ?: "Konsole Terminal",
-            numCharacters: Dimension = KonsoleSettings.VirtualTerminal.size,
+            terminalSize: Dimension = KonsoleSettings.VirtualTerminal.size,
             fontSize: Int = KonsoleSettings.VirtualTerminal.fontSize,
             fgColor: Color = KonsoleSettings.VirtualTerminal.fgColor,
             bgColor: Color = KonsoleSettings.VirtualTerminal.bgColor,
-        ): SwingTerminalIO {
+        ): SwingTerminal {
             val pane = SwingTerminalPane(fontSize)
             pane.foreground = fgColor
             pane.background = bgColor
             pane.text = buildString {
                 // Set initial text to a block of blank characters so pack will set it to the right size
-                for (h in 0 until numCharacters.height) {
+                for (h in 0 until terminalSize.height) {
                     if (h > 0) appendLine()
-                    for (w in 0 until numCharacters.width) {
+                    for (w in 0 until terminalSize.width) {
                         append(' ')
                     }
                 }
             }
 
-            val terminal = SwingTerminalIO(pane)
+            val terminal = SwingTerminal(pane)
             val framePacked = CountDownLatch(1)
             CoroutineScope((Dispatchers.Swing)).launch {
                 val frame = JFrame(title)

@@ -1,12 +1,12 @@
 package com.varabyte.konsole
 
-import com.varabyte.konsole.terminal.SystemTerminalIO
-import com.varabyte.konsole.terminal.TerminalIO
+import com.varabyte.konsole.terminal.SystemTerminal
+import com.varabyte.konsole.terminal.Terminal
 import java.awt.Color
 import java.awt.Dimension
 
 object KonsoleSettings {
-    var provideTerminalIO: () -> TerminalIO = { SystemTerminalIO() }
+    var provideTerminal: () -> Terminal = { SystemTerminal() }
 
     object VirtualTerminal {
         var title: String? = null

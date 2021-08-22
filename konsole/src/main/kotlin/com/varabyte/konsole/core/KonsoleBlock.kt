@@ -1,7 +1,7 @@
 package com.varabyte.konsole.core
 
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
-import com.varabyte.konsole.terminal.TerminalIO
+import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 class KonsoleBlock internal constructor(
     private val executor: ExecutorService,
-    private val terminalIO: TerminalIO,
+    private val terminal: Terminal,
     private val block: KonsoleScope.() -> Unit) {
 
     companion object {
@@ -24,7 +24,7 @@ class KonsoleBlock internal constructor(
 
     private val textArea = MutableKonsoleTextArea()
 
-    val userInput = terminalIO.read()
+    val userInput = terminal.read()
 
     internal fun applyCommand(command: KonsoleCommand) {
         command.applyTo(textArea)
@@ -40,7 +40,7 @@ class KonsoleBlock internal constructor(
         return executor.submit {
             textArea.clear()
             KonsoleScope(this).block()
-            terminalIO.write(textArea.toString())
+            terminal.write(textArea.toString())
         }
     }
     private fun renderOnce() {

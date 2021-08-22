@@ -1,7 +1,7 @@
 import com.varabyte.konsole.KonsoleSettings
 import com.varabyte.konsole.core.scopedState
 import com.varabyte.konsole.konsole
-import com.varabyte.konsole.terminal.swing.SwingTerminalIO
+import com.varabyte.konsole.terminal.swing.SwingTerminal
 import com.varabyte.konsole.text.*
 import com.varabyte.konsole.text.ColorLayer.BG
 
@@ -9,7 +9,7 @@ fun main() {
     // Default the example to ALWAYS using the virtual terminal. While perhaps not as nice as the system terminal, this
     // is guaranteed to work cross platform, and it is easier to debug as well (since IntelliJ / Gradle terminals seem
     // to fight with or don't support ANSI cursor commands.
-    KonsoleSettings.provideTerminalIO = { SwingTerminalIO.create() }
+    KonsoleSettings.provideTerminal = { SwingTerminal.create() }
 
 //    run {
 //        var count by KonsoleVar(0)

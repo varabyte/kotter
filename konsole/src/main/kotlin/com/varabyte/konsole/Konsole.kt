@@ -4,13 +4,13 @@ import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleScope
 import com.varabyte.konsole.core.internal.executor.KonsoleExecutor
 import com.varabyte.konsole.terminal.DefaultTerminalIO
-import com.varabyte.konsole.terminal.TerminalIO
+import com.varabyte.konsole.terminal.Terminal
 import java.util.concurrent.ExecutorService
 
 fun konsole(
     executor: ExecutorService = KonsoleExecutor,
-    terminalIO: TerminalIO = DefaultTerminalIO,
+    terminal: Terminal = DefaultTerminalIO,
     block: KonsoleScope.() -> Unit): KonsoleBlock {
 
-    return KonsoleBlock(executor, terminalIO, block)
+    return KonsoleBlock(executor, terminal, block)
 }
