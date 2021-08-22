@@ -7,7 +7,7 @@ import com.varabyte.konsole.core.KonsoleBlockState
 import com.varabyte.konsole.core.KonsoleScope
 import com.varabyte.konsole.core.scopedState
 
-private val UNDERLINE_COMMAND = object : AnsiKonsoleCommand(AnsiCodes.Decorations.UNDERLINE) {
+private val UNDERLINE_COMMAND = object : AnsiKonsoleCommand(AnsiCodes.Sgr.Decorations.UNDERLINE) {
     override fun updateState(state: KonsoleBlockState) {
         state.underlined = this
     }

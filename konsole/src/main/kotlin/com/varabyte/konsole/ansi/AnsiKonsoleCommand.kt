@@ -8,5 +8,5 @@ open class AnsiKonsoleCommand(private val ansiCode: String) : KonsoleCommand {
         textArea.append(ansiCode)
     }
 
-    override fun toString() = ansiCode.removePrefix(AnsiCodes.ESC)
+    override fun toString() = ansiCode.removePrefix(AnsiCodes.ControlCharacters.ESC.toString())
 }

@@ -1,32 +1,30 @@
 import com.varabyte.konsole.KonsoleSettings
-import com.varabyte.konsole.core.KonsoleVar
 import com.varabyte.konsole.konsole
+import com.varabyte.konsole.terminal.swing.SwingTerminalIO
 import com.varabyte.konsole.text.*
 import com.varabyte.konsole.text.ColorLayer.BG
-import kotlinx.coroutines.delay
 
 fun main() {
-    KonsoleSettings.VirtualTerminal.alwaysShow = true
+    // Default the example to ALWAYS using the virtual terminal. While perhaps not as nice as the system terminal, this
+    // is guaranteed to work cross platform, and it is easier to debug as well (since IntelliJ / Gradle terminals seem
+    // to fight with or don't support ANSI cursor commands.
+    KonsoleSettings.provideTerminalIO = { SwingTerminalIO.create() }
 
-    run {
-        var count by KonsoleVar(0)
-        konsole {
-            textLine("*".repeat(count))
-        }.runUntilFinished {
-            while (count < 10) {
-                delay(250)
-                ++count
-            }
-        }
-    }
+//    run {
+//        var count by KonsoleVar(0)
+//        konsole {
+//            textLine("*".repeat(count))
+//        }.runUntilFinished {
+//            while (count < 10) {
+//                delay(250)
+//                ++count
+//            }
+//        }
+//    }
 
     konsole {
-        p {
-            green(BG) {
-                text("WELCOME TO KONSOLE!")
-            }
-            newLine()
-        }
+        textLine("WELCOME TO KONSOLE!")
+        newLine()
     }.runOnce()
 
     konsole {

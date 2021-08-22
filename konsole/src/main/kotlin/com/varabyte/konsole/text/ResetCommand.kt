@@ -4,7 +4,7 @@ import com.varabyte.konsole.ansi.AnsiCodes
 import com.varabyte.konsole.ansi.AnsiKonsoleCommand
 import com.varabyte.konsole.core.KonsoleBlockState
 
-internal val RESET_COMMAND = object : AnsiKonsoleCommand(AnsiCodes.RESET) {
+internal val RESET_COMMAND = object : AnsiKonsoleCommand(AnsiCodes.Sgr.RESET) {
     override fun updateState(state: KonsoleBlockState) {
         state.clear()
     }

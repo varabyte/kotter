@@ -1,19 +1,10 @@
 package com.varabyte.konsole.terminal
 
 import com.varabyte.konsole.KonsoleSettings
-import com.varabyte.konsole.terminal.swing.SwingTerminalIO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-var DefaultTerminalIOProvider: () -> TerminalIO = {
-    if (KonsoleSettings.VirtualTerminal.alwaysShow) {
-        SwingTerminalIO.create()
-    }
-    else {
-        SystemTerminalIO()
-    }
-}
-val DefaultTerminalIO by lazy { DefaultTerminalIOProvider() }
+val DefaultTerminalIO by lazy { KonsoleSettings.provideTerminalIO() }
 
 /**
  * An interface for abstracting input and output for various terminal implementations.

@@ -1,6 +1,7 @@
 package com.varabyte.konsole.text
 
 import com.varabyte.konsole.ansi.AnsiCodes
+import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Colors
 import com.varabyte.konsole.ansi.AnsiKonsoleCommand
 import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleBlockState
@@ -22,41 +23,41 @@ private class ColorKonsoleCommand(ansiCommand: String, private val layer: ColorL
     }
 }
 
-private val FG_BLACK_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.BLACK, ColorLayer.FG)
-private val FG_RED_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.RED, ColorLayer.FG)
-private val FG_GREEN_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.GREEN, ColorLayer.FG)
-private val FG_YELLOW_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.YELLOW, ColorLayer.FG)
-private val FG_BLUE_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.BLUE, ColorLayer.FG)
-private val FG_MAGENTA_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.MAGENTA, ColorLayer.FG)
-private val FG_CYAN_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.CYAN, ColorLayer.FG)
-private val FG_WHITE_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.WHITE, ColorLayer.FG)
+private val FG_BLACK_COMMAND = ColorKonsoleCommand(Colors.Fg.BLACK, ColorLayer.FG)
+private val FG_RED_COMMAND = ColorKonsoleCommand(Colors.Fg.RED, ColorLayer.FG)
+private val FG_GREEN_COMMAND = ColorKonsoleCommand(Colors.Fg.GREEN, ColorLayer.FG)
+private val FG_YELLOW_COMMAND = ColorKonsoleCommand(Colors.Fg.YELLOW, ColorLayer.FG)
+private val FG_BLUE_COMMAND = ColorKonsoleCommand(Colors.Fg.BLUE, ColorLayer.FG)
+private val FG_MAGENTA_COMMAND = ColorKonsoleCommand(Colors.Fg.MAGENTA, ColorLayer.FG)
+private val FG_CYAN_COMMAND = ColorKonsoleCommand(Colors.Fg.CYAN, ColorLayer.FG)
+private val FG_WHITE_COMMAND = ColorKonsoleCommand(Colors.Fg.WHITE, ColorLayer.FG)
 
-private val FG_BLACK_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.BLACK_BRIGHT, ColorLayer.FG)
-private val FG_RED_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.RED_BRIGHT, ColorLayer.FG)
-private val FG_GREEN_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.GREEN_BRIGHT, ColorLayer.FG)
-private val FG_YELLOW_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.YELLOW_BRIGHT, ColorLayer.FG)
-private val FG_BLUE_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.BLUE_BRIGHT, ColorLayer.FG)
-private val FG_MAGENTA_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.MAGENTA_BRIGHT, ColorLayer.FG)
-private val FG_CYAN_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.CYAN_BRIGHT, ColorLayer.FG)
-private val FG_WHITE_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Fg.WHITE_BRIGHT, ColorLayer.FG)
+private val FG_BLACK_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Fg.BLACK_BRIGHT, ColorLayer.FG)
+private val FG_RED_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Fg.RED_BRIGHT, ColorLayer.FG)
+private val FG_GREEN_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Fg.GREEN_BRIGHT, ColorLayer.FG)
+private val FG_YELLOW_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Fg.YELLOW_BRIGHT, ColorLayer.FG)
+private val FG_BLUE_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Fg.BLUE_BRIGHT, ColorLayer.FG)
+private val FG_MAGENTA_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Fg.MAGENTA_BRIGHT, ColorLayer.FG)
+private val FG_CYAN_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Fg.CYAN_BRIGHT, ColorLayer.FG)
+private val FG_WHITE_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Fg.WHITE_BRIGHT, ColorLayer.FG)
 
-private val BG_BLACK_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.BLACK, ColorLayer.BG)
-private val BG_RED_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.RED, ColorLayer.BG)
-private val BG_GREEN_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.GREEN, ColorLayer.BG)
-private val BG_YELLOW_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.YELLOW, ColorLayer.BG)
-private val BG_BLUE_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.BLUE, ColorLayer.BG)
-private val BG_MAGENTA_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.MAGENTA, ColorLayer.BG)
-private val BG_CYAN_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.CYAN, ColorLayer.BG)
-private val BG_WHITE_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.WHITE, ColorLayer.BG)
+private val BG_BLACK_COMMAND = ColorKonsoleCommand(Colors.Bg.BLACK, ColorLayer.BG)
+private val BG_RED_COMMAND = ColorKonsoleCommand(Colors.Bg.RED, ColorLayer.BG)
+private val BG_GREEN_COMMAND = ColorKonsoleCommand(Colors.Bg.GREEN, ColorLayer.BG)
+private val BG_YELLOW_COMMAND = ColorKonsoleCommand(Colors.Bg.YELLOW, ColorLayer.BG)
+private val BG_BLUE_COMMAND = ColorKonsoleCommand(Colors.Bg.BLUE, ColorLayer.BG)
+private val BG_MAGENTA_COMMAND = ColorKonsoleCommand(Colors.Bg.MAGENTA, ColorLayer.BG)
+private val BG_CYAN_COMMAND = ColorKonsoleCommand(Colors.Bg.CYAN, ColorLayer.BG)
+private val BG_WHITE_COMMAND = ColorKonsoleCommand(Colors.Bg.WHITE, ColorLayer.BG)
 
-private val BG_BLACK_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.BLACK_BRIGHT, ColorLayer.BG)
-private val BG_RED_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.RED_BRIGHT, ColorLayer.BG)
-private val BG_GREEN_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.GREEN_BRIGHT, ColorLayer.BG)
-private val BG_YELLOW_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.YELLOW_BRIGHT, ColorLayer.BG)
-private val BG_BLUE_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.BLUE_BRIGHT, ColorLayer.BG)
-private val BG_MAGENTA_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.MAGENTA_BRIGHT, ColorLayer.BG)
-private val BG_CYAN_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.CYAN_BRIGHT, ColorLayer.BG)
-private val BG_WHITE_BRIGHT_COMMAND = ColorKonsoleCommand(AnsiCodes.Colors.Bg.WHITE_BRIGHT, ColorLayer.BG)
+private val BG_BLACK_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Bg.BLACK_BRIGHT, ColorLayer.BG)
+private val BG_RED_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Bg.RED_BRIGHT, ColorLayer.BG)
+private val BG_GREEN_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Bg.GREEN_BRIGHT, ColorLayer.BG)
+private val BG_YELLOW_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Bg.YELLOW_BRIGHT, ColorLayer.BG)
+private val BG_BLUE_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Bg.BLUE_BRIGHT, ColorLayer.BG)
+private val BG_MAGENTA_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Bg.MAGENTA_BRIGHT, ColorLayer.BG)
+private val BG_CYAN_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Bg.CYAN_BRIGHT, ColorLayer.BG)
+private val BG_WHITE_BRIGHT_COMMAND = ColorKonsoleCommand(Colors.Bg.WHITE_BRIGHT, ColorLayer.BG)
 
 private fun toBlackCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
     ColorLayer.FG -> if (isBright) FG_BLACK_BRIGHT_COMMAND else FG_BLACK_COMMAND
