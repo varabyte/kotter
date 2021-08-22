@@ -24,8 +24,6 @@ class KonsoleBlock internal constructor(
 
     private val textArea = MutableKonsoleTextArea()
 
-    val userInput = terminal.read()
-
     internal fun applyCommand(command: KonsoleCommand) {
         command.applyTo(textArea)
     }
