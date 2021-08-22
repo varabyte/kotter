@@ -1,8 +1,5 @@
 package com.varabyte.konsole.ansi
 
-import com.varabyte.konsole.ansi.AnsiCodes.ControlCharacters.ESC
-import com.varabyte.konsole.ansi.AnsiCodes.EscapeSequences.CSI
-
 /**
  * A collection of common ANSI codes which power the features of Konsole
  *
@@ -12,73 +9,74 @@ import com.varabyte.konsole.ansi.AnsiCodes.EscapeSequences.CSI
  */
 object AnsiCodes {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
-    object ControlCharacters {
+    object Ctrl {
         val BACKSPACE = '\u0008'
         val ESC = '\u001B'
     }
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Fe_Escape_sequences
-    object EscapeSequences {
-        val CSI = "$ESC["
+    object EscSeq {
+        val CSI = '['
     }
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
-    object Csi {
-        // TODO: Cursor navigation
-    }
+    // TODO: Cursor navigation
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
     object Sgr {
-        val RESET = "${CSI}0m"
+        sealed class SgrCode(val value: String) {
+            fun toFullEscapeCode(): String = "${Ctrl.ESC}${EscSeq.CSI}${value}"
+        }
+        object RESET : SgrCode("0m")
 
         object Decorations {
-            val BOLD = "${CSI}1m"
-            val ITALIC = "${CSI}3m"
-            val UNDERLINE = "${CSI}4m"
-            val STRIKETHROUGH = "${CSI}9m"
+            object BOLD : SgrCode("1m")
+            object ITALIC : SgrCode("3m")
+            object UNDERLINE : SgrCode("4m")
+            object STRIKETHROUGH : SgrCode("9m")
         }
 
         object Colors {
-            val INVERSE = "${CSI}7m"
+            object INVERSE : SgrCode("7m")
 
             object Fg {
-                val BLACK = "${CSI}30m"
-                val RED = "${CSI}31m"
-                val GREEN = "${CSI}32m"
-                val YELLOW = "${CSI}33m"
-                val BLUE = "${CSI}34m"
-                val MAGENTA = "${CSI}35m"
-                val CYAN = "${CSI}36m"
-                val WHITE = "${CSI}37m"
+                object BLACK : SgrCode("30m")
+                object RED : SgrCode("31m")
+                object GREEN : SgrCode("32m")
+                object YELLOW : SgrCode("33m")
+                object BLUE : SgrCode("34m")
+                object MAGENTA : SgrCode("35m")
+                object CYAN : SgrCode("36m")
+                object WHITE : SgrCode("37m")
 
-                val BLACK_BRIGHT = "${CSI}30;1m"
-                val RED_BRIGHT = "${CSI}31;1m"
-                val GREEN_BRIGHT = "${CSI}32;1m"
-                val YELLOW_BRIGHT = "${CSI}33;1m"
-                val BLUE_BRIGHT = "${CSI}34;1m"
-                val MAGENTA_BRIGHT = "${CSI}35;1m"
-                val CYAN_BRIGHT = "${CSI}36;1m"
-                val WHITE_BRIGHT = "${CSI}37;1m"
+                object BLACK_BRIGHT : SgrCode("30;1m")
+                object RED_BRIGHT : SgrCode("31;1m")
+                object GREEN_BRIGHT : SgrCode("32;1m")
+                object YELLOW_BRIGHT : SgrCode("33;1m")
+                object BLUE_BRIGHT : SgrCode("34;1m")
+                object MAGENTA_BRIGHT : SgrCode("35;1m")
+                object CYAN_BRIGHT : SgrCode("36;1m")
+                object WHITE_BRIGHT : SgrCode("37;1m")
             }
 
             object Bg {
-                val BLACK = "${CSI}40m"
-                val RED = "${CSI}41m"
-                val GREEN = "${CSI}42m"
-                val YELLOW = "${CSI}43m"
-                val BLUE = "${CSI}44m"
-                val MAGENTA = "${CSI}45m"
-                val CYAN = "${CSI}46m"
-                val WHITE = "${CSI}47m"
+                object BLACK : SgrCode("40m")
+                object RED : SgrCode("41m")
+                object GREEN : SgrCode("42m")
+                object YELLOW : SgrCode("43m")
+                object BLUE : SgrCode("44m")
+                object MAGENTA : SgrCode("45m")
+                object CYAN : SgrCode("46m")
+                object WHITE : SgrCode("47m")
 
-                val BLACK_BRIGHT = "${CSI}40;1m"
-                val RED_BRIGHT = "${CSI}41;1m"
-                val GREEN_BRIGHT = "${CSI}42;1m"
-                val YELLOW_BRIGHT = "${CSI}43;1m"
-                val BLUE_BRIGHT = "${CSI}44;1m"
-                val MAGENTA_BRIGHT = "${CSI}45;1m"
-                val CYAN_BRIGHT = "${CSI}46;1m"
-                val WHITE_BRIGHT = "${CSI}47;1m"
+                object BLACK_BRIGHT : SgrCode("40;1m")
+                object RED_BRIGHT : SgrCode("41;1m")
+                object GREEN_BRIGHT : SgrCode("42;1m")
+                object YELLOW_BRIGHT : SgrCode("43;1m")
+                object BLUE_BRIGHT : SgrCode("44;1m")
+                object MAGENTA_BRIGHT : SgrCode("45;1m")
+                object CYAN_BRIGHT : SgrCode("46;1m")
+                object WHITE_BRIGHT : SgrCode("47;1m")
             }
         }
     }

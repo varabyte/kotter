@@ -6,6 +6,7 @@ import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Colors.Bg
 import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Colors.Fg
 import com.varabyte.konsole.ansi.AnsiCodes.Sgr.Decorations
 import com.varabyte.konsole.ansi.AnsiCodes.Sgr.RESET
+import com.varabyte.konsole.ansi.AnsiCodes.Sgr.SgrCode
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -79,131 +80,83 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
     }
 }
 
-private fun String.startsWithAt(charIndex: Int, prefix: String): Boolean {
-    if (this.length < charIndex + prefix.length) return false
+private class TextPtr(val text: String, charIndex: Int = 0) {
 
-    for (i in prefix.indices) {
-        if (this[charIndex + i] != prefix[i]) return false
+    var charIndex = 0
+        set(value) {
+            require(value >= 0 && value < text.length) { "charIndex value is out of bounds. Expected 0 .. ${text.length - 1}, got $value" }
+            field = value
+        }
+
+    val currChar get() = text[charIndex]
+
+    init {
+        require(text != "") { "TextPtr expects to point at a non-empty string" }
+        this.charIndex = charIndex
     }
 
-    return true
+    fun moveCursor(delta: Int): Boolean {
+        val newIndex = (charIndex + delta).coerceIn(0, text.length - 1)
+        if (newIndex != charIndex) {
+            charIndex = newIndex
+            return true
+        }
+        return false
+    }
+
+    fun startsWith(prefix: String): Boolean {
+        if (text.length < charIndex + prefix.length) return false
+
+        for (i in prefix.indices) {
+            if (text[charIndex + i] != prefix[i]) return false
+        }
+        return true
+    }
+
+    fun substring(length: Int): String = text.substring(charIndex, charIndex + length)
 }
 
-private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<String, MutableAttributeSet.() -> Unit>(
-    RESET to {
-        removeAttributes(this)
-    },
+private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<SgrCode, MutableAttributeSet.() -> Unit>(
+    RESET to { removeAttributes(this) },
 
-    Fg.BLACK to {
-        StyleConstants.setForeground(this, Color.BLACK)
-    },
-    Fg.RED to {
-        StyleConstants.setForeground(this, Color.RED)
-    },
-    Fg.GREEN to {
-        StyleConstants.setForeground(this, Color.GREEN)
-    },
-    Fg.YELLOW to {
-        StyleConstants.setForeground(this, Color.YELLOW)
-    },
-    Fg.BLUE to {
-        StyleConstants.setForeground(this, Color.BLUE)
-    },
-    Fg.MAGENTA to {
-        StyleConstants.setForeground(this, Color.MAGENTA)
-    },
-    Fg.CYAN to {
-        StyleConstants.setForeground(this, Color.CYAN)
-    },
-    Fg.WHITE to {
-        StyleConstants.setForeground(this, Color.WHITE)
-    },
-    Fg.BLACK_BRIGHT to {
-        StyleConstants.setForeground(this, Color.BLACK)
-    },
-    Fg.RED_BRIGHT to {
-        StyleConstants.setForeground(this, Color.RED)
-    },
-    Fg.GREEN_BRIGHT to {
-        StyleConstants.setForeground(this, Color.GREEN)
-    },
-    Fg.YELLOW_BRIGHT to {
-        StyleConstants.setForeground(this, Color.YELLOW)
-    },
-    Fg.BLUE_BRIGHT to {
-        StyleConstants.setForeground(this, Color.BLUE)
-    },
-    Fg.MAGENTA_BRIGHT to {
-        StyleConstants.setForeground(this, Color.MAGENTA)
-    },
-    Fg.CYAN_BRIGHT to {
-        StyleConstants.setForeground(this, Color.CYAN)
-    },
-    Fg.WHITE_BRIGHT to {
-        StyleConstants.setForeground(this, Color.WHITE)
-    },
+    Fg.BLACK to { StyleConstants.setForeground(this, Color.BLACK) },
+    Fg.RED to { StyleConstants.setForeground(this, Color.RED) },
+    Fg.GREEN to { StyleConstants.setForeground(this, Color.GREEN) },
+    Fg.YELLOW to { StyleConstants.setForeground(this, Color.YELLOW) },
+    Fg.BLUE to { StyleConstants.setForeground(this, Color.BLUE) },
+    Fg.MAGENTA to { StyleConstants.setForeground(this, Color.MAGENTA) },
+    Fg.CYAN to { StyleConstants.setForeground(this, Color.CYAN) },
+    Fg.WHITE to { StyleConstants.setForeground(this, Color.WHITE) },
+    Fg.BLACK_BRIGHT to { StyleConstants.setForeground(this, Color.BLACK) },
+    Fg.RED_BRIGHT to { StyleConstants.setForeground(this, Color.RED) },
+    Fg.GREEN_BRIGHT to { StyleConstants.setForeground(this, Color.GREEN) },
+    Fg.YELLOW_BRIGHT to { StyleConstants.setForeground(this, Color.YELLOW) },
+    Fg.BLUE_BRIGHT to { StyleConstants.setForeground(this, Color.BLUE) },
+    Fg.MAGENTA_BRIGHT to { StyleConstants.setForeground(this, Color.MAGENTA) },
+    Fg.CYAN_BRIGHT to { StyleConstants.setForeground(this, Color.CYAN) },
+    Fg.WHITE_BRIGHT to { StyleConstants.setForeground(this, Color.WHITE) },
 
-    Bg.BLACK to {
-        StyleConstants.setBackground(this, Color.BLACK)
-    },
-    Bg.RED to {
-        StyleConstants.setBackground(this, Color.RED)
-    },
-    Bg.GREEN to {
-        StyleConstants.setBackground(this, Color.GREEN)
-    },
-    Bg.YELLOW to {
-        StyleConstants.setBackground(this, Color.YELLOW)
-    },
-    Bg.BLUE to {
-        StyleConstants.setBackground(this, Color.BLUE)
-    },
-    Bg.MAGENTA to {
-        StyleConstants.setBackground(this, Color.MAGENTA)
-    },
-    Bg.CYAN to {
-        StyleConstants.setBackground(this, Color.CYAN)
-    },
-    Bg.WHITE to {
-        StyleConstants.setBackground(this, Color.WHITE)
-    },
-    Bg.BLACK_BRIGHT to {
-        StyleConstants.setBackground(this, Color.BLACK)
-    },
-    Bg.RED_BRIGHT to {
-        StyleConstants.setBackground(this, Color.RED)
-    },
-    Bg.GREEN_BRIGHT to {
-        StyleConstants.setBackground(this, Color.GREEN)
-    },
-    Bg.YELLOW_BRIGHT to {
-        StyleConstants.setBackground(this, Color.YELLOW)
-    },
-    Bg.BLUE_BRIGHT to {
-        StyleConstants.setBackground(this, Color.BLUE)
-    },
-    Bg.MAGENTA_BRIGHT to {
-        StyleConstants.setBackground(this, Color.MAGENTA)
-    },
-    Bg.CYAN_BRIGHT to {
-        StyleConstants.setBackground(this, Color.CYAN)
-    },
-    Bg.WHITE_BRIGHT to {
-        StyleConstants.setBackground(this, Color.WHITE)
-    },
+    Bg.BLACK to { StyleConstants.setBackground(this, Color.BLACK) },
+    Bg.RED to { StyleConstants.setBackground(this, Color.RED) },
+    Bg.GREEN to { StyleConstants.setBackground(this, Color.GREEN) },
+    Bg.YELLOW to { StyleConstants.setBackground(this, Color.YELLOW) },
+    Bg.BLUE to { StyleConstants.setBackground(this, Color.BLUE) },
+    Bg.MAGENTA to { StyleConstants.setBackground(this, Color.MAGENTA) },
+    Bg.CYAN to { StyleConstants.setBackground(this, Color.CYAN) },
+    Bg.WHITE to { StyleConstants.setBackground(this, Color.WHITE) },
+    Bg.BLACK_BRIGHT to { StyleConstants.setBackground(this, Color.BLACK) },
+    Bg.RED_BRIGHT to { StyleConstants.setBackground(this, Color.RED) },
+    Bg.GREEN_BRIGHT to { StyleConstants.setBackground(this, Color.GREEN) },
+    Bg.YELLOW_BRIGHT to { StyleConstants.setBackground(this, Color.YELLOW) },
+    Bg.BLUE_BRIGHT to { StyleConstants.setBackground(this, Color.BLUE) },
+    Bg.MAGENTA_BRIGHT to { StyleConstants.setBackground(this, Color.MAGENTA) },
+    Bg.CYAN_BRIGHT to { StyleConstants.setBackground(this, Color.CYAN) },
+    Bg.WHITE_BRIGHT to { StyleConstants.setBackground(this, Color.WHITE) },
 
-    Decorations.BOLD to {
-        StyleConstants.setBold(this, true)
-    },
-    Decorations.ITALIC to {
-        StyleConstants.setItalic(this, true)
-    },
-    Decorations.UNDERLINE to {
-        StyleConstants.setUnderline(this, true)
-    },
-    Decorations.STRIKETHROUGH to {
-        StyleConstants.setStrikeThrough(this, true)
-    },
+    Decorations.BOLD to { StyleConstants.setBold(this, true) },
+    Decorations.ITALIC to { StyleConstants.setItalic(this, true) },
+    Decorations.UNDERLINE to { StyleConstants.setUnderline(this, true) },
+    Decorations.STRIKETHROUGH to { StyleConstants.setStrikeThrough(this, true) },
 )
 
 
@@ -213,51 +166,61 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
         font = Font(Font.MONOSPACED, Font.PLAIN, fontSize)
     }
 
+    private fun processEscapeCode(textPtr: TextPtr, attrs: MutableAttributeSet): Boolean {
+        if (!textPtr.moveCursor(1)) return false
+        return when (textPtr.currChar) {
+            AnsiCodes.EscSeq.CSI -> processCsiCode(textPtr, attrs)
+            else -> false
+        }
+    }
+
+    private fun processCsiCode(textPtr: TextPtr, attrs: MutableAttributeSet): Boolean {
+        if (!textPtr.moveCursor(1)) return false
+
+        for (entry in SGR_CODE_TO_ATTR_MODIFIER) {
+            val code = entry.key
+            if (textPtr.startsWith(code.value)) {
+                val modifyAttributes = entry.value
+                modifyAttributes(attrs)
+                textPtr.moveCursor(code.value.length - 1)
+                return true
+            }
+        }
+        return false
+    }
+
     fun processAnsiText(text: String) {
+        if (text.isEmpty()) return
+
         val doc = styledDocument
-        val attributes = SimpleAttributeSet()
+        val attrs = SimpleAttributeSet()
         val stringBuilder = StringBuilder()
         fun flush() {
-            doc.insertString(doc.length, stringBuilder.toString(), attributes)
+            doc.insertString(doc.length, stringBuilder.toString(), attrs)
             stringBuilder.clear()
         }
 
-        var charIndex = 0
-        while (charIndex < text.length) {
-            when (val c = text[charIndex]) {
-                AnsiCodes.ControlCharacters.ESC -> {
+        val textPtr = TextPtr(text)
+        do {
+            when (textPtr.currChar) {
+                AnsiCodes.Ctrl.ESC -> {
                     flush()
-                    var handled = false
-                    when {
-                        text.startsWithAt(charIndex, AnsiCodes.EscapeSequences.CSI) -> {
-                            for (entry in SGR_CODE_TO_ATTR_MODIFIER) {
-                                val code = entry.key
-                                if (text.startsWithAt(charIndex, code)) {
-                                    handled = true
-                                    val modifyAttributes = entry.value
-                                    modifyAttributes(attributes)
-                                    charIndex += code.length - 1
-                                    break
-                                }
-                            }
-                        }
-                    }
-                    if (!handled) {
+                    val prevCharIndex = textPtr.charIndex
+                    if (!processEscapeCode(textPtr, attrs)) {
+                        // Skip over escape byte or else error message will be interpreted as an ANSI command!
+                        textPtr.charIndex = prevCharIndex + 1
                         val peekLen = 7
                         throw IllegalArgumentException(
                             "Unknown escape sequence starting here (plus next $peekLen characters): ${
-                                text.substring(
-                                    charIndex + 1,
-                                    charIndex + peekLen + 1
-                                )
+                                textPtr.substring(peekLen + 1)
                             }..."
                         )
                     }
                 }
-                else -> stringBuilder.append(c)
+
+                else -> stringBuilder.append(textPtr.currChar)
             }
-            ++charIndex
-        }
+        } while (textPtr.moveCursor(1))
         flush()
     }
 }
