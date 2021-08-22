@@ -24,10 +24,10 @@ fun KonsoleScope.text(text: String) {
 
 fun KonsoleScope.textLine(text: String) {
     block.applyCommand(TextCommand(text))
-    newLine()
+    textLine()
 }
 
-fun KonsoleScope.newLine() {
+fun KonsoleScope.textLine() {
     block.applyCommand(NewlineCommand)
 }
 
@@ -38,8 +38,8 @@ fun KonsoleScope.newLine() {
  * pattern that it's nice to shorten it.
  */
 fun KonsoleScope.p(block: KonsoleScope.() -> Unit) {
-    newLine()
+    textLine()
     block()
-    newLine()
+    textLine()
 }
 

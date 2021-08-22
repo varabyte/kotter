@@ -25,7 +25,7 @@ fun main() {
 
     konsole {
         bold { textLine("WELCOME TO KONSOLE!") }
-        newLine()
+        textLine()
     }.runOnce()
 
     konsole {
@@ -50,7 +50,7 @@ fun main() {
         }
 
         textLine("Back to normal")
-        newLine()
+        textLine()
     }.runOnce()
 
     konsole {

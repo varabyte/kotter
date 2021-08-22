@@ -68,7 +68,7 @@ var result: Int? = null
 konsole {
     text("Calculating... ")
     if (result != null) { text("Done! Result = $result") }
-    newLine()
+    textLine()
 }.runUntilFinished {
     result = doNetworkFetchAndExpensiveCalculation()
     rerender()
@@ -318,7 +318,7 @@ konsole {
     text("Would you like to learn Konsole? (Y/n)")
     textLine("> $input")
     if (errorMessage != null) {
-        newLine()
+        textLine()
         red { textLine(errorMessage) }
     }
 }.runUntilSignal {
