@@ -575,7 +575,7 @@ you call your first `konsole` method:
 DefaultTerminalProvider = { SwingTerminal.create() }
 ```
 
-### Why Not Compose?
+### Why Not Compose / Mosaic?
 
 Konsole's API is inspired by Compose, which astute readers may have already noticed -- it has a core block which gets
 rerun for you automatically as necessary without you having to worry about it, and special state variables which, when
@@ -597,12 +597,38 @@ the user is interacting with, and the history, which is static. To support this 
 history list yourself and keep appending to it, and it was while thinking about an API that addressed this limitation
 that I envisioned Konsole.
 
-* Compose has a lot of strengths build around, well, composing methods! But for a simple CLI library, I don't care that
+* Compose has a lot of strengths built around, well, composing methods! But for a simple CLI library, I don't care that
 much about supporting nesting, which means, for example, I don't think things like `remember` blocks. By focusing on a
 "single, non-nested block" case, I could focus on a more pared down API.
+  * And you can still accomplish simple nesting by defining `fun KonsoleBlock.someReusableComponent(...)`
 
-* With my own code, I have full control over the whole framework, so I'm not blocked by upstream bugs such as 
-[this one](https://github.com/JakeWharton/mosaic/issues/3). 
+#### Mosaic comparison
+
+```kotlin
+// Mosaic
+runMosaic {
+  val count by remember { mutableStateOf(0) }
+  Text("The count is: $count")
+
+  LaunchedEffect(null) {
+    for (i in 1..20) {
+      delay(250)
+      count++
+    }
+  }
+}
+
+// Konsole
+var count by KonsoleVar(0)
+konsole {
+  Text("The count is: $count")
+}.runUntilFinished {
+  for (i in 1..20) {
+    delay(250)
+    count++
+  }
+}
+```
 
 ### Tested Platforms
 
