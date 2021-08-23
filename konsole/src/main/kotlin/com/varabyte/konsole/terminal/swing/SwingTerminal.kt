@@ -3,10 +3,10 @@ package com.varabyte.konsole.terminal.swing
 import com.varabyte.konsole.KonsoleSettings
 import com.varabyte.konsole.ansi.AnsiCodes
 import com.varabyte.konsole.ansi.AnsiCodes.Csi
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Colors.Bg
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Colors.Fg
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Decorations
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.RESET
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.Colors.Bg
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.Colors.Fg
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.Decorations
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.RESET
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -239,10 +239,10 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
     private fun processCsiCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
         if (!textPtr.increment()) return false
 
-        val numericCode = textPtr.readInt() ?: return false
+        val numericCode = textPtr.readInt()
         val optionalCode = if (textPtr.currChar == ';') {
             textPtr.increment()
-            textPtr.readInt() ?: 0
+            textPtr.readInt()
         } else {
             null
         }
@@ -251,27 +251,35 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
 
         val identifier = Csi.Identifier.fromCode(finalCode) ?: return false
         return when (identifier) {
+            Csi.Identifiers.CURSOR_PREV_LINE -> {
+                var numLines = numericCode ?: 1
+                with(TextPtr(doc.getText(), caretPosition)) {
+                    // First, move to beginning of this line
+                    if (currChar != '\n') {
+                        decrementUntil { it == '\n' }
+                    }
+                    while (numLines > 0) {
+                        if (!decrementUntil { it == '\n' }) {
+                            // We hit the beginning of the text area so just abort early
+                            break
+                        }
+                        --numLines
+                    }
+                    if (currChar == '\n') {
+                        // We're now at the beginning of the new line. Increment so we don't delete it too.
+                        increment()
+                    }
+                    caretPosition = charIndex
+                    doc.remove(caretPosition, doc.length - caretPosition)
+                }
+                true
+            }
             Csi.Identifiers.ERASE_LINE -> {
                 when (csiCode) {
-                    Csi.EraseLine.CURSOR_TO_END -> {
+                    Csi.Codes.Erase.CURSOR_TO_LINE_END -> {
                         with(TextPtr(doc.getText(), caretPosition)) {
                             incrementUntil { it == '\n' }
                             doc.remove(caretPosition, charIndex - caretPosition)
-                        }
-                        true
-                    }
-                    Csi.EraseLine.ENTIRE_LINE -> {
-                        with(TextPtr(doc.getText(), caretPosition)) {
-                            incrementUntil { it == '\n' }
-                            val to = charIndex
-                            val toChar = currChar
-                            decrementUntil { it == '\n' }
-                            if (currChar == '\n' && toChar == '\n') {
-                                // Only delete one of the two \n's
-                                increment()
-                            }
-                            caretPosition = charIndex
-                            doc.remove(caretPosition, to - caretPosition)
                         }
                         true
                     }

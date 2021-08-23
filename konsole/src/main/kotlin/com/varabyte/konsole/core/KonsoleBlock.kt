@@ -1,6 +1,7 @@
 package com.varabyte.konsole.core
 
 import com.varabyte.konsole.ansi.AnsiCodes
+import com.varabyte.konsole.ansi.AnsiCodes.Csi
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
@@ -40,8 +41,8 @@ class KonsoleBlock internal constructor(
             val clearBlockCommand = if (!textArea.isEmpty()) {
                 // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                 // last one down to the beginning (in other words, don't consume the \n of the previous line)
-                "\r${AnsiCodes.Csi.EraseLine.ENTIRE_LINE.toFullEscapeCode()}".repeat(textArea.numLines - 1) +
-                        "\r${AnsiCodes.Csi.EraseLine.CURSOR_TO_END.toFullEscapeCode()}"
+                "\r${Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()}${Csi.Codes.Cursor.moveToPrevLine().toFullEscapeCode()}".repeat(textArea.numLines - 1) +
+                        "\r${Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()}"
             } else {
                 ""
             }

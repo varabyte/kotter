@@ -1,7 +1,7 @@
 package com.varabyte.konsole.ansi.commands
 
 import com.varabyte.konsole.ansi.AnsiCodes.Csi
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Colors
+import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.Colors
 import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleBlockState
 import com.varabyte.konsole.core.KonsoleScope

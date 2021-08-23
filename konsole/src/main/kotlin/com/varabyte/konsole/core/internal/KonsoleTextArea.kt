@@ -1,7 +1,5 @@
 package com.varabyte.konsole.core.internal
 
-import kotlin.math.max
-
 interface KonsoleTextArea {
     val numLines: Int
 }
