@@ -52,6 +52,7 @@ object AnsiCodes {
         object Codes {
             object Cursor {
                 fun moveToPrevLine(numLines: Int = 1) = Code("$numLines${Identifiers.CURSOR_PREV_LINE}")
+                object MOVE_TO_PREV_LINE : Code("1${Identifiers.CURSOR_PREV_LINE}")
             }
 
             object Erase {

@@ -38,13 +38,19 @@ class KonsoleBlock internal constructor(
 
     private fun renderOnceAsync(): Future<*> {
         return executor.submit {
-            val clearBlockCommand = if (!textArea.isEmpty()) {
-                // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
-                // last one down to the beginning (in other words, don't consume the \n of the previous line)
-                "\r${Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()}${Csi.Codes.Cursor.moveToPrevLine().toFullEscapeCode()}".repeat(textArea.numLines - 1) +
-                        "\r${Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()}"
-            } else {
-                ""
+
+            val clearBlockCommand = buildString {
+                if (!textArea.isEmpty()) {
+                    // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
+                    // last one down to the beginning (in other words, don't consume the \n of the previous line)
+                    for (i in 0 until textArea.numLines) {
+                        append('\r')
+                        append(Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode())
+                        if (i < textArea.numLines - 1) {
+                            append(Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
+                        }
+                    }
+                }
             }
 
             textArea.clear()
