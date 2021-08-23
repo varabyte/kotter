@@ -11,11 +11,6 @@ private val BOLD_COMMAND = object : AnsiCsiCommand(AnsiCodes.Csi.Codes.Sgr.Decor
         state.bolded = this
     }
 }
-private val ITALIC_COMMAND = object : AnsiCsiCommand(AnsiCodes.Csi.Codes.Sgr.Decorations.ITALIC) {
-    override fun updateState(state: KonsoleBlockState) {
-        state.italicized = this
-    }
-}
 private val UNDERLINE_COMMAND = object : AnsiCsiCommand(AnsiCodes.Csi.Codes.Sgr.Decorations.UNDERLINE) {
     override fun updateState(state: KonsoleBlockState) {
         state.underlined = this
@@ -34,17 +29,6 @@ fun KonsoleScope.bold() {
 fun KonsoleScope.bold(scopedBlock: KonsoleBlock.() -> Unit) {
     scopedState {
         bold()
-        scopedBlock()
-    }
-}
-
-fun KonsoleScope.italic() {
-    applyCommand(ITALIC_COMMAND)
-}
-
-fun KonsoleScope.italic(scopedBlock: KonsoleBlock.() -> Unit) {
-    scopedState {
-        italic()
         scopedBlock()
     }
 }

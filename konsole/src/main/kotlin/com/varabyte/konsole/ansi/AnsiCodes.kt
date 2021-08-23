@@ -64,7 +64,6 @@ object AnsiCodes {
 
                 object Decorations {
                     object BOLD : Code("1${Identifiers.SGR}")
-                    object ITALIC : Code("3${Identifiers.SGR}")
                     object UNDERLINE : Code("4${Identifiers.SGR}")
                     object STRIKETHROUGH : Code("9${Identifiers.SGR}")
                 }

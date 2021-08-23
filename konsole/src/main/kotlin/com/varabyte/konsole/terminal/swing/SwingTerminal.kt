@@ -215,7 +215,6 @@ private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Csi.Code, MutableAttributeSet.() -
     Bg.WHITE_BRIGHT to { StyleConstants.setBackground(this, Color.WHITE) },
 
     Decorations.BOLD to { StyleConstants.setBold(this, true) },
-    Decorations.ITALIC to { StyleConstants.setItalic(this, true) },
     Decorations.UNDERLINE to { StyleConstants.setUnderline(this, true) },
     Decorations.STRIKETHROUGH to { StyleConstants.setStrikeThrough(this, true) },
 )

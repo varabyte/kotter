@@ -45,18 +45,15 @@ fun main() {
         }
 
         bold { textLine("Bolded") }
-        italic { textLine("Italicized") }
+        underline { textLine("Underlined") }
         strikethrough { textLine("Struck through") }
 
         scopedState {
             bold()
-            italic()
-            textLine("Bolded and italicized")
-            underline {
-                textLine("Bolded and italicized and underlined")
-            }
+            underline()
+            textLine("Bolded and underlined")
             strikethrough {
-                textLine("Bolded and italicized and struck through")
+                textLine("Bolded and underlined and struck through")
             }
         }
 
