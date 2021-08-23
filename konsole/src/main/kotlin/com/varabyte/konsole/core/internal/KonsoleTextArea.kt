@@ -3,47 +3,26 @@ package com.varabyte.konsole.core.internal
 import kotlin.math.max
 
 interface KonsoleTextArea {
-    val w: Int
-    val h: Int
+    val numLines: Int
 }
 
 class MutableKonsoleTextArea : KonsoleTextArea {
     private var stringBuilder = StringBuilder()
 
-    private var currLineX = 0
-        set(value) {
-            field = value
-            maxW = max(maxW, value)
-        }
-    private var currLineY = 0
-        set(value) {
-            field = value
-            maxH = max(maxH, value)
-        }
-    private var maxW = 0
-    private var maxH = 0
+    override var numLines = 1
+        private set
 
-    override val w: Int
-        get() = maxW
-    override val h: Int
-        get() = maxH
+    fun isEmpty() = stringBuilder.isEmpty()
 
     fun clear(): MutableKonsoleTextArea {
         stringBuilder.clear()
+        numLines = 1
         return this
     }
 
     fun append(c: Char): MutableKonsoleTextArea {
         stringBuilder.append(c)
-        when (c) {
-            '\n' -> {
-                currLineX = 0
-                currLineY++
-            }
-            else -> {
-                currLineX++
-            }
-        }
+        if (c == '\n') ++numLines
         return this
     }
 
@@ -51,17 +30,12 @@ class MutableKonsoleTextArea : KonsoleTextArea {
         val lines = str.split('\n')
         lines.forEachIndexed { index, line ->
             stringBuilder.append(line)
-            currLineX += line.length
-
             if (index < lines.size - 1) {
                 append('\n')
             }
         }
         return this
     }
-
-    fun appendLine(c: Char) = append(c).append('\n')
-    fun appendLine(str: String) = append(str).append('\n')
 
     override fun toString(): String {
         return stringBuilder.toString()

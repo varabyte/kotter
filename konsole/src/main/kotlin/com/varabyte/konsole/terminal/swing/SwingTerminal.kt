@@ -2,7 +2,7 @@ package com.varabyte.konsole.terminal.swing
 
 import com.varabyte.konsole.KonsoleSettings
 import com.varabyte.konsole.ansi.AnsiCodes
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr
+import com.varabyte.konsole.ansi.AnsiCodes.Csi
 import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Colors.Bg
 import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Colors.Fg
 import com.varabyte.konsole.ansi.AnsiCodes.Csi.Sgr.Decorations
@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
 import java.awt.Color
 import java.awt.Dimension
@@ -21,10 +22,14 @@ import java.util.concurrent.CountDownLatch
 import javax.swing.JFrame
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
+import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
+import javax.swing.text.Document
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
+import kotlin.math.max
+import kotlin.math.min
 
 class SwingTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
     companion object {
@@ -77,7 +82,11 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
     }
 
     override fun write(text: String) {
-        pane.processAnsiText(text)
+        runBlocking {
+            CoroutineScope(Dispatchers.Swing).launch {
+                pane.processAnsiText(text)
+            }.join()
+        }
     }
 
     override fun read(): Flow<Int> = callbackFlow {
@@ -85,23 +94,46 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
     }
 }
 
+/**
+ * Point at to a position inside some text.
+ *
+ * Note that this supports the concept of the null string terminator - that is, for a String of length one, e.g. "a",
+ * then textPtr[0] == 'a' and textPtr[1] == '\0'
+ */
 private class TextPtr(val text: String, charIndex: Int = 0) {
 
     var charIndex = 0
         set(value) {
-            require(value >= 0 && value < text.length) { "charIndex value is out of bounds. Expected 0 .. ${text.length - 1}, got $value" }
+            require(value >= 0 && value <= text.length) { "charIndex value is out of bounds. Expected 0 .. ${text.length}, got $value" }
             field = value
         }
 
-    val currChar get() = text[charIndex]
+    val currChar get() = text.elementAtOrNull(charIndex) ?: Char.MIN_VALUE
+    val remainingLength get() = max(0, text.length - charIndex)
 
     init {
-        require(text != "") { "TextPtr expects to point at a non-empty string" }
         this.charIndex = charIndex
     }
 
-    fun moveCursor(delta: Int): Boolean {
-        val newIndex = (charIndex + delta).coerceIn(0, text.length - 1)
+    /**
+     * Increment or decrement the pointer first (based on [forward]), and then keep moving until
+     * [keepMoving] stops returning true.
+     */
+    private fun movePtr(forward: Boolean, keepMoving: (Char) -> Boolean): Boolean {
+        val delta = if (forward) 1 else -1
+
+        var newIndex = charIndex
+        do {
+            newIndex += delta
+            if (newIndex < 0) {
+                newIndex = 0
+                break
+            } else if (newIndex >= text.length) {
+                newIndex = text.length
+                break
+            }
+        } while (keepMoving(text[newIndex]))
+
         if (newIndex != charIndex) {
             charIndex = newIndex
             return true
@@ -109,19 +141,43 @@ private class TextPtr(val text: String, charIndex: Int = 0) {
         return false
     }
 
-    fun startsWith(prefix: String): Boolean {
-        if (text.length < charIndex + prefix.length) return false
-
-        for (i in prefix.indices) {
-            if (text[charIndex + i] != prefix[i]) return false
-        }
-        return true
+    fun increment(): Boolean {
+        return movePtr(true) { false }
     }
 
-    fun substring(length: Int): String = text.substring(charIndex, charIndex + length)
+    fun decrement(): Boolean {
+        return movePtr(false) { false }
+    }
+
+    fun incrementWhile(whileCondition: (Char) -> Boolean) = movePtr(true, whileCondition)
+    fun decrementWhile(whileCondition: (Char) -> Boolean) = movePtr(false, whileCondition)
+    fun incrementUntil(whileCondition: (Char) -> Boolean): Boolean {
+        return incrementWhile { !whileCondition(it) }
+    }
+
+    fun decrementUntil(whileCondition: (Char) -> Boolean): Boolean {
+        return decrementWhile { !whileCondition(it) }
+    }
 }
 
-private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Sgr.Code, MutableAttributeSet.() -> Unit>(
+private fun TextPtr.substring(length: Int): String {
+    return text.substring(charIndex, min(charIndex + length, text.length))
+}
+
+private fun TextPtr.readInt(): Int? {
+    if (!currChar.isDigit()) return null
+
+    var intValue = 0
+    while (true) {
+        val digit = currChar.digitToIntOrNull() ?: break
+        increment()
+        intValue *= 10
+        intValue += digit
+    }
+    return intValue
+}
+
+private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Csi.Code, MutableAttributeSet.() -> Unit>(
     RESET to { removeAttributes(this) },
 
     Fg.BLACK to { StyleConstants.setForeground(this, Color.BLACK) },
@@ -164,6 +220,7 @@ private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Sgr.Code, MutableAttributeSet.() -
     Decorations.STRIKETHROUGH to { StyleConstants.setStrikeThrough(this, true) },
 )
 
+private fun Document.getText() = getText(0, length)
 
 class SwingTerminalPane(fontSize: Int) : JTextPane() {
     init {
@@ -171,38 +228,78 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
         font = Font(Font.MONOSPACED, Font.PLAIN, fontSize)
     }
 
-    private fun processEscapeCode(textPtr: TextPtr, attrs: MutableAttributeSet): Boolean {
-        if (!textPtr.moveCursor(1)) return false
+    private fun processEscapeCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
+        if (!textPtr.increment()) return false
         return when (textPtr.currChar) {
-            AnsiCodes.EscSeq.CSI -> processCsiCode(textPtr, attrs)
+            AnsiCodes.EscSeq.CSI -> processCsiCode(textPtr, doc, attrs)
             else -> false
         }
     }
 
-    private fun processCsiCode(textPtr: TextPtr, attrs: MutableAttributeSet): Boolean {
-        if (!textPtr.moveCursor(1)) return false
+    private fun processCsiCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
+        if (!textPtr.increment()) return false
 
-        for (entry in SGR_CODE_TO_ATTR_MODIFIER) {
-            val code = entry.key
-            if (textPtr.startsWith(code.value)) {
-                val modifyAttributes = entry.value
-                modifyAttributes(attrs)
-                textPtr.moveCursor(code.value.length - 1)
-                return true
+        val numericCode = textPtr.readInt() ?: return false
+        val optionalCode = if (textPtr.currChar == ';') {
+            textPtr.increment()
+            textPtr.readInt() ?: 0
+        } else {
+            null
+        }
+        val finalCode = textPtr.currChar
+        val csiCode = Csi.Code("$numericCode${if (optionalCode != null) ";$optionalCode" else ""}$finalCode")
+
+        val identifier = Csi.Identifier.fromCode(finalCode) ?: return false
+        return when (identifier) {
+            Csi.Identifiers.ERASE_LINE -> {
+                when (csiCode) {
+                    Csi.EraseLine.CURSOR_TO_END -> {
+                        with(TextPtr(doc.getText(), caretPosition)) {
+                            incrementUntil { it == '\n' }
+                            doc.remove(caretPosition, charIndex - caretPosition)
+                        }
+                        true
+                    }
+                    Csi.EraseLine.ENTIRE_LINE -> {
+                        with(TextPtr(doc.getText(), caretPosition)) {
+                            incrementUntil { it == '\n' }
+                            val to = charIndex
+                            val toChar = currChar
+                            decrementUntil { it == '\n' }
+                            if (currChar == '\n' && toChar == '\n') {
+                                // Only delete one of the two \n's
+                                increment()
+                            }
+                            caretPosition = charIndex
+                            doc.remove(caretPosition, to - caretPosition)
+                        }
+                        true
+                    }
+                    else -> false
+                }
+            }
+            Csi.Identifiers.SGR -> {
+                SGR_CODE_TO_ATTR_MODIFIER[csiCode]?.let { modifyAttributes ->
+                    modifyAttributes(attrs)
+                    true
+                } ?: false
             }
         }
-        return false
     }
 
     fun processAnsiText(text: String) {
+        require(SwingUtilities.isEventDispatchThread())
         if (text.isEmpty()) return
 
         val doc = styledDocument
         val attrs = SimpleAttributeSet()
         val stringBuilder = StringBuilder()
         fun flush() {
-            doc.insertString(doc.length, stringBuilder.toString(), attrs)
-            stringBuilder.clear()
+            val stringToInsert = stringBuilder.toString()
+            if (stringToInsert.isNotEmpty()) {
+                doc.insertString(caretPosition, stringToInsert, attrs)
+                stringBuilder.clear()
+            }
         }
 
         val textPtr = TextPtr(text)
@@ -211,21 +308,30 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
                 AnsiCodes.Ctrl.ESC -> {
                     flush()
                     val prevCharIndex = textPtr.charIndex
-                    if (!processEscapeCode(textPtr, attrs)) {
+                    if (!processEscapeCode(textPtr, doc, attrs)) {
                         // Skip over escape byte or else error message will be interpreted as an ANSI command!
                         textPtr.charIndex = prevCharIndex + 1
-                        val peekLen = 7
+                        val peek = textPtr.substring(7)
+                        val truncated = peek.length < textPtr.remainingLength
                         throw IllegalArgumentException(
-                            "Unknown escape sequence starting here (plus next $peekLen characters): ${
-                                textPtr.substring(peekLen + 1)
-                            }..."
+                            "Unknown escape sequence: \"${peek}${if (truncated) "..." else ""}\""
                         )
                     }
                 }
+                '\r' -> {
+                    with(TextPtr(doc.getText(), caretPosition)) {
+                        decrementWhile { it != '\n' }
+                        // Assuming we didn't hit the beginning of the string, we went too far by one
+                        if (charIndex > 0) increment()
 
+                        caretPosition = charIndex
+                    }
+                }
+                Char.MIN_VALUE -> {
+                } // Ignore the null terminator, it's only a TextPtr/Document concept
                 else -> stringBuilder.append(textPtr.currChar)
             }
-        } while (textPtr.moveCursor(1))
+        } while (textPtr.increment())
         flush()
     }
 }

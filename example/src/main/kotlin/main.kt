@@ -1,9 +1,11 @@
 import com.varabyte.konsole.KonsoleSettings
 import com.varabyte.konsole.ansi.commands.*
 import com.varabyte.konsole.ansi.commands.ColorLayer.BG
+import com.varabyte.konsole.core.KonsoleVar
 import com.varabyte.konsole.core.scopedState
 import com.varabyte.konsole.konsole
 import com.varabyte.konsole.terminal.swing.SwingTerminal
+import kotlinx.coroutines.delay
 
 fun main() {
     // Default the example to ALWAYS using the virtual terminal. While perhaps not as nice as the system terminal, this
@@ -11,22 +13,31 @@ fun main() {
     // to fight with or don't support ANSI cursor commands.
     KonsoleSettings.provideTerminal = { SwingTerminal.create() }
 
-//    run {
-//        var count by KonsoleVar(0)
-//        konsole {
-//            textLine("*".repeat(count))
-//        }.runUntilFinished {
-//            while (count < 10) {
-//                delay(250)
-//                ++count
-//            }
-//        }
-//    }
-
     konsole {
         bold { textLine("WELCOME TO KONSOLE!") }
         textLine()
     }.runOnce()
+
+    run {
+        val NUM_BARS = 10
+        var percent by KonsoleVar(0)
+        konsole {
+            underline {
+                textLine("Animated progress bar test")
+            }
+            text("[")
+            val fullBars = NUM_BARS * percent / 100
+            text("*".repeat(fullBars))
+            text(" ".repeat(NUM_BARS - fullBars))
+            textLine("] $percent%")
+            textLine()
+        }.runUntilFinished {
+            while (percent < 100) {
+                delay(20)
+                percent += 1
+            }
+        }
+    }
 
     konsole {
         underline {

@@ -1,5 +1,6 @@
 package com.varabyte.konsole.core
 
+import com.varabyte.konsole.ansi.AnsiCodes
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
@@ -36,9 +37,20 @@ class KonsoleBlock internal constructor(
 
     private fun renderOnceAsync(): Future<*> {
         return executor.submit {
+            val clearBlockCommand = if (!textArea.isEmpty()) {
+                // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
+                // last one down to the beginning (in other words, don't consume the \n of the previous line)
+                "\r${AnsiCodes.Csi.EraseLine.ENTIRE_LINE.toFullEscapeCode()}".repeat(textArea.numLines - 1) +
+                        "\r${AnsiCodes.Csi.EraseLine.CURSOR_TO_END.toFullEscapeCode()}"
+            } else {
+                ""
+            }
+
             textArea.clear()
             KonsoleScope(this).block()
-            terminal.write(textArea.toString())
+            // Send the whole set of instructions through "write" at once so the clear and updates are processed
+            // in one pass.
+            terminal.write(clearBlockCommand + textArea.toString())
         }
     }
     private fun renderOnce() {
