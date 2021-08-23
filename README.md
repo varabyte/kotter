@@ -44,24 +44,18 @@ konsole {
 
 `konsole { ... }` defines a `KonsoleBlock` which, on its own, is inert. It needs to be run at least once to output text
 to the console. Above, we use the `runOnce` method above to trigger this. As you might expect, `runOnce` will execute
-the block once. At this time, the program is blocked until the render is finished running.
+the block once. While this is happening, the program is blocked.
 
 `runOnce` consumes the block. If you attempt to call `runOnce` a second time, Konsole will throw an exception.
 
-While the above simple case is a bit verbose, Konsole starts to show its strength when doing background work (or other
-async tasks like waiting for user input) that would cause the block to update several times. We'll see many examples of
-this in the following sections.
+While the above simple case is a bit verbose for what it's doing, Konsole starts to show its strength when doing
+background work (or other async tasks like waiting for user input) during which time the block may update several times.
+We'll see many examples of this in the following sections.
 
 ### Background work
 
 For background work, we introduce the `runUntilFinished` method, which takes a callback that is automatically run on a
 background thread for you (as a suspend function, so you can call other suspend methods from within it).
-
-The Konsole block, after rendering once, then waits for the background work to finish, blocking the program from
-continuing until it is done.
-
-The `runUntilFinished` method includes some properties and functions in its scope, one of which is `rerender`, which you
-can call to request another render pass.
 
 ```kotlin
 var result: Int? = null
@@ -75,13 +69,17 @@ konsole {
 }
 ```
 
-That works! But needing to remembering to call `rerender` yourself is potentially fragile and could be a source of bugs
-in the future when trying to figure out why your console doesn't update.
+Unlike using `runOnce`, here your program will be blocked until the background method has finished.
+
+#### KonsoleVar
+
+As you can see above, the `runUntilFinished` method includes a `rerender` method, which you can call to request another
+render pass. (There are several other methods, many of which will be discussed in this README). However, remembering to
+call `rerender` yourself is potentially fragile and could be a source of bugs in the future when trying to figure out
+why your console isn't updating.
 
 For this purpose, Konsole provides the `KonsoleVar` class, a delegate class which, when updated, will automatically
-request a rerender to the last block that referenced it.
-
-To use a `KonsoleVar`, simply change a line like:
+request a rerender to the last block that referenced it. To use a `KonsoleVar`, simply change a line like:
 
 ```kotlin
 var result: Int? = null
@@ -107,7 +105,7 @@ konsole {
 }
 ```
 
-You can use `runUntilFinished` for something like a progress bar:
+Here's another example, showing how you can use `runUntilFinished` for something like a progress bar:
 
 ```kotlin
 const val BAR_LENGTH = 100
@@ -120,14 +118,14 @@ konsole {
     }
     text("]")
 }.runUntilFinished {
-    // rerenderOnFinished not required in this case because we call it manually
-    rerenderOnFinished = false
     while (percent < 100) {
         delay(100)
         percent += 1
     }
 }
 ```
+
+#### Signals and waiting
 
 A common pattern is for the `runUntilFinished` block to wait for some sort of signal before finishing, e.g. in response
 to some callback. You could always use a general threading trick for this, such as a `CountDownLatch` or a simple
@@ -161,7 +159,7 @@ These methods are enough in most cases. Note that if you call `signal` before yo
 `waitForSignal` will just pass through without stopping.
 
 Finally, there's a `runUntilSignal` method you can use, which acts just like `runUntilFinished` but with a
-`waitForSignal` at the end, so you only need to call `signal` at some point to progress:
+`waitForSignal` already at the end, so you only need to call `signal` at some point to progress:
 
 ```kotlin
 val fileDownloader by KonsoleVar(FileDownloader("..."))
@@ -171,7 +169,6 @@ konsole {
     fileDownloader.onFinished += { signal() }
 }
 ```
-
 
 ### Cursor
 
@@ -202,8 +199,8 @@ konsole {
 }.runUntilFinished { /* ... */ }
 ```
 
-Note that the input property automatically adds a blinking cursor automatically for you. This also handles keys like
-LEFT, HOME, and DEL, moving the cursor back and forth between the bounds of the input string.
+Note that the input property automatically adds a blinking cursor for you. This also handles keys like LEFT, HOME, and
+DEL, moving the cursor back and forth between the bounds of the input string.
 
 You can intercept input as it is typed in using the `onInputChanged` event:
 
@@ -246,8 +243,8 @@ konsole {
 }
 ```
 
-There's actually a shortcut for cases where you want to automatically signal the handler block when text is entered,
-`runUntilTextEntered`, as this is pretty common. Using it, we can slightly simplify the above example:
+There's actually a shortcut for cases like the above, since they're pretty common: `runUntilTextEntered`.
+Using it, we can slightly simplify the above example, typing fewer characters for identical behavior:
 
 ```kotlin
 lateinit var name: String
@@ -266,7 +263,8 @@ var wantsToLearn by KonsoleVar(false)
 konsole {
     textLine("Would you like to learn Konsole? (Y/n)")
     text("> $input")
-    grey { textLine("yes".substringAfter(input)) }
+    grey { text("yes".substringAfter(input)) }
+    textLine()
     if (wantsToLearn) {
         p { textLine("""\(^o^)/""") }
     }
@@ -306,7 +304,7 @@ Would you like to learn Konsole? (Y/n)
 
 \(^o^)/
 
-(Next line of text would go here...)
+(Next line of text from a future block would go here...)
 ```
 
 A common situation in a console is responding to bad input.
@@ -324,10 +322,10 @@ konsole {
 }.runUntilSignal {
     onInputEntered {
         if (!VALID_ANSWERS.any { it.startsWith(input) }) {
-            errorMessage = "Please try again. Reason: \"$input\" was invalid"
+            errorMessage = "Please try again. Reason: \"$input\" should be one of $VALID_ANSWERS"
             rerender()
         }
-        else if ("yes".startsWith(input)) { signal() }
+        else { errorMessage = null; signal() }
     }
 }
 ```
@@ -394,12 +392,12 @@ konsole {
         green(layer = BG)
         scopedState {
             red()
-            text("Hello")
+            text("This is red on green")
         }
-        text(" ")
+        text("This is default color on green")
         scopedState {
             blue()
-            text("World")
+            text("This is blue on green")
         }
     }
 }.runOnce()
@@ -413,11 +411,65 @@ konsole {
     scopedState {
         red()
         blue(BG)
-        text("Hello world")
+        text("Red on blue")
     }
 }.runOnce()
 ```
 
+### Timers
+
+A Konsole block can manage a set of timers for you. Use the `addTimer` method in your `runUntil...` block to add some:
+
+```kotlin
+konsole {
+    /* ... */
+}.runUntilSignal {
+    addTimer(500.ms) {
+        println("$elapsed passed!")
+        signal()
+    }
+}
+```
+
+You can repeat a timer by passing in `repeat = true` to the method. If you want to stop it from repeating, set
+`repeat = false` inside the timer block:
+
+```kotlin
+val BLINK_TOTAL_LEN = 5.seconds
+val BLINK_LEN = 250.ms
+var blinkOn by KonsoleVar(false)
+konsole {
+    scopedState {
+        if (blinkOn) invert()
+        textLine("This line will blink for $BLINK_LEN")
+    }
+
+}.runUntilSignal {
+    var blinkCount = BLINK_TOTAL_LEN / BLINK_LEN
+    addTimer(250.ms, repeat = true) {
+        blinkOn = !blinkOn
+        blinkCount--
+        if (blinkCount == 0) { repeat = false }
+    }
+    /* ... */
+}
+```
+
+It's possible your block will exit while things are in a bad state due to running timers, so you can use the
+`onFinishing` callback to handle this:
+
+```kotlin
+var blinkOn by KonsoleVar(false)
+konsole {
+    /* ... */
+}.runUntilSignal {
+    addTimer(250.ms, repeat = true) { blinkOn = !blinkOn }
+    onFinishing { blinkOn = false }
+    /* ... */
+}
+```
+
+All timers will be automatically stopped before `onFinishing` is called.
 
 ### Animations
 
@@ -496,9 +548,9 @@ time, if you attempt to call `konsole` while another Konsole block is already ru
 
 I made this decision so that:
 
-* I don't have to worry about multiple Konsole blocks println'ing at the same time - who likes clobbered text?
-* Konsole does a bunch of tricks moving the terminal cursor around and setting color, etc. states, which would fail
-horribly if multiple Konsole blocks tried doing this at the same time.
+* I don't have to worry about multiple Konsole blocks `println`ing at the same time - who likes clobbered text?
+* Konsole handles repainting by moving the terminal cursor around, which would fail horribly if multiple Konsole blocks
+tried doing this at the same time.
 * Konsole embraces the idea of a dynamic, active block trailed by a bunch of static history. If two dynamic blocks
 wanted to be active at the same time, what would that even mean?
 
@@ -510,17 +562,17 @@ pattern is powerful enough for most (all?) cases.
 ### Virtual Terminal
 
 It's not guaranteed that every user's command line setup supports ANSI codes. For example, debugging this project with
-IntelliJ as well as Gradle are two such environments where functionality is limited! According to many online reports,
-Windows is also a big offender here.
+IntelliJ as well as Gradle are two such environments where functionality is inconsistent or busted! According to many
+online reports, Windows is also a big offender here.
 
 Konsole will attempt to detect if your console does not support the features it uses, and if not, it will open up a
 fake virtual terminal backed by Swing. This workaround gives us better cross-platform support.
 
 To modify the logic to ALWAYS open the virtual terminal, you can write the following somewhere in your program before
-you start using Konsole:
+you call your first `konsole` method:
 
 ```kotlin
-DefaultTerminalIoProvider = { VirtualTerminalIo() }
+DefaultTerminalProvider = { SwingTerminal.create() }
 ```
 
 ### Why Not Compose?
@@ -544,6 +596,13 @@ compatible.`
 the user is interacting with, and the history, which is static. To support this with Compose, you'd need to manage the
 history list yourself and keep appending to it, and it was while thinking about an API that addressed this limitation
 that I envisioned Konsole.
+
+* Compose has a lot of strengths build around, well, composing methods! But for a simple CLI library, I don't care that
+much about supporting nesting, which means, for example, I don't think things like `remember` blocks. By focusing on a
+"single, non-nested block" case, I could focus on a more pared down API.
+
+* With my own code, I have full control over the whole framework, so I'm not blocked by upstream bugs such as 
+[this one](https://github.com/JakeWharton/mosaic/issues/3). 
 
 ### Tested Platforms
 
