@@ -22,8 +22,12 @@ interface Terminal {
 class SystemTerminal : Terminal {
     val terminal = TerminalBuilder.builder()
         .system(true)
+        // Don't use JLine's virtual terminal - use ours! Because this is false, this builder will throw an exception
+        // if the current terminal environment doesn't support standards we expect to run Konsole on top of. We can
+        // listen for that exception to either halt the problem or start up a virtual terminal instead.
         .dumb(false)
         .build().apply {
+            // Swallow keypresses - instead, Konsole will handle them
             enterRawMode()
         }
 
