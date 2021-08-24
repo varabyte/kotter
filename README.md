@@ -138,7 +138,7 @@ to some callback. You could always use a general threading trick for this, such 
 `CompletableDeffered<Unit>` to stop the block from finishing until you're ready:
 
 ```kotlin
-val fileDownloader by KonsoleVar(FileDownloader("..."))
+val fileDownloader = FileDownloader("...")
 fileDownloader.start()
 konsole {
   /* ... */
@@ -152,7 +152,7 @@ konsole {
 but, for convenience, Konsole provides the `signal` and `waitForSignal` methods, which do this for you.
 
 ```kotlin
-val fileDownloader by KonsoleVar(FileDownloader("..."))
+val fileDownloader = FileDownloader("...")
 konsole {
   /* ... */
 }.runUntilFinished {
@@ -168,7 +168,7 @@ Finally, there's a `runUntilSignal` method you can use, which acts just like `ru
 `waitForSignal` already at the end, so you only need to call `signal` at some point to progress:
 
 ```kotlin
-val fileDownloader by KonsoleVar(FileDownloader("..."))
+val fileDownloader = FileDownloader("...")
 konsole {
   /* ... */
 }.runUntilSignal {
