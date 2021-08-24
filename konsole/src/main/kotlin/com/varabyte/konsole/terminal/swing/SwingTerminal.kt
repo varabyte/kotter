@@ -9,14 +9,18 @@ import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.RESET
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
-import java.awt.Color
-import java.awt.Dimension
-import java.awt.Font
+import java.awt.*
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
+import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.util.concurrent.CountDownLatch
 import javax.swing.JFrame
 import javax.swing.JScrollPane
@@ -42,6 +46,7 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
             fontSize: Int = 16,
             fgColor: Color = Color.LIGHT_GRAY,
             bgColor: Color = Color.DARK_GRAY,
+            handleInterrupt: Boolean = true
         ): SwingTerminal {
             val pane = SwingTerminalPane(fontSize)
             pane.foreground = fgColor
@@ -68,8 +73,18 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
                     background = bgColor
                 })
                 frame.pack()
-                terminal.pane.text = ""
                 frame.setLocationRelativeTo(null)
+
+                terminal.pane.text = ""
+                if (handleInterrupt) {
+                    terminal.pane.addKeyListener(object : KeyAdapter() {
+                        override fun keyPressed(e: KeyEvent) {
+                            if (e.isControlDown && e.keyCode == KeyEvent.VK_C) {
+                                frame.dispatchEvent(WindowEvent(frame, WINDOW_CLOSING))
+                            }
+                        }
+                    })
+                }
 
                 framePacked.countDown()
                 frame.isVisible = true
@@ -88,8 +103,29 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
         }
     }
 
+    private val Component.window: Window? get() {
+        var c: Component? = this
+        while (c != null) {
+            if (c is Window) return c
+            c = c.parent
+        }
+        return null
+    }
+
     override fun read(): Flow<Int> = callbackFlow {
-        TODO("Not yet implemented")
+        pane.addKeyListener(object : KeyAdapter() {
+            override fun keyPressed(e: KeyEvent) {
+                trySend(e.keyCode)
+            }
+        })
+
+        pane.window?.addWindowListener(object : WindowAdapter() {
+            override fun windowClosing(e: WindowEvent?) {
+                channel.close()
+            }
+        })
+
+        awaitClose()
     }
 }
 
