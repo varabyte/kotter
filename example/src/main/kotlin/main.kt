@@ -1,10 +1,8 @@
-import com.varabyte.konsole.KonsoleSettings
 import com.varabyte.konsole.ansi.commands.*
 import com.varabyte.konsole.ansi.commands.ColorLayer.BG
 import com.varabyte.konsole.core.KonsoleVar
 import com.varabyte.konsole.core.scopedState
 import com.varabyte.konsole.konsole
-import com.varabyte.konsole.terminal.swing.SwingTerminal
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -12,7 +10,7 @@ fun main() {
     konsole {
         bold { textLine("WELCOME TO KONSOLE!") }
         textLine()
-    }.runOnce()
+    }.run()
 
     run {
         val NUM_BARS = 10
@@ -27,7 +25,7 @@ fun main() {
             text(" ".repeat(NUM_BARS - fullBars))
             textLine("] $percent%")
             textLine()
-        }.runUntilFinished {
+        }.run {
             while (percent < 100) {
                 delay(100)
                 percent = (percent + (Random.nextInt(1, 10))).coerceAtMost(100)
@@ -55,7 +53,7 @@ fun main() {
 
         textLine("Back to normal")
         textLine()
-    }.runOnce()
+    }.run()
 
     konsole {
         underline {
@@ -85,5 +83,5 @@ fun main() {
         textLine("Red on white")
         clearColors()
         textLine("No colors again")
-    }.runOnce()
+    }.run()
 }

@@ -1,6 +1,5 @@
 package com.varabyte.konsole.core
 
-import com.varabyte.konsole.ansi.AnsiCodes
 import com.varabyte.konsole.ansi.AnsiCodes.Csi
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.Terminal
@@ -22,6 +21,15 @@ class KonsoleBlock internal constructor(
     companion object {
         private val activeReference = AtomicReference<KonsoleBlock?>(null)
         internal val active get() = activeReference.get()
+    }
+
+    class RunScope(
+        private val rerenderRequested: () -> Unit
+    ) {
+        private val waitLatch = CountDownLatch(1)
+        fun rerender() = rerenderRequested()
+        fun waitForSignal() { waitLatch.await() }
+        fun signal() { waitLatch.countDown() }
     }
 
     private val textArea = MutableKonsoleTextArea()
@@ -73,41 +81,28 @@ class KonsoleBlock internal constructor(
         activeReference.set(null)
     }
 
-    fun runOnce() {
-        activate {
-            renderOnce()
-        }
-    }
-
-    fun runUntilFinished(block: suspend RunUntilScope.() -> Unit) {
+    fun run(block: (suspend RunScope.() -> Unit)? = null) {
         activate {
             activeReference.set(this)
             renderOnce()
-            val job = CoroutineScope(Dispatchers.Default).launch {
-                val scope = RunUntilScope(
-                    rerenderRequested = {
-                        renderOnce()
-                    }
-                )
-                scope.block()
-            }
+            if (block != null) {
+                val job = CoroutineScope(Dispatchers.Default).launch {
+                    val scope = RunScope(
+                        rerenderRequested = {
+                            renderOnce()
+                        }
+                    )
+                    scope.block()
+                }
 
-            runBlocking { job.join() }
+                runBlocking { job.join() }
+            }
         }
     }
 }
 
-class RunUntilScope(
-    private val rerenderRequested: () -> Unit
-) {
-    private val waitLatch = CountDownLatch(1)
-    fun rerender() = rerenderRequested()
-    fun waitForSignal() { waitLatch.await() }
-    fun signal() { waitLatch.countDown() }
-}
-
-fun KonsoleBlock.runUntilSignal(block: suspend RunUntilScope.() -> Unit) {
-    runUntilFinished {
+fun KonsoleBlock.runUntilSignal(block: suspend KonsoleBlock.RunScope.() -> Unit) {
+    run {
         block()
         waitForSignal()
     }
