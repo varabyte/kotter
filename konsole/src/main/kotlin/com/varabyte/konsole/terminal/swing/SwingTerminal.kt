@@ -1,6 +1,5 @@
 package com.varabyte.konsole.terminal.swing
 
-import com.varabyte.konsole.KonsoleSettings
 import com.varabyte.konsole.ansi.AnsiCodes
 import com.varabyte.konsole.ansi.AnsiCodes.Csi
 import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.Colors.Bg
@@ -38,11 +37,11 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
          *   32 lines vertically (before scrolling is needed)
          */
         fun create(
-            title: String = KonsoleSettings.VirtualTerminal.title ?: "Konsole Terminal",
-            terminalSize: Dimension = KonsoleSettings.VirtualTerminal.size,
-            fontSize: Int = KonsoleSettings.VirtualTerminal.fontSize,
-            fgColor: Color = KonsoleSettings.VirtualTerminal.fgColor,
-            bgColor: Color = KonsoleSettings.VirtualTerminal.bgColor,
+            title: String = "Virtual Terminal",
+            terminalSize: Dimension = Dimension(100, 40),
+            fontSize: Int = 16,
+            fgColor: Color = Color.LIGHT_GRAY,
+            bgColor: Color = Color.DARK_GRAY,
         ): SwingTerminal {
             val pane = SwingTerminalPane(fontSize)
             pane.foreground = fgColor

@@ -6,13 +6,9 @@ import com.varabyte.konsole.core.scopedState
 import com.varabyte.konsole.konsole
 import com.varabyte.konsole.terminal.swing.SwingTerminal
 import kotlinx.coroutines.delay
+import kotlin.random.Random
 
 fun main() {
-    // Default the example to ALWAYS using the virtual terminal. While perhaps not as nice as the system terminal, this
-    // is guaranteed to work cross platform, and it is easier to debug as well (since IntelliJ / Gradle terminals seem
-    // to fight with or don't support ANSI cursor commands.
-    KonsoleSettings.provideTerminal = { SwingTerminal.create() }
-
     konsole {
         bold { textLine("WELCOME TO KONSOLE!") }
         textLine()
@@ -33,8 +29,8 @@ fun main() {
             textLine()
         }.runUntilFinished {
             while (percent < 100) {
-                delay(20)
-                percent += 1
+                delay(100)
+                percent = (percent + (Random.nextInt(1, 10))).coerceAtMost(100)
             }
         }
     }
