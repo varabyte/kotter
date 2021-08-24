@@ -1,4 +1,4 @@
 rootProject.name = "konsole"
 
 include(":konsole")
-include(":example")
+include(":examples:playground")
