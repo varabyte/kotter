@@ -76,12 +76,13 @@ fun main() {
         }
         textLine("No colors again")
 
-        // Verify clearColors works
-        red()
-        textLine("Red text")
-        white(BG)
-        textLine("Red on white")
-        clearColors()
+        // Using scoped state
+        scopedState {
+            red()
+            textLine("Red text")
+            white(BG)
+            textLine("Red on white")
+        }
         textLine("No colors again")
     }.run()
 }

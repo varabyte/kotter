@@ -134,20 +134,6 @@ fun KonsoleScope.white(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean
     applyCommand(toWhiteCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.clearColor(colorLayer: ColorLayer = ColorLayer.FG) {
-    when (colorLayer) {
-        ColorLayer.FG -> state.fgColor = null
-        ColorLayer.BG -> state.bgColor = null
-    }
-    state.applyTo(block)
-}
-
-fun KonsoleScope.clearColors() {
-    state.fgColor = null
-    state.bgColor = null
-    state.applyTo(block)
-}
-
 fun KonsoleScope.black(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -242,4 +228,3 @@ fun KonsoleScope.white(
         scopedBlock()
     }
 }
-
