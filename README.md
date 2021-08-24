@@ -597,7 +597,7 @@ runMosaic {
 // Konsole
 var count by KonsoleVar(0)
 konsole {
-  Text("The count is: $count")
+  textLine("The count is: $count")
 }.run {
   for (i in 1..20) {
     delay(250)

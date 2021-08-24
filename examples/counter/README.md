@@ -1,0 +1,1 @@
+Compare with: https://github.com/JakeWharton/mosaic/tree/trunk/samples/counter
