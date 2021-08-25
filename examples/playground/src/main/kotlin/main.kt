@@ -84,5 +84,13 @@ fun main() {
             textLine("Red on white")
         }
         textLine("No colors again")
+
+        // Using reset
+        blue()
+        textLine("Blue text")
+        black(BG)
+        textLine("Blue on black")
+        reset()
+        textLine("No colors again")
     }.run()
 }
