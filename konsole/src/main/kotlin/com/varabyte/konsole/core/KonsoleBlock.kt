@@ -1,16 +1,16 @@
 package com.varabyte.konsole.core
 
-import com.varabyte.konsole.ansi.Ansi.Csi
+import com.varabyte.konsole.ansi.Ansi
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.Terminal
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 
 class KonsoleBlock internal constructor(
@@ -34,6 +34,104 @@ class KonsoleBlock internal constructor(
 
     private val textArea = MutableKonsoleTextArea()
 
+    /**
+     * A collection of values that might be accessed both within a konsole block AND a run block at the same time, so
+     * their access should be guarded behind a lock.
+     */
+    private class ThreadSafeData(private val terminal: Terminal, private val requestRerender: () -> Unit) {
+        /** State needed to support the special `$input` property */
+        class InputState {
+            var text = StringBuilder()
+            var index = 0
+        }
+
+        private val lock = ReentrantLock()
+
+        private lateinit var terminalReaderJob: Job
+        private lateinit var _inputState: InputState
+
+        fun <T> inputState(withLock: InputState.() -> T): T {
+            return lock.withLock {
+                if (!::_inputState.isInitialized) {
+                    _inputState = InputState()
+                    startReading()
+                }
+                _inputState.withLock()
+            }
+        }
+
+        private fun startReading() {
+            lock.withLock {
+                if (!::terminalReaderJob.isInitialized) {
+                    terminalReaderJob = CoroutineScope(Dispatchers.IO).launch {
+                        val escSeq = StringBuilder()
+                        terminal.read().collect { byte ->
+                            val c = byte.toChar()
+                            when {
+                                escSeq.isNotEmpty() -> {
+                                    escSeq.append(c)
+                                    val code = Ansi.EscSeq.toCode(escSeq)
+                                    if (code != null) {
+                                        when(code) {
+                                            Ansi.Csi.Codes.Keys.LEFT -> {
+                                                inputState { index = (index - 1).coerceAtLeast(0) }
+                                                requestRerender()
+                                            }
+                                            Ansi.Csi.Codes.Keys.RIGHT -> {
+                                                inputState { index = (index + 1).coerceAtMost(text.lastIndex) }
+                                                requestRerender()
+                                            }
+                                            Ansi.Csi.Codes.Keys.HOME -> {
+                                                inputState { index = 0 }
+                                                requestRerender()
+                                            }
+                                            Ansi.Csi.Codes.Keys.END -> {
+                                                inputState { index = text.lastIndex }
+                                                requestRerender()
+                                            }
+                                        }
+                                        escSeq.clear()
+                                    }
+                                }
+                                else -> when (byte) {
+                                    Ansi.CtrlChars.ESC.code -> escSeq.append(c)
+                                    Ansi.CtrlChars.ENTER.code -> {
+                                        inputState {
+                                            text.clear()
+                                            index = 0
+                                        }
+                                        requestRerender()
+                                    }
+                                    Ansi.CtrlChars.BACKSPACE.code -> {
+                                        inputState {
+                                            if (index > 0) {
+                                                text.deleteAt(index - 1)
+                                                index--
+                                            }
+                                        }
+                                        requestRerender()
+                                    }
+                                    else -> {
+                                        inputState {
+                                            text.insert(index, c)
+                                            index += 1
+                                        }
+                                        requestRerender()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private val threadSafeData = ThreadSafeData(terminal, { requestRerender() })
+
+    val input: String
+        get() = threadSafeData.inputState { text.toString() }
+
     internal fun applyCommand(command: KonsoleCommand) {
         command.applyTo(textArea)
     }
@@ -46,16 +144,15 @@ class KonsoleBlock internal constructor(
 
     private fun renderOnceAsync(): Future<*> {
         return executor.submit {
-
             val clearBlockCommand = buildString {
                 if (!textArea.isEmpty()) {
                     // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                     // last one down to the beginning (in other words, don't consume the \n of the previous line)
                     for (i in 0 until textArea.numLines) {
                         append('\r')
-                        append(Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode())
+                        append(Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode())
                         if (i < textArea.numLines - 1) {
-                            append(Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
+                            append(Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
                         }
                     }
                 }

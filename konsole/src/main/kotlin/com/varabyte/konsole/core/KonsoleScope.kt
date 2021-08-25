@@ -3,6 +3,8 @@ package com.varabyte.konsole.core
 class KonsoleScope(internal val block: KonsoleBlock) {
     internal var state = KonsoleBlockState()
 
+    val input: String get() = block.input
+
     internal fun pushState(): KonsoleBlockState {
         state = KonsoleBlockState(state)
         return state

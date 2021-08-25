@@ -1,5 +1,8 @@
 package com.varabyte.konsole.ansi
 
+import com.varabyte.konsole.util.TextPtr
+import com.varabyte.konsole.util.readInt
+
 /**
  * A collection of common ANSI codes and other related constants which power the features of
  * Konsole.
@@ -11,12 +14,21 @@ package com.varabyte.konsole.ansi
 object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
     object CtrlChars {
+        const val BACKSPACE = '\u0008'
+        const val ENTER = '\u000A'
         const val ESC = '\u001B'
     }
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Fe_Escape_sequences
     object EscSeq {
         const val CSI = '['
+
+        fun toCode(sequence: CharSequence): Csi.Code? {
+            if (sequence.length < 3) return null
+            if (sequence[0] != CtrlChars.ESC || sequence[1] != CSI) return null
+            val parts = Csi.Code.parts(TextPtr(sequence, 2)) ?: return null
+            return Csi.Code(parts)
+        }
     }
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
@@ -25,7 +37,8 @@ object Ansi {
         abstract class Identifier(val code: Char) {
             companion object {
                 private val identifierObjects = mutableMapOf<Char, Identifier>()
-                fun fromCode(code: Char) = identifierObjects[code]
+                fun fromCode(code: Char): Identifier? = identifierObjects[code]
+                fun fromCode(code: Code): Identifier? = fromCode(code.parts.identifier)
             }
 
             init {
@@ -48,13 +61,39 @@ object Ansi {
         }
 
         /** The full code for this command, e.g. the "31;1m" part of "ESC[31;1m" */
-        open class Code(val value: String) {
-            fun toFullEscapeCode(): String = "${CtrlChars.ESC}${EscSeq.CSI}${value}"
-            override fun equals(other: Any?): Boolean {
-                return other is Code && other.value == value
+        open class Code(val parts: Parts) {
+            constructor(value: String): this(
+                parts(value) ?: throw IllegalArgumentException("Invalid CSI code: $value")
+            )
+
+            companion object {
+                fun parts(text: CharSequence): Parts? {
+                    return parts(TextPtr(text))
+                }
+
+                fun parts(textPtr: TextPtr): Parts? {
+                    val numericCode = textPtr.readInt()
+                    val optionalCode = if (textPtr.currChar == ';') {
+                        textPtr.increment()
+                        textPtr.readInt()
+                    } else {
+                        null
+                    }
+                    val identifier = textPtr.currChar.takeIf { it.isDefined() } ?: return null
+                    return Parts(numericCode, optionalCode, identifier)
+                }
             }
 
-            override fun hashCode(): Int = value.hashCode()
+            data class Parts(val numericCode: Int?, val optionalCode: Int?, val identifier: Char) {
+                override fun toString() = "${if (numericCode != null) "$numericCode" else ""}${if (optionalCode != null) ";$optionalCode" else ""}$identifier"
+            }
+
+            fun toFullEscapeCode(): String = "${CtrlChars.ESC}${EscSeq.CSI}${parts}"
+            override fun equals(other: Any?): Boolean {
+                return other is Code && other.parts == parts
+            }
+
+            override fun hashCode(): Int = parts.hashCode()
         }
 
         object Codes {

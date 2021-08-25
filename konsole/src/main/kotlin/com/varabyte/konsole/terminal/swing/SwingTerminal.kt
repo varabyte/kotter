@@ -6,6 +6,8 @@ import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors.Fg
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Decorations
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.RESET
 import com.varabyte.konsole.terminal.Terminal
+import com.varabyte.konsole.util.TextPtr
+import com.varabyte.konsole.util.substring
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -30,8 +32,6 @@ import javax.swing.text.Document
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
-import kotlin.math.max
-import kotlin.math.min
 
 class SwingTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
     companion object {
@@ -81,6 +81,7 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
                         override fun keyPressed(e: KeyEvent) {
                             if (e.isControlDown && e.keyCode == KeyEvent.VK_C) {
                                 frame.dispatchEvent(WindowEvent(frame, WINDOW_CLOSING))
+                                e.consume()
                             }
                         }
                     })
@@ -123,9 +124,12 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
                     KeyEvent.VK_HOME -> Ansi.Csi.Codes.Keys.HOME.toFullEscapeCode()
                     KeyEvent.VK_END -> Ansi.Csi.Codes.Keys.END.toFullEscapeCode()
                     KeyEvent.VK_DELETE -> Ansi.Csi.Codes.Keys.DELETE.toFullEscapeCode()
+                    KeyEvent.VK_ENTER -> Ansi.CtrlChars.ENTER.toString()
+                    KeyEvent.VK_BACK_SPACE -> Ansi.CtrlChars.BACKSPACE.toString()
                     else -> e.keyChar.takeIf { it.isDefined() && it.category != CharCategory.CONTROL }?.toString() ?: ""
                 }
                 chars.forEach { c -> trySend(c.code) }
+                if (chars.isNotEmpty()) e.consume()
             }
         })
 
@@ -145,82 +149,6 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
  * Note that this supports the concept of the null string terminator - that is, for a String of length one, e.g. "a",
  * then textPtr[0] == 'a' and textPtr[1] == '\0'
  */
-private class TextPtr(val text: String, charIndex: Int = 0) {
-
-    var charIndex = 0
-        set(value) {
-            require(value >= 0 && value <= text.length) { "charIndex value is out of bounds. Expected 0 .. ${text.length}, got $value" }
-            field = value
-        }
-
-    val currChar get() = text.elementAtOrNull(charIndex) ?: Char.MIN_VALUE
-    val remainingLength get() = max(0, text.length - charIndex)
-
-    init {
-        this.charIndex = charIndex
-    }
-
-    /**
-     * Increment or decrement the pointer first (based on [forward]), and then keep moving until
-     * [keepMoving] stops returning true.
-     */
-    private fun movePtr(forward: Boolean, keepMoving: (Char) -> Boolean): Boolean {
-        val delta = if (forward) 1 else -1
-
-        var newIndex = charIndex
-        do {
-            newIndex += delta
-            if (newIndex < 0) {
-                newIndex = 0
-                break
-            } else if (newIndex >= text.length) {
-                newIndex = text.length
-                break
-            }
-        } while (keepMoving(text[newIndex]))
-
-        if (newIndex != charIndex) {
-            charIndex = newIndex
-            return true
-        }
-        return false
-    }
-
-    fun increment(): Boolean {
-        return movePtr(true) { false }
-    }
-
-    fun decrement(): Boolean {
-        return movePtr(false) { false }
-    }
-
-    fun incrementWhile(whileCondition: (Char) -> Boolean) = movePtr(true, whileCondition)
-    fun decrementWhile(whileCondition: (Char) -> Boolean) = movePtr(false, whileCondition)
-    fun incrementUntil(whileCondition: (Char) -> Boolean): Boolean {
-        return incrementWhile { !whileCondition(it) }
-    }
-
-    fun decrementUntil(whileCondition: (Char) -> Boolean): Boolean {
-        return decrementWhile { !whileCondition(it) }
-    }
-}
-
-private fun TextPtr.substring(length: Int): String {
-    return text.substring(charIndex, min(charIndex + length, text.length))
-}
-
-private fun TextPtr.readInt(): Int? {
-    if (!currChar.isDigit()) return null
-
-    var intValue = 0
-    while (true) {
-        val digit = currChar.digitToIntOrNull() ?: break
-        increment()
-        intValue *= 10
-        intValue += digit
-    }
-    return intValue
-}
 
 private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet.() -> Unit>(
     RESET to { removeAttributes(this) },
@@ -283,20 +211,13 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
     private fun processCsiCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
         if (!textPtr.increment()) return false
 
-        val numericCode = textPtr.readInt()
-        val optionalCode = if (textPtr.currChar == ';') {
-            textPtr.increment()
-            textPtr.readInt()
-        } else {
-            null
-        }
-        val finalCode = textPtr.currChar
-        val csiCode = Ansi.Csi.Code("$numericCode${if (optionalCode != null) ";$optionalCode" else ""}$finalCode")
+        val csiParts = Ansi.Csi.Code.parts(textPtr) ?: return false
+        val csiCode = Ansi.Csi.Code(csiParts)
 
-        val identifier = Ansi.Csi.Identifier.fromCode(finalCode) ?: return false
+        val identifier = Ansi.Csi.Identifier.fromCode(csiCode) ?: return false
         return when (identifier) {
             Ansi.Csi.Identifiers.CURSOR_PREV_LINE -> {
-                var numLines = numericCode ?: 1
+                var numLines = csiCode.parts.numericCode ?: 1
                 with(TextPtr(doc.getText(), caretPosition)) {
                     // First, move to beginning of this line
                     if (currChar != '\n') {
