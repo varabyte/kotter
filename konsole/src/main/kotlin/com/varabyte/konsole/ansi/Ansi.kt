@@ -1,15 +1,16 @@
 package com.varabyte.konsole.ansi
 
 /**
- * A collection of common ANSI codes which power the features of Konsole
+ * A collection of common ANSI codes and other related constants which power the features of
+ * Konsole.
  *
  * See also:
  * https://en.wikipedia.org/wiki/ANSI_escape_code
  * https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
  */
-object AnsiCodes {
+object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
-    object Ctrl {
+    object CtrlChars {
         const val ESC = '\u001B'
     }
 
@@ -20,6 +21,7 @@ object AnsiCodes {
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
     object Csi {
+        /** The single byte identifier at the end of a code, e.g. 'm' in "ESC[31;1m" */
         sealed class Identifier(val code: Char) {
             companion object {
                 private val identifierObjects = mutableMapOf<Char, Identifier>()
@@ -40,8 +42,9 @@ object AnsiCodes {
             object SGR : Identifier('m')
         }
 
+        /** The full code for this command, e.g. the "31;1m" part of "ESC[31;1m" */
         open class Code(val value: String) {
-            fun toFullEscapeCode(): String = "${Ctrl.ESC}${EscSeq.CSI}${value}"
+            fun toFullEscapeCode(): String = "${CtrlChars.ESC}${EscSeq.CSI}${value}"
             override fun equals(other: Any?): Boolean {
                 return other is Code && other.value == value
             }

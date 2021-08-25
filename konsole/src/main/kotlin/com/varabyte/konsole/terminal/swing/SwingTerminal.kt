@@ -1,11 +1,11 @@
 package com.varabyte.konsole.terminal.swing
 
-import com.varabyte.konsole.ansi.AnsiCodes
-import com.varabyte.konsole.ansi.AnsiCodes.Csi
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.Colors.Bg
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.Colors.Fg
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.Decorations
-import com.varabyte.konsole.ansi.AnsiCodes.Csi.Codes.Sgr.RESET
+import com.varabyte.konsole.ansi.Ansi
+import com.varabyte.konsole.ansi.Ansi.Csi
+import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors.Bg
+import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors.Fg
+import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Decorations
+import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.RESET
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -265,7 +265,7 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
     private fun processEscapeCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
         if (!textPtr.increment()) return false
         return when (textPtr.currChar) {
-            AnsiCodes.EscSeq.CSI -> processCsiCode(textPtr, doc, attrs)
+            Ansi.EscSeq.CSI -> processCsiCode(textPtr, doc, attrs)
             else -> false
         }
     }
@@ -347,7 +347,7 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
         val textPtr = TextPtr(text)
         do {
             when (textPtr.currChar) {
-                AnsiCodes.Ctrl.ESC -> {
+                Ansi.CtrlChars.ESC -> {
                     flush()
                     val prevCharIndex = textPtr.charIndex
                     if (!processEscapeCode(textPtr, doc, attrs)) {

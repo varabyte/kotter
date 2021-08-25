@@ -1,6 +1,6 @@
 package com.varabyte.konsole.ansi.commands
 
-import com.varabyte.konsole.ansi.AnsiCodes.Csi
+import com.varabyte.konsole.ansi.Ansi.Csi
 import com.varabyte.konsole.core.KonsoleCommand
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 

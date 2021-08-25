@@ -1,6 +1,6 @@
 package com.varabyte.konsole.core
 
-import com.varabyte.konsole.ansi.AnsiCodes.Csi
+import com.varabyte.konsole.ansi.Ansi.Csi
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
