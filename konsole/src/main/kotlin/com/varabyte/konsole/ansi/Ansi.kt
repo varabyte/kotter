@@ -79,7 +79,7 @@ object Ansi {
                     } else {
                         null
                     }
-                    val identifier = textPtr.currChar.takeIf { it.isDefined() } ?: return null
+                    val identifier = textPtr.currChar.takeIf { !it.isISOControl() } ?: return null
                     return Parts(numericCode, optionalCode, identifier)
                 }
             }

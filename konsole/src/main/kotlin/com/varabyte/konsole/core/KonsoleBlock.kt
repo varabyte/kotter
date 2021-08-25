@@ -11,6 +11,8 @@ import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.math.max
+import kotlin.math.min
 
 
 class KonsoleBlock internal constructor(
@@ -41,7 +43,7 @@ class KonsoleBlock internal constructor(
     private class ThreadSafeData(private val terminal: Terminal, private val requestRerender: () -> Unit) {
         /** State needed to support the special `$input` property */
         class InputState {
-            var text = StringBuilder()
+            var textBuilder = StringBuilder()
             var index = 0
         }
 
@@ -75,19 +77,23 @@ class KonsoleBlock internal constructor(
                                         when(code) {
                                             Ansi.Csi.Codes.Keys.LEFT -> {
                                                 inputState { index = (index - 1).coerceAtLeast(0) }
-                                                requestRerender()
                                             }
                                             Ansi.Csi.Codes.Keys.RIGHT -> {
-                                                inputState { index = (index + 1).coerceAtMost(text.lastIndex) }
-                                                requestRerender()
+                                                inputState { index = (index + 1).coerceAtMost(textBuilder.length) }
                                             }
                                             Ansi.Csi.Codes.Keys.HOME -> {
                                                 inputState { index = 0 }
-                                                requestRerender()
                                             }
                                             Ansi.Csi.Codes.Keys.END -> {
-                                                inputState { index = text.lastIndex }
-                                                requestRerender()
+                                                inputState { index = textBuilder.length }
+                                            }
+                                            Ansi.Csi.Codes.Keys.DELETE -> {
+                                                inputState {
+                                                    if (textBuilder.isNotEmpty()) {
+                                                        textBuilder.deleteAt(index)
+                                                        index = max(0, min(index, textBuilder.lastIndex))
+                                                    }
+                                                }
                                             }
                                         }
                                         escSeq.clear()
@@ -97,29 +103,28 @@ class KonsoleBlock internal constructor(
                                     Ansi.CtrlChars.ESC.code -> escSeq.append(c)
                                     Ansi.CtrlChars.ENTER.code -> {
                                         inputState {
-                                            text.clear()
+                                            textBuilder.clear()
                                             index = 0
                                         }
-                                        requestRerender()
                                     }
                                     Ansi.CtrlChars.BACKSPACE.code -> {
                                         inputState {
                                             if (index > 0) {
-                                                text.deleteAt(index - 1)
+                                                textBuilder.deleteAt(index - 1)
                                                 index--
                                             }
                                         }
-                                        requestRerender()
                                     }
                                     else -> {
                                         inputState {
-                                            text.insert(index, c)
-                                            index += 1
+                                            textBuilder.insert(index, c)
+                                            index += 1 // Otherwise, already index = 0, first char
                                         }
-                                        requestRerender()
                                     }
                                 }
                             }
+
+                            requestRerender() // TODO: Only run this if necessary
                         }
                     }
                 }
@@ -127,10 +132,27 @@ class KonsoleBlock internal constructor(
         }
     }
 
-    private val threadSafeData = ThreadSafeData(terminal, { requestRerender() })
+    private val threadSafeData = ThreadSafeData(terminal) { requestRerender() }
 
-    val input: String
-        get() = threadSafeData.inputState { text.toString() }
+    fun input() {
+        threadSafeData.inputState {
+            val text = textBuilder.toString()
+            if (text.isEmpty()) {
+                textArea.append("| |")
+            }
+            else {
+                for (i in 0 until index) {
+                    textArea.append(text[i])
+                }
+                textArea.append('|')
+                textArea.append(text.elementAtOrNull(index) ?: ' ')
+                textArea.append('|')
+                for (i in (index + 1)..text.lastIndex) {
+                    textArea.append(text[i])
+                }
+            }
+        }
+    }
 
     internal fun applyCommand(command: KonsoleCommand) {
         command.applyTo(textArea)
