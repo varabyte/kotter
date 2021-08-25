@@ -1,7 +1,6 @@
 package com.varabyte.konsole.terminal.swing
 
 import com.varabyte.konsole.ansi.Ansi
-import com.varabyte.konsole.ansi.Ansi.Csi
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors.Bg
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors.Fg
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Decorations
@@ -116,7 +115,17 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
     override fun read(): Flow<Int> = callbackFlow {
         pane.addKeyListener(object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent) {
-                trySend(e.keyCode)
+                val chars: CharSequence = when(e.keyCode) {
+                    KeyEvent.VK_UP -> Ansi.Csi.Codes.Keys.UP.toFullEscapeCode()
+                    KeyEvent.VK_DOWN -> Ansi.Csi.Codes.Keys.DOWN.toFullEscapeCode()
+                    KeyEvent.VK_LEFT -> Ansi.Csi.Codes.Keys.LEFT.toFullEscapeCode()
+                    KeyEvent.VK_RIGHT -> Ansi.Csi.Codes.Keys.RIGHT.toFullEscapeCode()
+                    KeyEvent.VK_HOME -> Ansi.Csi.Codes.Keys.HOME.toFullEscapeCode()
+                    KeyEvent.VK_END -> Ansi.Csi.Codes.Keys.END.toFullEscapeCode()
+                    KeyEvent.VK_DELETE -> Ansi.Csi.Codes.Keys.DELETE.toFullEscapeCode()
+                    else -> e.keyChar.takeIf { it.isDefined() && it.category != CharCategory.CONTROL }?.toString() ?: ""
+                }
+                chars.forEach { c -> trySend(c.code) }
             }
         })
 
@@ -213,7 +222,7 @@ private fun TextPtr.readInt(): Int? {
     return intValue
 }
 
-private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Csi.Code, MutableAttributeSet.() -> Unit>(
+private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet.() -> Unit>(
     RESET to { removeAttributes(this) },
 
     Fg.BLACK to { StyleConstants.setForeground(this, Color.BLACK) },
@@ -282,11 +291,11 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
             null
         }
         val finalCode = textPtr.currChar
-        val csiCode = Csi.Code("$numericCode${if (optionalCode != null) ";$optionalCode" else ""}$finalCode")
+        val csiCode = Ansi.Csi.Code("$numericCode${if (optionalCode != null) ";$optionalCode" else ""}$finalCode")
 
-        val identifier = Csi.Identifier.fromCode(finalCode) ?: return false
+        val identifier = Ansi.Csi.Identifier.fromCode(finalCode) ?: return false
         return when (identifier) {
-            Csi.Identifiers.CURSOR_PREV_LINE -> {
+            Ansi.Csi.Identifiers.CURSOR_PREV_LINE -> {
                 var numLines = numericCode ?: 1
                 with(TextPtr(doc.getText(), caretPosition)) {
                     // First, move to beginning of this line
@@ -309,9 +318,9 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
                 }
                 true
             }
-            Csi.Identifiers.ERASE_LINE -> {
+            Ansi.Csi.Identifiers.ERASE_LINE -> {
                 when (csiCode) {
-                    Csi.Codes.Erase.CURSOR_TO_LINE_END -> {
+                    Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END -> {
                         with(TextPtr(doc.getText(), caretPosition)) {
                             incrementUntil { it == '\n' }
                             doc.remove(caretPosition, charIndex - caretPosition)
@@ -321,12 +330,13 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
                     else -> false
                 }
             }
-            Csi.Identifiers.SGR -> {
+            Ansi.Csi.Identifiers.SGR -> {
                 SGR_CODE_TO_ATTR_MODIFIER[csiCode]?.let { modifyAttributes ->
                     modifyAttributes(attrs)
                     true
                 } ?: false
             }
+            else -> return false
         }
     }
 

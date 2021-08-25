@@ -22,7 +22,7 @@ object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
     object Csi {
         /** The single byte identifier at the end of a code, e.g. 'm' in "ESC[31;1m" */
-        sealed class Identifier(val code: Char) {
+        abstract class Identifier(val code: Char) {
             companion object {
                 private val identifierObjects = mutableMapOf<Char, Identifier>()
                 fun fromCode(code: Char) = identifierObjects[code]
@@ -33,13 +33,18 @@ object Ansi {
                 identifierObjects[code] = this
             }
 
-            override fun toString() = code.toString()
+            final override fun toString() = code.toString()
         }
 
         object Identifiers {
+            object CURSOR_UP : Identifier('A')
+            object CURSOR_DOWN : Identifier('B')
+            object CURSOR_RIGHT : Identifier('C')
+            object CURSOR_LEFT : Identifier('D')
             object CURSOR_PREV_LINE : Identifier('F')
             object ERASE_LINE : Identifier('K')
             object SGR : Identifier('m')
+            object KEYCODE : Identifier('~')
         }
 
         /** The full code for this command, e.g. the "31;1m" part of "ESC[31;1m" */
@@ -54,7 +59,6 @@ object Ansi {
 
         object Codes {
             object Cursor {
-                fun moveToPrevLine(numLines: Int = 1) = Code("$numLines${Identifiers.CURSOR_PREV_LINE}")
                 object MOVE_TO_PREV_LINE : Code("1${Identifiers.CURSOR_PREV_LINE}")
             }
 
@@ -113,6 +117,17 @@ object Ansi {
                         object WHITE_BRIGHT : Code("47;1${Identifiers.SGR}")
                     }
                 }
+            }
+
+            object Keys {
+                object HOME : Code("1${Identifiers.KEYCODE}")
+                object END : Code("4${Identifiers.KEYCODE}")
+                object DELETE : Code("3${Identifiers.KEYCODE}")
+
+                object UP : Code("${Identifiers.CURSOR_UP}")
+                object DOWN : Code("${Identifiers.CURSOR_DOWN}")
+                object LEFT : Code("${Identifiers.CURSOR_LEFT}")
+                object RIGHT : Code("${Identifiers.CURSOR_RIGHT}")
             }
         }
     }
