@@ -39,6 +39,7 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
         /**
          * @param terminalSize Number of characters, so 80x32 will be expanded to fit 80 characters horizontally and
          *   32 lines vertically (before scrolling is needed)
+         * @param handleInterrupt If true, handle CTRL-C by closing the window.
          */
         fun create(
             title: String = "Virtual Terminal",
