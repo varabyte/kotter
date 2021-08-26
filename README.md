@@ -1,15 +1,18 @@
 # Konsole
 
 ```kotlin
-var wantsToLearn by KonsoleVar(false)
-konsole {
+konsoleApp {
+  var wantsToLearn by KonsoleVar(false)
+  konsole {
     textLine("Would you like to learn Konsole? (Y/n)")
-    textLine("> $input")
+    text("> ")
+    input()
     if (wantsToLearn) {
-        p { textLine("""\(^o^)/""") }
+      p { textLine("""\(^o^)/""") }
     }
-}.runUntilTextEntered {
+  }.runUntilTextEntered {
     onTextEntered { wantsToLearn = input.toLowercase().startsWith("y") }
+  }
 }
 ```
 
@@ -37,16 +40,16 @@ Specifically, this library helps with:
 The following is equivalent to `println("Hello, World")`. In this simple case, it's definitely overkill!
 
 ```kotlin
-konsole {
-  textLine("Hello, World")
-}.run()
+konsoleApp {
+  konsole {
+    textLine("Hello, World")
+  }.run()
+}
 ```
 
 `konsole { ... }` defines a `KonsoleBlock` which, on its own, is inert. It needs to be run to output text to the
 console. Above, we use the `run` method above to trigger this. The method blocks until the render is finished (which,
 for console text, probably won't be very long).
-
-`run` consumes the block. If you attempt to call `run` a second time, Konsole will throw an exception.
 
 While the above simple case is a bit verbose for what it's doing, Konsole starts to show its strength when doing
 background work (or other async tasks like waiting for user input) during which time the block may update several times.
@@ -193,30 +196,29 @@ Note that the cursor will cause the block to auto-render itself occasionally in 
 ### User input
 
 Konsole consumes keypresses, so as the user types into the console, nothing will show up unless you intentionally print
-it. You can easily do this using the `input` property, which contains the user's input typed so far (excluding control
-characters):
+it. You can easily do this using the `input` method, which when triggered will both handle and add the user's input
+typed so far (excluding control characters):
 
 ```kotlin
 konsole {
   // `input` is a property that contains the user's input typed so far in
   // this konsole block. If your block references it, the block is
   // automatically rerendered when it changes.
-  text("Please enter your name: $input")
+  text("Please enter your name: "); input()
 }.run { /* ... */ }
 ```
 
 Note that the input property automatically adds a blinking cursor for you. This also handles keys like LEFT, HOME, and
 DEL, moving the cursor back and forth between the bounds of the input string.
 
-You can intercept input as it is typed in using the `onInputChanged` event:
+You can intercept input as it is typed using the `onInputChanged` event:
 
 ```kotlin
 konsole {
   text("Please enter your name: $input")
 }.run {
   onInputChanged {
-    // Reject invalid characters!
-    input = input.filter { it.isLetter() }
+    input = input.toUpperCase()
   }
   /* ... */
 }
@@ -231,6 +233,8 @@ konsole {
   onInputChanged {
     if (input.any { !it.isLetter() }) {
       input = lastInput
+      // or input = input.filter { it.isLetter() }
+      // or `rejectInput()` which does the same thing
     }
   }
   /* ... */
@@ -595,16 +599,20 @@ runMosaic {
 }
 
 // Konsole
-var count by KonsoleVar(0)
-konsole {
-  textLine("The count is: $count")
-}.run {
-  for (i in 1..20) {
-    delay(250)
-    count++
+konsoleApp {
+  var count by KonsoleVar(0)
+  konsole {
+    textLine("The count is: $count")
+  }.run {
+    for (i in 1..20) {
+      delay(250)
+      count++
+    }
   }
 }
 ```
+
+The above case (and others) are included in the [examples](examples) folder.
 
 ### Tested Platforms
 
