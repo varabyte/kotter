@@ -12,7 +12,7 @@ class KonsoleScope(private val block: KonsoleBlock) {
      *
      * It's recommended to collect these keys on the IO dispatcher.
      */
-    val keyFlow get() = block.keyFlow
+    val keyFlow get() = block.app.keyFlow
 
     /**
      * Run the [scopedBlock] within a fresh, new [KonsoleState] context, which gets removed afterwards.

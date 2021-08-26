@@ -1,13 +1,8 @@
 package com.varabyte.konsole.core
 
 import com.varabyte.konsole.ansi.Ansi
-import com.varabyte.konsole.core.input.CharKey
-import com.varabyte.konsole.core.input.Key
-import com.varabyte.konsole.core.input.Keys
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.mapNotNull
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantLock
@@ -41,41 +36,6 @@ class KonsoleBlock internal constructor(
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
     private var renderRequested = false
-
-    internal val keyFlow: Flow<Key> by lazy {
-        val escSeq = StringBuilder()
-        app.terminal.read().mapNotNull { byte ->
-            val c = byte.toChar()
-            when {
-                escSeq.isNotEmpty() -> {
-                    escSeq.append(c)
-                    val code = Ansi.EscSeq.toCode(escSeq)
-                    if (code != null) {
-                        escSeq.clear()
-                        when(code) {
-                            Ansi.Csi.Codes.Keys.LEFT -> Keys.LEFT
-                            Ansi.Csi.Codes.Keys.RIGHT -> Keys.RIGHT
-                            Ansi.Csi.Codes.Keys.HOME -> Keys.HOME
-                            Ansi.Csi.Codes.Keys.END -> Keys.END
-                            Ansi.Csi.Codes.Keys.DELETE -> Keys.DELETE
-                            else -> null
-                        }
-                    }
-                    else {
-                        null
-                    }
-                }
-                else -> {
-                    when(c) {
-                        Ansi.CtrlChars.ESC -> { escSeq.append(c); null }
-                        Ansi.CtrlChars.ENTER -> Keys.ENTER
-                        Ansi.CtrlChars.BACKSPACE -> Keys.BACKSPACE
-                        else -> if (!c.isISOControl()) CharKey(c) else null
-                    }
-                }
-            }
-        }
-    }
 
     internal fun applyCommand(command: KonsoleCommand) {
         command.applyTo(textArea)

@@ -137,7 +137,25 @@ class KonsoleData {
      */
     fun <T : Any> putIfAbsent(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit = {}, block: (T) -> Unit = {}) {
         return lock.withLock {
-            (keyValues.computeIfAbsent(key) { Value(provideInitialValue(), dispose) } as T?)?.let { block(it) }
+            block(putIfAbsent(key, provideInitialValue, dispose))
+        }
+    }
+
+    /**
+     * A convenience version of the other [putIfAbsent] but without a dispose block, making the syntax for this common
+     * case nicer.
+     */
+    fun <T : Any> putIfAbsent(key: Key<T>, provideInitialValue: () -> T): T = putIfAbsent(key, provideInitialValue) {}
+
+    /**
+     * Like the other [putIfAbsent] but return the new value directly.
+     *
+     * The other method should be preferred when possible because it provides strong thread-safety guarantees, but this
+     * can be safe if the data you're adding is immutable.
+     */
+    fun <T : Any> putIfAbsent(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit): T {
+        return lock.withLock {
+            (keyValues.computeIfAbsent(key) { Value(provideInitialValue(), dispose) } as Value<T>).wrapped
         }
     }
 }
