@@ -1,6 +1,7 @@
 package com.varabyte.konsole.core
 
 import com.varabyte.konsole.ansi.Ansi
+import com.varabyte.konsole.ansi.commands.INVERT_COMMAND
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.*
@@ -137,19 +138,14 @@ class KonsoleBlock internal constructor(
     fun input() {
         threadSafeData.inputState {
             val text = textBuilder.toString()
-            if (text.isEmpty()) {
-                textArea.append("| |")
+            for (i in 0 until index) {
+                textArea.append(text[i])
             }
-            else {
-                for (i in 0 until index) {
-                    textArea.append(text[i])
-                }
-                textArea.append('|')
-                textArea.append(text.elementAtOrNull(index) ?: ' ')
-                textArea.append('|')
-                for (i in (index + 1)..text.lastIndex) {
-                    textArea.append(text[i])
-                }
+            applyCommand(INVERT_COMMAND)
+            textArea.append(text.elementAtOrNull(index) ?: ' ')
+            applyCommand(INVERT_COMMAND)
+            for (i in (index + 1)..text.lastIndex) {
+                textArea.append(text[i])
             }
         }
     }

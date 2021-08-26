@@ -59,7 +59,7 @@ private val BG_MAGENTA_BRIGHT_COMMAND = ColorCommand(Colors.Bg.MAGENTA_BRIGHT, C
 private val BG_CYAN_BRIGHT_COMMAND = ColorCommand(Colors.Bg.CYAN_BRIGHT, ColorLayer.BG)
 private val BG_WHITE_BRIGHT_COMMAND = ColorCommand(Colors.Bg.WHITE_BRIGHT, ColorLayer.BG)
 
-private val INVERT_COMMAND = object : AnsiCsiCommand(Colors.INVERT) {
+internal val INVERT_COMMAND = object : AnsiCsiCommand(Colors.INVERT) {
     override fun updateState(state: KonsoleBlockState) {
         state.inverted = this
     }

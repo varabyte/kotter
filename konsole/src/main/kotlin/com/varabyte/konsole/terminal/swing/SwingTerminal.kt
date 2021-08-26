@@ -274,6 +274,9 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
 
         val doc = styledDocument
         val attrs = SimpleAttributeSet()
+        // Set foreground and background explicitly so color inversion can work
+        StyleConstants.setForeground(attrs, foreground)
+        StyleConstants.setBackground(attrs, background)
         val stringBuilder = StringBuilder()
         fun flush() {
             val stringToInsert = stringBuilder.toString()
