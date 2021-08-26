@@ -7,7 +7,7 @@ import com.varabyte.konsole.ansi.commands.RESET_COMMAND
  * itself.
  *
  * Unfortunately, when you need to reset a single value (say, foreground color), the ANSI standard doesn't provide a
- * scapel - instead, it provides a nuke (clear EVERYTHING). Since Konsole embraces a hierarchical, nested API, e.g.
+ * scalpel - instead, it provides a nuke (clear EVERYTHING). Since Konsole embraces a hierarchical, nested API, e.g.
  *
  * ```
  * white(BG) {
