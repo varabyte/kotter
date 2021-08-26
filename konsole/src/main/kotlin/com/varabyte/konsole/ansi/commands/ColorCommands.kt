@@ -3,8 +3,8 @@ package com.varabyte.konsole.ansi.commands
 import com.varabyte.konsole.ansi.Ansi.Csi
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors
 import com.varabyte.konsole.core.KonsoleBlock
-import com.varabyte.konsole.core.KonsoleState
 import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.core.KonsoleState
 
 enum class ColorLayer {
     FG,

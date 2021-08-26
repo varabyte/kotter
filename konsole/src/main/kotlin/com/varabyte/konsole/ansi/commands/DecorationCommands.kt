@@ -2,8 +2,8 @@ package com.varabyte.konsole.ansi.commands
 
 import com.varabyte.konsole.ansi.Ansi
 import com.varabyte.konsole.core.KonsoleBlock
-import com.varabyte.konsole.core.KonsoleState
 import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.core.KonsoleState
 
 private val BOLD_COMMAND = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decorations.BOLD) {
     override fun updateState(state: KonsoleState) {

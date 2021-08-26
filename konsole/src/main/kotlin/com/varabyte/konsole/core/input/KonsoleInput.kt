@@ -2,7 +2,10 @@ package com.varabyte.konsole.core.input
 
 import com.varabyte.konsole.ansi.commands.invert
 import com.varabyte.konsole.ansi.commands.text
-import com.varabyte.konsole.core.*
+import com.varabyte.konsole.core.KeyFlowKey
+import com.varabyte.konsole.core.KonsoleBlock
+import com.varabyte.konsole.core.KonsoleData
+import com.varabyte.konsole.core.KonsoleScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
