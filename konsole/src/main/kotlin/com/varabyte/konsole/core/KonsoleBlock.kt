@@ -8,7 +8,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -36,6 +35,9 @@ class KonsoleBlock internal constructor(
     }
 
     private val textArea = MutableKonsoleTextArea()
+
+    private val renderLock = ReentrantLock()
+    private var renderRequested = false
 
     /**
      * A collection of values that might be accessed both within a konsole block AND a run block at the same time, so
@@ -155,13 +157,21 @@ class KonsoleBlock internal constructor(
     }
 
     internal fun requestRerender() {
-        // TODO: If multiple requestRerenders come in, batch
-        // TODO: Test if this block is done running
-        renderOnce()
+        renderLock.withLock {
+            // If we get multiple render requests in a short period of time, we only need to handle one of them - the
+            // remaining requests are redundant and will be covered by the initial one.
+            if (!renderRequested) {
+                renderRequested = true
+                renderOnceAsync()
+            }
+        }
     }
 
-    private fun renderOnceAsync(): Future<*> {
-        return executor.submit {
+    private fun renderOnceAsync(): Job {
+        val self = this
+        return CoroutineScope(executor.asCoroutineDispatcher()).launch {
+            renderLock.withLock { renderRequested = false }
+
             val clearBlockCommand = buildString {
                 if (!textArea.isEmpty()) {
                     // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
@@ -177,14 +187,14 @@ class KonsoleBlock internal constructor(
             }
 
             textArea.clear()
-            KonsoleScope(this).block()
+            KonsoleScope(self).block()
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
             // in one pass.
             terminal.write(clearBlockCommand + textArea.toString())
         }
     }
-    private fun renderOnce() {
-        renderOnceAsync().get()
+    private fun renderOnce() = runBlocking {
+        renderOnceAsync().join()
     }
 
     /** Mark this block as active. Only one block can be active at a time! */
@@ -202,11 +212,7 @@ class KonsoleBlock internal constructor(
             renderOnce()
             if (block != null) {
                 val job = CoroutineScope(Dispatchers.Default).launch {
-                    val scope = RunScope(
-                        rerenderRequested = {
-                            renderOnce()
-                        }
-                    )
+                    val scope = RunScope(rerenderRequested = { requestRerender() })
                     scope.block()
                 }
 
