@@ -8,6 +8,7 @@ import com.varabyte.konsole.core.runUntilSignal
 private const val WIDTH = 20
 private const val HEIGHT = 10
 
+// Compare with: https://github.com/JakeWharton/mosaic/blob/trunk/samples/robot/src/main/kotlin/example/robot.kt
 fun main() = konsoleApp {
     var x by KonsoleVar(0)
     var y by KonsoleVar(0)
