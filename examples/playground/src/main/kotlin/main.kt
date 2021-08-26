@@ -1,7 +1,6 @@
 import com.varabyte.konsole.ansi.commands.*
 import com.varabyte.konsole.ansi.commands.ColorLayer.BG
 import com.varabyte.konsole.core.KonsoleVar
-import com.varabyte.konsole.core.scopedState
 import com.varabyte.konsole.konsole
 import kotlinx.coroutines.delay
 import kotlin.random.Random
