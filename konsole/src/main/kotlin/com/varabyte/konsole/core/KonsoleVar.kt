@@ -1,6 +1,9 @@
 package com.varabyte.konsole.core
 
+import net.jcip.annotations.ThreadSafe
 import java.lang.ref.WeakReference
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 import kotlin.reflect.KProperty
 
 /**
@@ -25,22 +28,30 @@ import kotlin.reflect.KProperty
  *
  * count = 123 // Setting count out of a konsole block is fine; nothing is triggered
  * ```
+ *
+ * This class's value can be queried and set across different values, so it is designed to be thread safe.
  */
+@ThreadSafe
 class KonsoleVar<T> internal constructor(private var value: T, private val activeBlock: () -> KonsoleBlock?) {
+    private val lock = ReentrantLock()
     private var associatedBlockRef: WeakReference<KonsoleBlock>? = null
     operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
-        associatedBlockRef = activeBlock()?.let { WeakReference(it) }
-        return value
+        return lock.withLock {
+            associatedBlockRef = activeBlock()?.let { WeakReference(it) }
+            value
+        }
     }
     operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
-        if (this.value != value) {
-            this.value = value
-            associatedBlockRef?.get()?.let { associatedBlock ->
-                activeBlock()?.let { activeBlock ->
-                    if (associatedBlock === activeBlock) activeBlock.requestRerender()
-                } ?: run {
-                    // Our old block is finished, no need to keep a reference around to it anymore.
-                    associatedBlockRef = null
+        lock.withLock {
+            if (this.value != value) {
+                this.value = value
+                associatedBlockRef?.get()?.let { associatedBlock ->
+                    activeBlock()?.let { activeBlock ->
+                        if (associatedBlock === activeBlock) activeBlock.requestRerender()
+                    } ?: run {
+                        // Our old block is finished, no need to keep a reference around to it anymore.
+                        associatedBlockRef = null
+                    }
                 }
             }
         }
