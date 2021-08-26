@@ -2,6 +2,7 @@ package com.varabyte.konsole.core.input
 
 import com.varabyte.konsole.ansi.commands.invert
 import com.varabyte.konsole.ansi.commands.text
+import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleData
 import com.varabyte.konsole.core.KonsoleScope
 import com.varabyte.konsole.core.KonsoleVar
@@ -13,12 +14,16 @@ import kotlinx.coroutines.launch
 
 /** State needed to support the `input()` function */
 private class InputState {
-    object Key : KonsoleData.Key<InputState>
+    object Key : KonsoleData.Key<InputState> {
+        override val lifecycle = KonsoleBlock.Lifecycle
+    }
     var text by KonsoleVar("")
     var index by KonsoleVar(0)
 }
 
-private object KeyReaderJobKey : KonsoleData.Key<Job>
+private object KeyReaderJobKey : KonsoleData.Key<Job> {
+    override val lifecycle = KonsoleBlock.Lifecycle
+}
 
 /**
  * If necessary, instantiate data that the [input] method expects to exist.

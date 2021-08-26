@@ -1,11 +1,11 @@
 import com.varabyte.konsole.ansi.commands.*
 import com.varabyte.konsole.ansi.commands.ColorLayer.BG
 import com.varabyte.konsole.core.KonsoleVar
-import com.varabyte.konsole.konsole
+import com.varabyte.konsole.core.konsoleApp
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
-fun main() {
+fun main() = konsoleApp {
     konsole {
         bold { textLine("WELCOME TO KONSOLE!") }
         textLine()

@@ -1,12 +1,9 @@
 package com.varabyte.konsole.terminal
 
-import com.varabyte.konsole.KonsoleSettings
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import org.jline.terminal.TerminalBuilder
 import java.io.IOException
-
-val DefaultTerminalIO by lazy { KonsoleSettings.provideTerminal() }
 
 /**
  * An interface for abstracting input and output for various terminal implementations.

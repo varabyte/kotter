@@ -1,9 +1,9 @@
 import com.varabyte.konsole.ansi.commands.textLine
 import com.varabyte.konsole.core.KonsoleVar
-import com.varabyte.konsole.konsole
+import com.varabyte.konsole.core.konsoleApp
 import kotlinx.coroutines.delay
 
-fun main() {
+fun main() = konsoleApp {
     var count by KonsoleVar(0)
     konsole {
         textLine("The count is: $count")

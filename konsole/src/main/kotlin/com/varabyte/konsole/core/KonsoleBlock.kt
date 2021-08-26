@@ -16,11 +16,12 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-
 class KonsoleBlock internal constructor(
     private val executor: ExecutorService,
     private val terminal: Terminal,
+    internal val data: KonsoleData,
     private val block: KonsoleScope.() -> Unit) {
+    object Lifecycle : KonsoleData.Lifecycle
 
     companion object {
         private val activeReference = AtomicReference<KonsoleBlock?>(null)
@@ -40,8 +41,6 @@ class KonsoleBlock internal constructor(
             waitLatch.countDown()
         }
     }
-
-    val data = KonsoleData()
 
     private val textArea = MutableKonsoleTextArea()
 
@@ -150,7 +149,7 @@ class KonsoleBlock internal constructor(
 
                 runBlocking { job.join() }
             }
-            this.data.dispose()
+            data.dispose(Lifecycle)
         }
     }
 }

@@ -7,14 +7,18 @@ import kotlin.concurrent.withLock
 /**
  * A thread-safe package of key/value pairs.
  *
- * When registering values, an optional dispose block can be registered at the same time, which will automatically be
- * triggered when the block is done running.
+ * You should register data using a predefined [Key] object. When registering values, an optional dispose block can be
+ * specified at the same time, which will automatically be triggered when the block is done running.
  *
- * This data will be associated with a [KonsoleBlock] and is tied to its lifecycle.
+ * This data will be tied to a [Lifecycle]. Call [dispose] to remove all keys with the matching lifecycle.
  */
 @Suppress("UNCHECKED_CAST")
 class KonsoleData {
-    interface Key<T>
+    interface Lifecycle
+    interface Key<T> {
+        val lifecycle: Lifecycle
+    }
+
     private class Value<T>(val wrapped: T, private val dispose: (T) -> Unit = {}) {
         fun dispose() {
             dispose(wrapped)
@@ -25,10 +29,17 @@ class KonsoleData {
     @GuardedBy("lock")
     private val keyValues = mutableMapOf<Key<out Any>, Value<out Any>>()
 
-    fun dispose() {
+    fun dispose(lifecycle: Lifecycle) {
         lock.withLock {
-            keyValues.values.forEach { value -> value.dispose() }
-            keyValues.clear()
+            keyValues.entries.removeAll { entry ->
+                if (entry.key.lifecycle === lifecycle) {
+                    entry.value.dispose()
+                    true
+                }
+                else {
+                    false
+                }
+            }
         }
     }
 
