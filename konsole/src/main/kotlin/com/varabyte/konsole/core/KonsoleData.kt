@@ -3,6 +3,7 @@ package com.varabyte.konsole.core
 import com.varabyte.konsole.core.KonsoleData.Key
 import com.varabyte.konsole.core.KonsoleData.Lifecycle
 import net.jcip.annotations.GuardedBy
+import net.jcip.annotations.ThreadSafe
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -13,7 +14,11 @@ import kotlin.concurrent.withLock
  * specified at the same time, which will automatically be triggered when the block is done running.
  *
  * This data will be tied to a [Lifecycle]. Call [dispose] to remove all keys with the matching lifecycle.
+ *
+ * Note: Although the class is designed to be thread safe, some calls (which are noted with warnings) can expose values
+ * to you which are no longer covered by the lock. Those should only be used to fetch immutable or thread-safe values.
  */
+@ThreadSafe
 @Suppress("UNCHECKED_CAST")
 class KonsoleData {
     /**
