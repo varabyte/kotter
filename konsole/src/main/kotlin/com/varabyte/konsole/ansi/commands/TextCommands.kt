@@ -19,16 +19,25 @@ private class TextCommand(private val text: String) : KonsoleCommand {
 private val NewlineCommand = CharCommand('\n')
 
 fun KonsoleScope.text(text: String) {
-    block.applyCommand(TextCommand(text))
+    applyCommand(TextCommand(text))
+}
+
+fun KonsoleScope.text(c: Char) {
+    applyCommand(CharCommand(c))
 }
 
 fun KonsoleScope.textLine(text: String) {
-    block.applyCommand(TextCommand(text))
+    applyCommand(TextCommand(text))
+    textLine()
+}
+
+fun KonsoleScope.textLine(c: Char) {
+    applyCommand(CharCommand(c))
     textLine()
 }
 
 fun KonsoleScope.textLine() {
-    block.applyCommand(NewlineCommand)
+    applyCommand(NewlineCommand)
 }
 
 /**
@@ -42,4 +51,3 @@ fun KonsoleScope.p(block: KonsoleScope.() -> Unit) {
     block()
     textLine()
 }
-

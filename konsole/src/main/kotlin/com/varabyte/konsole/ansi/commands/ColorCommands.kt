@@ -1,12 +1,10 @@
 package com.varabyte.konsole.ansi.commands
 
-import com.varabyte.konsole.ansi.Ansi
 import com.varabyte.konsole.ansi.Ansi.Csi
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors
 import com.varabyte.konsole.core.KonsoleBlock
 import com.varabyte.konsole.core.KonsoleBlockState
 import com.varabyte.konsole.core.KonsoleScope
-import com.varabyte.konsole.core.scopedState
 
 enum class ColorLayer {
     FG,
@@ -59,7 +57,7 @@ private val BG_MAGENTA_BRIGHT_COMMAND = ColorCommand(Colors.Bg.MAGENTA_BRIGHT, C
 private val BG_CYAN_BRIGHT_COMMAND = ColorCommand(Colors.Bg.CYAN_BRIGHT, ColorLayer.BG)
 private val BG_WHITE_BRIGHT_COMMAND = ColorCommand(Colors.Bg.WHITE_BRIGHT, ColorLayer.BG)
 
-internal val INVERT_COMMAND = object : AnsiCsiCommand(Colors.INVERT) {
+private val INVERT_COMMAND = object : AnsiCsiCommand(Colors.INVERT) {
     override fun updateState(state: KonsoleBlockState) {
         state.inverted = this
     }

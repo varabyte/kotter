@@ -4,43 +4,53 @@ import net.jcip.annotations.GuardedBy
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-interface Key<T>
-
 /**
  * A thread-safe package of key/value pairs.
  *
- * This data will be associated with a block and can be accessed from various scopes in a thread-safe manner.
+ * When registering values, an optional dispose block can be registered at the same time, which will automatically be
+ * triggered when the block is done running.
+ *
+ * This data will be associated with a [KonsoleBlock] and is tied to its lifecycle.
  */
 @Suppress("UNCHECKED_CAST")
 class KonsoleData {
+    interface Key<T>
+    private class Value<T>(val wrapped: T, private val dispose: (T) -> Unit = {}) {
+        fun dispose() {
+            dispose(wrapped)
+        }
+    }
+
     private val lock = ReentrantLock()
     @GuardedBy("lock")
-    private val keyValues = mutableMapOf<Key<out Any>, Any>()
+    private val keyValues = mutableMapOf<Key<out Any>, Value<out Any>>()
 
-    operator fun <T : Any> set(key: Key<T>, value: T) {
+    fun dispose() {
         lock.withLock {
-            val oldValue = keyValues.putIfAbsent(key, value)
-            check(oldValue != null) { "Cannot override data after it has been initially set" }
+            keyValues.values.forEach { value -> value.dispose() }
+            keyValues.clear()
         }
     }
 
-    operator fun <T : Any> get(key: Key<T>): T? {
-        return lock.withLock {
-            keyValues[key] as T?
+    fun <T : Any> get(key: Key<T>, block: T.() -> Unit) {
+        lock.withLock {
+            (keyValues[key] as? Value<T>)?.let { value -> value.wrapped.block() }
         }
     }
 
-    fun <T : Any> getValue(key: Key<T>): T = this[key]!!
+    fun <T : Any> putIfAbsent(key: Key<T>, provideInitialValue: () -> T) {
+        putIfAbsent(key, provideInitialValue, dispose = {})
+    }
 
-    fun <T : Any> get(key: Key<T>, block: (T) -> Unit) {
+    fun <T : Any> putIfAbsent(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit) {
         lock.withLock {
-            this[key]?.let { block(it) }
+            keyValues.computeIfAbsent(key) { Value(provideInitialValue(), dispose) }
         }
     }
 
-    fun <T : Any> getOrPut(key: Key<T>, provideInitialValue: () -> T, block: (T) -> Unit) {
+    fun <T : Any> getOrPut(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit = {}, block: (T) -> Unit = {}) {
         lock.withLock {
-            (keyValues.computeIfAbsent(key) { provideInitialValue() } as T?)?.let { block(it) }
+            (keyValues.computeIfAbsent(key) { Value(provideInitialValue(), dispose) } as T?)?.let { block(it) }
         }
     }
 }

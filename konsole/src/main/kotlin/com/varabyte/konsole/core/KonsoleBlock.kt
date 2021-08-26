@@ -1,18 +1,20 @@
 package com.varabyte.konsole.core
 
 import com.varabyte.konsole.ansi.Ansi
-import com.varabyte.konsole.ansi.commands.INVERT_COMMAND
+import com.varabyte.konsole.core.input.CharKey
+import com.varabyte.konsole.core.input.Key
+import com.varabyte.konsole.core.input.Keys
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
 import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.mapNotNull
+import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
-import kotlin.math.max
-import kotlin.math.min
 
 
 class KonsoleBlock internal constructor(
@@ -30,124 +32,54 @@ class KonsoleBlock internal constructor(
     ) {
         private val waitLatch = CountDownLatch(1)
         fun rerender() = rerenderRequested()
-        fun waitForSignal() { waitLatch.await() }
-        fun signal() { waitLatch.countDown() }
+        fun waitForSignal() {
+            waitLatch.await()
+        }
+
+        fun signal() {
+            waitLatch.countDown()
+        }
     }
+
+    val data = KonsoleData()
 
     private val textArea = MutableKonsoleTextArea()
 
     private val renderLock = ReentrantLock()
+    @GuardedBy("renderLock")
     private var renderRequested = false
 
-    /**
-     * A collection of values that might be accessed both within a konsole block AND a run block at the same time, so
-     * their access should be guarded behind a lock.
-     */
-    private class ThreadSafeData(private val terminal: Terminal, private val requestRerender: () -> Unit) {
-        /** State needed to support the special `$input` property */
-        class InputState {
-            var textBuilder = StringBuilder()
-            var index = 0
-        }
-
-        private val lock = ReentrantLock()
-
-        private lateinit var terminalReaderJob: Job
-        private lateinit var _inputState: InputState
-
-        fun <T> inputState(withLock: InputState.() -> T): T {
-            return lock.withLock {
-                if (!::_inputState.isInitialized) {
-                    _inputState = InputState()
-                    startReading()
-                }
-                _inputState.withLock()
-            }
-        }
-
-        private fun startReading() {
-            lock.withLock {
-                if (!::terminalReaderJob.isInitialized) {
-                    terminalReaderJob = CoroutineScope(Dispatchers.IO).launch {
-                        val escSeq = StringBuilder()
-                        terminal.read().collect { byte ->
-                            val c = byte.toChar()
-                            when {
-                                escSeq.isNotEmpty() -> {
-                                    escSeq.append(c)
-                                    val code = Ansi.EscSeq.toCode(escSeq)
-                                    if (code != null) {
-                                        when(code) {
-                                            Ansi.Csi.Codes.Keys.LEFT -> {
-                                                inputState { index = (index - 1).coerceAtLeast(0) }
-                                            }
-                                            Ansi.Csi.Codes.Keys.RIGHT -> {
-                                                inputState { index = (index + 1).coerceAtMost(textBuilder.length) }
-                                            }
-                                            Ansi.Csi.Codes.Keys.HOME -> {
-                                                inputState { index = 0 }
-                                            }
-                                            Ansi.Csi.Codes.Keys.END -> {
-                                                inputState { index = textBuilder.length }
-                                            }
-                                            Ansi.Csi.Codes.Keys.DELETE -> {
-                                                inputState {
-                                                    if (textBuilder.isNotEmpty()) {
-                                                        textBuilder.deleteAt(index)
-                                                        index = max(0, min(index, textBuilder.lastIndex))
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        escSeq.clear()
-                                    }
-                                }
-                                else -> when (byte) {
-                                    Ansi.CtrlChars.ESC.code -> escSeq.append(c)
-                                    Ansi.CtrlChars.ENTER.code -> {
-                                        inputState {
-                                            textBuilder.clear()
-                                            index = 0
-                                        }
-                                    }
-                                    Ansi.CtrlChars.BACKSPACE.code -> {
-                                        inputState {
-                                            if (index > 0) {
-                                                textBuilder.deleteAt(index - 1)
-                                                index--
-                                            }
-                                        }
-                                    }
-                                    else -> {
-                                        inputState {
-                                            textBuilder.insert(index, c)
-                                            index += 1 // Otherwise, already index = 0, first char
-                                        }
-                                    }
-                                }
-                            }
-
-                            requestRerender() // TODO: Only run this if necessary
+    internal val keyFlow: Flow<Key> by lazy {
+        val escSeq = StringBuilder()
+        terminal.read().mapNotNull { byte ->
+            val c = byte.toChar()
+            when {
+                escSeq.isNotEmpty() -> {
+                    escSeq.append(c)
+                    val code = Ansi.EscSeq.toCode(escSeq)
+                    if (code != null) {
+                        escSeq.clear()
+                        when(code) {
+                            Ansi.Csi.Codes.Keys.LEFT -> Keys.LEFT
+                            Ansi.Csi.Codes.Keys.RIGHT -> Keys.RIGHT
+                            Ansi.Csi.Codes.Keys.HOME -> Keys.HOME
+                            Ansi.Csi.Codes.Keys.END -> Keys.END
+                            Ansi.Csi.Codes.Keys.DELETE -> Keys.DELETE
+                            else -> null
                         }
                     }
+                    else {
+                        null
+                    }
                 }
-            }
-        }
-    }
-
-    private val threadSafeData = ThreadSafeData(terminal) { requestRerender() }
-
-    fun input() {
-        threadSafeData.inputState {
-            val text = textBuilder.toString()
-            for (i in 0 until index) {
-                textArea.append(text[i])
-            }
-            applyCommand(INVERT_COMMAND)
-            textArea.append(text.elementAtOrNull(index) ?: ' ')
-            applyCommand(INVERT_COMMAND)
-            for (i in (index + 1)..text.lastIndex) {
-                textArea.append(text[i])
+                else -> {
+                    when(c) {
+                        Ansi.CtrlChars.ESC -> { escSeq.append(c); null }
+                        Ansi.CtrlChars.ENTER -> Keys.ENTER
+                        Ansi.CtrlChars.BACKSPACE -> Keys.BACKSPACE
+                        else -> if (!c.isISOControl()) CharKey(c) else null
+                    }
+                }
             }
         }
     }
@@ -218,6 +150,7 @@ class KonsoleBlock internal constructor(
 
                 runBlocking { job.join() }
             }
+            this.data.dispose()
         }
     }
 }
