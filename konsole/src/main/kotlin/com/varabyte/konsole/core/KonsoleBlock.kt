@@ -18,6 +18,7 @@ class KonsoleBlock internal constructor(
     object Lifecycle : KonsoleData.Lifecycle
 
     class RunScope(
+        val data: KonsoleData,
         private val rerenderRequested: () -> Unit
     ) {
         private val waitLatch = CountDownLatch(1)
@@ -91,7 +92,7 @@ class KonsoleBlock internal constructor(
         renderOnce()
         if (block != null) {
             val job = CoroutineScope(Dispatchers.Default).launch {
-                val scope = RunScope(rerenderRequested = { requestRerender() })
+                val scope = RunScope(app.data, rerenderRequested = { requestRerender() })
                 scope.block()
             }
 

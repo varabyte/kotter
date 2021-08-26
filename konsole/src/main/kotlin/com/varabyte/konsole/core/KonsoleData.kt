@@ -41,7 +41,46 @@ class KonsoleData {
         val lifecycle: Lifecycle
     }
 
-    private class Value<T>(val wrapped: T, private val dispose: (T) -> Unit = {}) {
+    /**
+     * Occasionally, a user may want to put data in this cache which is expensive to calculate that should only run on
+     * demand. To do that, instead of:
+     *
+     * ```
+     * data[ExpensiveKey] = ExpensiveObject()
+     * ```
+     *
+     * the can write:
+     *
+     * ```
+     * data.lazyInitializers[ExpensiveKey] = { ExpensiveObject() }
+     * ```
+     *
+     * Later, a call to ```data[ExpensiveKey]``` will trigger the creation on the fly.
+     *
+     * Note that if someone else uses one of the set or various put methods between adding a lazy initializer but before
+     * the first time the key was accessed, the values those calls add will take precedence.
+     */
+    class LazyInitializers(private val lock: ReentrantLock) {
+        @GuardedBy("lock")
+        private val lazyInitializers = mutableMapOf<Key<out Any>, () -> Value<out Any>>()
+        operator fun <T: Any> set(key: Key<T>, initialize: () -> T) {
+            set(key, initialize, dispose = {})
+        }
+        fun <T: Any> set(key: Key<T>, initialize: () -> T, dispose: (T) -> Unit) {
+            lock.withLock { lazyInitializers[key] = { Value(initialize(), dispose) } }
+        }
+        internal operator fun <T: Any> get(key: Key<T>): (() -> Value<T>)? {
+            return lock.withLock { lazyInitializers[key] as? () -> Value<T> }
+        }
+    }
+
+    /**
+     * A value entry inside the key/value store.
+     *
+     * Having a separate class for it lets us store the `dispose` callback and also helps us avoid doing some extra
+     * type casting in order to line up the `wrapped` value with the disposal call.
+     */
+    internal class Value<T>(val wrapped: T, private val dispose: (T) -> Unit = {}) {
         fun dispose() {
             dispose(wrapped)
         }
@@ -50,6 +89,7 @@ class KonsoleData {
     private val lock = ReentrantLock()
     @GuardedBy("lock")
     private val keyValues = mutableMapOf<Key<out Any>, Value<out Any>>()
+    val lazyInitializers = LazyInitializers(lock)
 
     /**
      * Dispose and remove all keys tied to the specified [Lifecycle]
@@ -72,13 +112,27 @@ class KonsoleData {
      * Access the stored value directly.
      *
      * Warning: Be careful with this method, as you are accessing data from outside a lock it is normally stored behind.
-     * Prefer using the [get] method which takes a block for maximum safetly.
+     * Prefer using the [get] method which takes a block for maximum safety.
      */
-    operator fun <T: Any> get(key: Key<T>): T? {
+    operator fun <T : Any> get(key: Key<T>): T? {
         return lock.withLock {
-            (keyValues[key] as? Value<T>)?.wrapped
+            val value = keyValues[key] as? Value<T> ?: run {
+                val lazy = lazyInitializers[key]?.invoke()?.apply {
+                    keyValues[key] = this
+                }
+                lazy
+            }
+            value?.wrapped
         }
     }
+
+    /**
+     * Access the stored value directly, when you know for a fact it was set previously.
+     *
+     * Warning: Be careful with this method, as you are accessing data from outside a lock it is normally stored behind.
+     * Prefer using the [get] method which takes a block for maximum safety.
+     */
+    fun <T: Any> getValue(key: Key<T>): T = this[key]!!
 
     /**
      * Access the stored value within a scoped block, during which a lock protecting all data is held.

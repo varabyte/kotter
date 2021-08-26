@@ -33,7 +33,7 @@ private fun KonsoleScope.prepareInput() {
         KeyReaderJobKey,
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
-                keyFlow.collect { key ->
+                data.getValue(KeyFlowKey).collect { key ->
                     data.get(InputState.Key) {
                         when (key) {
                             Keys.LEFT -> index = (index - 1).coerceAtLeast(0)

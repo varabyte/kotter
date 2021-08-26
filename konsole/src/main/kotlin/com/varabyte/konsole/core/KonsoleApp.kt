@@ -30,13 +30,8 @@ class KonsoleApp internal constructor(
 
     internal val data = KonsoleData()
 
-    fun konsole(block: KonsoleScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
-
-    /** Create a [KonsoleVar] whose scope is tied to this app. */
-    fun <T> KonsoleVar(value: T): KonsoleVar<T> = KonsoleVar(value) { data[ActiveBlockKey] }
-
-    internal val keyFlow: Flow<Key> get() {
-        return data.putIfAbsent(KeyFlowKey) {
+    init {
+        data.lazyInitializers[KeyFlowKey] = {
             val escSeq = StringBuilder()
             terminal.read().mapNotNull { byte ->
                 val c = byte.toChar()
@@ -72,6 +67,11 @@ class KonsoleApp internal constructor(
             }
         }
     }
+
+    fun konsole(block: KonsoleScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
+
+    /** Create a [KonsoleVar] whose scope is tied to this app. */
+    fun <T> KonsoleVar(value: T): KonsoleVar<T> = KonsoleVar(value) { data[ActiveBlockKey] }
 
     internal fun dispose() {
         data.dispose(Lifecycle)

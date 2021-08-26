@@ -8,13 +8,6 @@ class KonsoleScope(private val block: KonsoleBlock) {
     val data get() = block.app.data
 
     /**
-     * A flow of keypresses that you can collect.
-     *
-     * It's recommended to collect these keys on the IO dispatcher.
-     */
-    val keyFlow get() = block.app.keyFlow
-
-    /**
      * Run the [scopedBlock] within a fresh, new [KonsoleState] context, which gets removed afterwards.
      *
      * This is useful if the scoped block is going to set one (or more) styles that are reflected in the
