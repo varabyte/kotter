@@ -13,11 +13,11 @@ import kotlinx.coroutines.launch
 
 /** State needed to support the `input()` function */
 private class InputState {
+    object Key : KonsoleData.Key<InputState>
     var text by KonsoleVar("")
     var index by KonsoleVar(0)
 }
 
-private object InputStateKey : KonsoleData.Key<InputState>
 private object KeyReaderJobKey : KonsoleData.Key<Job>
 
 /**
@@ -26,13 +26,13 @@ private object KeyReaderJobKey : KonsoleData.Key<Job>
  * Is a no-op after the first time.
  */
 private fun KonsoleScope.prepareInput() {
-    data.putIfAbsent(InputStateKey) { InputState() }
+    data.putIfAbsent(InputState.Key) { InputState() }
     data.putIfAbsent(
         KeyReaderJobKey,
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
                 keyFlow.collect { key ->
-                    data.get(InputStateKey) {
+                    data.get(InputState.Key) {
                         when (key) {
                             Keys.LEFT -> index = (index - 1).coerceAtLeast(0)
                             Keys.RIGHT -> index = (index + 1).coerceAtMost(text.length)
@@ -72,7 +72,7 @@ fun KonsoleScope.input() {
     prepareInput()
 
     val self = this
-    data.get(InputStateKey) {
+    data.get(InputState.Key) {
         for (i in 0 until index) {
             self.text(text[i])
         }
