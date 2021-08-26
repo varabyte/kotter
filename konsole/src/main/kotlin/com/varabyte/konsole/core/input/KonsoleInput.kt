@@ -46,10 +46,6 @@ private fun KonsoleScope.prepareInput() {
                                 }
                             }
 
-                            Keys.ENTER -> {
-                                text = ""
-                                index = 0
-                            }
                             Keys.BACKSPACE -> {
                                 if (index > 0) {
                                     text = text.removeRange(index - 1, index)

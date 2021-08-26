@@ -137,6 +137,11 @@ class KonsoleBlock internal constructor(
 
             runBlocking { job.join() }
         }
+
+        if (!textArea.isEmpty() && !textArea.endsWithNewline()) {
+            app.terminal.write("\n")
+        }
+
         app.data.dispose(Lifecycle)
     }
 }

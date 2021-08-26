@@ -2,6 +2,8 @@ package com.varabyte.konsole.core.internal
 
 interface KonsoleTextArea {
     val numLines: Int
+    fun isEmpty(): Boolean
+    fun endsWithNewline(): Boolean
 }
 
 class MutableKonsoleTextArea : KonsoleTextArea {
@@ -10,7 +12,8 @@ class MutableKonsoleTextArea : KonsoleTextArea {
     override var numLines = 1
         private set
 
-    fun isEmpty() = stringBuilder.isEmpty()
+    override fun isEmpty() = stringBuilder.isEmpty()
+    override fun endsWithNewline() = stringBuilder.endsWith('\n')
 
     fun clear(): MutableKonsoleTextArea {
         stringBuilder.clear()
