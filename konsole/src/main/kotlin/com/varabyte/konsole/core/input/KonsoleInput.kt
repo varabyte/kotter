@@ -14,11 +14,12 @@ private class InputState(scope: KonsoleScope) {
     object Key : KonsoleData.Key<InputState> {
         override val lifecycle = KonsoleBlock.Lifecycle
     }
+
     var text by scope.KonsoleVar("")
     var index by scope.KonsoleVar(0)
 }
 
-private object KeyReaderJobKey : KonsoleData.Key<Job> {
+private object UpdateInputJobKey : KonsoleData.Key<Job> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
@@ -30,7 +31,7 @@ private object KeyReaderJobKey : KonsoleData.Key<Job> {
 private fun KonsoleScope.prepareInput() {
     data.tryPut(InputState.Key) { InputState(this) }
     data.tryPut(
-        KeyReaderJobKey,
+        UpdateInputJobKey,
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
                 data.getValue(KeyFlowKey).collect { key ->
@@ -80,5 +81,24 @@ fun KonsoleScope.input() {
         for (i in (index + 1)..text.lastIndex) {
             self.text(text[i])
         }
+    }
+}
+
+private object KeyPressedJobKey : KonsoleData.Key<Job> {
+    override val lifecycle = KonsoleBlock.Lifecycle
+}
+
+class OnKeyPressedScope(val key: Key)
+fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
+    if (!data.tryPut(
+            KeyPressedJobKey,
+        provideInitialValue = {
+            CoroutineScope(Dispatchers.IO).launch {
+                data.getValue(KeyFlowKey).collect { key -> OnKeyPressedScope(key).listener()}
+            }
+        },
+        dispose = { job -> job.cancel() }
+    )) {
+        throw IllegalStateException("Currenly only one `onKeyPressed` callback at a time is supported.")
     }
 }

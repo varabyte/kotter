@@ -42,6 +42,8 @@ class KonsoleApp internal constructor(
                         if (code != null) {
                             escSeq.clear()
                             when (code) {
+                                Ansi.Csi.Codes.Keys.UP -> Keys.UP
+                                Ansi.Csi.Codes.Keys.DOWN -> Keys.DOWN
                                 Ansi.Csi.Codes.Keys.LEFT -> Keys.LEFT
                                 Ansi.Csi.Codes.Keys.RIGHT -> Keys.RIGHT
                                 Ansi.Csi.Codes.Keys.HOME -> Keys.HOME
