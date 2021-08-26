@@ -28,7 +28,7 @@ fun main() {
         }.run {
             while (percent < 100) {
                 delay(100)
-                percent = (percent + (Random.nextInt(1, 10))).coerceAtMost(100)
+                percent = (percent + (Random.nextInt(1, 20))).coerceAtMost(100)
             }
         }
     }
@@ -92,5 +92,18 @@ fun main() {
         textLine("Blue on black")
         reset()
         textLine("No colors again")
+
+        // Inverting colors
+        scopedState {
+            blue()
+            green(BG)
+            textLine("Blue on green")
+            invert {
+                textLine("Green on blue (inverted)")
+            }
+            textLine("Blue on green again")
+            reset()
+            textLine("No colors again")
+        }
     }.run()
 }

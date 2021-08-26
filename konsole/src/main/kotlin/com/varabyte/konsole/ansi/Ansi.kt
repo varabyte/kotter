@@ -116,6 +116,8 @@ object Ansi {
                 }
 
                 object Colors {
+                    object INVERT : Code("7${Identifiers.SGR}")
+
                     object Fg {
                         object BLACK : Code("30${Identifiers.SGR}")
                         object RED : Code("31${Identifiers.SGR}")

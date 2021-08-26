@@ -1,8 +1,7 @@
 package com.varabyte.konsole.terminal.swing
 
 import com.varabyte.konsole.ansi.Ansi
-import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors.Bg
-import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors.Fg
+import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Decorations
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.RESET
 import com.varabyte.konsole.terminal.Terminal
@@ -153,43 +152,51 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
 private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet.() -> Unit>(
     RESET to { removeAttributes(this) },
 
-    Fg.BLACK to { StyleConstants.setForeground(this, Color.BLACK) },
-    Fg.RED to { StyleConstants.setForeground(this, Color.RED) },
-    Fg.GREEN to { StyleConstants.setForeground(this, Color.GREEN) },
-    Fg.YELLOW to { StyleConstants.setForeground(this, Color.YELLOW) },
-    Fg.BLUE to { StyleConstants.setForeground(this, Color.BLUE) },
-    Fg.MAGENTA to { StyleConstants.setForeground(this, Color.MAGENTA) },
-    Fg.CYAN to { StyleConstants.setForeground(this, Color.CYAN) },
-    Fg.WHITE to { StyleConstants.setForeground(this, Color.WHITE) },
-    Fg.BLACK_BRIGHT to { StyleConstants.setForeground(this, Color.BLACK) },
-    Fg.RED_BRIGHT to { StyleConstants.setForeground(this, Color.RED) },
-    Fg.GREEN_BRIGHT to { StyleConstants.setForeground(this, Color.GREEN) },
-    Fg.YELLOW_BRIGHT to { StyleConstants.setForeground(this, Color.YELLOW) },
-    Fg.BLUE_BRIGHT to { StyleConstants.setForeground(this, Color.BLUE) },
-    Fg.MAGENTA_BRIGHT to { StyleConstants.setForeground(this, Color.MAGENTA) },
-    Fg.CYAN_BRIGHT to { StyleConstants.setForeground(this, Color.CYAN) },
-    Fg.WHITE_BRIGHT to { StyleConstants.setForeground(this, Color.WHITE) },
+    Colors.Fg.BLACK to { StyleConstants.setForeground(this, Color.BLACK) },
+    Colors.Fg.RED to { StyleConstants.setForeground(this, Color.RED) },
+    Colors.Fg.GREEN to { StyleConstants.setForeground(this, Color.GREEN) },
+    Colors.Fg.YELLOW to { StyleConstants.setForeground(this, Color.YELLOW) },
+    Colors.Fg.BLUE to { StyleConstants.setForeground(this, Color.BLUE) },
+    Colors.Fg.MAGENTA to { StyleConstants.setForeground(this, Color.MAGENTA) },
+    Colors.Fg.CYAN to { StyleConstants.setForeground(this, Color.CYAN) },
+    Colors.Fg.WHITE to { StyleConstants.setForeground(this, Color.WHITE) },
+    Colors.Fg.BLACK_BRIGHT to { StyleConstants.setForeground(this, Color.BLACK) },
+    Colors.Fg.RED_BRIGHT to { StyleConstants.setForeground(this, Color.RED) },
+    Colors.Fg.GREEN_BRIGHT to { StyleConstants.setForeground(this, Color.GREEN) },
+    Colors.Fg.YELLOW_BRIGHT to { StyleConstants.setForeground(this, Color.YELLOW) },
+    Colors.Fg.BLUE_BRIGHT to { StyleConstants.setForeground(this, Color.BLUE) },
+    Colors.Fg.MAGENTA_BRIGHT to { StyleConstants.setForeground(this, Color.MAGENTA) },
+    Colors.Fg.CYAN_BRIGHT to { StyleConstants.setForeground(this, Color.CYAN) },
+    Colors.Fg.WHITE_BRIGHT to { StyleConstants.setForeground(this, Color.WHITE) },
 
-    Bg.BLACK to { StyleConstants.setBackground(this, Color.BLACK) },
-    Bg.RED to { StyleConstants.setBackground(this, Color.RED) },
-    Bg.GREEN to { StyleConstants.setBackground(this, Color.GREEN) },
-    Bg.YELLOW to { StyleConstants.setBackground(this, Color.YELLOW) },
-    Bg.BLUE to { StyleConstants.setBackground(this, Color.BLUE) },
-    Bg.MAGENTA to { StyleConstants.setBackground(this, Color.MAGENTA) },
-    Bg.CYAN to { StyleConstants.setBackground(this, Color.CYAN) },
-    Bg.WHITE to { StyleConstants.setBackground(this, Color.WHITE) },
-    Bg.BLACK_BRIGHT to { StyleConstants.setBackground(this, Color.BLACK) },
-    Bg.RED_BRIGHT to { StyleConstants.setBackground(this, Color.RED) },
-    Bg.GREEN_BRIGHT to { StyleConstants.setBackground(this, Color.GREEN) },
-    Bg.YELLOW_BRIGHT to { StyleConstants.setBackground(this, Color.YELLOW) },
-    Bg.BLUE_BRIGHT to { StyleConstants.setBackground(this, Color.BLUE) },
-    Bg.MAGENTA_BRIGHT to { StyleConstants.setBackground(this, Color.MAGENTA) },
-    Bg.CYAN_BRIGHT to { StyleConstants.setBackground(this, Color.CYAN) },
-    Bg.WHITE_BRIGHT to { StyleConstants.setBackground(this, Color.WHITE) },
+    Colors.Bg.BLACK to { StyleConstants.setBackground(this, Color.BLACK) },
+    Colors.Bg.RED to { StyleConstants.setBackground(this, Color.RED) },
+    Colors.Bg.GREEN to { StyleConstants.setBackground(this, Color.GREEN) },
+    Colors.Bg.YELLOW to { StyleConstants.setBackground(this, Color.YELLOW) },
+    Colors.Bg.BLUE to { StyleConstants.setBackground(this, Color.BLUE) },
+    Colors.Bg.MAGENTA to { StyleConstants.setBackground(this, Color.MAGENTA) },
+    Colors.Bg.CYAN to { StyleConstants.setBackground(this, Color.CYAN) },
+    Colors.Bg.WHITE to { StyleConstants.setBackground(this, Color.WHITE) },
+    Colors.Bg.BLACK_BRIGHT to { StyleConstants.setBackground(this, Color.BLACK) },
+    Colors.Bg.RED_BRIGHT to { StyleConstants.setBackground(this, Color.RED) },
+    Colors.Bg.GREEN_BRIGHT to { StyleConstants.setBackground(this, Color.GREEN) },
+    Colors.Bg.YELLOW_BRIGHT to { StyleConstants.setBackground(this, Color.YELLOW) },
+    Colors.Bg.BLUE_BRIGHT to { StyleConstants.setBackground(this, Color.BLUE) },
+    Colors.Bg.MAGENTA_BRIGHT to { StyleConstants.setBackground(this, Color.MAGENTA) },
+    Colors.Bg.CYAN_BRIGHT to { StyleConstants.setBackground(this, Color.CYAN) },
+    Colors.Bg.WHITE_BRIGHT to { StyleConstants.setBackground(this, Color.WHITE) },
+
+    Colors.INVERT to {
+        val prevFg = StyleConstants.getForeground(this)
+        val prevBg = StyleConstants.getBackground(this)
+        StyleConstants.setForeground(this, prevBg)
+        StyleConstants.setBackground(this, prevFg)
+    },
 
     Decorations.BOLD to { StyleConstants.setBold(this, true) },
     Decorations.UNDERLINE to { StyleConstants.setUnderline(this, true) },
     Decorations.STRIKETHROUGH to { StyleConstants.setStrikeThrough(this, true) },
+
 )
 
 private fun Document.getText() = getText(0, length)

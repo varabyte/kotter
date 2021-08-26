@@ -1,5 +1,6 @@
 package com.varabyte.konsole.ansi.commands
 
+import com.varabyte.konsole.ansi.Ansi
 import com.varabyte.konsole.ansi.Ansi.Csi
 import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors
 import com.varabyte.konsole.core.KonsoleBlock
@@ -57,6 +58,12 @@ private val BG_BLUE_BRIGHT_COMMAND = ColorCommand(Colors.Bg.BLUE_BRIGHT, ColorLa
 private val BG_MAGENTA_BRIGHT_COMMAND = ColorCommand(Colors.Bg.MAGENTA_BRIGHT, ColorLayer.BG)
 private val BG_CYAN_BRIGHT_COMMAND = ColorCommand(Colors.Bg.CYAN_BRIGHT, ColorLayer.BG)
 private val BG_WHITE_BRIGHT_COMMAND = ColorCommand(Colors.Bg.WHITE_BRIGHT, ColorLayer.BG)
+
+private val INVERT_COMMAND = object : AnsiCsiCommand(Colors.INVERT) {
+    override fun updateState(state: KonsoleBlockState) {
+        state.inverted = this
+    }
+}
 
 private fun toBlackCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
     ColorLayer.FG -> if (isBright) FG_BLACK_BRIGHT_COMMAND else FG_BLACK_COMMAND
@@ -132,6 +139,10 @@ fun KonsoleScope.cyan(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean 
 
 fun KonsoleScope.white(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toWhiteCommand(colorLayer, isBright))
+}
+
+fun KonsoleScope.invert() {
+    applyCommand(INVERT_COMMAND)
 }
 
 fun KonsoleScope.black(
@@ -225,6 +236,13 @@ fun KonsoleScope.white(
 ) {
     scopedState {
         white(colorLayer, isBright)
+        scopedBlock()
+    }
+}
+
+fun KonsoleScope.invert(scopedBlock: KonsoleBlock.() -> Unit) {
+    scopedState {
+        invert()
         scopedBlock()
     }
 }
