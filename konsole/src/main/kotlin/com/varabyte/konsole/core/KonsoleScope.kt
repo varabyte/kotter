@@ -4,10 +4,8 @@ class KonsoleScope(private val block: KonsoleBlock) {
 
     internal var state = KonsoleState()
 
-    /**
-     * Data which is tied to the underlying block (and may live across multiple intermediate scopes)
-     */
-    val data get() = block.data
+    /** Data which is tied to the current app. */
+    val data get() = block.app.data
 
     /**
      * A flow of keypresses that you can collect.
@@ -27,6 +25,9 @@ class KonsoleScope(private val block: KonsoleBlock) {
         block.scopedBlock()
         popState()
     }
+
+    /** Create a [KonsoleVar] whose scope is tied to this app. */
+    fun <T> KonsoleVar(value: T): KonsoleVar<T> = block.app.KonsoleVar(value)
 
     internal fun pushState(): KonsoleState {
         state = KonsoleState(state)

@@ -7,8 +7,8 @@ import com.varabyte.konsole.terminal.swing.SwingTerminal
 import java.util.concurrent.ExecutorService
 
 class KonsoleApp internal constructor(
-    private val executor: ExecutorService = KonsoleExecutor,
-    private val terminal: Terminal = run {
+    internal val executor: ExecutorService = KonsoleExecutor,
+    internal val terminal: Terminal = run {
         try {
             SystemTerminal()
         } catch (ex: Exception) {
@@ -18,9 +18,12 @@ class KonsoleApp internal constructor(
 ) {
     object Lifecycle : KonsoleData.Lifecycle
 
-    private val data = KonsoleData()
+    internal val data = KonsoleData()
 
-    fun konsole(block: KonsoleScope.() -> Unit): KonsoleBlock = KonsoleBlock(executor, terminal, data, block)
+    fun konsole(block: KonsoleScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
+
+    /** Create a [KonsoleVar] whose scope is tied to this app. */
+    fun <T> KonsoleVar(value: T): KonsoleVar<T> = KonsoleVar(value) { data[ActiveBlockKey] }
 
     internal fun dispose() {
         data.dispose(Lifecycle)

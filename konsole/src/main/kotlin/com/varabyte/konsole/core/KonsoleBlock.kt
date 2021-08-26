@@ -5,28 +5,22 @@ import com.varabyte.konsole.core.input.CharKey
 import com.varabyte.konsole.core.input.Key
 import com.varabyte.konsole.core.input.Keys
 import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
-import com.varabyte.konsole.terminal.Terminal
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.mapNotNull
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+internal object ActiveBlockKey : KonsoleData.Key<KonsoleBlock> {
+    override val lifecycle = KonsoleBlock.Lifecycle
+}
+
 class KonsoleBlock internal constructor(
-    private val executor: ExecutorService,
-    private val terminal: Terminal,
-    internal val data: KonsoleData,
+    internal val app: KonsoleApp,
     private val block: KonsoleScope.() -> Unit) {
     object Lifecycle : KonsoleData.Lifecycle
-
-    companion object {
-        private val activeReference = AtomicReference<KonsoleBlock?>(null)
-        internal val active get() = activeReference.get()
-    }
 
     class RunScope(
         private val rerenderRequested: () -> Unit
@@ -50,7 +44,7 @@ class KonsoleBlock internal constructor(
 
     internal val keyFlow: Flow<Key> by lazy {
         val escSeq = StringBuilder()
-        terminal.read().mapNotNull { byte ->
+        app.terminal.read().mapNotNull { byte ->
             val c = byte.toChar()
             when {
                 escSeq.isNotEmpty() -> {
@@ -100,7 +94,7 @@ class KonsoleBlock internal constructor(
 
     private fun renderOnceAsync(): Job {
         val self = this
-        return CoroutineScope(executor.asCoroutineDispatcher()).launch {
+        return CoroutineScope(app.executor.asCoroutineDispatcher()).launch {
             renderLock.withLock { renderRequested = false }
 
             val clearBlockCommand = buildString {
@@ -121,36 +115,29 @@ class KonsoleBlock internal constructor(
             KonsoleScope(self).block()
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
             // in one pass.
-            terminal.write(clearBlockCommand + textArea.toString())
+            app.terminal.write(clearBlockCommand + textArea.toString())
         }
     }
     private fun renderOnce() = runBlocking {
         renderOnceAsync().join()
     }
 
-    /** Mark this block as active. Only one block can be active at a time! */
-    private fun activate(block: () -> Unit) {
-        if (!activeReference.compareAndSet(null, this)) {
+    fun run(block: (suspend RunScope.() -> Unit)? = null) {
+        // Note: The data we're adding here will be removed by the dispose call below
+        if (!app.data.tryPut(ActiveBlockKey) { this }) {
             throw IllegalStateException("Cannot run this Konsole block while another block is already running")
         }
-        block()
-        activeReference.set(null)
-    }
 
-    fun run(block: (suspend RunScope.() -> Unit)? = null) {
-        activate {
-            activeReference.set(this)
-            renderOnce()
-            if (block != null) {
-                val job = CoroutineScope(Dispatchers.Default).launch {
-                    val scope = RunScope(rerenderRequested = { requestRerender() })
-                    scope.block()
-                }
-
-                runBlocking { job.join() }
+        renderOnce()
+        if (block != null) {
+            val job = CoroutineScope(Dispatchers.Default).launch {
+                val scope = RunScope(rerenderRequested = { requestRerender() })
+                scope.block()
             }
-            data.dispose(Lifecycle)
+
+            runBlocking { job.join() }
         }
+        app.data.dispose(Lifecycle)
     }
 }
 

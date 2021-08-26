@@ -26,17 +26,17 @@ import kotlin.reflect.KProperty
  * count = 123 // Setting count out of a konsole block is fine; nothing is triggered
  * ```
  */
-class KonsoleVar<T>(private var value: T) {
+class KonsoleVar<T> internal constructor(private var value: T, private val activeBlock: () -> KonsoleBlock?) {
     private var associatedBlockRef: WeakReference<KonsoleBlock>? = null
     operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
-        associatedBlockRef = KonsoleBlock.active?.let { WeakReference(it) }
+        associatedBlockRef = activeBlock()?.let { WeakReference(it) }
         return value
     }
     operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
         if (this.value != value) {
             this.value = value
             associatedBlockRef?.get()?.let { associatedBlock ->
-                KonsoleBlock.active?.let { activeBlock ->
+                activeBlock()?.let { activeBlock ->
                     if (associatedBlock === activeBlock) activeBlock.requestRerender()
                 } ?: run {
                     // Our old block is finished, no need to keep a reference around to it anymore.

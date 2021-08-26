@@ -2,10 +2,7 @@ package com.varabyte.konsole.core.input
 
 import com.varabyte.konsole.ansi.commands.invert
 import com.varabyte.konsole.ansi.commands.text
-import com.varabyte.konsole.core.KonsoleBlock
-import com.varabyte.konsole.core.KonsoleData
-import com.varabyte.konsole.core.KonsoleScope
-import com.varabyte.konsole.core.KonsoleVar
+import com.varabyte.konsole.core.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,12 +10,12 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /** State needed to support the `input()` function */
-private class InputState {
+private class InputState(scope: KonsoleScope) {
     object Key : KonsoleData.Key<InputState> {
         override val lifecycle = KonsoleBlock.Lifecycle
     }
-    var text by KonsoleVar("")
-    var index by KonsoleVar(0)
+    var text by scope.KonsoleVar("")
+    var index by scope.KonsoleVar(0)
 }
 
 private object KeyReaderJobKey : KonsoleData.Key<Job> {
@@ -31,8 +28,8 @@ private object KeyReaderJobKey : KonsoleData.Key<Job> {
  * Is a no-op after the first time.
  */
 private fun KonsoleScope.prepareInput() {
-    data.putIfAbsent(InputState.Key) { InputState() }
-    data.putIfAbsent(
+    data.tryPut(InputState.Key) { InputState(this) }
+    data.tryPut(
         KeyReaderJobKey,
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
