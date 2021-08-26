@@ -32,7 +32,7 @@ fun main() = konsoleApp {
                 Keys.RIGHT -> x = (x + 1).coerceAtMost(WIDTH)
                 else -> {
                     (key as? CharKey)?.let { key ->
-                        when (key.code) {
+                        when (key.code.lowercaseChar()) {
                             'q' -> signal()
                         }
                     }
