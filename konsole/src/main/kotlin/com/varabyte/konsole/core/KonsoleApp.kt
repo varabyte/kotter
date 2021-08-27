@@ -73,7 +73,12 @@ class KonsoleApp internal constructor(
     fun konsole(block: KonsoleScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
 
     /** Create a [KonsoleVar] whose scope is tied to this app. */
+    @Suppress("FunctionName") // Intentionally made to look like a class constructor
     fun <T> KonsoleVar(value: T): KonsoleVar<T> = KonsoleVar(value) { data[ActiveBlockKey] }
+
+    /** Create a [KonsoleList] whose scope is tied to this app. */
+    @Suppress("FunctionName") // Intentionally made to look like a class constructor
+    fun <T> KonsoleList(vararg elements: T): KonsoleList<T> = KonsoleList(*elements) { data[ActiveBlockKey] }
 
     internal fun dispose() {
         data.dispose(Lifecycle)

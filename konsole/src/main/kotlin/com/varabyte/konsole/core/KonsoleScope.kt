@@ -20,14 +20,18 @@ class KonsoleScope(private val block: KonsoleBlock) {
     }
 
     /** Create a [KonsoleVar] whose scope is tied to this app. */
+    @Suppress("FunctionName") // Intentionally made to look like a class constructor
     fun <T> KonsoleVar(value: T): KonsoleVar<T> = block.app.KonsoleVar(value)
+    /** Create a [KonsoleList] whose scope is tied to this app. */
+    @Suppress("FunctionName") // Intentionally made to look like a class constructor
+    fun <T> KonsoleList(vararg elements: T): KonsoleList<T> = block.app.KonsoleList(*elements)
 
-    internal fun pushState(): KonsoleState {
+    private fun pushState(): KonsoleState {
         state = KonsoleState(state)
         return state
     }
 
-    internal fun popState() {
+    private fun popState() {
         check(state.parent != null) { "Called popState more times than pushState" }
         state.parent!!.let { prevState ->
             if (state.isDirty) {
