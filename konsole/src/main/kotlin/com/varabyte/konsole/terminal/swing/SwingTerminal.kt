@@ -132,13 +132,24 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
             }
         })
 
-        pane.window?.addWindowListener(object : WindowAdapter() {
+        pane.window!!.addWindowListener(object : WindowAdapter() {
             override fun windowClosing(e: WindowEvent?) {
                 channel.close()
             }
         })
 
         awaitClose()
+    }
+
+    override fun close() {
+        write("(This terminal has been closed. Press any key to continue.)")
+        pane.addKeyListener(object : KeyAdapter() {
+            override fun keyPressed(e: KeyEvent?) {
+                with(pane.window!!) {
+                    dispatchEvent(WindowEvent(this, WINDOW_CLOSING))
+                }
+            }
+        })
     }
 }
 

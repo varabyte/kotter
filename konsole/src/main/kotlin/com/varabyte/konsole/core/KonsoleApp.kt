@@ -82,6 +82,7 @@ class KonsoleApp internal constructor(
 
     internal fun dispose() {
         data.dispose(Lifecycle)
+        terminal.close()
     }
 }
 
