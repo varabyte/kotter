@@ -62,6 +62,9 @@ private fun KonsoleScope.prepareInput() {
                                     val scope = OnInputEnteredScope(text)
                                     forEach { callback -> scope.callback() }
                                 }
+                                data.get(SystemOnEnterPressedCallbackKey) {
+                                    this.invoke()
+                                }
                             }
                             else ->
                                 if (key is CharKey) {
@@ -142,6 +145,12 @@ class OnInputEnteredScope(val input: String)
 private object InputEnteredCallbacksKey : KonsoleData.Key<MutableList<OnInputEnteredScope.() -> Unit>> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
+// Note: We create a separate key here from above to ensure we can trigger a callback only AFTER all user callbacks are
+// triggered. That's because the system handler may fire a signal which, if sent out too early, could result in some
+// user callbacks not getting a chance to run. See also: runUntilInputEntered
+private object SystemOnEnterPressedCallbackKey : KonsoleData.Key<() -> Unit> {
+    override val lifecycle = KonsoleBlock.Lifecycle
+}
 
 fun KonsoleBlock.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
     data.putIfAbsent(InputEnteredCallbacksKey, provideInitialValue = { mutableListOf() }) { add(listener) }
@@ -149,7 +158,7 @@ fun KonsoleBlock.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Uni
 
 fun KonsoleBlock.runUntilInputEntered(block: suspend KonsoleBlock.RunScope.() -> Unit) {
     runUntilSignal {
-        onInputEntered { signal() }
+        data[SystemOnEnterPressedCallbackKey] = { signal() }
         block()
     }
 }
