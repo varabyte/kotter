@@ -10,8 +10,8 @@ konsoleApp {
     if (wantsToLearn) {
       p { textLine("""\(^o^)/""") }
     }
-  }.runUntilTextEntered {
-    onTextEntered { wantsToLearn = input.toLowercase().startsWith("y") }
+  }.runUntilInputEntered {
+    onInputEntered { wantsToLearn = input.lowercase().startsWith("y") }
   }
 }
 ```
@@ -235,14 +235,14 @@ konsole {
 }
 ```
 
-There's actually a shortcut for cases like the above, since they're pretty common: `runUntilTextEntered`.
+There's actually a shortcut for cases like the above, since they're pretty common: `runUntilInputEntered`.
 Using it, we can slightly simplify the above example, typing fewer characters for identical behavior:
 
 ```kotlin
 lateinit var name: String
 konsole {
   text("Please enter your name: $input")
-}.runUntilTextEntered {
+}.runUntilInputEntered {
   onInputChanged { input = input.filter { it.isLetter() } }
   onInputEntered { name = input }
 }

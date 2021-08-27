@@ -74,6 +74,11 @@ class KonsoleBlock internal constructor(
 
             textArea.clear()
             KonsoleScope(self).block()
+
+            if (!textArea.isEmpty() && !textArea.endsWithNewline()) {
+                textArea.append("\n")
+            }
+
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
             // in one pass.
             app.terminal.write(clearBlockCommand + textArea.toString())
@@ -99,9 +104,11 @@ class KonsoleBlock internal constructor(
             runBlocking { job.join() }
         }
 
-        if (!textArea.isEmpty() && !textArea.endsWithNewline()) {
-            app.terminal.write("\n")
-        }
+        // Our block is done, let's just wait until any remaining renders are finished. We can do this by adding
+        // ourselves to the end of the list.
+        val allRendersFinishedLatch = CountDownLatch(1)
+        app.executor.submit { allRendersFinishedLatch.countDown() }
+        allRendersFinishedLatch.await()
 
         app.data.dispose(Lifecycle)
     }

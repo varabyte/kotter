@@ -149,7 +149,7 @@ fun KonsoleBlock.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Uni
     data.putIfAbsent(InputEnteredCallbacksKey, provideInitialValue = { mutableListOf() }) { add(listener) }
 }
 
-fun KonsoleBlock.runUntilTextEntered(block: suspend KonsoleBlock.RunScope.() -> Unit) {
+fun KonsoleBlock.runUntilInputEntered(block: suspend KonsoleBlock.RunScope.() -> Unit) {
     runUntilSignal {
         onInputEntered { signal() }
         block()

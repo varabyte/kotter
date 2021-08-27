@@ -48,6 +48,7 @@ fun KonsoleScope.textLine() {
  */
 fun KonsoleScope.p(block: KonsoleScope.() -> Unit) {
     textLine()
+    textLine()
     block()
     textLine()
 }
