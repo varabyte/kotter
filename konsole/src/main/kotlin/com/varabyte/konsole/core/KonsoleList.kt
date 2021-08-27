@@ -36,7 +36,7 @@ class KonsoleList<T> internal constructor(vararg elements: T, activeBlock: () ->
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> lock(block: KonsoleList<T>.() -> R): R = lock.withLock { this.block() }
+    fun <R> withLock(block: KonsoleList<T>.() -> R): R = lock.withLock { this.block() }
 
     // Immutable functions
     override val size: Int get() = lock.withLock { delegateList.size }

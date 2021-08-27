@@ -106,7 +106,7 @@ fun main() = konsoleApp {
             jobs.add(scope.launch {
                 while (true) {
                     val path = paths.pollFirst() ?: break
-                    val index = tests.lock {
+                    val index = tests.withLock {
                         this += Test(path, Running)
                         size - 1
                     }

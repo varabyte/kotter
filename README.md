@@ -57,9 +57,11 @@ We'll see many examples of this in the following sections.
 
 ### Dynamic Konsole block
 
-To keep the Konsole block alive while we do background calculations, you can pass in a callback to the `run` method.
-This callback automatically runs on a background thread for you (as a suspend function, so you can call other suspend
-methods from within it).
+The `konsole` block is designed to be run one _or more_ times. That is, you can write logic inside it which may not get
+executed on the first run but will on a followup run.
+
+Here, we pass in a callback to the `run` method which updates a value referenced by the `konsole` block. This example
+will run the Konsole block twice - once when `run` is first called and again when it calls `rerender`:
 
 ```kotlin
 var result: Int? = null
@@ -75,7 +77,11 @@ konsole {
 }
 ```
 
-Unlike using `run` without a callback, here your program will be blocked until the callback has finished.
+The `run` callback automatically runs on a background thread for you (as a suspend function, so you can call other
+suspend methods from within it).
+
+Unlike using `run` without a callback, here your program will be blocked until the callback has finished (or, if it
+has triggered a rerender, until the last rerender finishes after your callback is done).
 
 #### KonsoleVar
 
@@ -132,6 +138,52 @@ konsole {
   }
 }
 ```
+
+#### KonsoleList
+
+Similar to `KonsoleVar`, a `KonsoleList` is a reactive primitive which, when modified, causes a rerender to happen
+automatically. You don't need to use the `by` keyword in this case:
+
+```kotlin
+val fileWalker = FileWalker(".")
+val matches = KonsoleList<String>()
+konsole {
+  textLine("Matches found so far: ")
+  for (match in matches) {
+    textLine(" - $match")
+  }
+}.run {
+  fileWalker.findFiles("*.txt") { file ->
+    matches += file.name
+  }
+  /* ... */
+}
+```
+
+The `KonsoleList` class is thread safe, but you can still run into trouble if you check multiple values on the list one
+after the other, as a lock is released between each check, and if multiple threads are hammering on the same list at the
+same time, it's always possible that you missed an update. To handle this, you can use the `KonsoleList#withLock`
+method:
+
+```kotlin
+val matches = KonsoleList<String>()
+konsole {
+  matches.withLock {
+    if (isEmpty()) {
+      textLine("No matches found so far")
+    } else {
+      textLine("Matches found so far: ")
+      for (match in this) {
+        textLine(" - $match")
+      }
+    }
+  }
+}.run {
+  /* ... */
+}
+```
+
+The general rule of thumb is: use `withLock` if you want to access more than one field from the list at the same time.
 
 #### Signals and waiting
 
