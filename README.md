@@ -188,7 +188,7 @@ The general rule of thumb is: use `withLock` if you want to access more than one
 #### Signals and waiting
 
 A common pattern is for the `run` block to wait for some sort of signal before finishing, e.g. in response to some
-callback. You could always use a general threading trick for this, such as a `CountDownLatch` or a
+event. You could always use a general threading trick for this, such as a `CountDownLatch` or a
 `CompletableDeffered<Unit>` to stop the block from finishing until you're ready:
 
 ```kotlin
