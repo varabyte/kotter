@@ -3,6 +3,8 @@ import com.varabyte.konsole.ansi.commands.*
 import com.varabyte.konsole.ansi.commands.ColorLayer.BG
 import com.varabyte.konsole.core.KonsoleScope
 import com.varabyte.konsole.core.konsoleApp
+import com.varabyte.konsole.core.text.text
+import com.varabyte.konsole.core.text.textLine
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentLinkedDeque
 import kotlin.random.Random
@@ -59,6 +61,7 @@ private fun KonsoleScope.summary(tests: List<Test>, elapsedSecs: Int) {
 
     textLine("${tests.size} total")
     textLine("Time: ${elapsedSecs}s")
+    textLine()
 }
 
 // https://github.com/JakeWharton/mosaic/tree/trunk/samples/jest

@@ -1,9 +1,9 @@
-import com.varabyte.konsole.ansi.commands.textLine
 import com.varabyte.konsole.core.input.CharKey
 import com.varabyte.konsole.core.input.Keys
 import com.varabyte.konsole.core.input.onKeyPressed
 import com.varabyte.konsole.core.input.runUntilKeyPressed
 import com.varabyte.konsole.core.konsoleApp
+import com.varabyte.konsole.core.text.textLine
 
 private const val WIDTH = 20
 private const val HEIGHT = 10
