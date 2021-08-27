@@ -105,14 +105,13 @@ Let's apply that to the above example and remove the `rerender` call:
 ```kotlin
 var result by KonsoleVar<Int?>(null)
 konsole {
-  text("Calculating... ")
-  if (result != null) {
-    textLine("Done! Result = $result")
-  }
+  /* ... no changes ... */
 }.run {
   result = doNetworkFetchAndExpensiveCalculation()
 }
 ```
+
+And done! Fewer lines and less error pone.
 
 Here's another example, showing how you can use `run` for something like a progress bar:
 
@@ -179,37 +178,23 @@ konsole {
 }
 ```
 
-### Cursor
-
-By default, Konsole doesn't display a cursor indicator, but you can easily do it yourself by calling `blinkingCursor`:
-
-```kotlin
-konsole {
-  text("Cursor is here >>> ")
-  blinkingCursor()
-  text(" <<<")
-}.run { /* ... */ }
-```
-
-Note that the cursor will cause the block to auto-render itself occasionally in order to repaint its state.
-
 ### User input
 
 Konsole consumes keypresses, so as the user types into the console, nothing will show up unless you intentionally print
-it. You can easily do this using the `input` method, which when triggered will both handle and add the user's input
-typed so far (excluding control characters):
+it. You can easily do this using the `input` method, which handles listening to kepresses and adding text into your
+Konsole block at that location:
 
 ```kotlin
 konsole {
-  // `input` is a property that contains the user's input typed so far in
-  // this konsole block. If your block references it, the block is
-  // automatically rerendered when it changes.
+  // `input` is a method that appends the user's input typed so far in this
+  // konsole block. If your block uses it, the block is automatically
+  // rerendered when it changes.
   text("Please enter your name: "); input()
 }.run { /* ... */ }
 ```
 
-Note that the input property automatically adds a blinking cursor for you. This also handles keys like LEFT, HOME, and
-DEL, moving the cursor back and forth between the bounds of the input string.
+Note that the input method automatically adds a cursor for you. This also handles keys like LEFT/RIGHT, HOME/END,
+moving the cursor back and forth between the bounds of the input string.
 
 You can intercept input as it is typed using the `onInputChanged` event:
 
@@ -224,18 +209,15 @@ konsole {
 }
 ```
 
-You can also use the `lastInput` property to return your input to the previous (presumably valid) state.
+You can also use the `rejectInput` method to return your input to the previous (presumably valid) state.
 
 ```kotlin
 konsole {
   text("Please enter your name: $input")
 }.run {
   onInputChanged {
-    if (input.any { !it.isLetter() }) {
-      input = lastInput
-      // or input = input.filter { it.isLetter() }
-      // or `rejectInput()` which does the same thing
-    }
+    if (input.any { !it.isLetter() }) { rejectInput() }
+    // Would also work: input = input.filter { it.isLetter() }
   }
   /* ... */
 }
@@ -264,59 +246,6 @@ konsole {
   onInputChanged { input = input.filter { it.isLetter() } }
   onInputEntered { name = input }
 }
-```
-
-Putting everything together, let's tweak the example from the beginning of this README:
-
-```kotlin
-var wantsToLearn by KonsoleVar(false)
-konsole {
-  textLine("Would you like to learn Konsole? (Y/n)")
-  text("> $input")
-  grey { text("yes".substringAfter(input)) }
-  textLine()
-  if (wantsToLearn) {
-    p { textLine("""\(^o^)/""") }
-  }
-}.runUntilTextEntered {
-  onInputChanged {
-    val isValid = ("yes".startsWith(input) || "no".startsWithInput(input))
-    if (!isValid) {
-      input = lastInput
-    }
-  }
-  onInputEntered {
-    if ("yes".startsWith(input)) {
-      input = "yes" // Update the input to make it feel like we autocompleted their answer
-      wantsToLearn = true
-    }
-  }
-}
-```
-
-This will cause the following to be printed to the console:
-
-```bash
-Would you like to learn Konsole? (Y/n)
-> |y|es
-```
-
-After the user presses "ye":
-
-```bash
-Would you like to learn Konsole? (Y/n)
-> ye|s|
-```
-
-And after the user presses enter:
-
-```bash
-Would you like to learn Konsole? (Y/n)
-> yes
-
-\(^o^)/
-
-(Next line of text from a future block would go here...)
 ```
 
 ### Text Effects
@@ -387,28 +316,9 @@ konsole {
 }.run()
 ```
 
-Konsole blocks also introduce the `scopedState` method. This creates a new scope within which any state will be
-automatically discarded after it ends. This is what the scoped color methods are doing for you under the hood, actually.
-
-```kotlin
-konsole {
-  scopedState {
-    green(layer = BG)
-    scopedState {
-      red()
-      text("This is red on green")
-    }
-    text("This is default color on green")
-    scopedState {
-      blue()
-      text("This is blue on green")
-    }
-  }
-}.run()
-```
-
-While `scopedState` is quite verbose for the single color case, it can be useful if you want to change the foreground
-and background colors and other text effects at the same time:
+Within a Konsole block, you can also use the `scopedState` method. This creates a new scope within which any state will
+be automatically discarded after it ends. This is what the scoped text effect methods are doing for you under the hood,
+actually.
 
 ```kotlin
 konsole {
@@ -430,7 +340,7 @@ konsole {
   /* ... */
 }.runUntilSignal {
   addTimer(500.ms) {
-    println("$elapsed passed!")
+    println("500ms passed!")
     signal()
   }
 }
@@ -519,9 +429,10 @@ val spinner = object : KonsoleAnimation(Duration.ofMillis(250)) {
 
 ### Thread Affinity
 
-The experience of using Konsole is essentially single-threaded. Anytime you make a call to run a Konsole block, no
-matter which thread it is called from, a single thread ultimately handles the work of rendering the block. At the same
-time, if you attempt to call `konsole` while another Konsole block is already running, an exception is thrown.
+Setting aside the fact that the `run` block runs in a background thread, the experience of using Konsole is essentially
+single-threaded. Anytime you make a call to run a Konsole block, no matter which thread it is called from, a single
+thread ultimately handles the work of rendering the block. At the same time, if you attempt to run one `konsole` block
+while another block is already running, an exception is thrown.
 
 I made this decision so that:
 
@@ -545,11 +456,14 @@ online reports, Windows is also a big offender here.
 Konsole will attempt to detect if your console does not support the features it uses, and if not, it will open up a
 fake virtual terminal backed by Swing. This workaround gives us better cross-platform support.
 
-To modify the logic to ALWAYS open the virtual terminal, you can write the following somewhere in your program before
-you call your first `konsole` method:
+To modify the logic to ALWAYS open the virtual terminal, you can construct the virtual terminal directly and pass it
+into the app:
 
 ```kotlin
-DefaultTerminalProvider = { SwingTerminal.create() }
+konsoleApp(terminal = SwingTerminal.create()) {
+  konsole { /* ... */ }
+  /* ... */
+}
 ```
 
 ### Why Not Compose / Mosaic?
