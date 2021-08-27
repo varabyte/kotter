@@ -58,13 +58,8 @@ private fun KonsoleScope.prepareInput() {
                             }
 
                             Keys.ENTER -> {
-                                data.get(InputEnteredCallbacksKey) {
-                                    val scope = OnInputEnteredScope(text)
-                                    forEach { callback -> scope.callback() }
-                                }
-                                data.get(SystemOnEnterPressedCallbackKey) {
-                                    this.invoke()
-                                }
+                                data.get(InputEnteredCallbackKey) { this.invoke(OnInputEnteredScope(text)) }
+                                data.get(SystemInputEnteredCallbackKey) { this.invoke() }
                             }
                             else ->
                                 if (key is CharKey) {
@@ -109,23 +104,53 @@ fun KonsoleScope.input() {
     }
 }
 
+class OnKeyPressedScope(val key: Key)
+
 private object KeyPressedJobKey : KonsoleData.Key<Job> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
+private object KeyPressedCallbackKey : KonsoleData.Key<OnKeyPressedScope.() -> Unit> {
+    override val lifecycle = KonsoleBlock.Lifecycle
+}
+// Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
+// callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
+// result in the user callback not getting a chance to run.
+private object SystemKeyPressedCallbackKey : KonsoleData.Key<OnKeyPressedScope.() -> Unit> {
+    override val lifecycle = KonsoleBlock.Lifecycle
+}
 
-class OnKeyPressedScope(val key: Key)
-fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
-    if (!data.tryPut(
-            KeyPressedJobKey,
-            provideInitialValue = {
-                CoroutineScope(Dispatchers.IO).launch {
-                    data.getValue(KeyFlowKey).collect { key -> OnKeyPressedScope(key).listener() }
+/** Start running a job that collects keypresses and sends them to callbacks.
+ *
+ * This is a no-op when called after the first time.
+ */
+private fun KonsoleBlock.RunScope.prepareOnKeyPressed() {
+    data.tryPut(
+        KeyPressedJobKey,
+        provideInitialValue = {
+            CoroutineScope(Dispatchers.IO).launch {
+                data.getValue(KeyFlowKey).collect { key ->
+                    val scope = OnKeyPressedScope(key)
+                    data.get(KeyPressedCallbackKey) { this.invoke(scope) }
+                    data.get(SystemKeyPressedCallbackKey) { this.invoke(scope) }
                 }
-            },
-            dispose = { job -> job.cancel() }
-        )
-    ) {
+            }
+        },
+        dispose = { job -> job.cancel() }
+    )
+}
+
+fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
+    prepareOnKeyPressed()
+    if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
+    }
+}
+
+fun KonsoleBlock.runUntilKeyPressed(vararg keys: Key, block: suspend KonsoleBlock.RunScope.() -> Unit) {
+    runUntilSignal {
+        prepareOnKeyPressed()
+        data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) signal() }
+        block()
     }
 }
 
@@ -142,23 +167,26 @@ fun KonsoleBlock.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Uni
 }
 
 class OnInputEnteredScope(val input: String)
-private object InputEnteredCallbacksKey : KonsoleData.Key<MutableList<OnInputEnteredScope.() -> Unit>> {
+private object InputEnteredCallbackKey : KonsoleData.Key<OnInputEnteredScope.() -> Unit> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
-// Note: We create a separate key here from above to ensure we can trigger a callback only AFTER all user callbacks are
-// triggered. That's because the system handler may fire a signal which, if sent out too early, could result in some
-// user callbacks not getting a chance to run. See also: runUntilInputEntered
-private object SystemOnEnterPressedCallbackKey : KonsoleData.Key<() -> Unit> {
+
+// Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
+// callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
+// result in the user callback not getting a chance to run.
+private object SystemInputEnteredCallbackKey : KonsoleData.Key<() -> Unit> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
 fun KonsoleBlock.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
-    data.putIfAbsent(InputEnteredCallbacksKey, provideInitialValue = { mutableListOf() }) { add(listener) }
+    if (!data.tryPut(InputEnteredCallbackKey) { listener }) {
+        throw IllegalStateException("Currently only one `onInputEntered` callback at a time is supported.")
+    }
 }
 
 fun KonsoleBlock.runUntilInputEntered(block: suspend KonsoleBlock.RunScope.() -> Unit) {
     runUntilSignal {
-        data[SystemOnEnterPressedCallbackKey] = { signal() }
+        data[SystemInputEnteredCallbackKey] = { signal() }
         block()
     }
 }
