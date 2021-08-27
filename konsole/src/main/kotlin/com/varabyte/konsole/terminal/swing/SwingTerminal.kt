@@ -142,7 +142,7 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
     }
 
     override fun close() {
-        write("(This terminal has been closed. Press any key to continue.)")
+        write("(This terminal session has ended. Press any key to continue.)")
         pane.addKeyListener(object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent?) {
                 with(pane.window!!) {
