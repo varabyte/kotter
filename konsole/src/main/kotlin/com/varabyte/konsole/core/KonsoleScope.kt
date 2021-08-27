@@ -7,6 +7,8 @@ class KonsoleScope(private val block: KonsoleBlock) {
     /** Data which is tied to the current app. */
     val data get() = block.app.data
 
+    internal val lastChar: Char? get() = block.lastChar
+
     /**
      * Run the [scopedBlock] within a fresh, new [KonsoleState] context, which gets removed afterwards.
      *

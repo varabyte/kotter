@@ -38,6 +38,8 @@ class KonsoleBlock internal constructor(
     @GuardedBy("renderLock")
     private var renderRequested = false
 
+    internal val lastChar: Char? get() = textArea.lastChar
+
     internal fun applyCommand(command: KonsoleCommand) {
         command.applyTo(textArea)
     }
@@ -75,7 +77,7 @@ class KonsoleBlock internal constructor(
             textArea.clear()
             KonsoleScope(self).block()
 
-            if (!textArea.isEmpty() && !textArea.endsWithNewline()) {
+            if (!textArea.isEmpty() && textArea.lastChar != '\n') {
                 textArea.append("\n")
             }
 

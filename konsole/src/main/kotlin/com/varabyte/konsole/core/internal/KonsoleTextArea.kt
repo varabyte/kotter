@@ -3,7 +3,7 @@ package com.varabyte.konsole.core.internal
 interface KonsoleTextArea {
     val numLines: Int
     fun isEmpty(): Boolean
-    fun endsWithNewline(): Boolean
+    val lastChar: Char?
 }
 
 class MutableKonsoleTextArea : KonsoleTextArea {
@@ -13,7 +13,7 @@ class MutableKonsoleTextArea : KonsoleTextArea {
         private set
 
     override fun isEmpty() = stringBuilder.isEmpty()
-    override fun endsWithNewline() = stringBuilder.endsWith('\n')
+    override val lastChar: Char? get() = stringBuilder.lastOrNull()
 
     fun clear(): MutableKonsoleTextArea {
         stringBuilder.clear()

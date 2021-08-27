@@ -47,8 +47,9 @@ fun KonsoleScope.textLine() {
  * pattern that it's nice to shorten it.
  */
 fun KonsoleScope.p(block: KonsoleScope.() -> Unit) {
-    textLine()
+    if (lastChar != null && lastChar != '\n') { textLine() }
     textLine()
     block()
+    if (lastChar != null && lastChar != '\n') { textLine() }
     textLine()
 }
