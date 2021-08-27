@@ -113,5 +113,3 @@ fun KonsoleBlock.runUntilSignal(block: suspend KonsoleBlock.RunScope.() -> Unit)
         waitForSignal()
     }
 }
-
-// TODO: fun KonsoleBlock.runUntilTextEntered(block: suspend RunUntilScope.() -> Unit) { ... }
