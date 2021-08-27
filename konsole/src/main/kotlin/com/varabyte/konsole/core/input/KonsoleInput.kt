@@ -99,9 +99,7 @@ fun KonsoleScope.input() {
         for (i in 0 until index) {
             self.text(text[i])
         }
-        self.invert()
-        self.text(text.elementAtOrNull(index) ?: ' ')
-        self.invert()
+        invert { self.text(text.elementAtOrNull(index) ?: ' ') }
         for (i in (index + 1)..text.lastIndex) {
             self.text(text[i])
         }
