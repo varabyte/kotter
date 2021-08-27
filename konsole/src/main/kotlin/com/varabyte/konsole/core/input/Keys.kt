@@ -12,14 +12,7 @@ interface IsoControlKey : Key
 /**
  * Class for every key with a typeable value, e.g. 'a', '~', '7'
  */
-class CharKey(code: Char) : Key {
-    val code = code.lowercaseChar()
-    override fun equals(other: Any?): Boolean {
-        return this === other || (other is CharKey && code == other.code)
-    }
-    override fun hashCode() = code.hashCode()
-}
-
+data class CharKey(val code: Char) : Key
 object Keys {
     object ESC : IsoControlKey
     object ENTER : IsoControlKey
@@ -35,33 +28,32 @@ object Keys {
     object HOME : IsoControlKey
     object END : IsoControlKey
 
-    val A = CharKey('A')
-    val B = CharKey('B')
-    val C = CharKey('C')
-    val D = CharKey('D')
-    val E = CharKey('E')
-    val F = CharKey('F')
-    val G = CharKey('G')
-    val H = CharKey('H')
-    val I = CharKey('I')
-    val J = CharKey('J')
-    val K = CharKey('K')
-    val L = CharKey('L')
-    val M = CharKey('M')
-    val N = CharKey('N')
-    val O = CharKey('O')
-    val P = CharKey('P')
-    val Q = CharKey('Q')
-    val R = CharKey('R')
-    val S = CharKey('S')
-    val T = CharKey('T')
-    val U = CharKey('U')
-    val V = CharKey('V')
-    val W = CharKey('W')
-    val X = CharKey('X')
-    val Y = CharKey('Y')
-    val Z = CharKey('Z')
+    val A = CharKey('a')
+    val B = CharKey('b')
+    val C = CharKey('c')
+    val D = CharKey('d')
+    val E = CharKey('e')
+    val F = CharKey('f')
+    val G = CharKey('g')
+    val H = CharKey('h')
+    val I = CharKey('i')
+    val J = CharKey('j')
+    val K = CharKey('k')
+    val L = CharKey('l')
+    val M = CharKey('m')
+    val N = CharKey('n')
+    val O = CharKey('o')
+    val P = CharKey('p')
+    val Q = CharKey('q')
+    val R = CharKey('r')
+    val S = CharKey('s')
+    val T = CharKey('t')
+    val U = CharKey('u')
+    val V = CharKey('v')
+    val W = CharKey('w')
+    val X = CharKey('x')
+    val Y = CharKey('y')
+    val Z = CharKey('z')
 
     val SPACE = CharKey(' ')
-
 }
