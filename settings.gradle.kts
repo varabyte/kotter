@@ -2,8 +2,9 @@ rootProject.name = "konsole"
 
 include(":konsole")
 
-include(":examples:counter")
 include(":examples:input")
-include(":examples:jest")
 include(":examples:playground")
-include(":examples:robot")
+
+include(":examples:mosaic:counter")
+include(":examples:mosaic:jest")
+include(":examples:mosaic:robot")
