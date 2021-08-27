@@ -15,7 +15,7 @@ object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
     object CtrlChars {
         const val BACKSPACE = '\u0008'
-        const val ENTER = '\u000A'
+        const val ENTER = '\u000D'
         const val ESC = '\u001B'
     }
 
