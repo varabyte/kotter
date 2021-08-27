@@ -3,6 +3,7 @@ rootProject.name = "konsole"
 include(":konsole")
 
 include(":examples:input")
+include(":examples:life")
 include(":examples:playground")
 
 include(":examples:mosaic:counter")
