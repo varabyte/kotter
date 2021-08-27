@@ -216,6 +216,11 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
     init {
         isEditable = false
         font = Font(Font.MONOSPACED, Font.PLAIN, fontSize)
+
+        // The existing mouse handlers set the cursor behind our back which mess with the repainting of the area
+        // Let's just disable them for now.
+        mouseListeners.toList().forEach { removeMouseListener(it) }
+        mouseMotionListeners.toList().forEach { removeMouseMotionListener(it) }
     }
 
     private fun processEscapeCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
