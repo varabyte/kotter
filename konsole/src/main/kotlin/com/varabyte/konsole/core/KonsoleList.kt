@@ -23,12 +23,12 @@ import kotlin.concurrent.withLock
  * This class's value can be queried and modified across different values, so it is designed to be thread safe.
  */
 @ThreadSafe
-class KonsoleList<T> internal constructor(vararg elements: T, activeBlock: () -> KonsoleBlock?) : MutableList<T> {
+class KonsoleList<T> internal constructor(app: KonsoleApp, vararg elements: T) : MutableList<T> {
     private val lock = ReentrantLock()
     @GuardedBy("lock")
     private val delegateList = mutableListOf(*elements)
     // Lazy - just create an additional var which handles all the fancy konsole rerendering logic
-    private var modifyCount by KonsoleVar(0, activeBlock)
+    private var modifyCount by app.KonsoleVar(0)
 
     /**
      * Allow calls to lock the list for a longer time than just a single field at a time, useful for example if

@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /** State needed to support the `input()` function */
-private class InputState(scope: RenderScope) {
+private class InputState {
     object Key : KonsoleData.Key<InputState> {
         override val lifecycle = KonsoleBlock.Lifecycle
     }
 
-    var text by scope.KonsoleVar("")
-    var index by scope.KonsoleVar(0)
+    var text = ""
+    var index = 0
 }
 
 private object UpdateInputJobKey : KonsoleData.Key<Job> {
@@ -36,7 +36,7 @@ private fun RenderScope.prepareInput() {
     if (!data.tryPut(OnlyCalledOnceKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
-    data.tryPut(InputState.Key) { InputState(this) }
+    data.tryPut(InputState.Key) { InputState() }
     data.tryPut(
         UpdateInputJobKey,
         provideInitialValue = {
@@ -85,6 +85,7 @@ private fun RenderScope.prepareInput() {
                             if (proposedText != text) {
                                 text = proposedText!!
                                 index = (proposedIndex ?: index).coerceIn(0, text.length)
+                                requestRerender()
                             }
                         }
                     }

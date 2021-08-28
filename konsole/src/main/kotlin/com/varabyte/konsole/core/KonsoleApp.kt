@@ -34,6 +34,7 @@ class KonsoleApp internal constructor(
     object Lifecycle : KonsoleData.Lifecycle
 
     internal val data = KonsoleData()
+    internal val activeBlock: KonsoleBlock? get() = data[ActiveBlockKey]
 
     init {
         data.lazyInitializers[KeyFlowKey] = {
@@ -79,11 +80,11 @@ class KonsoleApp internal constructor(
 
     /** Create a [KonsoleVar] whose scope is tied to this app. */
     @Suppress("FunctionName") // Intentionally made to look like a class constructor
-    fun <T> KonsoleVar(value: T): KonsoleVar<T> = KonsoleVar(value) { data[ActiveBlockKey] }
+    fun <T> KonsoleVar(value: T): KonsoleVar<T> = KonsoleVar(this, value)
 
     /** Create a [KonsoleList] whose scope is tied to this app. */
     @Suppress("FunctionName") // Intentionally made to look like a class constructor
-    fun <T> KonsoleList(vararg elements: T): KonsoleList<T> = KonsoleList(*elements) { data[ActiveBlockKey] }
+    fun <T> KonsoleList(vararg elements: T): KonsoleList<T> = KonsoleList<T>(this, *elements)
 
     internal fun dispose() {
         data.dispose(Lifecycle)

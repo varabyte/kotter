@@ -52,12 +52,7 @@ class RenderScope(private val block: KonsoleBlock) {
         popState()
     }
 
-    /** Create a [KonsoleVar] whose scope is tied to this app. */
-    @Suppress("FunctionName") // Intentionally made to look like a class constructor
-    fun <T> KonsoleVar(value: T): KonsoleVar<T> = block.app.KonsoleVar(value)
-    /** Create a [KonsoleList] whose scope is tied to this app. */
-    @Suppress("FunctionName") // Intentionally made to look like a class constructor
-    fun <T> KonsoleList(vararg elements: T): KonsoleList<T> = block.app.KonsoleList(*elements)
+    internal fun requestRerender() = block.requestRerender()
 
     private fun pushState(): KonsoleState {
         state = KonsoleState(state)
