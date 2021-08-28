@@ -1,8 +1,7 @@
 package com.varabyte.konsole.core.input
 
-import com.varabyte.konsole.ansi.commands.invert
 import com.varabyte.konsole.core.*
-import com.varabyte.konsole.core.KeyFlowKey
+import com.varabyte.konsole.core.text.invert
 import com.varabyte.konsole.core.text.text
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

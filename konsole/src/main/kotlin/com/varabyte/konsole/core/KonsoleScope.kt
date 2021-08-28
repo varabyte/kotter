@@ -1,5 +1,7 @@
 package com.varabyte.konsole.core
 
+import com.varabyte.konsole.internal.KonsoleCommand
+
 class KonsoleScope(private val block: KonsoleBlock) {
 
     internal var state = KonsoleState()

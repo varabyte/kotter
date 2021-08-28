@@ -1,9 +1,9 @@
 package com.varabyte.konsole.core.text
 
-import com.varabyte.konsole.ansi.commands.CharCommand
-import com.varabyte.konsole.ansi.commands.NewlineCommand
-import com.varabyte.konsole.ansi.commands.TextCommand
 import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.internal.ansi.commands.CharCommand
+import com.varabyte.konsole.internal.ansi.commands.NewlineCommand
+import com.varabyte.konsole.internal.ansi.commands.TextCommand
 
 fun KonsoleScope.text(text: String) {
     applyCommand(TextCommand(text))

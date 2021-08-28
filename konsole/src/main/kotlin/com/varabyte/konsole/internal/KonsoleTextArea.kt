@@ -1,12 +1,12 @@
-package com.varabyte.konsole.core.internal
+package com.varabyte.konsole.internal
 
-interface KonsoleTextArea {
+internal interface KonsoleTextArea {
     val numLines: Int
     fun isEmpty(): Boolean
     val lastChar: Char?
 }
 
-class MutableKonsoleTextArea : KonsoleTextArea {
+internal class MutableKonsoleTextArea : KonsoleTextArea {
     private var stringBuilder = StringBuilder()
 
     override var numLines = 1

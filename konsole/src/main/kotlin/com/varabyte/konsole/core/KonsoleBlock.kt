@@ -1,7 +1,8 @@
 package com.varabyte.konsole.core
 
-import com.varabyte.konsole.ansi.Ansi
-import com.varabyte.konsole.core.internal.MutableKonsoleTextArea
+import com.varabyte.konsole.internal.KonsoleCommand
+import com.varabyte.konsole.internal.MutableKonsoleTextArea
+import com.varabyte.konsole.internal.ansi.Ansi
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch

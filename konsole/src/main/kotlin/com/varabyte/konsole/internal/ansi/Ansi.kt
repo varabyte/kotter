@@ -1,7 +1,7 @@
-package com.varabyte.konsole.ansi
+package com.varabyte.konsole.internal.ansi
 
-import com.varabyte.konsole.util.TextPtr
-import com.varabyte.konsole.util.readInt
+import com.varabyte.konsole.internal.util.TextPtr
+import com.varabyte.konsole.internal.util.readInt
 
 /**
  * A collection of common ANSI codes and other related constants which power the features of
@@ -11,7 +11,7 @@ import com.varabyte.konsole.util.readInt
  * https://en.wikipedia.org/wiki/ANSI_escape_code
  * https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
  */
-object Ansi {
+internal object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
     object CtrlChars {
         const val BACKSPACE = '\u0008'

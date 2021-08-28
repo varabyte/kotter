@@ -1,12 +1,12 @@
 package com.varabyte.konsole.terminal.swing
 
-import com.varabyte.konsole.ansi.Ansi
-import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Colors
-import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.Decorations
-import com.varabyte.konsole.ansi.Ansi.Csi.Codes.Sgr.RESET
+import com.varabyte.konsole.internal.ansi.Ansi
+import com.varabyte.konsole.internal.ansi.Ansi.Csi.Codes.Sgr.Colors
+import com.varabyte.konsole.internal.ansi.Ansi.Csi.Codes.Sgr.Decorations
+import com.varabyte.konsole.internal.ansi.Ansi.Csi.Codes.Sgr.RESET
+import com.varabyte.konsole.internal.util.TextPtr
+import com.varabyte.konsole.internal.util.substring
 import com.varabyte.konsole.terminal.Terminal
-import com.varabyte.konsole.util.TextPtr
-import com.varabyte.konsole.util.substring
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose

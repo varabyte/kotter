@@ -1,10 +1,10 @@
 package com.varabyte.konsole.core
 
-import com.varabyte.konsole.ansi.Ansi
 import com.varabyte.konsole.core.input.CharKey
 import com.varabyte.konsole.core.input.Key
 import com.varabyte.konsole.core.input.Keys
-import com.varabyte.konsole.core.internal.executor.KonsoleExecutor
+import com.varabyte.konsole.internal.ansi.Ansi
+import com.varabyte.konsole.internal.executor.KonsoleExecutor
 import com.varabyte.konsole.terminal.SystemTerminal
 import com.varabyte.konsole.terminal.Terminal
 import com.varabyte.konsole.terminal.swing.SwingTerminal

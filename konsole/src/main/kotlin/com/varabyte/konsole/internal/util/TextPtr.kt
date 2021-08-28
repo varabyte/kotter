@@ -1,4 +1,4 @@
-package com.varabyte.konsole.util
+package com.varabyte.konsole.internal.util
 
 import kotlin.math.max
 import kotlin.math.min
@@ -9,7 +9,7 @@ import kotlin.math.min
  * Note that it's valid to point at the index AFTER the last character, which in this case returns a null terminator
  * character to indicate it.
  */
-class TextPtr(val text: CharSequence, charIndex: Int = 0) {
+internal class TextPtr(val text: CharSequence, charIndex: Int = 0) {
     var charIndex = 0
         set(value) {
             require(value >= 0 && value <= text.length) { "charIndex value is out of bounds. Expected 0 .. ${text.length}, got $value" }
@@ -68,11 +68,11 @@ class TextPtr(val text: CharSequence, charIndex: Int = 0) {
     }
 }
 
-fun TextPtr.substring(length: Int): String {
+internal fun TextPtr.substring(length: Int): String {
     return text.substring(charIndex, min(charIndex + length, text.length))
 }
 
-fun TextPtr.readInt(): Int? {
+internal fun TextPtr.readInt(): Int? {
     if (!currChar.isDigit()) return null
 
     var intValue = 0

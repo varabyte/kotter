@@ -1,5 +1,5 @@
-import com.varabyte.konsole.ansi.commands.textLine
 import com.varabyte.konsole.core.konsoleApp
+import com.varabyte.konsole.core.text.textLine
 import kotlinx.coroutines.delay
 
 // https://github.com/JakeWharton/mosaic/tree/trunk/samples/counter
