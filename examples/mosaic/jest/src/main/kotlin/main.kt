@@ -3,7 +3,9 @@ import com.varabyte.konsole.core.KonsoleScope
 import com.varabyte.konsole.core.konsoleApp
 import com.varabyte.konsole.core.text.*
 import com.varabyte.konsole.core.text.ColorLayer.BG
+import com.varabyte.konsole.core.timer.addTimer
 import kotlinx.coroutines.*
+import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedDeque
 import kotlin.random.Random
 
@@ -119,11 +121,8 @@ fun main() = konsoleApp {
                 }
             })
         }
-        scope.launch {
-            while (true) {
-                delay(1_000)
-                ++elapsedSecs
-            }
+        addTimer(Duration.ofSeconds(1), repeat = true) {
+            ++elapsedSecs
         }
         jobs.forEach { job -> job.join() }
     }
