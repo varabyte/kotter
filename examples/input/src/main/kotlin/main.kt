@@ -16,6 +16,6 @@ fun main() = konsoleApp {
             p { textLine("""\(^o^)/""") }
         }
     }.runUntilInputEntered {
-        onInputEntered { wantsToLearn = input.lowercase().startsWith("y") }
+        onInputEntered { wantsToLearn = "yes".startsWith(input.lowercase()) }
     }
 }
