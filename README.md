@@ -245,7 +245,7 @@ konsole {
 }.run { /* ... */ }
 ```
 
-Note that the input method automatically adds a cursor for you. This also handles keys like LEFT/RIGHT, HOME/END,
+Note that the input method automatically adds a cursor for you. This also handles keys like LEFT/RIGHT and HOME/END,
 moving the cursor back and forth between the bounds of the input string.
 
 You can intercept input as it is typed using the `onInputChanged` event:
