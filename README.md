@@ -543,13 +543,19 @@ the user is interacting with, and the history, which is static. To support this 
 history list yourself and keep appending to it, and it was while thinking about an API that addressed this limitation
 that I envisioned Konsole.
 
-* Compose encourages using a set of powerful layout primitives, namely `Box`, `Column`, and `Row`. Most command line
-apps don't really need this level of flexibility, however.
+* Compose encourages using a set of powerful layout primitives, namely `Box`, `Column`, and `Row`, with margins and
+  shapes and layers. Command line apps don't really need this level of power, however.
 
-* Compose has a lot of strengths built around, well, composing methods! But for a simple CLI library, I don't care that
-much about supporting nesting, which means, for example, I don't think things like `remember` blocks. By focusing on a
-"single, non-nested block" case, I could focus on a more pared down API.
-  * And you can still accomplish simple nesting by defining `fun KonsoleBlock.someReusableComponent(...)`
+* Compose has a lot of strengths built around, well, composing methods! And to enable this, it makes heavy use of
+  features like `remember` blocks, which you can call inside a composable method and it gets treated in a special way.
+  But for a simple CLI library, being able to focus on render blocks that don't nest too deeply and not worrying as much
+  about performance allowed a more pared down API to emerge.
+
+* Compose does a lot of nice tricks due to the fact it is ultimately a compiler plugin, but it is nice to see what the
+  API kind of looks like when there's no magic at all.
+  * Of course, some features are lost in the translation, e.g. the `remember` blocks mentioned above. The trick for them
+    relies heavily on the compiler plugin architecture to generate unique numeric IDs for them, so multiple render
+    passes can still understand some sort of consistency, but it would be annoying and error prone to do this by hand.
 
 #### Mosaic comparison
 
