@@ -26,6 +26,11 @@ class KonsoleApp internal constructor(
         }
     }
 ) {
+    /**
+     * A long lived lifecycle that sticks around for the length of the entire app.
+     *
+     * This lifecycle can be used for storing data that should live across multiple blocks.
+     */
     object Lifecycle : KonsoleData.Lifecycle
 
     internal val data = KonsoleData()

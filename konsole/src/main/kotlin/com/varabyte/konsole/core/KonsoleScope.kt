@@ -3,6 +3,12 @@ package com.varabyte.konsole.core
 import com.varabyte.konsole.internal.KonsoleCommand
 
 class KonsoleScope(private val block: KonsoleBlock) {
+    /**
+     * A very short lifecycle that lives for a single block render pass.
+     *
+     * This could be useful for verifying that a method with a side effect was only executed once, for example.
+     */
+    object Lifecycle : KonsoleData.Lifecycle
 
     internal var state = KonsoleState()
 

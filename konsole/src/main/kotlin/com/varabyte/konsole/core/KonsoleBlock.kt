@@ -16,6 +16,11 @@ internal object ActiveBlockKey : KonsoleData.Key<KonsoleBlock> {
 class KonsoleBlock internal constructor(
     internal val app: KonsoleApp,
     private val block: KonsoleScope.() -> Unit) {
+    /**
+     * A moderately long lifecycle that lives as long as the block is running.
+     *
+     * This lifecycle can be used for storing data relevant to the current block only.
+     */
     object Lifecycle : KonsoleData.Lifecycle
 
     class RunScope(
@@ -77,6 +82,7 @@ class KonsoleBlock internal constructor(
 
             textArea.clear()
             KonsoleScope(self).block()
+            app.data.dispose(KonsoleScope.Lifecycle)
 
             if (!textArea.isEmpty() && textArea.lastChar != '\n') {
                 textArea.append("\n")
@@ -107,8 +113,8 @@ class KonsoleBlock internal constructor(
             runBlocking { job.join() }
         }
 
-        // Our block is done, let's just wait until any remaining renders are finished. We can do this by adding
-        // ourselves to the end of the list.
+        // Our run block is done, let's just wait until any remaining renders are finished. We can do this by adding
+        // ourselves to the end of the line and waiting to get through.
         val allRendersFinishedLatch = CountDownLatch(1)
         app.executor.submit { allRendersFinishedLatch.countDown() }
         allRendersFinishedLatch.await()

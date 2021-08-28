@@ -23,12 +23,19 @@ private object UpdateInputJobKey : KonsoleData.Key<Job> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
+private object OnlyCalledOnceKey : KonsoleData.Key<Unit> {
+    override val lifecycle = KonsoleScope.Lifecycle
+}
+
 /**
  * If necessary, instantiate data that the [input] method expects to exist.
  *
  * Is a no-op after the first time.
  */
 private fun KonsoleScope.prepareInput() {
+    if (!data.tryPut(OnlyCalledOnceKey) { }) {
+        throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
+    }
     data.tryPut(InputState.Key) { InputState(this) }
     data.tryPut(
         UpdateInputJobKey,
