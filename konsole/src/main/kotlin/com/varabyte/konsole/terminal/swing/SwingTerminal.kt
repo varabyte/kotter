@@ -22,10 +22,7 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.util.concurrent.CountDownLatch
-import javax.swing.JFrame
-import javax.swing.JScrollPane
-import javax.swing.JTextPane
-import javax.swing.SwingUtilities
+import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.text.Document
 import javax.swing.text.MutableAttributeSet
@@ -95,21 +92,42 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
         }
     }
 
-    override fun write(text: String) {
-        runBlocking {
-            CoroutineScope(Dispatchers.Swing).launch {
-                pane.processAnsiText(text)
-            }.join()
-        }
-    }
-
-    private val Component.window: Window? get() {
+    private inline fun <reified T> Component.findAncestor(): T? {
         var c: Component? = this
         while (c != null) {
-            if (c is Window) return c
+            if (c is T) return c
             c = c.parent
         }
         return null
+    }
+
+    private val Component.window get() = findAncestor<Window>()
+    private val Component.scrollPane get() = findAncestor<JScrollPane>()
+    private fun BoundedRangeModel.isAtEnd() = value + extent >= maximum
+
+    override fun write(text: String) {
+        runBlocking {
+            CoroutineScope(Dispatchers.Swing).launch {
+                // Here, we update our text pane causing it to repaint, but as a side effect, this screws with the
+                // vscroll and hscroll positions. If the user has intentionally set either of those values themselves,
+                // we should fight to keep them.
+                val scrollPane = pane.scrollPane!!
+
+                val vScrollPos = scrollPane.verticalScrollBar.model.value
+                val vAtEnd = scrollPane.verticalScrollBar.model.isAtEnd()
+                val hScrollPos = scrollPane.horizontalScrollBar.model.value
+                val hAtEnd = scrollPane.horizontalScrollBar.model.isAtEnd()
+
+                pane.processAnsiText(text)
+
+                if (!vAtEnd) {
+                    SwingUtilities.invokeLater { scrollPane.verticalScrollBar.model.value = vScrollPos }
+                }
+                if (!hAtEnd) {
+                    SwingUtilities.invokeLater { scrollPane.horizontalScrollBar.model.value = hScrollPos }
+                }
+            }.join()
+        }
     }
 
     override fun read(): Flow<Int> = callbackFlow {
