@@ -11,7 +11,7 @@ import java.io.IOException
  * A class which interacts directly with the underlying system terminal, e.g. println
  */
 class SystemTerminal : Terminal {
-    private lateinit var previousCursorSetting: InfoCmp.Capability
+    private var previousCursorSetting: InfoCmp.Capability
     private val terminal = TerminalBuilder.builder()
         .system(true)
         // Don't use JLine's virtual terminal - use ours! Because this is false, this builder will throw an exception
