@@ -2,16 +2,72 @@ package com.varabyte.konsole.foundation.input
 
 import com.varabyte.konsole.foundation.text.invert
 import com.varabyte.konsole.foundation.text.text
-import com.varabyte.konsole.runtime.KeyFlowKey
+import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.RenderScope
 import com.varabyte.konsole.runtime.concurrent.ConcurrentData
+import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.runUntilSignal
+import com.varabyte.konsole.runtime.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+
+private object KeyFlowKey : ConcurrentData.Key<Flow<Key>> {
+    // Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
+    // there's no reason for us to keep recreating it. It's pretty likely that if an app uses input in one block, it
+    // will use input again in others. (We can always revisit this decision later and scope this to a KonsoleBlock
+    // lifecycle)
+    override val lifecycle = KonsoleApp.Lifecycle
+}
+
+/**
+ * Create a [Flow<Key>] value which converts the ANSI values read from a terminal into Konsole's simpler abstraction
+ * (which is a flat collection of keys instead of multi-encoded bytes and other historical legacy).
+ */
+private fun ConcurrentData.prepareKeyFlow(terminal: Terminal) {
+    tryPut(KeyFlowKey) {
+        val escSeq = StringBuilder()
+        terminal.read().mapNotNull { byte ->
+            val c = byte.toChar()
+            when {
+                escSeq.isNotEmpty() -> {
+                    escSeq.append(c)
+                    val code = Ansi.EscSeq.toCode(escSeq)
+                    if (code != null) {
+                        escSeq.clear()
+                        when (code) {
+                            Ansi.Csi.Codes.Keys.UP -> Keys.UP
+                            Ansi.Csi.Codes.Keys.DOWN -> Keys.DOWN
+                            Ansi.Csi.Codes.Keys.LEFT -> Keys.LEFT
+                            Ansi.Csi.Codes.Keys.RIGHT -> Keys.RIGHT
+                            Ansi.Csi.Codes.Keys.HOME -> Keys.HOME
+                            Ansi.Csi.Codes.Keys.END -> Keys.END
+                            Ansi.Csi.Codes.Keys.DELETE -> Keys.DELETE
+                            else -> null
+                        }
+                    } else {
+                        null
+                    }
+                }
+                else -> {
+                    when (c) {
+                        Ansi.CtrlChars.ESC -> {
+                            escSeq.append(c); null
+                        }
+                        Ansi.CtrlChars.ENTER -> Keys.ENTER
+                        Ansi.CtrlChars.BACKSPACE -> Keys.BACKSPACE
+                        else -> if (!c.isISOControl()) CharKey(c) else null
+                    }
+                }
+            }
+        }
+    }
+}
 
 /** State needed to support the `input()` function */
 private class InputState {
@@ -36,10 +92,12 @@ private object OnlyCalledOncePerRenderKey : ConcurrentData.Key<Unit> {
  *
  * Is a no-op after the first time.
  */
-private fun ConcurrentData.prepareInput(onInputChanged: () -> Unit) {
+private fun ConcurrentData.prepareInput(terminal: Terminal, onInputChanged: () -> Unit) {
     if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
+
+    prepareKeyFlow(terminal)
     tryPut(InputState.Key) { InputState() }
     tryPut(
         UpdateInputJobKey,
@@ -101,7 +159,7 @@ private fun ConcurrentData.prepareInput(onInputChanged: () -> Unit) {
 }
 
 fun RenderScope.input() {
-    data.prepareInput(onInputChanged = { requestRerender() })
+    data.prepareInput(terminal, onInputChanged = { requestRerender() })
 
     val self = this
     data.get(InputState.Key) {
@@ -130,11 +188,13 @@ private object SystemKeyPressedCallbackKey : ConcurrentData.Key<OnKeyPressedScop
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
-/** Start running a job that collects keypresses and sends them to callbacks.
+/**
+ * Start running a job that collects keypresses and sends them to callbacks.
  *
  * This is a no-op when called after the first time.
  */
-private fun ConcurrentData.prepareOnKeyPressed() {
+private fun ConcurrentData.prepareOnKeyPressed(terminal: Terminal) {
+    prepareKeyFlow(terminal)
     tryPut(
         KeyPressedJobKey,
         provideInitialValue = {
@@ -151,7 +211,7 @@ private fun ConcurrentData.prepareOnKeyPressed() {
 }
 
 fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
-    data.prepareOnKeyPressed()
+    data.prepareOnKeyPressed(terminal)
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
     }
@@ -159,7 +219,7 @@ fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
 
 fun KonsoleBlock.runUntilKeyPressed(vararg keys: Key, block: suspend KonsoleBlock.RunScope.() -> Unit) {
     runUntilSignal {
-        data.prepareOnKeyPressed()
+        data.prepareOnKeyPressed(terminal)
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) signal() }
         block()
     }

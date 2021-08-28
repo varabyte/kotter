@@ -4,6 +4,7 @@ import com.varabyte.konsole.runtime.concurrent.ConcurrentData
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.internal.text.MutableTextArea
+import com.varabyte.konsole.runtime.terminal.Terminal
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
@@ -25,6 +26,7 @@ class KonsoleBlock internal constructor(
     object Lifecycle : ConcurrentData.Lifecycle
 
     class RunScope(
+        internal val terminal: Terminal,
         val data: ConcurrentData,
         private val rerenderRequested: () -> Unit
     ) {
@@ -107,7 +109,7 @@ class KonsoleBlock internal constructor(
         renderOnce()
         if (block != null) {
             val job = CoroutineScope(Dispatchers.Default).launch {
-                val scope = RunScope(app.data, rerenderRequested = { requestRerender() })
+                val scope = RunScope(app.terminal, app.data, rerenderRequested = { requestRerender() })
                 scope.block()
             }
 

@@ -34,11 +34,13 @@ class RenderScope(private val block: KonsoleBlock) {
      */
     object Lifecycle : ConcurrentData.Lifecycle
 
-    internal var state = KonsoleState()
-
     /** Data which is tied to the current app. */
     val data get() = block.app.data
 
+    /** The current app's terminal */
+    internal val terminal get() = block.app.terminal
+
+    internal var state = KonsoleState()
     internal val lastChar: Char? get() = block.lastChar
 
     /**

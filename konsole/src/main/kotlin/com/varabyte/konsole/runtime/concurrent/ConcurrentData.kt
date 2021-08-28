@@ -47,39 +47,6 @@ class ConcurrentData {
     }
 
     /**
-     * Occasionally, a user may want to put data in this cache which is expensive to calculate that should only run on
-     * demand. To do that, instead of:
-     *
-     * ```
-     * data[ExpensiveKey] = ExpensiveObject()
-     * ```
-     *
-     * the can write:
-     *
-     * ```
-     * data.lazyInitializers[ExpensiveKey] = { ExpensiveObject() }
-     * ```
-     *
-     * Later, a call to ```data[ExpensiveKey]``` will trigger the creation on the fly.
-     *
-     * Note that if someone else uses one of the set or various put methods between adding a lazy initializer but before
-     * the first time the key was accessed, the values those calls add will take precedence.
-     */
-    class LazyInitializers(private val lock: ReentrantLock) {
-        @GuardedBy("lock")
-        private val lazyInitializers = mutableMapOf<Key<out Any>, () -> Value<out Any>>()
-        operator fun <T: Any> set(key: Key<T>, initialize: () -> T) {
-            set(key, initialize, dispose = {})
-        }
-        fun <T: Any> set(key: Key<T>, initialize: () -> T, dispose: (T) -> Unit) {
-            lock.withLock { lazyInitializers[key] = { Value(initialize(), dispose) } }
-        }
-        internal operator fun <T: Any> get(key: Key<T>): (() -> Value<T>)? {
-            return lock.withLock { lazyInitializers[key] as? () -> Value<T> }
-        }
-    }
-
-    /**
      * A value entry inside the key/value store.
      *
      * Having a separate class for it lets us store the `dispose` callback and also helps us avoid doing some extra
@@ -94,7 +61,6 @@ class ConcurrentData {
     private val lock = ReentrantLock()
     @GuardedBy("lock")
     private val keyValues = mutableMapOf<Key<out Any>, Value<out Any>>()
-    val lazyInitializers = LazyInitializers(lock)
 
     /**
      * Dispose and remove all keys tied to the specified [Lifecycle]
@@ -121,13 +87,7 @@ class ConcurrentData {
      */
     operator fun <T : Any> get(key: Key<T>): T? {
         return lock.withLock {
-            val value = keyValues[key] as? Value<T> ?: run {
-                val lazy = lazyInitializers[key]?.invoke()?.apply {
-                    keyValues[key] = this
-                }
-                lazy
-            }
-            value?.wrapped
+            (keyValues[key] as? Value<T>)?.wrapped
         }
     }
 
