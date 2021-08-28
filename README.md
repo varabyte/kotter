@@ -25,9 +25,9 @@ raw `println` calls but way less featured than something like _Java Curses_.
 Specifically, this library helps with:
 
 * Modifying console text in place
-* Colors and text decoration (e.g. underline)
+* Setting colors and text decorations (e.g. underline, bold)
 * Handling user input
-* Support for animations
+* Creating timers and animations
 
 ## Gradle
 
@@ -58,10 +58,11 @@ We'll see many examples of this in the following sections.
 ### Dynamic Konsole block
 
 The `konsole` block is designed to be run one _or more_ times. That is, you can write logic inside it which may not get
-executed on the first run but will on a followup run.
+executed on the first run but will be on a followup run.
 
-Here, we pass in a callback to the `run` method which updates a value referenced by the `konsole` block. This example
-will run the Konsole block twice - once when `run` is first called and again when it calls `rerender`:
+Here, we pass in a callback to the `run` method which updates a value referenced by the `konsole` block (the `result`
+integer). This example will run the Konsole block twice - once when `run` is first called and again when it calls
+`rerender`:
 
 ```kotlin
 var result: Int? = null
@@ -141,20 +142,20 @@ konsole {
 
 #### KonsoleList
 
-Similar to `KonsoleVar`, a `KonsoleList` is a reactive primitive which, when modified, causes a rerender to happen
-automatically. You don't need to use the `by` keyword in this case:
+Similar to `KonsoleVar`, a `KonsoleList` is a reactive primitive which, when modified by having elements added to or
+removed from it, causes a rerender to happen automatically. You don't need to use the `by` keyword with `KonsoleList`:
 
 ```kotlin
 val fileWalker = FileWalker(".")
-val matches = KonsoleList<String>()
+val fileMatches = KonsoleList<String>()
 konsole {
   textLine("Matches found so far: ")
-  for (match in matches) {
+  for (match in fileMatches) {
     textLine(" - $match")
   }
 }.run {
   fileWalker.findFiles("*.txt") { file ->
-    matches += file.name
+    fileMatches += file.name
   }
   /* ... */
 }
@@ -166,9 +167,9 @@ same time, it's always possible that you missed an update. To handle this, you c
 method:
 
 ```kotlin
-val matches = KonsoleList<String>()
+val fileMatches = KonsoleList<String>()
 konsole {
-  matches.withLock {
+  fileMatches.withLock {
     if (isEmpty()) {
       textLine("No matches found so far")
     } else {
@@ -252,7 +253,7 @@ You can intercept input as it is typed using the `onInputChanged` event:
 
 ```kotlin
 konsole {
-  text("Please enter your name: $input")
+  text("Please enter your name: "); input()
 }.run {
   onInputChanged {
     input = input.toUpperCase()
@@ -265,7 +266,7 @@ You can also use the `rejectInput` method to return your input to the previous (
 
 ```kotlin
 konsole {
-  text("Please enter your name: $input")
+  text("Please enter your name: "); input()
 }.run {
   onInputChanged {
     if (input.any { !it.isLetter() }) { rejectInput() }
@@ -278,9 +279,9 @@ konsole {
 You can also use `onInputEntered`. This will be triggered whenever the user presses the ENTER key.
 
 ```kotlin
-lateinit var name: String
+var name = ""
 konsole {
-  text("Please enter your name: $input")
+  text("Please enter your name: "); input()
 }.runUntilSignal {
   onInputChanged { input = input.filter { it.isLetter() } }
   onInputEntered { name = input; signal() }
@@ -291,9 +292,9 @@ There's actually a shortcut for cases like the above, since they're pretty commo
 Using it, we can slightly simplify the above example, typing fewer characters for identical behavior:
 
 ```kotlin
-lateinit var name: String
+var name = ""
 konsole {
-  text("Please enter your name: $input")
+  text("Please enter your name: "); input()
 }.runUntilInputEntered {
   onInputChanged { input = input.filter { it.isLetter() } }
   onInputEntered { name = input }
@@ -351,7 +352,7 @@ konsole {
 }.run()
 ```
 
-### State
+### Konsole state and scopedState
 
 To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
 `konsole` block only:
@@ -380,6 +381,7 @@ konsole {
     underline()
     text("Underlined red on blue")
   }
+  text("Text without color or decorations")
 }.run()
 ```
 
@@ -398,11 +400,11 @@ konsole {
 }
 ```
 
-You can repeat a timer by passing in `repeat = true` to the method. If you want to stop it from repeating, set
-`repeat = false` inside the timer block when it is triggered:
+You can create a repeating timer by passing in `repeat = true` to the method. And if you want to stop it from repeating
+at some point, set `repeat = false` inside the timer block when it is triggered:
 
 ```kotlin
-val BLINK_TOTAL_LEN = 5.seconds
+val BLINK_TOTAL_LEN = 5.s
 val BLINK_LEN = 250.ms
 var blinkOn by KonsoleVar(false)
 konsole {
@@ -413,7 +415,7 @@ konsole {
 
 }.runUntilSignal {
   var blinkCount = BLINK_TOTAL_LEN / BLINK_LEN
-  addTimer(250.ms, repeat = true) {
+  addTimer(BLINK_LEN, repeat = true) {
     blinkOn = !blinkOn
     blinkCount--
     if (blinkCount == 0) {
@@ -438,7 +440,8 @@ konsole {
 }
 ```
 
-All timers will be automatically stopped before `onFinishing` is called.
+`onFinishing` will only run after all timers are stopped, so you don't have to worry about setting a value that an
+errant timer will clobber later.
 
 ### Animations
 
@@ -462,7 +465,7 @@ konsole {
   if (finished) {
     text(" Done!")
   }
-  testLine()
+  textLine()
 }.run {
   doExpensiveFileSearching()
   finished = true
