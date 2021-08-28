@@ -1,5 +1,5 @@
 import TestState.*
-import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.core.RenderScope
 import com.varabyte.konsole.core.konsoleApp
 import com.varabyte.konsole.core.text.*
 import com.varabyte.konsole.core.text.ColorLayer.BG
@@ -20,7 +20,7 @@ enum class TestState {
     Fail,
 }
 
-private fun KonsoleScope.testRow(test: Test) {
+private fun RenderScope.testRow(test: Test) {
     scopedState {
         black()
         when (test.state) {
@@ -44,7 +44,7 @@ private fun KonsoleScope.testRow(test: Test) {
     bold { textLine(filename) }
 }
 
-private fun KonsoleScope.summary(tests: List<Test>, elapsedSecs: Int) {
+private fun RenderScope.summary(tests: List<Test>, elapsedSecs: Int) {
     text("Tests: ")
 
     val numFailed = tests.count { it.state == Fail }

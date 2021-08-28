@@ -1,38 +1,38 @@
 package com.varabyte.konsole.core.text
 
 import com.varabyte.konsole.core.KonsoleBlock
-import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.core.RenderScope
 import com.varabyte.konsole.internal.ansi.commands.BOLD_COMMAND
 import com.varabyte.konsole.internal.ansi.commands.STRIKETHROUGH_COMMAND
 import com.varabyte.konsole.internal.ansi.commands.UNDERLINE_COMMAND
 
-fun KonsoleScope.bold() {
+fun RenderScope.bold() {
     applyCommand(BOLD_COMMAND)
 }
 
-fun KonsoleScope.bold(scopedBlock: KonsoleBlock.() -> Unit) {
+fun RenderScope.bold(scopedBlock: KonsoleBlock.() -> Unit) {
     scopedState {
         bold()
         scopedBlock()
     }
 }
 
-fun KonsoleScope.underline() {
+fun RenderScope.underline() {
     applyCommand(UNDERLINE_COMMAND)
 }
 
-fun KonsoleScope.underline(scopedBlock: KonsoleBlock.() -> Unit) {
+fun RenderScope.underline(scopedBlock: KonsoleBlock.() -> Unit) {
     scopedState {
         underline()
         scopedBlock()
     }
 }
 
-fun KonsoleScope.strikethrough() {
+fun RenderScope.strikethrough() {
     applyCommand(STRIKETHROUGH_COMMAND)
 }
 
-fun KonsoleScope.strikethrough(scopedBlock: KonsoleBlock.() -> Unit) {
+fun RenderScope.strikethrough(scopedBlock: KonsoleBlock.() -> Unit) {
     scopedState {
         strikethrough()
         scopedBlock()

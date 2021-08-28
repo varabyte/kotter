@@ -75,7 +75,7 @@ class KonsoleApp internal constructor(
         }
     }
 
-    fun konsole(block: KonsoleScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
+    fun konsole(block: RenderScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
 
     /** Create a [KonsoleVar] whose scope is tied to this app. */
     @Suppress("FunctionName") // Intentionally made to look like a class constructor

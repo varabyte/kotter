@@ -15,7 +15,7 @@ internal object ActiveBlockKey : KonsoleData.Key<KonsoleBlock> {
 
 class KonsoleBlock internal constructor(
     internal val app: KonsoleApp,
-    private val block: KonsoleScope.() -> Unit) {
+    private val block: RenderScope.() -> Unit) {
     /**
      * A moderately long lifecycle that lives as long as the block is running.
      *
@@ -81,8 +81,8 @@ class KonsoleBlock internal constructor(
             }
 
             textArea.clear()
-            KonsoleScope(self).block()
-            app.data.dispose(KonsoleScope.Lifecycle)
+            RenderScope(self).block()
+            app.data.dispose(RenderScope.Lifecycle)
 
             if (!textArea.isEmpty() && textArea.lastChar != '\n') {
                 textArea.append("\n")

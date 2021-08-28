@@ -1,29 +1,29 @@
 package com.varabyte.konsole.core.text
 
-import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.core.RenderScope
 import com.varabyte.konsole.internal.ansi.commands.CharCommand
 import com.varabyte.konsole.internal.ansi.commands.NewlineCommand
 import com.varabyte.konsole.internal.ansi.commands.TextCommand
 
-fun KonsoleScope.text(text: String) {
+fun RenderScope.text(text: String) {
     applyCommand(TextCommand(text))
 }
 
-fun KonsoleScope.text(c: Char) {
+fun RenderScope.text(c: Char) {
     applyCommand(CharCommand(c))
 }
 
-fun KonsoleScope.textLine(text: String) {
+fun RenderScope.textLine(text: String) {
     applyCommand(TextCommand(text))
     textLine()
 }
 
-fun KonsoleScope.textLine(c: Char) {
+fun RenderScope.textLine(c: Char) {
     applyCommand(CharCommand(c))
     textLine()
 }
 
-fun KonsoleScope.textLine() {
+fun RenderScope.textLine() {
     applyCommand(NewlineCommand)
 }
 
@@ -33,7 +33,7 @@ fun KonsoleScope.textLine() {
  * This is a convenience function for wrapping a block with newlines above and below it, which is a common enough
  * pattern that it's nice to shorten it.
  */
-fun KonsoleScope.p(block: KonsoleScope.() -> Unit) {
+fun RenderScope.p(block: RenderScope.() -> Unit) {
     if (lastChar != null && lastChar != '\n') { textLine() }
     textLine()
     block()

@@ -2,7 +2,30 @@ package com.varabyte.konsole.core
 
 import com.varabyte.konsole.internal.KonsoleCommand
 
-class KonsoleScope(private val block: KonsoleBlock) {
+/**
+ * A scope which represents a single render pass inside a Konsole block.
+ *
+ * So for this simple, never-ending example:
+ *
+ * ```
+ * var count by KonsoleVar(0)
+ * konsole {
+ *   textLine("Count: $count")
+ * }.run {
+ *   while (true) {
+ *     delay(250)
+ *     ++count
+ *   }
+ * }
+ * ```
+ *
+ * the concept of the block itself is represented by the [KonsoleBlock] class, while each render pass (triggered every
+ * 250ms, above) is passed a new instance of this class.
+ *
+ * Despite this class's transient state, it often works with the underlying block, offering a limited subset of passthru
+ * functionality that simply delegates the operation to the underlying block.
+ */
+class RenderScope(private val block: KonsoleBlock) {
     /**
      * A very short lifecycle that lives for a single block render pass.
      *

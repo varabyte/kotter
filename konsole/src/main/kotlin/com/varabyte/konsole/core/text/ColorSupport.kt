@@ -1,7 +1,7 @@
 package com.varabyte.konsole.core.text
 
 import com.varabyte.konsole.core.KonsoleBlock
-import com.varabyte.konsole.core.KonsoleScope
+import com.varabyte.konsole.core.RenderScope
 import com.varabyte.konsole.internal.ansi.commands.*
 
 enum class ColorLayer {
@@ -49,47 +49,47 @@ private fun toWhiteCommand(colorLayer: ColorLayer, isBright: Boolean) = when(col
     ColorLayer.BG -> if (isBright) BG_WHITE_BRIGHT_COMMAND else BG_WHITE_COMMAND
 }
 
-fun KonsoleScope.black(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+fun RenderScope.black(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toBlackCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.grey(colorLayer: ColorLayer = ColorLayer.FG) {
+fun RenderScope.grey(colorLayer: ColorLayer = ColorLayer.FG) {
     black(colorLayer, isBright = true)
 }
 
-fun KonsoleScope.red(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+fun RenderScope.red(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toRedCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.green(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+fun RenderScope.green(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toGreenCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.yellow(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+fun RenderScope.yellow(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toYellowCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.blue(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+fun RenderScope.blue(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toBlueCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.magenta(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+fun RenderScope.magenta(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toMagentaCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.cyan(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+fun RenderScope.cyan(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toCyanCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.white(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+fun RenderScope.white(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toWhiteCommand(colorLayer, isBright))
 }
 
-fun KonsoleScope.invert() {
+fun RenderScope.invert() {
     applyCommand(INVERT_COMMAND)
 }
 
-fun KonsoleScope.black(
+fun RenderScope.black(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
@@ -100,14 +100,14 @@ fun KonsoleScope.black(
     }
 }
 
-fun KonsoleScope.grey(
+fun RenderScope.grey(
     colorLayer: ColorLayer = ColorLayer.FG,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     black(colorLayer, isBright = true, scopedBlock)
 }
 
-fun KonsoleScope.red(
+fun RenderScope.red(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
@@ -118,7 +118,7 @@ fun KonsoleScope.red(
     }
 }
 
-fun KonsoleScope.green(
+fun RenderScope.green(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
@@ -129,7 +129,7 @@ fun KonsoleScope.green(
     }
 }
 
-fun KonsoleScope.yellow(
+fun RenderScope.yellow(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
@@ -140,7 +140,7 @@ fun KonsoleScope.yellow(
     }
 }
 
-fun KonsoleScope.blue(
+fun RenderScope.blue(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
@@ -151,7 +151,7 @@ fun KonsoleScope.blue(
     }
 }
 
-fun KonsoleScope.cyan(
+fun RenderScope.cyan(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
@@ -162,7 +162,7 @@ fun KonsoleScope.cyan(
     }
 }
 
-fun KonsoleScope.magenta(
+fun RenderScope.magenta(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
@@ -173,7 +173,7 @@ fun KonsoleScope.magenta(
     }
 }
 
-fun KonsoleScope.white(
+fun RenderScope.white(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
@@ -184,7 +184,7 @@ fun KonsoleScope.white(
     }
 }
 
-fun KonsoleScope.invert(scopedBlock: KonsoleBlock.() -> Unit) {
+fun RenderScope.invert(scopedBlock: KonsoleBlock.() -> Unit) {
     scopedState {
         invert()
         scopedBlock()
