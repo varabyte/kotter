@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
 
 /**
  * A special variable which can be used to auto-rerender a target [KonsoleBlock] without needing to call
- * [BlockRunScope.rerender] yourself.
+ * [KonsoleBlock.RunScope.rerender] yourself.
  *
  * The way it works is, when this variable is fetched, it is checked if this has happened while we're in an active
  * block:
