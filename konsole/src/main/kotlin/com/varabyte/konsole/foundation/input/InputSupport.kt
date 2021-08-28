@@ -27,7 +27,7 @@ private object UpdateInputJobKey : ConcurrentData.Key<Job> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
-private object OnlyCalledOnceKey : ConcurrentData.Key<Unit> {
+private object OnlyCalledOncePerRenderKey : ConcurrentData.Key<Unit> {
     override val lifecycle = RenderScope.Lifecycle
 }
 
@@ -36,17 +36,17 @@ private object OnlyCalledOnceKey : ConcurrentData.Key<Unit> {
  *
  * Is a no-op after the first time.
  */
-private fun RenderScope.prepareInput() {
-    if (!data.tryPut(OnlyCalledOnceKey) { }) {
+private fun ConcurrentData.prepareInput(onInputChanged: () -> Unit) {
+    if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
-    data.tryPut(InputState.Key) { InputState() }
-    data.tryPut(
+    tryPut(InputState.Key) { InputState() }
+    tryPut(
         UpdateInputJobKey,
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
-                data.getValue(KeyFlowKey).collect { key ->
-                    data.get(InputState.Key) {
+                getValue(KeyFlowKey).collect { key ->
+                    get(InputState.Key) {
                         var proposedText: String? = null
                         var proposedIndex: Int? = null
                         when (key) {
@@ -68,8 +68,8 @@ private fun RenderScope.prepareInput() {
                             }
 
                             Keys.ENTER -> {
-                                data.get(InputEnteredCallbackKey) { this.invoke(OnInputEnteredScope(text)) }
-                                data.get(SystemInputEnteredCallbackKey) { this.invoke() }
+                                get(InputEnteredCallbackKey) { this.invoke(OnInputEnteredScope(text)) }
+                                get(SystemInputEnteredCallbackKey) { this.invoke() }
                             }
                             else ->
                                 if (key is CharKey) {
@@ -79,7 +79,7 @@ private fun RenderScope.prepareInput() {
                         }
 
                         if (proposedText != null) {
-                            data.get(InputChangedCallbacksKey) {
+                            get(InputChangedCallbacksKey) {
                                 val scope = OnInputChangedScope(input = proposedText!!, prevInput = text)
                                 forEach { callback -> scope.callback() }
 
@@ -89,7 +89,7 @@ private fun RenderScope.prepareInput() {
                             if (proposedText != text) {
                                 text = proposedText!!
                                 index = (proposedIndex ?: index).coerceIn(0, text.length)
-                                requestRerender()
+                                onInputChanged()
                             }
                         }
                     }
@@ -101,7 +101,7 @@ private fun RenderScope.prepareInput() {
 }
 
 fun RenderScope.input() {
-    prepareInput()
+    data.prepareInput(onInputChanged = { requestRerender() })
 
     val self = this
     data.get(InputState.Key) {
@@ -134,15 +134,15 @@ private object SystemKeyPressedCallbackKey : ConcurrentData.Key<OnKeyPressedScop
  *
  * This is a no-op when called after the first time.
  */
-private fun KonsoleBlock.RunScope.prepareOnKeyPressed() {
-    data.tryPut(
+private fun ConcurrentData.prepareOnKeyPressed() {
+    tryPut(
         KeyPressedJobKey,
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
-                data.getValue(KeyFlowKey).collect { key ->
+                getValue(KeyFlowKey).collect { key ->
                     val scope = OnKeyPressedScope(key)
-                    data.get(KeyPressedCallbackKey) { this.invoke(scope) }
-                    data.get(SystemKeyPressedCallbackKey) { this.invoke(scope) }
+                    get(KeyPressedCallbackKey) { this.invoke(scope) }
+                    get(SystemKeyPressedCallbackKey) { this.invoke(scope) }
                 }
             }
         },
@@ -151,7 +151,7 @@ private fun KonsoleBlock.RunScope.prepareOnKeyPressed() {
 }
 
 fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
-    prepareOnKeyPressed()
+    data.prepareOnKeyPressed()
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
     }
@@ -159,7 +159,7 @@ fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
 
 fun KonsoleBlock.runUntilKeyPressed(vararg keys: Key, block: suspend KonsoleBlock.RunScope.() -> Unit) {
     runUntilSignal {
-        prepareOnKeyPressed()
+        data.prepareOnKeyPressed()
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) signal() }
         block()
     }
