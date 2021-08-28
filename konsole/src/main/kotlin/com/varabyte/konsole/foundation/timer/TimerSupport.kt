@@ -69,7 +69,7 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val totalElapsed: 
  *   to stop an indefinitely repeating timer.
  * @param callback Logic to trigger every time the timer runs.
  */
-fun KonsoleBlock.RunScope.addTimer(duration: Duration, repeat: Boolean = false, fireImmediately: Boolean = false, callback: TimerScope.() -> Unit) {
+fun KonsoleBlock.RunScope.addTimer(duration: Duration, repeat: Boolean = false, callback: TimerScope.() -> Unit) {
     data.putIfAbsent(TimerManager.Key, { TimerManager() }, { timers -> timers.dispose() }) {
         addTimer(duration, repeat, callback)
     }
