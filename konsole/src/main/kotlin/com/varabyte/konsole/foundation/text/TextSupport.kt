@@ -5,16 +5,16 @@ import com.varabyte.konsole.runtime.internal.ansi.commands.CharCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.NewlineCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
 
-fun RenderScope.text(text: String) {
-    applyCommand(TextCommand(text))
+fun RenderScope.text(text: CharSequence) {
+    applyCommand(TextCommand(text.toString()))
 }
 
 fun RenderScope.text(c: Char) {
     applyCommand(CharCommand(c))
 }
 
-fun RenderScope.textLine(text: String) {
-    applyCommand(TextCommand(text))
+fun RenderScope.textLine(text: CharSequence) {
+    applyCommand(TextCommand(text.toString()))
     textLine()
 }
 

@@ -8,7 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Duration
 
-private class TimerManager {
+internal class TimerManager {
     object Key : ConcurrentData.Key<TimerManager> {
         override val lifecycle = KonsoleBlock.Lifecycle
     }
@@ -21,7 +21,13 @@ private class TimerManager {
         fun updateWakeUpTime() {
             wakeUpTime = System.currentTimeMillis() + duration.toMillis()
         }
-        override fun compareTo(other: Timer): Int = wakeUpTime.compareTo(other.wakeUpTime)
+        override fun compareTo(other: Timer): Int {
+            // By default, we want to sort by wakeup time, but if two timers have the exact wakeup time, then the order
+            // doesn't matter, but we have to return SOMETHING non-zero, or else some algorithm will think the two
+            // timers are the same. We use hashCode because it's convenient, it's consistent, and it doesn't really
+            // matter.
+            return (wakeUpTime.compareTo(other.wakeUpTime)).takeIf { it != 0 } ?: return hashCode().compareTo(other.hashCode())
+        }
     }
     private val timers = sortedSetOf<Timer>()
 
@@ -52,6 +58,12 @@ private class TimerManager {
     }
 }
 
+internal fun ConcurrentData.addTimer(duration: Duration, repeat: Boolean, callback: TimerScope.() -> Unit) {
+    putIfAbsent(TimerManager.Key, { TimerManager() }, { timers -> timers.dispose() }) {
+        addTimer(duration, repeat, callback)
+    }
+}
+
 /**
  * Values which can be read or modified inside a timer callback.
  *
@@ -70,7 +82,5 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val totalElapsed: 
  * @param callback Logic to trigger every time the timer runs.
  */
 fun KonsoleBlock.RunScope.addTimer(duration: Duration, repeat: Boolean = false, callback: TimerScope.() -> Unit) {
-    data.putIfAbsent(TimerManager.Key, { TimerManager() }, { timers -> timers.dispose() }) {
-        addTimer(duration, repeat, callback)
-    }
+    data.addTimer(duration, repeat, callback)
 }

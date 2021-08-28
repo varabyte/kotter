@@ -453,26 +453,16 @@ errant timer will clobber later.
 
 ### Animations
 
-You can easily create custom animations, by implementing the `KonsoleAnimation` interface and then instantiating an
-animation instance from it:
+You can easily create custom animations, by calling `konsoleAnimOf` and then instancing it:
 
 ```kotlin
-val SPINNER = object : KonsoleAnimation(Duration.ofMillis(250)) {
-  override val frames = arrayOf("\\", "|", "/", "-")
-}
-
 var finished = false
-val spinner = SPINNER.createInstance()
+val spinnerAnim = konsoleAnimOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
+val thinkingAnim = konsoleAnimOf(listOf(".", "..", "..."), Duration.ofMillis(500))
 konsole {
-  if (!finished) {
-    animation(spinner)
-  } else {
-    text("✓")
-  }
-  text(" Searching for files...")
-  if (finished) {
-    text(" Done!")
-  }
+  if (!finished) { text(spinnerAnim) } else { text("✓") }
+  text(" Searching for files")
+  if (!finished) { text(thinkingAnim) } else { text("... Done!") }
   textLine()
 }.run {
   doExpensiveFileSearching()
@@ -480,12 +470,21 @@ konsole {
 }
 ```
 
-If it's a one-use animation that you don't want to share as a template, you can create the instance directly of course:
+When you reference an animation in a render for the first time, it kickstarts a timer automatically for you. All you
+have to do at that point is reference your animation as if it were a string, and Konsole takes care of the rest!
+
+If you have an animation that you want to share in a bunch of places, you can create a template for it and instantiate
+instances from the template. This can be useful if you have a situation where it looks more natural if the same
+animations are running off sync from one another.
+
+For example, if you were processing 10 threads at a time, you may want the spinner for each thread to start spinning
+whenever the thread first activates, to look more natural and chaotic:
 
 ```kotlin
-val spinner = object : KonsoleAnimation(Duration.ofMillis(250)) {
-  override val frames = arrayOf("\\", "|", "/", "-")
-}.createInstance()
+val SPINNER_TEMPATE = KotlinAnim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
+
+val spinners = (1..10).map { konsoleAnimOf(SPINNER_TEMPLATE) }
+/* ... */
 ```
 
 ## Advanced

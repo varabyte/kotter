@@ -53,6 +53,11 @@ class KonsoleBlock internal constructor(
         command.applyTo(textArea)
     }
 
+    /**
+     * Let the block know we want to rerender an additional frame.
+     *
+     * This will not enqueue a render if one is already queued up.
+     */
     internal fun requestRerender() {
         renderLock.withLock {
             // If we get multiple render requests in a short period of time, we only need to handle one of them - the
