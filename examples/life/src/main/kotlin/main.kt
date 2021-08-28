@@ -1,9 +1,9 @@
-import com.varabyte.konsole.core.input.Keys
-import com.varabyte.konsole.core.input.onKeyPressed
-import com.varabyte.konsole.core.konsoleApp
-import com.varabyte.konsole.core.text.p
-import com.varabyte.konsole.core.text.text
-import com.varabyte.konsole.core.text.textLine
+import com.varabyte.konsole.foundation.input.Keys
+import com.varabyte.konsole.foundation.input.onKeyPressed
+import com.varabyte.konsole.foundation.konsoleApp
+import com.varabyte.konsole.foundation.text.p
+import com.varabyte.konsole.foundation.text.text
+import com.varabyte.konsole.foundation.text.textLine
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 

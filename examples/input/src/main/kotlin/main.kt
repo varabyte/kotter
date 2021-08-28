@@ -1,13 +1,14 @@
-import com.varabyte.konsole.core.input.input
-import com.varabyte.konsole.core.input.onInputEntered
-import com.varabyte.konsole.core.input.runUntilInputEntered
-import com.varabyte.konsole.core.konsoleApp
-import com.varabyte.konsole.core.text.p
-import com.varabyte.konsole.core.text.text
-import com.varabyte.konsole.core.text.textLine
+import com.varabyte.konsole.foundation.input.input
+import com.varabyte.konsole.foundation.input.onInputEntered
+import com.varabyte.konsole.foundation.input.runUntilInputEntered
+import com.varabyte.konsole.foundation.konsoleApp
+import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.text.p
+import com.varabyte.konsole.foundation.text.text
+import com.varabyte.konsole.foundation.text.textLine
 
 fun main() = konsoleApp {
-    var wantsToLearn by KonsoleVar(false)
+    var wantsToLearn by konsoleVarOf(false)
     konsole {
         textLine("Would you like to learn Konsole? (Y/n)")
         text("> ")

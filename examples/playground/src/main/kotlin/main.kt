@@ -1,6 +1,7 @@
-import com.varabyte.konsole.core.konsoleApp
-import com.varabyte.konsole.core.text.*
-import com.varabyte.konsole.core.text.ColorLayer.BG
+import com.varabyte.konsole.foundation.konsoleApp
+import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.text.*
+import com.varabyte.konsole.foundation.text.ColorLayer.BG
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -12,7 +13,7 @@ fun main() = konsoleApp {
 
     run {
         val NUM_BARS = 10
-        var percent by KonsoleVar(0)
+        var percent by konsoleVarOf(0)
         konsole {
             underline {
                 textLine("Animated progress bar test")

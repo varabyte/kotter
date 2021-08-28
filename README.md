@@ -2,7 +2,7 @@
 
 ```kotlin
 konsoleApp {
-  var wantsToLearn by KonsoleVar(false)
+  var wantsToLearn by konsoleVarOf(false)
   konsole {
     textLine("Would you like to learn Konsole? (Y/n)")
     text("> ")
@@ -95,22 +95,29 @@ trying to figure out why your console isn't updating.
 For this purpose, Konsole provides the `KonsoleVar` class, a delegate class which, when updated, will automatically
 request a rerender to the last block that referenced it. An example shortly will demonstrate this in action.
 
-To use a `KonsoleVar`, simply change a line like:
+To create a `KonsoleVar`, simply change a line like:
 
 ```kotlin
-var result: Int? = null
+konsoleApp {
+  var result: Int? = null
+}
 ```
 
-to
+to:
 
 ```kotlin
-var result by KonsoleVar<Int?>(null)
+konsoleApp {
+  var result by konsoleVarOf<Int?>(null)
+}
 ```
+
+Keep in mind the `konsoleVarOf` method is scoped to the Konsole App, so you can't call out itside of the `konsoleApp`
+block.
 
 Let's apply that to the above example and remove the `rerender` call:
 
 ```kotlin
-var result by KonsoleVar<Int?>(null)
+var result by konsoleVarOf<Int?>(null)
 konsole {
   /* ... no changes ... */
 }.run {
@@ -124,7 +131,7 @@ Here's another example, showing how you can use `run` for something like a progr
 
 ```kotlin
 const val BAR_LENGTH = 100
-var percent by KonsoleVar(0)
+var percent by konsoleVarOf(0)
 konsole {
   text("[")
   val numComplete = percent * BAR_LENGTH
@@ -143,11 +150,12 @@ konsole {
 #### KonsoleList
 
 Similar to `KonsoleVar`, a `KonsoleList` is a reactive primitive which, when modified by having elements added to or
-removed from it, causes a rerender to happen automatically. You don't need to use the `by` keyword with `KonsoleList`:
+removed from it, causes a rerender to happen automatically. You don't need to use the `by` keyword with `KonsoleList`.
+Instead, in a `konsoleApp` block, use the `konsoleListOf` method:
 
 ```kotlin
 val fileWalker = FileWalker(".")
-val fileMatches = KonsoleList<String>()
+val fileMatches = konsoleListOf<String>()
 konsole {
   textLine("Matches found so far: ")
   for (match in fileMatches) {
@@ -167,7 +175,7 @@ same time, it's always possible that you missed an update. To handle this, you c
 method:
 
 ```kotlin
-val fileMatches = KonsoleList<String>()
+val fileMatches = konsoleListOf<String>()
 konsole {
   fileMatches.withLock {
     if (isEmpty()) {
@@ -406,7 +414,7 @@ at some point, set `repeat = false` inside the timer block when it is triggered:
 ```kotlin
 val BLINK_TOTAL_LEN = 5.s
 val BLINK_LEN = 250.ms
-var blinkOn by KonsoleVar(false)
+var blinkOn by konsoleVarOf(false)
 konsole {
   scopedState {
     if (blinkOn) invert()
@@ -430,7 +438,7 @@ It's possible your block will exit while things are in a bad state due to runnin
 `onFinishing` callback to handle this:
 
 ```kotlin
-var blinkOn by KonsoleVar(false)
+var blinkOn by konsoleVarOf(false)
 konsole {
   /* ... */
 }.runUntilSignal {
@@ -521,6 +529,21 @@ konsoleApp(terminal = SwingTerminal.create()) {
 }
 ```
 
+or if you want to keep the same behavior where you try to run a system terminal first and fall back to a virtual
+terminal later, but you want to customize the virtual terminal with different parameters:
+
+```kotlin
+konsoleApp(terminal = run {
+  try {
+    SystemTerminal()
+  } catch (ex: Exception) {
+    SwingTerminal.create()
+  }
+}) {
+  /* ... */
+}
+```
+
 ### Why Not Compose / Mosaic?
 
 Konsole's API is inspired by Compose, which astute readers may have already noticed -- it has a core block which gets
@@ -575,7 +598,7 @@ runMosaic {
 
 // Konsole
 konsoleApp {
-  var count by KonsoleVar(0)
+  var count by konsoleVarOf(0)
   konsole {
     textLine("The count is: $count")
   }.run {

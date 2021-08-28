@@ -1,9 +1,11 @@
 import TestState.*
-import com.varabyte.konsole.core.RenderScope
-import com.varabyte.konsole.core.konsoleApp
-import com.varabyte.konsole.core.text.*
-import com.varabyte.konsole.core.text.ColorLayer.BG
-import com.varabyte.konsole.core.timer.addTimer
+import com.varabyte.konsole.foundation.collections.konsoleListOf
+import com.varabyte.konsole.foundation.konsoleApp
+import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.text.*
+import com.varabyte.konsole.foundation.text.ColorLayer.BG
+import com.varabyte.konsole.foundation.timer.addTimer
+import com.varabyte.konsole.runtime.RenderScope
 import kotlinx.coroutines.*
 import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedDeque
@@ -69,8 +71,8 @@ fun main() = konsoleApp {
     // Use a random with a fixed seed for deterministic output.
     val random = Random(1234)
 
-    var elapsedSecs by KonsoleVar(0)
-    val tests = KonsoleList<Test>()
+    var elapsedSecs by konsoleVarOf(0)
+    val tests = konsoleListOf<Test>()
     val paths = ConcurrentLinkedDeque(
         listOf(
             "tests/login.kt",

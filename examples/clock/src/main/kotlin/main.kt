@@ -1,11 +1,12 @@
-import com.varabyte.konsole.core.input.Keys
-import com.varabyte.konsole.core.input.onKeyPressed
-import com.varabyte.konsole.core.input.runUntilKeyPressed
-import com.varabyte.konsole.core.konsoleApp
-import com.varabyte.konsole.core.text.p
-import com.varabyte.konsole.core.text.text
-import com.varabyte.konsole.core.text.textLine
-import com.varabyte.konsole.core.timer.addTimer
+import com.varabyte.konsole.foundation.input.Keys
+import com.varabyte.konsole.foundation.input.onKeyPressed
+import com.varabyte.konsole.foundation.input.runUntilKeyPressed
+import com.varabyte.konsole.foundation.konsoleApp
+import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.text.p
+import com.varabyte.konsole.foundation.text.text
+import com.varabyte.konsole.foundation.text.textLine
+import com.varabyte.konsole.foundation.timer.addTimer
 import java.time.Duration
 import java.time.LocalDateTime
 
@@ -17,14 +18,14 @@ fun main() = konsoleApp {
         }
     }.run()
 
-    var dateReady by KonsoleVar(false)
-    var month by KonsoleVar("")
-    var day by KonsoleVar(0)
-    var currHour by KonsoleVar(0)
-    var currMin by KonsoleVar(0)
-    var amPm by KonsoleVar("")
-    var tick by KonsoleVar(true)
-    var elapsedSecs by KonsoleVar(0)
+    var dateReady by konsoleVarOf(false)
+    var month by konsoleVarOf("")
+    var day by konsoleVarOf(0)
+    var currHour by konsoleVarOf(0)
+    var currMin by konsoleVarOf(0)
+    var amPm by konsoleVarOf("")
+    var tick by konsoleVarOf(true)
+    var elapsedSecs by konsoleVarOf(0)
     konsole {
         if (!dateReady) return@konsole
 
