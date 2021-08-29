@@ -22,7 +22,7 @@ class KonsoleApp internal constructor(internal val executor: ExecutorService, in
     fun konsole(block: RenderScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
 
     internal fun dispose() {
-        data.dispose(Lifecycle)
+        data.stop(Lifecycle)
         terminal.close()
     }
 }

@@ -95,7 +95,7 @@ class KonsoleBlock internal constructor(
             textArea.clear()
             app.data.start(RenderScope.Lifecycle)
             RenderScope(self).block()
-            app.data.dispose(RenderScope.Lifecycle)
+            app.data.stop(RenderScope.Lifecycle)
 
             if (!textArea.isEmpty() && textArea.lastChar != '\n') {
                 textArea.append("\n")
@@ -132,7 +132,7 @@ class KonsoleBlock internal constructor(
         app.executor.submit { allRendersFinishedLatch.countDown() }
         allRendersFinishedLatch.await()
 
-        app.data.dispose(Lifecycle)
+        app.data.stop(Lifecycle)
     }
 }
 

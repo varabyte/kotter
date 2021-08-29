@@ -14,7 +14,7 @@ import kotlin.concurrent.withLock
  * specified at the same time, which will automatically be triggered when the block is done running.
  *
  * This data will be tied to a [Lifecycle]. You must call [start] with a lifecycle first before keys tied to that
- * lifecycle can be added. Afterwards, call [dispose] to remove all keys with the matching lifecycle and deactivate it.
+ * lifecycle can be added. Afterwards, call [stop] to remove all keys with the matching lifecycle and deactivate it.
  *
  * Note: Although the class is designed to be thread safe, some calls (which are noted with warnings) can expose values
  * to you which are no longer covered by the lock. Those should only be used to fetch immutable or thread-safe values.
@@ -68,18 +68,21 @@ class ConcurrentScopedData {
     /**
      * Start a lifecycle.
      *
-     * Any keys that are added when a lifecycle is not active will be silently ignored.
+     * Any keys that are added (e.g. with [tryPut] and [putIfAbsent]) when a lifecycle is not active will be silently
+     * ignored.
      */
     fun start(lifecycle: Lifecycle) {
         lock.withLock {
-            activeLifecycles.add(lifecycle)
+            if (!activeLifecycles.add(lifecycle)) {
+                throw IllegalStateException("Attempted to start a lifecycle that was already started without being stopped.")
+            }
         }
     }
 
     /**
      * Dispose and remove all keys tied to the specified [Lifecycle]
      */
-    fun dispose(lifecycle: Lifecycle) {
+    fun stop(lifecycle: Lifecycle) {
         lock.withLock {
             if (activeLifecycles.remove(lifecycle)) {
                 keyValues.entries.removeAll { entry ->
@@ -93,6 +96,8 @@ class ConcurrentScopedData {
             }
         }
     }
+
+    fun isActive(lifecycle: Lifecycle) = lock.withLock { activeLifecycles.contains(lifecycle) }
 
     /**
      * Access the stored value directly.
