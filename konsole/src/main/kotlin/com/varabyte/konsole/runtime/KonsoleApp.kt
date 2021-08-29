@@ -19,9 +19,19 @@ class KonsoleApp internal constructor(internal val executor: ExecutorService, in
         data.start(Lifecycle)
     }
 
-    fun konsole(block: RenderScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
+    private fun assertNoActiveBlocks() {
+        check(!data.isActive(KonsoleBlock.Lifecycle)) {
+            "A previous konsole block was never finished. Did you forget to call `run` on it?"
+        }
+    }
+
+    fun konsole(block: RenderScope.() -> Unit): KonsoleBlock {
+        assertNoActiveBlocks()
+        return KonsoleBlock(this, block)
+    }
 
     internal fun dispose() {
+        assertNoActiveBlocks()
         data.stop(Lifecycle)
         terminal.close()
     }
