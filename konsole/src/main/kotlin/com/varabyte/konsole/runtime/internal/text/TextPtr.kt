@@ -4,10 +4,11 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * A class which points at a character index text string, where the index can be incremented and decremented.
+ * A class which points at a character index within a text string, where the index can be incremented and decremented.
  *
  * Note that it's valid to point at the index AFTER the last character, which in this case returns a null terminator
- * character to indicate it.
+ * character to indicate it. That is, for a String of length one, e.g. "a", then textPtr[0] == 'a' and
+ * textPtr[1] == '\0'
  */
 internal class TextPtr(val text: CharSequence, charIndex: Int = 0) {
     var charIndex = 0

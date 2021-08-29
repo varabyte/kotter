@@ -171,13 +171,6 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
     }
 }
 
-/**
- * Point at to a position inside some text.
- *
- * Note that this supports the concept of the null string terminator - that is, for a String of length one, e.g. "a",
- * then textPtr[0] == 'a' and textPtr[1] == '\0'
- */
-
 private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet.() -> Unit>(
     RESET to { removeAttributes(this) },
 
