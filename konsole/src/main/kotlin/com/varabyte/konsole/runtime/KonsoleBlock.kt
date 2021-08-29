@@ -28,9 +28,13 @@ class KonsoleBlock internal constructor(
     class RunScope(
         internal val terminal: Terminal,
         val data: ConcurrentScopedData,
+        private val scope: CoroutineScope,
         private val rerenderRequested: () -> Unit
     ) {
+        internal var onSignal: () -> Unit = {}
         private val waitLatch = CountDownLatch(1)
+        /** Forcefully exit this runscope early, even if it's still in progress */
+        internal fun abort() { scope.cancel() }
         fun rerender() = rerenderRequested()
         fun waitForSignal() {
             waitLatch.await()
@@ -38,6 +42,7 @@ class KonsoleBlock internal constructor(
 
         fun signal() {
             waitLatch.countDown()
+            onSignal()
         }
     }
 
@@ -119,7 +124,7 @@ class KonsoleBlock internal constructor(
         renderOnce()
         if (block != null) {
             val job = CoroutineScope(Dispatchers.Default).launch {
-                val scope = RunScope(app.terminal, app.data, rerenderRequested = { requestRerender() })
+                val scope = RunScope(app.terminal, app.data, this, rerenderRequested = { requestRerender() })
                 scope.block()
             }
 
@@ -133,12 +138,5 @@ class KonsoleBlock internal constructor(
         allRendersFinishedLatch.await()
 
         app.data.stop(Lifecycle)
-    }
-}
-
-fun KonsoleBlock.runUntilSignal(block: suspend KonsoleBlock.RunScope.() -> Unit) {
-    run {
-        block()
-        waitForSignal()
     }
 }

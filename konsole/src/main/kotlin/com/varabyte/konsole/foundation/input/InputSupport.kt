@@ -1,5 +1,6 @@
 package com.varabyte.konsole.foundation.input
 
+import com.varabyte.konsole.foundation.runUntilSignal
 import com.varabyte.konsole.foundation.text.invert
 import com.varabyte.konsole.foundation.text.text
 import com.varabyte.konsole.runtime.KonsoleApp
@@ -7,7 +8,6 @@ import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.RenderScope
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
-import com.varabyte.konsole.runtime.runUntilSignal
 import com.varabyte.konsole.runtime.terminal.Terminal
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

@@ -1,5 +1,6 @@
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
+import com.varabyte.konsole.foundation.input.runUntilKeyPressed
 import com.varabyte.konsole.foundation.konsoleApp
 import com.varabyte.konsole.foundation.text.p
 import com.varabyte.konsole.foundation.text.text
@@ -93,8 +94,7 @@ fun main() = konsoleApp {
         text("-".repeat(WIDTH))
         textLine("+")
         textLine()
-    }.run {
-        var quit = false
+    }.runUntilKeyPressed(Keys.Q) {
         var paused = false
         cells.onChanged = { rerender() }
 
@@ -106,11 +106,10 @@ fun main() = konsoleApp {
                     paused = true
                     cells.step()
                 }
-                Keys.Q -> quit = true
             }
         }
 
-        while (!quit) {
+        while (true) {
             delay(100)
             if (!paused) {
                 cells.step()
