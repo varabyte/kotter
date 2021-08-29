@@ -1,0 +1,1 @@
+Simple blinking example that demonstrates how to use `onFinishing` to clear state.

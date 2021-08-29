@@ -9,13 +9,10 @@ import com.varabyte.konsole.runtime.RenderScope
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.terminal.Terminal
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.mapNotNull
-import kotlinx.coroutines.launch
 
 private object KeyFlowKey : ConcurrentScopedData.Key<Flow<Key>> {
     // Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
@@ -72,7 +69,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
 /** State needed to support the `input()` function */
 private class InputState {
     object Key : ConcurrentScopedData.Key<InputState> {
-        override val lifecycle = KonsoleBlock.Lifecycle
+        override val lifecycle = KonsoleBlock.RunScope.Lifecycle
     }
 
     var text = ""
@@ -80,7 +77,7 @@ private class InputState {
 }
 
 private object UpdateInputJobKey : ConcurrentScopedData.Key<Job> {
-    override val lifecycle = KonsoleBlock.Lifecycle
+    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
 
 private object OnlyCalledOncePerRenderKey : ConcurrentScopedData.Key<Unit> {
@@ -176,16 +173,16 @@ fun RenderScope.input() {
 class OnKeyPressedScope(val key: Key)
 
 private object KeyPressedJobKey : ConcurrentScopedData.Key<Job> {
-    override val lifecycle = KonsoleBlock.Lifecycle
+    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
 private object KeyPressedCallbackKey : ConcurrentScopedData.Key<OnKeyPressedScope.() -> Unit> {
-    override val lifecycle = KonsoleBlock.Lifecycle
+    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
 private object SystemKeyPressedCallbackKey : ConcurrentScopedData.Key<OnKeyPressedScope.() -> Unit> {
-    override val lifecycle = KonsoleBlock.Lifecycle
+    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
 
 /**
@@ -230,7 +227,7 @@ class OnInputChangedScope(var input: String, val prevInput: String) {
     fun rejectInput() { rejected = true }
 }
 private object InputChangedCallbacksKey : ConcurrentScopedData.Key<MutableList<OnInputChangedScope.() -> Unit>> {
-    override val lifecycle = KonsoleBlock.Lifecycle
+    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
 
 fun KonsoleBlock.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
@@ -239,14 +236,14 @@ fun KonsoleBlock.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Uni
 
 class OnInputEnteredScope(val input: String)
 private object InputEnteredCallbackKey : ConcurrentScopedData.Key<OnInputEnteredScope.() -> Unit> {
-    override val lifecycle = KonsoleBlock.Lifecycle
+    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
 
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
 private object SystemInputEnteredCallbackKey : ConcurrentScopedData.Key<() -> Unit> {
-    override val lifecycle = KonsoleBlock.Lifecycle
+    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
 
 fun KonsoleBlock.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {

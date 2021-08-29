@@ -25,12 +25,20 @@ class KonsoleBlock internal constructor(
      */
     object Lifecycle : ConcurrentScopedData.Lifecycle
 
+    /**
+     * A scope associated with the [run] function.
+     *
+     * While the lifecycle is probably *almost* the same as the Konsole block's lifecycle, it is a little shorter, and
+     * this matters because some data may need to be cleaned up before the block is actually finished.
+     */
     class RunScope(
         internal val terminal: Terminal,
         val data: ConcurrentScopedData,
         private val scope: CoroutineScope,
         private val rerenderRequested: () -> Unit
     ) {
+        object Lifecycle : ConcurrentScopedData.Lifecycle
+
         internal var onSignal: () -> Unit = {}
         private val waitLatch = CountDownLatch(1)
         /** Forcefully exit this runscope early, even if it's still in progress */
@@ -47,12 +55,19 @@ class KonsoleBlock internal constructor(
     }
 
     private val textArea = MutableTextArea()
+    internal val lastChar: Char? get() = textArea.lastChar
 
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
     private var renderRequested = false
 
-    internal val lastChar: Char? get() = textArea.lastChar
+    /**
+     * A list of callbacks to trigger right before the block exits.
+     *
+     * It is not expected for a user to add more than one, but internal components might themselves add listeners
+     * behind the scenes to clean up their state.
+     */
+    private var onFinishing = mutableListOf<() -> Unit>()
 
     init {
         app.data.start(Lifecycle)
@@ -115,12 +130,27 @@ class KonsoleBlock internal constructor(
         renderOnceAsync().join()
     }
 
+    /**
+     * Add a callback which will get triggered after this block has just about finished running and is about to shut
+     * down.
+     *
+     * This is a good opportunity to change any values back to some initial state if necessary (such as a blinking
+     * cursor). Changes made in `onFinishing` may potentially kick off one final render pass.
+     */
+    fun onFinishing(block: () -> Unit): KonsoleBlock {
+        require(app.data.isActive(Lifecycle))
+        onFinishing.add(block)
+
+        return this
+    }
+
     fun run(block: (suspend RunScope.() -> Unit)? = null) {
         // Note: The data we're adding here will be removed by the dispose call below
         if (!app.data.tryPut(ActiveBlockKey) { this }) {
             throw IllegalStateException("Cannot run this Konsole block while another block is already running")
         }
 
+        app.data.start(RunScope.Lifecycle)
         renderOnce()
         if (block != null) {
             val job = CoroutineScope(Dispatchers.Default).launch {
@@ -130,6 +160,8 @@ class KonsoleBlock internal constructor(
 
             runBlocking { job.join() }
         }
+        app.data.stop(RunScope.Lifecycle)
+        onFinishing.forEach { it() }
 
         // Our run block is done, let's just wait until any remaining renders are finished. We can do this by adding
         // ourselves to the end of the line and waiting to get through.

@@ -3,6 +3,7 @@ rootProject.name = "konsole"
 include(":konsole")
 
 include(":examples:anim")
+include(":examples:blink")
 include(":examples:clock")
 include(":examples:input")
 include(":examples:life")

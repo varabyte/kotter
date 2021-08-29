@@ -145,6 +145,17 @@ class ConcurrentScopedData {
         }
     }
 
+    /**
+     * Attempt to remove a key directly, which will trigger its dispose call if present.
+     *
+     * Returns true if the key was removed and disposed, false otherwise.
+     */
+    fun <T : Any> remove(key: Key<T>): Boolean {
+        return lock.withLock {
+            val value = keyValues.remove(key)?.also { it.dispose() }
+            value != null
+        }
+    }
 
     /**
      * A convenience version of the other [tryPut] but without a dispose block, making the syntax for this common

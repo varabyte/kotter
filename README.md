@@ -437,15 +437,19 @@ konsole {
 ```
 
 It's possible your block will exit while things are in a bad state due to running timers, so you can use the
-`onFinishing` callback to handle this:
+`onFinishing` callback to handle this. 
+
+***Note:** Unlike other callbacks, `onFinishing` is registered directly against the underlying `konsole` block, because
+it is actually triggered AFTER the run pass is finished but before the block is torn down.*
 
 ```kotlin
 var blinkOn by konsoleVarOf(false)
 konsole {
   /* ... */
+}.onFinishing {
+  blinkOn = false
 }.runUntilSignal {
   addTimer(250.ms, repeat = true) { blinkOn = !blinkOn }
-  onFinishing { blinkOn = false }
   /* ... */
 }
 ```

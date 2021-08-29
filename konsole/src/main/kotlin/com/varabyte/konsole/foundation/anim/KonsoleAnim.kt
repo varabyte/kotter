@@ -8,7 +8,7 @@ import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import java.time.Duration
 
 private object AnimSetKey : ConcurrentScopedData.Key<MutableSet<KonsoleAnim>> {
-    override val lifecycle = KonsoleBlock.Lifecycle
+    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
 
 private fun ConcurrentScopedData.prepareAnim(anim: KonsoleAnim) {
@@ -44,7 +44,7 @@ class KonsoleAnim internal constructor(private val app: KonsoleApp, val template
      * We wrap all animation property accesses in this special block which kickstarts the timer for this animation if
      * it hasn't already been done so.
      */
-    private fun  <R> readProperty(block: () -> R): R {
+    private fun <R> readProperty(block: () -> R): R {
         app.data.prepareAnim(this)
         return block()
     }

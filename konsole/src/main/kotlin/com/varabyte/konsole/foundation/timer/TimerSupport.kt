@@ -2,15 +2,12 @@ package com.varabyte.konsole.foundation.timer
 
 import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.time.Duration
 
 internal class TimerManager {
     object Key : ConcurrentScopedData.Key<TimerManager> {
-        override val lifecycle = KonsoleBlock.Lifecycle
+        override val lifecycle = KonsoleBlock.RunScope.Lifecycle
     }
 
     private class Timer(var duration: Duration, val repeat: Boolean, val callback: TimerScope.() -> Unit): Comparable<Timer> {
@@ -54,7 +51,8 @@ internal class TimerManager {
     }
 
     fun dispose() {
-        job.cancel()
+        // Intentionally block on dispose here, to ensure we wait for any in flight timers to fire before continuing
+        runBlocking { job.cancelAndJoin() }
     }
 }
 
