@@ -45,9 +45,7 @@ class KonsoleAnim internal constructor(private val app: KonsoleApp, val template
      * it hasn't already been done so.
      */
     private fun  <R> readProperty(block: () -> R): R {
-        if (app.activeBlock != null) {
-            app.data.prepareAnim(this)
-        }
+        app.data.prepareAnim(this)
         return block()
     }
 

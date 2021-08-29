@@ -15,6 +15,10 @@ class KonsoleApp internal constructor(internal val executor: ExecutorService, in
     internal val data = ConcurrentData()
     internal val activeBlock: KonsoleBlock? get() = data[ActiveBlockKey]
 
+    init {
+        data.start(Lifecycle)
+    }
+
     fun konsole(block: RenderScope.() -> Unit): KonsoleBlock = KonsoleBlock(this, block)
 
     internal fun dispose() {

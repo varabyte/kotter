@@ -49,6 +49,10 @@ class KonsoleBlock internal constructor(
 
     internal val lastChar: Char? get() = textArea.lastChar
 
+    init {
+        app.data.start(Lifecycle)
+    }
+
     internal fun applyCommand(command: KonsoleCommand) {
         command.applyTo(textArea)
     }
@@ -89,6 +93,7 @@ class KonsoleBlock internal constructor(
             }
 
             textArea.clear()
+            app.data.start(RenderScope.Lifecycle)
             RenderScope(self).block()
             app.data.dispose(RenderScope.Lifecycle)
 
