@@ -121,12 +121,12 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
                 pane.processAnsiText(text)
 
                 if (!vAtEnd) {
-                    SwingUtilities.invokeLater { scrollPane.verticalScrollBar.model.value = vScrollPos }
+                    launch { scrollPane.verticalScrollBar.model.value = vScrollPos }
                 }
                 if (!hAtEnd) {
-                    SwingUtilities.invokeLater { scrollPane.horizontalScrollBar.model.value = hScrollPos }
+                    launch { scrollPane.horizontalScrollBar.model.value = hScrollPos }
                 }
-            }.join()
+            }
         }
     }
 
