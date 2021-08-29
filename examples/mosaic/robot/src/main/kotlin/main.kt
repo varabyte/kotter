@@ -1,4 +1,3 @@
-import com.varabyte.konsole.foundation.input.CharKey
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
@@ -24,7 +23,7 @@ fun main() = konsoleApp {
 
             repeat(HEIGHT - y) { append('\n') }
         })
-    }.runUntilKeyPressed(CharKey('q')) {
+    }.runUntilKeyPressed(Keys.Q) {
         onKeyPressed {
             when (key) {
                 Keys.UP -> y = (y - 1).coerceAtLeast(0)
