@@ -1,6 +1,6 @@
 package com.varabyte.konsole.runtime
 
-import com.varabyte.konsole.runtime.concurrent.ConcurrentData
+import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 
 /**
@@ -32,7 +32,7 @@ class RenderScope(private val block: KonsoleBlock) {
      *
      * This could be useful for verifying that a method with a side effect was only executed once, for example.
      */
-    object Lifecycle : ConcurrentData.Lifecycle
+    object Lifecycle : ConcurrentScopedData.Lifecycle
 
     /** Data which is tied to the current app. */
     val data get() = block.app.data

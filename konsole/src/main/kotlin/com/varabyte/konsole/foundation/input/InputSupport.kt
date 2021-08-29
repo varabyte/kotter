@@ -5,7 +5,7 @@ import com.varabyte.konsole.foundation.text.text
 import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.RenderScope
-import com.varabyte.konsole.runtime.concurrent.ConcurrentData
+import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.runUntilSignal
 import com.varabyte.konsole.runtime.terminal.Terminal
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
 
-private object KeyFlowKey : ConcurrentData.Key<Flow<Key>> {
+private object KeyFlowKey : ConcurrentScopedData.Key<Flow<Key>> {
     // Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
     // there's no reason for us to keep recreating it. It's pretty likely that if an app uses input in one block, it
     // will use input again in others. (We can always revisit this decision later and scope this to a KonsoleBlock
@@ -29,7 +29,7 @@ private object KeyFlowKey : ConcurrentData.Key<Flow<Key>> {
  * Create a [Flow<Key>] value which converts the ANSI values read from a terminal into Konsole's simpler abstraction
  * (which is a flat collection of keys instead of multi-encoded bytes and other historical legacy).
  */
-private fun ConcurrentData.prepareKeyFlow(terminal: Terminal) {
+private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
     tryPut(KeyFlowKey) {
         val escSeq = StringBuilder()
         terminal.read().mapNotNull { byte ->
@@ -71,7 +71,7 @@ private fun ConcurrentData.prepareKeyFlow(terminal: Terminal) {
 
 /** State needed to support the `input()` function */
 private class InputState {
-    object Key : ConcurrentData.Key<InputState> {
+    object Key : ConcurrentScopedData.Key<InputState> {
         override val lifecycle = KonsoleBlock.Lifecycle
     }
 
@@ -79,11 +79,11 @@ private class InputState {
     var index = 0
 }
 
-private object UpdateInputJobKey : ConcurrentData.Key<Job> {
+private object UpdateInputJobKey : ConcurrentScopedData.Key<Job> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
-private object OnlyCalledOncePerRenderKey : ConcurrentData.Key<Unit> {
+private object OnlyCalledOncePerRenderKey : ConcurrentScopedData.Key<Unit> {
     override val lifecycle = RenderScope.Lifecycle
 }
 
@@ -92,7 +92,7 @@ private object OnlyCalledOncePerRenderKey : ConcurrentData.Key<Unit> {
  *
  * Is a no-op after the first time.
  */
-private fun ConcurrentData.prepareInput(terminal: Terminal, onInputChanged: () -> Unit) {
+private fun ConcurrentScopedData.prepareInput(terminal: Terminal, onInputChanged: () -> Unit) {
     if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
@@ -175,16 +175,16 @@ fun RenderScope.input() {
 
 class OnKeyPressedScope(val key: Key)
 
-private object KeyPressedJobKey : ConcurrentData.Key<Job> {
+private object KeyPressedJobKey : ConcurrentScopedData.Key<Job> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
-private object KeyPressedCallbackKey : ConcurrentData.Key<OnKeyPressedScope.() -> Unit> {
+private object KeyPressedCallbackKey : ConcurrentScopedData.Key<OnKeyPressedScope.() -> Unit> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
-private object SystemKeyPressedCallbackKey : ConcurrentData.Key<OnKeyPressedScope.() -> Unit> {
+private object SystemKeyPressedCallbackKey : ConcurrentScopedData.Key<OnKeyPressedScope.() -> Unit> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
@@ -193,7 +193,7 @@ private object SystemKeyPressedCallbackKey : ConcurrentData.Key<OnKeyPressedScop
  *
  * This is a no-op when called after the first time.
  */
-private fun ConcurrentData.prepareOnKeyPressed(terminal: Terminal) {
+private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
     prepareKeyFlow(terminal)
     tryPut(
         KeyPressedJobKey,
@@ -229,7 +229,7 @@ class OnInputChangedScope(var input: String, val prevInput: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
 }
-private object InputChangedCallbacksKey : ConcurrentData.Key<MutableList<OnInputChangedScope.() -> Unit>> {
+private object InputChangedCallbacksKey : ConcurrentScopedData.Key<MutableList<OnInputChangedScope.() -> Unit>> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
@@ -238,14 +238,14 @@ fun KonsoleBlock.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Uni
 }
 
 class OnInputEnteredScope(val input: String)
-private object InputEnteredCallbackKey : ConcurrentData.Key<OnInputEnteredScope.() -> Unit> {
+private object InputEnteredCallbackKey : ConcurrentScopedData.Key<OnInputEnteredScope.() -> Unit> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
-private object SystemInputEnteredCallbackKey : ConcurrentData.Key<() -> Unit> {
+private object SystemInputEnteredCallbackKey : ConcurrentScopedData.Key<() -> Unit> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 

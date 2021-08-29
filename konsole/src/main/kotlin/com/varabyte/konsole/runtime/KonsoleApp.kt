@@ -1,6 +1,6 @@
 package com.varabyte.konsole.runtime
 
-import com.varabyte.konsole.runtime.concurrent.ConcurrentData
+import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.terminal.Terminal
 import java.util.concurrent.ExecutorService
 
@@ -10,9 +10,9 @@ class KonsoleApp internal constructor(internal val executor: ExecutorService, in
      *
      * This lifecycle can be used for storing data that should live across multiple blocks.
      */
-    object Lifecycle : ConcurrentData.Lifecycle
+    object Lifecycle : ConcurrentScopedData.Lifecycle
 
-    internal val data = ConcurrentData()
+    internal val data = ConcurrentScopedData()
     internal val activeBlock: KonsoleBlock? get() = data[ActiveBlockKey]
 
     init {

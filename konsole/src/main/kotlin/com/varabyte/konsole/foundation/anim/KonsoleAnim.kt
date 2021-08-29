@@ -4,14 +4,14 @@ import com.varabyte.konsole.foundation.konsoleVarOf
 import com.varabyte.konsole.foundation.timer.addTimer
 import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
-import com.varabyte.konsole.runtime.concurrent.ConcurrentData
+import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import java.time.Duration
 
-private object AnimSetKey : ConcurrentData.Key<MutableSet<KonsoleAnim>> {
+private object AnimSetKey : ConcurrentScopedData.Key<MutableSet<KonsoleAnim>> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
-private fun ConcurrentData.prepareAnim(anim: KonsoleAnim) {
+private fun ConcurrentScopedData.prepareAnim(anim: KonsoleAnim) {
     putIfAbsent(AnimSetKey, { mutableSetOf() }) {
         if (this.add(anim)) {
             addTimer(Duration.ofMillis(16), repeat = true) {

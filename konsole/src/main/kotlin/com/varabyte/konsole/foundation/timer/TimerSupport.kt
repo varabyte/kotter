@@ -1,7 +1,7 @@
 package com.varabyte.konsole.foundation.timer
 
 import com.varabyte.konsole.runtime.KonsoleBlock
-import com.varabyte.konsole.runtime.concurrent.ConcurrentData
+import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 
 internal class TimerManager {
-    object Key : ConcurrentData.Key<TimerManager> {
+    object Key : ConcurrentScopedData.Key<TimerManager> {
         override val lifecycle = KonsoleBlock.Lifecycle
     }
 
@@ -58,7 +58,7 @@ internal class TimerManager {
     }
 }
 
-internal fun ConcurrentData.addTimer(duration: Duration, repeat: Boolean, callback: TimerScope.() -> Unit) {
+internal fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, callback: TimerScope.() -> Unit) {
     putIfAbsent(TimerManager.Key, { TimerManager() }, { timers -> timers.dispose() }) {
         addTimer(duration, repeat, callback)
     }

@@ -1,7 +1,7 @@
 package com.varabyte.konsole.runtime.concurrent
 
-import com.varabyte.konsole.runtime.concurrent.ConcurrentData.Key
-import com.varabyte.konsole.runtime.concurrent.ConcurrentData.Lifecycle
+import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData.Key
+import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData.Lifecycle
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import java.util.concurrent.locks.ReentrantLock
@@ -21,7 +21,7 @@ import kotlin.concurrent.withLock
  */
 @ThreadSafe
 @Suppress("UNCHECKED_CAST")
-class ConcurrentData {
+class ConcurrentScopedData {
     /**
      * A marker interface for an object that represents a class's lifecycle. For example, you might declare something
      * like so:

@@ -1,6 +1,6 @@
 package com.varabyte.konsole.runtime
 
-import com.varabyte.konsole.runtime.concurrent.ConcurrentData
+import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.internal.text.MutableTextArea
@@ -11,7 +11,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal object ActiveBlockKey : ConcurrentData.Key<KonsoleBlock> {
+internal object ActiveBlockKey : ConcurrentScopedData.Key<KonsoleBlock> {
     override val lifecycle = KonsoleBlock.Lifecycle
 }
 
@@ -23,11 +23,11 @@ class KonsoleBlock internal constructor(
      *
      * This lifecycle can be used for storing data relevant to the current block only.
      */
-    object Lifecycle : ConcurrentData.Lifecycle
+    object Lifecycle : ConcurrentScopedData.Lifecycle
 
     class RunScope(
         internal val terminal: Terminal,
-        val data: ConcurrentData,
+        val data: ConcurrentScopedData,
         private val rerenderRequested: () -> Unit
     ) {
         private val waitLatch = CountDownLatch(1)
