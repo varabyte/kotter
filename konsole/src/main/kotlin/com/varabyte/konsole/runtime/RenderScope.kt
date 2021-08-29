@@ -56,6 +56,7 @@ class RenderScope(private val block: KonsoleBlock) {
     }
 
     internal fun requestRerender() = block.requestRerender()
+    internal fun onFinishing(block: () -> Unit) { this.block.onFinishing(block) }
 
     private fun pushState(): KonsoleState {
         state = KonsoleState(state)

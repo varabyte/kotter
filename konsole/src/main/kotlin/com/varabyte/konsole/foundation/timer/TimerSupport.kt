@@ -12,11 +12,15 @@ internal class TimerManager {
 
     private class Timer(var duration: Duration, val repeat: Boolean, val callback: TimerScope.() -> Unit): Comparable<Timer> {
         val enqueuedTime = System.currentTimeMillis()
+        var wakeUpTimeRequested = 0L
         var wakeUpTime = 0L
         init { updateWakeUpTime() }
 
         fun updateWakeUpTime() {
-            wakeUpTime = System.currentTimeMillis() + duration.toMillis()
+            require(!duration.isZero && !duration.isNegative) { "Invalid timer requested with non-positive duration"}
+
+            wakeUpTimeRequested = System.currentTimeMillis()
+            wakeUpTime = wakeUpTimeRequested + duration.toMillis()
         }
         override fun compareTo(other: Timer): Int {
             // By default, we want to sort by wakeup time, but if two timers have the exact wakeup time, then the order
@@ -35,7 +39,12 @@ internal class TimerManager {
             val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
             timersToFire.forEach { timer ->
                 timers.remove(timer)
-                val scope = TimerScope(timer.duration, timer.repeat, Duration.ofMillis(currTime - timer.enqueuedTime))
+                val scope = TimerScope(
+                    timer.duration,
+                    timer.repeat,
+                    Duration.ofMillis(currTime - timer.wakeUpTimeRequested),
+                    Duration.ofMillis(currTime - timer.enqueuedTime)
+                )
                 timer.callback.invoke(scope)
                 if (scope.repeat) {
                     timer.duration = scope.duration
@@ -65,10 +74,12 @@ internal fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, 
 /**
  * Values which can be read or modified inside a timer callback.
  *
+ * @param elapsed Time actually elapsed since this timer was last fired. This *should* be close to [duration] but it
+ *   could possible lag behind it.
  * @param totalElapsed Total time elapsed since the timer was first enqueued. If the timer is repeating, this value
  *   will accumulate over all the runs.
  */
-class TimerScope(var duration: Duration, var repeat: Boolean, val totalElapsed: Duration)
+class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Duration, val totalElapsed: Duration)
 
 /**
  * Add a timer that will be fired as long as the current Konsole block is still running.

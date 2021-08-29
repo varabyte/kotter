@@ -14,7 +14,7 @@ private object AnimSetKey : ConcurrentScopedData.Key<MutableSet<KonsoleAnim>> {
 private fun ConcurrentScopedData.prepareAnim(anim: KonsoleAnim) {
     putIfAbsent(AnimSetKey, { mutableSetOf() }) {
         if (this.add(anim)) {
-            addTimer(Duration.ofMillis(16), repeat = true) {
+            addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
                 anim.elapse(duration)
             }
         }
@@ -22,6 +22,10 @@ private fun ConcurrentScopedData.prepareAnim(anim: KonsoleAnim) {
 }
 
 class KonsoleAnim internal constructor(private val app: KonsoleApp, val template: Template): CharSequence {
+    companion object {
+        val ONE_FRAME_60FPS = Duration.ofMillis(16)
+    }
+
     class Template(val frames: List<String>, val frameDuration: Duration) {
         init {
             require(!frameDuration.isNegative && !frameDuration.isZero) { "Invalid animation created with non-positive frame length" }

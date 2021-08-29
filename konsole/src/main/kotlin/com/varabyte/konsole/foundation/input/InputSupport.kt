@@ -1,8 +1,10 @@
 package com.varabyte.konsole.foundation.input
 
+import com.varabyte.konsole.foundation.anim.KonsoleAnim
 import com.varabyte.konsole.foundation.runUntilSignal
 import com.varabyte.konsole.foundation.text.invert
 import com.varabyte.konsole.foundation.text.text
+import com.varabyte.konsole.foundation.timer.addTimer
 import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.RenderScope
@@ -13,6 +15,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.mapNotNull
+import java.time.Duration
 
 private object KeyFlowKey : ConcurrentScopedData.Key<Flow<Key>> {
     // Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
@@ -71,9 +74,42 @@ private class InputState {
     object Key : ConcurrentScopedData.Key<InputState> {
         override val lifecycle = KonsoleBlock.RunScope.Lifecycle
     }
+    companion object {
+        private const val BLINKING_DURATION_MS = 500
+    }
 
     var text = ""
+        set(value) {
+            if (field != value) {
+                field = value
+                resetCursor()
+            }
+        }
     var index = 0
+        set(value) {
+            if (field != value) {
+                field = value
+                resetCursor()
+            }
+        }
+    var blinkOn = true
+    var blinkElapsedMs = 0
+
+    private fun resetCursor() {
+        blinkOn = true
+        blinkElapsedMs = 0
+    }
+
+    /** Elapse the timer on this input state's cursor animation, returning true if the cursor actually changed. */
+    fun elapse(duration: Duration): Boolean {
+        val prevBlinkOn = blinkOn
+        blinkElapsedMs += duration.toMillis().toInt()
+        while (blinkElapsedMs > BLINKING_DURATION_MS) {
+            blinkElapsedMs -= BLINKING_DURATION_MS
+            blinkOn = !blinkOn
+        }
+        return prevBlinkOn != blinkOn
+    }
 }
 
 private object UpdateInputJobKey : ConcurrentScopedData.Key<Job> {
@@ -89,19 +125,34 @@ private object OnlyCalledOncePerRenderKey : ConcurrentScopedData.Key<Unit> {
  *
  * Is a no-op after the first time.
  */
-private fun ConcurrentScopedData.prepareInput(terminal: Terminal, onInputChanged: () -> Unit) {
+private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
     if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
 
-    prepareKeyFlow(terminal)
-    tryPut(InputState.Key) { InputState() }
+    prepareKeyFlow(scope.terminal)
+    if (tryPut(InputState.Key) { InputState() }) {
+        val state = get(InputState.Key)!!
+        addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
+            if (state.elapse(elapsed)) {
+                scope.requestRerender()
+            }
+        }
+        scope.onFinishing {
+            if (state.blinkOn) {
+                state.blinkOn = false
+                scope.requestRerender()
+            }
+        }
+    }
     tryPut(
         UpdateInputJobKey,
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
                 getValue(KeyFlowKey).collect { key ->
                     get(InputState.Key) {
+                        val prevText = text
+                        val prevIndex = index
                         var proposedText: String? = null
                         var proposedIndex: Int? = null
                         when (key) {
@@ -141,11 +192,12 @@ private fun ConcurrentScopedData.prepareInput(terminal: Terminal, onInputChanged
                                 proposedText = if (!scope.rejected) scope.input else scope.prevInput
                             }
 
-                            if (proposedText != text) {
-                                text = proposedText!!
-                                index = (proposedIndex ?: index).coerceIn(0, text.length)
-                                onInputChanged()
-                            }
+                            text = proposedText!!
+                            index = (proposedIndex ?: index).coerceIn(0, text.length)
+                        }
+
+                        if (text != prevText || index != prevIndex) {
+                            scope.requestRerender()
                         }
                     }
                 }
@@ -156,14 +208,17 @@ private fun ConcurrentScopedData.prepareInput(terminal: Terminal, onInputChanged
 }
 
 fun RenderScope.input() {
-    data.prepareInput(terminal, onInputChanged = { requestRerender() })
+    data.prepareInput(this)
 
     val self = this
     data.get(InputState.Key) {
         for (i in 0 until index) {
             self.text(text[i])
         }
-        invert { self.text(text.elementAtOrNull(index) ?: ' ') }
+        scopedState {
+            if (blinkOn) invert()
+            self.text(text.elementAtOrNull(index) ?: ' ')
+        }
         for (i in (index + 1)..text.lastIndex) {
             self.text(text[i])
         }
