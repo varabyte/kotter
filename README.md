@@ -100,6 +100,7 @@ To create a `KonsoleVar`, simply change a line like:
 ```kotlin
 konsoleApp {
   var result: Int? = null
+  /* ... */
 }
 ```
 
@@ -108,13 +109,14 @@ to:
 ```kotlin
 konsoleApp {
   var result by konsoleVarOf<Int?>(null)
+  /* ... */
 }
 ```
 
-Keep in mind the `konsoleVarOf` method is scoped to the Konsole App, so you can't call out itside of the `konsoleApp`
-block.
+***Note:** The `konsoleVarOf` method can't be called outside of the `konsoleApp` block. For many remaining examples,
+we'll elide the `konsoleApp` boilerplate, but that doesn't mean you can omit it in your own program!*
 
-Let's apply that to the above example and remove the `rerender` call:
+Let's apply `konsoleVarOf` to the above example and remove the `rerender` call:
 
 ```kotlin
 var result by konsoleVarOf<Int?>(null)
@@ -412,8 +414,8 @@ You can create a repeating timer by passing in `repeat = true` to the method. An
 at some point, set `repeat = false` inside the timer block when it is triggered:
 
 ```kotlin
-val BLINK_TOTAL_LEN = 5.s
-val BLINK_LEN = 250.ms
+val BLINK_TOTAL_LEN = Duration.ofSeconds(5)
+val BLINK_LEN = Duration.ofMillis(250)
 var blinkOn by konsoleVarOf(false)
 konsole {
   scopedState {
@@ -422,15 +424,15 @@ konsole {
   }
 
 }.runUntilSignal {
-  var blinkCount = BLINK_TOTAL_LEN / BLINK_LEN
+  var blinkCount = BLINK_TOTAL_LEN.toMillis() / BLINK_LEN.toMillis()
   addTimer(BLINK_LEN, repeat = true) {
     blinkOn = !blinkOn
     blinkCount--
     if (blinkCount == 0) {
       repeat = false
+      signal()
     }
   }
-  /* ... */
 }
 ```
 
