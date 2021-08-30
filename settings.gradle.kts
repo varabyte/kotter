@@ -7,7 +7,7 @@ include(":examples:blink")
 include(":examples:clock")
 include(":examples:input")
 include(":examples:life")
-include(":examples:playground")
+include(":examples:text")
 
 include(":examples:mosaic:counter")
 include(":examples:mosaic:jest")

@@ -7,36 +7,6 @@ import kotlin.random.Random
 
 fun main() = konsoleApp {
     konsole {
-        bold { textLine("WELCOME TO KONSOLE!") }
-        textLine()
-    }.run()
-
-    run {
-        val NUM_BARS = 10
-        var percent by konsoleVarOf(0)
-        konsole {
-            underline {
-                textLine("Animated progress bar test")
-            }
-            text("[")
-            val fullBars = NUM_BARS * percent / 100
-            text("*".repeat(fullBars))
-            text(" ".repeat(NUM_BARS - fullBars))
-            textLine("] $percent%")
-            textLine()
-        }.run {
-            while (percent < 100) {
-                delay(100)
-                percent = (percent + (Random.nextInt(1, 20))).coerceAtMost(100)
-            }
-        }
-    }
-
-    konsole {
-        underline {
-            textLine("Decoration test")
-        }
-
         bold { textLine("Bolded") }
         underline { textLine("Underlined") }
         strikethrough { textLine("Struck through") }
@@ -52,15 +22,10 @@ fun main() = konsoleApp {
 
         textLine("Back to normal")
         textLine()
-    }.run()
 
-    konsole {
-        underline {
-            textLine("Colors test")
-        }
-
-        // Verify nested colors work
         textLine("No colors")
+
+        // nested syntax
         white(BG) {
             black {
                 textLine("Black on white")
@@ -74,6 +39,7 @@ fun main() = konsoleApp {
             }
         }
         textLine("No colors again")
+        textLine()
 
         // Using scoped state
         scopedState {
@@ -83,6 +49,7 @@ fun main() = konsoleApp {
             textLine("Red on white")
         }
         textLine("No colors again")
+        textLine()
 
         // Using reset
         blue()
@@ -91,6 +58,7 @@ fun main() = konsoleApp {
         textLine("Blue on black")
         reset()
         textLine("No colors again")
+        textLine()
 
         // Inverting colors
         scopedState {
@@ -103,6 +71,23 @@ fun main() = konsoleApp {
             textLine("Blue on green again")
             reset()
             textLine("No colors again")
+            textLine()
         }
+
+        bold {
+            underline {
+                strikethrough {
+                    red(BG) {
+                        blue {
+                            invert {
+                                textLine("All styles applied! (Red on blue)")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        textLine("Back to default again")
+        textLine()
     }.run()
 }
