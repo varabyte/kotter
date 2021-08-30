@@ -6,12 +6,16 @@ import kotlinx.coroutines.flow.callbackFlow
 import org.jline.terminal.TerminalBuilder
 import org.jline.utils.InfoCmp
 import java.io.IOException
+import java.io.OutputStream
+import java.io.PrintStream
 
 /**
  * A class which interacts directly with the underlying system terminal, e.g. println
  */
 class SystemTerminal : Terminal {
     private var previousCursorSetting: InfoCmp.Capability
+    private val previousOut = System.out
+    private val previousErr = System.err
     private val terminal = TerminalBuilder.builder()
         .system(true)
         // Don't use JLine's virtual terminal - use ours! Because this is false, this builder will throw an exception
@@ -21,6 +25,14 @@ class SystemTerminal : Terminal {
         .build().apply {
             // Swallow keypresses - instead, Konsole will handle them
             enterRawMode()
+
+            val disabledPrintStream = PrintStream(object : OutputStream() {
+                override fun write(b: Int) = Unit
+            })
+
+            // Disable printlns, as they allow users to screw with assumptions that Konsole makes
+            System.setOut(disabledPrintStream)
+            System.setErr(disabledPrintStream)
 
             // Hide the cursor; we'll handle it ourselves
             val restoreCursorCapabilities = listOf(
@@ -52,7 +64,9 @@ class SystemTerminal : Terminal {
     override fun close() {
         terminal.puts(previousCursorSetting)
         terminal.flush()
-
         terminal.close()
+
+        System.setOut(previousOut)
+        System.setErr(previousErr)
     }
 }
