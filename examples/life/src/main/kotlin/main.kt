@@ -1,10 +1,9 @@
+import Cells.State
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
 import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.text.p
-import com.varabyte.konsole.foundation.text.text
-import com.varabyte.konsole.foundation.text.textLine
+import com.varabyte.konsole.foundation.text.*
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -13,9 +12,19 @@ private const val HEIGHT = 30
 
 // The rules of life: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 class Cells {
-    private val buffer = BooleanArray(WIDTH * HEIGHT)
-    private operator fun BooleanArray.get(x: Int, y: Int) = buffer[y * WIDTH + x]
-    private operator fun BooleanArray.set(x: Int, y: Int, value: Boolean) { buffer[y * WIDTH + x] = value }
+    enum class State {
+        DEAD,
+        ALIVE,
+        BORN,
+        DYING;
+
+        fun isAlive(): Boolean = (this === BORN || this === ALIVE)
+        fun isDead() = !isAlive()
+    }
+
+    private val buffer = Array(WIDTH * HEIGHT) { State.DEAD }
+    private operator fun Array<State>.get(x: Int, y: Int) = buffer[y * WIDTH + x]
+    private operator fun Array<State>.set(x: Int, y: Int, state: State) { buffer[y * WIDTH + x] = state }
     operator fun get(x: Int, y: Int) = buffer[x, y]
 
     var onChanged: () -> Unit = {}
@@ -25,19 +34,20 @@ class Cells {
     }
 
     fun randomize() {
-        for (i in buffer.indices) { buffer[i] = (Random.nextFloat() > 0.9) }
-        // The first frame is chaotic but settles after the first step
+        for (i in buffer.indices) { buffer[i] = if (Random.nextFloat() > 0.9) State.ALIVE else State.DEAD }
+        // The first frame is chaotic but settles after the first few steps
+        step()
         step()
     }
 
-    private fun BooleanArray.countNeighbors(x: Int, y: Int): Int {
+    private fun Array<State>.countNeighbors(x: Int, y: Int): Int {
         var count = 0
         for (dx in listOf(-1, 0, 1)) {
             for (dy in listOf(-1, 0, 1)) {
                 if (dx != 0 || dy != 0) {
                     val neighborX = x + dx
                     val neighborY = y + dy
-                    if (neighborX in 0 until WIDTH && neighborY in 0 until HEIGHT && this[neighborX, neighborY]) {
+                    if (neighborX in 0 until WIDTH && neighborY in 0 until HEIGHT && this[neighborX, neighborY].isAlive()) {
                         ++count
                     }
                 }
@@ -52,11 +62,16 @@ class Cells {
         for (x in 0 until WIDTH) {
             for (y in 0 until HEIGHT) {
                 val neighborCount = bufferCurr.countNeighbors(x, y)
-                val alive = when(bufferCurr[x, y]) {
+                val alive = when(bufferCurr[x, y].isAlive()) {
                     true -> neighborCount == 2 || neighborCount == 3
                     false -> neighborCount == 3
                 }
-                buffer[x, y] = alive
+                if (alive) {
+                    buffer[x, y] = if (bufferCurr[x, y].isDead()) State.BORN else State.ALIVE
+                }
+                else {
+                    buffer[x, y] = if (bufferCurr[x, y].isAlive()) State.DYING else State.DEAD
+                }
             }
         }
 
@@ -85,7 +100,18 @@ fun main() = konsoleApp {
         for (y in 0 until HEIGHT) {
             text("|")
             for (x in 0 until WIDTH) {
-                text(if (cells[x, y]) "*" else " ")
+                val state = cells[x, y]
+                scopedState {
+                    @Suppress("NON_EXHAUSTIVE_WHEN")
+                    when (state) {
+                        State.BORN -> green()
+                        State.DYING -> red()
+                    }
+                    text(when (state) {
+                        State.DEAD -> ' '
+                        else -> '*'
+                    })
+                }
             }
             textLine("|")
         }
