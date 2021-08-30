@@ -653,9 +653,6 @@ that I envisioned Konsole.
 
 * Compose does a lot of nice tricks due to the fact it is ultimately a compiler plugin, but it is nice to see what the
   API kind of looks like when there's no magic at all.
-  * Of course, some features are lost in the translation, e.g. the `remember` blocks mentioned above. The trick for them
-    relies heavily on the compiler plugin architecture to generate unique numeric IDs for them, so multiple render
-    passes can still understand some sort of consistency, but it would be annoying and error prone to do this by hand.
 
 #### Mosaic comparison
 
