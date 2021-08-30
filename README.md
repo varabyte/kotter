@@ -198,13 +198,12 @@ has triggered a rerender, until the last rerender finishes after your callback i
 #### KonsoleVar
 
 As you can see above, the `run` callback uses a `rerender` method, which you can call to request another render pass.
-(There are several other methods available in that callback context, many of which will be discussed in this README).
 
 However, remembering to call `rerender` yourself is potentially fragile and could be a source of bugs in the future when
 trying to figure out why your console isn't updating.
 
-For this purpose, Konsole provides the `KonsoleVar` class, a delegate class which, when updated, will automatically
-request a rerender to the last block that referenced it. An example shortly will demonstrate this in action.
+For this purpose, Konsole provides the `KonsoleVar` class, which, when modified, will automatically request a rerender
+to the last block that referenced it. An example will demonstrate this in action shortly.
 
 To create a `KonsoleVar`, simply change a line like:
 
@@ -227,7 +226,7 @@ konsoleApp {
 ***Note:** The `konsoleVarOf` method can't be called outside of the `konsoleApp` block. For many remaining examples,
 we'll elide the `konsoleApp` boilerplate, but that doesn't mean you can omit it in your own program!*
 
-Let's apply `konsoleVarOf` to the above example and remove the `rerender` call:
+Let's apply `konsoleVarOf` to our earlier example in order to remove the `rerender` call:
 
 ```kotlin
 var result by konsoleVarOf<Int?>(null)
@@ -243,6 +242,7 @@ And done! Fewer lines and less error pone.
 Here's another example, showing how you can use `run` for something like a progress bar:
 
 ```kotlin
+// Prints something like: [****------]
 val BAR_LENGTH = 10
 var numFilledSegments by konsoleVarOf(0)
 konsole {
@@ -306,7 +306,8 @@ konsole {
 }
 ```
 
-The general rule of thumb is: use `withLock` if you want to access more than one field from the list at the same time.
+The general rule of thumb is: use `withLock` if you want to access or modify more than one property from the list
+at the same time.
 
 #### Signals and waiting
 
