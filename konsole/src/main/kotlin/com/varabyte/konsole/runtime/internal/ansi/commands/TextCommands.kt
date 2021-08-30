@@ -9,7 +9,7 @@ internal class CharCommand(private val char: Char) : KonsoleCommand {
     }
 }
 
-internal class TextCommand(private val text: String) : KonsoleCommand {
+internal class TextCommand(private val text: CharSequence) : KonsoleCommand {
     override fun applyTo(textArea: MutableTextArea) {
         textArea.append(text)
     }

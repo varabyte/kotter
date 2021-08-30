@@ -27,7 +27,7 @@ internal class MutableTextArea : TextArea {
         return this
     }
 
-    fun append(str: String): MutableTextArea {
+    fun append(str: CharSequence): MutableTextArea {
         val lines = str.split('\n')
         lines.forEachIndexed { index, line ->
             stringBuilder.append(line)
