@@ -3,7 +3,9 @@ import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
 import com.varabyte.konsole.foundation.konsoleApp
+import com.varabyte.konsole.foundation.konsoleVarOf
 import com.varabyte.konsole.foundation.text.*
+import com.varabyte.konsole.runtime.RenderScope
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -82,6 +84,15 @@ class Cells {
     }
 }
 
+private fun RenderScope.centered(text: String, width: Int): String {
+    val padding = (width - text.length) / 2
+    if (padding <= 0) return text
+    return buildString {
+        append(" ".repeat(padding))
+        append(text)
+    }
+}
+
 fun main() = konsoleApp {
     val cells = Cells()
 
@@ -95,7 +106,10 @@ fun main() = konsoleApp {
         }
     }.run()
 
+    var paused by konsoleVarOf(false)
     konsole {
+        textLine(if (paused) { centered("* PAUSED *", WIDTH + 2) } else "")
+
         text("+")
         text("-".repeat(WIDTH))
         textLine("+")
@@ -124,7 +138,6 @@ fun main() = konsoleApp {
         textLine("+")
         textLine()
     }.runUntilKeyPressed(Keys.Q) {
-        var paused = false
         cells.onChanged = { rerender() }
 
         onKeyPressed {
