@@ -88,8 +88,6 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
         inverted = null
     }
 
-    internal fun markDirty() { isDirty = true }
-
     internal fun applyTo(block: KonsoleBlock, force: Boolean = false) {
         if (isDirty || force) {
             block.appendCommand(RESET_COMMAND)
