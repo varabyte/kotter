@@ -119,7 +119,7 @@ class KonsoleBlock internal constructor(
             app.data.stop(RenderScope.Lifecycle)
 
             if (!textArea.isEmpty() && textArea.lastChar != '\n') {
-                textArea.append("\n")
+                textArea.append('\n')
             }
 
             // Send the whole set of instructions through "write" at once so the clear and updates are processed

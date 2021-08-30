@@ -72,12 +72,12 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
             }
         }
 
-    private val fgColorRecursive: KonsoleCommand? get() = fgColor ?: parent?.fgColorRecursive
-    private val bgColorRecursive: KonsoleCommand? get() = bgColor ?: parent?.bgColorRecursive
-    private val underlinedRecursive: KonsoleCommand? get() = underlined ?: parent?.underlinedRecursive
-    private val boldedRecursive: KonsoleCommand? get() = bolded ?: parent?.boldedRecursive
-    private val struckThroughRecursive: KonsoleCommand? get() = struckThrough ?: parent?.struckThroughRecursive
-    private val invertedRecursive: KonsoleCommand? get() = inverted ?: parent?.invertedRecursive
+    internal val fgColorRecursive: KonsoleCommand? get() = fgColor ?: parent?.fgColorRecursive
+    internal val bgColorRecursive: KonsoleCommand? get() = bgColor ?: parent?.bgColorRecursive
+    internal val underlinedRecursive: KonsoleCommand? get() = underlined ?: parent?.underlinedRecursive
+    internal val boldedRecursive: KonsoleCommand? get() = bolded ?: parent?.boldedRecursive
+    internal val struckThroughRecursive: KonsoleCommand? get() = struckThrough ?: parent?.struckThroughRecursive
+    internal val invertedRecursive: KonsoleCommand? get() = inverted ?: parent?.invertedRecursive
 
     internal fun clear() {
         fgColor = null
@@ -86,6 +86,8 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
         bolded = null
         inverted = null
     }
+
+    internal fun markDirty() { isDirty = true }
 
     internal fun applyTo(block: KonsoleBlock, force: Boolean = false) {
         if (isDirty || force) {
