@@ -130,18 +130,18 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
 
-    prepareKeyFlow(scope.terminal)
+    prepareKeyFlow(scope.block.app.terminal)
     if (tryPut(InputState.Key) { InputState() }) {
         val state = get(InputState.Key)!!
         addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
             if (state.elapse(elapsed)) {
-                scope.requestRerender()
+                scope.block.requestRerender()
             }
         }
-        scope.onFinishing {
+        scope.block.onFinishing {
             if (state.blinkOn) {
                 state.blinkOn = false
-                scope.requestRerender()
+                scope.block.requestRerender()
             }
         }
     }
@@ -197,7 +197,7 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                         }
 
                         if (text != prevText || index != prevIndex) {
-                            scope.requestRerender()
+                            scope.block.requestRerender()
                         }
                     }
                 }
@@ -263,7 +263,7 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
 }
 
 fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
-    data.prepareOnKeyPressed(terminal)
+    data.prepareOnKeyPressed(block.app.terminal)
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
     }
@@ -271,7 +271,7 @@ fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
 
 fun KonsoleBlock.runUntilKeyPressed(vararg keys: Key, block: suspend KonsoleBlock.RunScope.() -> Unit) {
     runUntilSignal {
-        data.prepareOnKeyPressed(terminal)
+        data.prepareOnKeyPressed(this.block.app.terminal)
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) signal() }
         block()
     }

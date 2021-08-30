@@ -26,7 +26,7 @@ import com.varabyte.konsole.runtime.internal.KonsoleCommand
  * Despite this class's transient state, it often works with the underlying block, offering a limited subset of passthru
  * functionality that simply delegates the operation to the underlying block.
  */
-class RenderScope(private val block: KonsoleBlock) {
+class RenderScope(internal val block: KonsoleBlock) {
     /**
      * A very short lifecycle that lives for a single block render pass.
      *
@@ -34,14 +34,14 @@ class RenderScope(private val block: KonsoleBlock) {
      */
     object Lifecycle : ConcurrentScopedData.Lifecycle
 
-    /** Data which is tied to the current app. */
-    val data get() = block.app.data
-
-    /** The current app's terminal */
-    internal val terminal get() = block.app.terminal
-
     internal var state = KonsoleState()
-    internal val lastChar: Char? get() = block.lastChar
+
+    /**
+     * Data store for this app.
+     *
+     * It is exposed directly and publicly here so methods extending the RunScope can use it.
+     */
+    val data = block.app.data
 
     /**
      * Run the [scopedBlock] within a fresh, new [KonsoleState] context, which gets removed afterwards.
@@ -54,9 +54,6 @@ class RenderScope(private val block: KonsoleBlock) {
         block.scopedBlock()
         popState()
     }
-
-    internal fun requestRerender() = block.requestRerender()
-    internal fun onFinishing(block: () -> Unit) { this.block.onFinishing(block) }
 
     private fun pushState(): KonsoleState {
         state = KonsoleState(state)

@@ -65,7 +65,7 @@ internal class TimerManager {
     }
 }
 
-internal fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, callback: TimerScope.() -> Unit) {
+fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, callback: TimerScope.() -> Unit) {
     putIfAbsent(TimerManager.Key, { TimerManager() }, { timers -> timers.dispose() }) {
         addTimer(duration, repeat, callback)
     }

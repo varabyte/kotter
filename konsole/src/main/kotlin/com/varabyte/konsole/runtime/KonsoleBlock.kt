@@ -4,7 +4,7 @@ import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.internal.text.MutableTextArea
-import com.varabyte.konsole.runtime.terminal.Terminal
+import com.varabyte.konsole.runtime.text.TextArea
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
@@ -32,18 +32,23 @@ class KonsoleBlock internal constructor(
      * this matters because some data may need to be cleaned up before the block is actually finished.
      */
     class RunScope(
-        internal val terminal: Terminal,
-        val data: ConcurrentScopedData,
+        internal val block: KonsoleBlock,
         private val scope: CoroutineScope,
-        private val rerenderRequested: () -> Unit
     ) {
         object Lifecycle : ConcurrentScopedData.Lifecycle
+
+        /**
+         * Data store for this app.
+         *
+         * It is exposed directly and publicly here so methods extending the RunScope can use it.
+         */
+        val data = block.app.data
 
         internal var onSignal: () -> Unit = {}
         private val waitLatch = CountDownLatch(1)
         /** Forcefully exit this runscope early, even if it's still in progress */
         internal fun abort() { scope.cancel() }
-        fun rerender() = rerenderRequested()
+        fun rerender() = block.requestRerender()
         fun waitForSignal() {
             waitLatch.await()
         }
@@ -54,8 +59,8 @@ class KonsoleBlock internal constructor(
         }
     }
 
-    private val textArea = MutableTextArea()
-    internal val lastChar: Char? get() = textArea.lastChar
+    private val _textArea = MutableTextArea()
+    val textArea: TextArea = _textArea
 
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
@@ -75,7 +80,7 @@ class KonsoleBlock internal constructor(
 
     /** Append this command to the end of this block's text area */
     internal fun appendCommand(command: KonsoleCommand) {
-        command.applyTo(textArea)
+        command.applyTo(_textArea)
     }
 
     /**
@@ -83,7 +88,9 @@ class KonsoleBlock internal constructor(
      *
      * This will not enqueue a render if one is already queued up.
      */
-    internal fun requestRerender() {
+    fun requestRerender() {
+        if (app.activeBlock != this) return
+
         renderLock.withLock {
             // If we get multiple render requests in a short period of time, we only need to handle one of them - the
             // remaining requests are redundant and will be covered by the initial one.
@@ -113,13 +120,13 @@ class KonsoleBlock internal constructor(
                 }
             }
 
-            textArea.clear()
+            _textArea.clear()
             app.data.start(RenderScope.Lifecycle)
             RenderScope(self).block()
             app.data.stop(RenderScope.Lifecycle)
 
             if (!textArea.isEmpty() && textArea.lastChar != '\n') {
-                textArea.append('\n')
+                _textArea.append('\n')
             }
 
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
@@ -154,8 +161,9 @@ class KonsoleBlock internal constructor(
         app.data.start(RunScope.Lifecycle)
         renderOnce()
         if (block != null) {
+            val self = this
             val job = CoroutineScope(Dispatchers.Default).launch {
-                val scope = RunScope(app.terminal, app.data, this, rerenderRequested = { requestRerender() })
+                val scope = RunScope(self, this)
                 scope.block()
             }
 

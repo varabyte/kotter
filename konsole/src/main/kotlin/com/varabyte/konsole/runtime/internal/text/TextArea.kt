@@ -1,10 +1,6 @@
 package com.varabyte.konsole.runtime.internal.text
 
-internal interface TextArea {
-    val numLines: Int
-    fun isEmpty(): Boolean
-    val lastChar: Char?
-}
+import com.varabyte.konsole.runtime.text.TextArea
 
 internal class MutableTextArea : TextArea {
     private var stringBuilder = StringBuilder()

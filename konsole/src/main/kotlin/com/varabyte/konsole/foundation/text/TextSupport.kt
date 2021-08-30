@@ -69,6 +69,7 @@ fun RenderScope.textLine(c: Char) {
  * pattern that it's nice to shorten it.
  */
 fun RenderScope.p(block: RenderScope.() -> Unit) {
+    val lastChar = this.block.textArea.lastChar
     if (lastChar != null && lastChar != '\n') { textLine() }
     textLine()
     block()
