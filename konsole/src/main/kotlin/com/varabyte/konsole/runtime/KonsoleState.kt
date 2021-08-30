@@ -84,6 +84,7 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
         bgColor = null
         underlined = null
         bolded = null
+        struckThrough = null
         inverted = null
     }
 
