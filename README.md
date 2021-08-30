@@ -80,7 +80,91 @@ for console text, probably won't be very long).
 
 While the above simple case is a bit verbose for what it's doing, Konsole starts to show its strength when doing
 background work (or other async tasks like waiting for user input) during which time the block may update several times.
-We'll see many examples of this in the following sections.
+We'll see many examples throughout this document later.
+
+### Text Effects
+
+You can call color methods directly, which remain in effect until the next color method is called:
+
+```kotlin
+konsole {
+  green(layer = BG)
+  red() // defaults to FG layer
+  textLine("Red on green")
+  blue()
+  textLine("Blue on green")
+}.run()
+```
+
+or, if you only want the color effect to live for a limited time, you can use scoped helper versions that handle
+clearing colors for you automatically at the end of their block:
+
+```kotlin
+konsole {
+  green(layer = BG) {
+    red {
+      textLine("Red on green")
+    }
+    textLine("Default on green")
+    blue {
+      textLine("Blue on green")
+    }
+  }
+}.run()
+```
+
+Various text effects are also available:
+
+```kotlin
+konsole {
+  bold {
+    textLine("Title")
+  }
+
+  p {
+    textLine("This is the first paragraph of text")
+  }
+
+  p {
+    text("This paragraph has an ")
+    underline { text("underlined") }
+    text(" word in it")
+  }
+}.run()
+```
+
+### Konsole state and scopedState
+
+To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
+`konsole` block only:
+
+```kotlin
+konsole {
+  blue(BG)
+  red()
+  text("This text is red on blue")
+}.run()
+
+konsole {
+  text("This text is rendered using default colors")
+}.run()
+```
+
+Within a Konsole block, you can also use the `scopedState` method. This creates a new scope within which any state will
+be automatically discarded after it ends. This is what the scoped text effect methods are doing for you under the hood,
+actually.
+
+```kotlin
+konsole {
+  scopedState {
+    red()
+    blue(BG)
+    underline()
+    text("Underlined red on blue")
+  }
+  text("Text without color or decorations")
+}.run()
+```
 
 ### Dynamic Konsole block
 
@@ -257,8 +341,7 @@ konsole {
 These methods are enough in most cases. Note that if you call `signal` before you reach `waitForSignal`, then
 `waitForSignal` will just pass through without stopping.
 
-Finally, there's a convenience `runUntilSignal` method you can use, which acts just like `run` but with a
-`waitForSignal` already at the end, so you only need to call `signal` at some point to progress:
+Alternately, there's a `runUntilSignal` you can use, within which you don't need to call `waitForSignal` yourself:
 
 ```kotlin
 val fileDownloader = FileDownloader("...")
@@ -268,6 +351,10 @@ konsole {
   fileDownloader.onFinished += { signal() }
 }
 ```
+
+This is actually a bit more powerful than the above `run` + `waitForSignal` version, as `signal` will quit your `run`
+block even if it's still running. This could be useful if you have a forever-running while loop that should abort when
+the user or some external event indicates they should quit.
 
 ### User input
 
@@ -339,88 +426,18 @@ konsole {
 }
 ```
 
-### Text Effects
-
-You can call color methods directly, which remain in effect until the next color method is called:
-
-```kotlin
-konsole {
-  green(layer = BG)
-  red() // defaults to FG layer
-  textLine("Red on green")
-  blue()
-  textLine("Blue on green")
-}.run()
-```
-
-or, if you only want the color effect to live for a limited time, you can use scoped helper versions that handle
-clearing colors for you automatically at the end of their block:
+If you're interested in specific keypresses and not simply input that's been typed in, you can use `runUntilKeyPressed`.
+Here, we detect the Q keypress and quit.
 
 ```kotlin
 konsole {
-  green(layer = BG) {
-    red {
-      textLine("Red on green")
-    }
-    textLine("Default on green")
-    blue {
-      textLine("Blue on green")
-    }
+  textLine("Press Q to quit")
+  /* ... */
+}.runUntilKeyPressed(Keys.Q) {
+  while (true) {
+    /* ... */
   }
-}.run()
-```
-
-Various text effects are also available:
-
-```kotlin
-konsole {
-  bold {
-    textLine("Title")
-  }
-
-  p {
-    textLine("This is the first paragraph of text")
-  }
-
-  p {
-    text("This paragraph has an ")
-    underline { text("underlined") }
-    text(" word in it")
-  }
-}.run()
-```
-
-### Konsole state and scopedState
-
-To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
-`konsole` block only:
-
-```kotlin
-konsole {
-  blue(BG)
-  red()
-  text("This text is red on blue")
-}.run()
-
-konsole {
-  text("This text is rendered using default colors")
-}.run()
-```
-
-Within a Konsole block, you can also use the `scopedState` method. This creates a new scope within which any state will
-be automatically discarded after it ends. This is what the scoped text effect methods are doing for you under the hood,
-actually.
-
-```kotlin
-konsole {
-  scopedState {
-    red()
-    blue(BG)
-    underline()
-    text("Underlined red on blue")
-  }
-  text("Text without color or decorations")
-}.run()
+}
 ```
 
 ### Timers
