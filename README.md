@@ -159,19 +159,20 @@ And done! Fewer lines and less error pone.
 Here's another example, showing how you can use `run` for something like a progress bar:
 
 ```kotlin
-const val BAR_LENGTH = 100
-var percent by konsoleVarOf(0)
+val BAR_LENGTH = 10
+var numFilledSegments by konsoleVarOf(0)
 konsole {
   text("[")
-  val numComplete = percent * BAR_LENGTH
-  for (val i in 0 until BAR_LENGTH) {
-    text(if (i < numComplete) "*" else "-")
+  for (i in 0 until BAR_LENGTH) {
+    text(if (i < numFilledSegments) "*" else "-")
   }
   text("]")
 }.run {
+  var percent = 0
   while (percent < 100) {
-    delay(100)
+    delay(Random.nextLong(10, 100))
     percent += 1
+    numFilledSegments = percent / BAR_LENGTH
   }
 }
 ```
