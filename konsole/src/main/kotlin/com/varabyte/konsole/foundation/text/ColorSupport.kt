@@ -53,10 +53,6 @@ fun RenderScope.black(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean 
     applyCommand(toBlackCommand(colorLayer, isBright))
 }
 
-fun RenderScope.grey(colorLayer: ColorLayer = ColorLayer.FG) {
-    black(colorLayer, isBright = true)
-}
-
 fun RenderScope.red(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toRedCommand(colorLayer, isBright))
 }
@@ -98,13 +94,6 @@ fun RenderScope.black(
         black(colorLayer, isBright)
         scopedBlock()
     }
-}
-
-fun RenderScope.grey(
-    colorLayer: ColorLayer = ColorLayer.FG,
-    scopedBlock: KonsoleBlock.() -> Unit
-) {
-    black(colorLayer, isBright = true, scopedBlock)
 }
 
 fun RenderScope.red(
