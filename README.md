@@ -475,7 +475,7 @@ A Konsole block can manage a set of timers for you. Use the `addTimer` method in
 konsole {
   /* ... */
 }.runUntilSignal {
-  addTimer(500.ms) {
+  addTimer(Duration.ofMillis(500)) {
     println("500ms passed!")
     signal()
   }
@@ -521,7 +521,7 @@ konsole {
 }.onFinishing {
   blinkOn = false
 }.runUntilSignal {
-  addTimer(250.ms, repeat = true) { blinkOn = !blinkOn }
+  addTimer(Duration.ofMillis(250), repeat = true) { blinkOn = !blinkOn }
   /* ... */
 }
 ```
