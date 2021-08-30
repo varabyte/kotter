@@ -73,7 +73,8 @@ class KonsoleBlock internal constructor(
         app.data.start(Lifecycle)
     }
 
-    internal fun applyCommand(command: KonsoleCommand) {
+    /** Append this command to the end of this block's text area */
+    internal fun appendCommand(command: KonsoleCommand) {
         command.applyTo(textArea)
     }
 

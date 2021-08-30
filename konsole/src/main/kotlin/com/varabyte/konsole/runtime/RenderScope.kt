@@ -75,6 +75,6 @@ class RenderScope(private val block: KonsoleBlock) {
 
     internal fun applyCommand(command: KonsoleCommand) {
         command.updateState(state)
-        block.applyCommand(command)
+        block.appendCommand(command)
     }
 }

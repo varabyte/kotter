@@ -89,13 +89,13 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
 
     internal fun applyTo(block: KonsoleBlock, force: Boolean = false) {
         if (isDirty || force) {
-            block.applyCommand(RESET_COMMAND)
-            (fgColorRecursive)?.let { block.applyCommand(it) }
-            (bgColorRecursive)?.let { block.applyCommand(it) }
-            (underlinedRecursive)?.let { block.applyCommand(it) }
-            (boldedRecursive)?.let { block.applyCommand(it) }
-            (struckThroughRecursive)?.let { block.applyCommand(it) }
-            (invertedRecursive)?.let { block.applyCommand(it) }
+            block.appendCommand(RESET_COMMAND)
+            (fgColorRecursive)?.let { block.appendCommand(it) }
+            (bgColorRecursive)?.let { block.appendCommand(it) }
+            (underlinedRecursive)?.let { block.appendCommand(it) }
+            (boldedRecursive)?.let { block.appendCommand(it) }
+            (struckThroughRecursive)?.let { block.appendCommand(it) }
+            (invertedRecursive)?.let { block.appendCommand(it) }
         }
 
     }

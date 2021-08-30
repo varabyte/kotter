@@ -15,4 +15,4 @@ internal class TextCommand(private val text: String) : KonsoleCommand {
     }
 }
 
-internal val NewlineCommand = CharCommand('\n')
+internal val NEWLINE_COMMAND = CharCommand('\n')

@@ -2,7 +2,7 @@ package com.varabyte.konsole.foundation.text
 
 import com.varabyte.konsole.runtime.RenderScope
 import com.varabyte.konsole.runtime.internal.ansi.commands.CharCommand
-import com.varabyte.konsole.runtime.internal.ansi.commands.NewlineCommand
+import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
 
 fun RenderScope.text(text: CharSequence) {
@@ -24,7 +24,7 @@ fun RenderScope.textLine(c: Char) {
 }
 
 fun RenderScope.textLine() {
-    applyCommand(NewlineCommand)
+    applyCommand(NEWLINE_COMMAND)
 }
 
 /**
