@@ -18,20 +18,47 @@ konsoleApp {
 
 ---
 
-Konsole aims to be a relatively thin, Kotlin-idiomatic API that provides useful functionality for writing delightful
-command line applications. It strives to keep things simple, providing a solution a bit more interesting than making
-raw `println` calls but way less featured than something like _Java Curses_.
+Konsole aims to be a relatively thin, declarative, Kotlin-idiomatic API that provides useful functionality for writing
+delightful command line applications. It strives to keep things simple, providing a solution a bit more opinionated than
+making raw `println` calls but way less featured than something like _Java Curses_.
 
 Specifically, this library helps with:
 
-* Modifying console text in place
 * Setting colors and text decorations (e.g. underline, bold)
 * Handling user input
 * Creating timers and animations
+* Seamlessly repainting terminal text when values change
 
 ## Gradle
 
+### Including in your project
 (To be updated when this project is in a ready state)
+
+### Running examples
+
+Examples are located under the [examples](examples) folder. To run one of them, you can navigate into it on the command
+line and run it via Gradle.
+
+```bash
+$ cd examples/life
+$ ../../gradlew run
+```
+
+However, because Gradle itself has taken over the terminal to do its own fancy command line magic, the example will
+actually open up and run inside a virtual terminal.
+
+If you want to run the program directly inside your system terminal, which is hopefully the way most users will see your
+application, you should use the `installDist` task to accomplish this:
+
+```bash
+$ cd examples/life
+$ ../../gradlew installDist
+$ cd build/install/life/bin
+$ ./life
+```
+
+***Note:** If your terminal does not support features needed by Konsole, then this still may end up running inside a
+virtual terminal.*
 
 ## Usage
 
