@@ -1,9 +1,6 @@
 import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.konsoleVarOf
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.text.ColorLayer.BG
-import kotlinx.coroutines.delay
-import kotlin.random.Random
 
 fun main() = konsoleApp {
     konsole {
@@ -23,7 +20,7 @@ fun main() = konsoleApp {
         textLine("Back to normal")
         textLine()
 
-        textLine("No colors")
+        textLine("Normal colors")
 
         // nested syntax
         white(BG) {
@@ -38,7 +35,7 @@ fun main() = konsoleApp {
                 textLine("Red on white")
             }
         }
-        textLine("No colors again")
+        textLine("Normal colors again")
         textLine()
 
         // Using scoped state
@@ -48,7 +45,7 @@ fun main() = konsoleApp {
             white(BG)
             textLine("Red on white")
         }
-        textLine("No colors again")
+        textLine("Normal colors again")
         textLine()
 
         // Using reset
@@ -57,8 +54,28 @@ fun main() = konsoleApp {
         black(BG)
         textLine("Blue on black")
         reset()
-        textLine("No colors again")
+        textLine("Normal colors again")
         textLine()
+
+        // Using clear methods
+        scopedState {
+            bold()
+            underline()
+            textLine("Underlined, bolded text")
+            clearBold()
+            textLine("Underlined text")
+            red()
+            blue(BG)
+            textLine("Underlined red on blue text")
+            clearColor(BG)
+            textLine("Underlined red text")
+            clearUnderline()
+            green(BG)
+            textLine("Red on green text")
+            clearColors()
+            textLine("Normal colors again")
+            textLine()
+        }
 
         // Inverting colors
         scopedState {
@@ -70,7 +87,7 @@ fun main() = konsoleApp {
             }
             textLine("Blue on green again")
             reset()
-            textLine("No colors again")
+            textLine("Normal colors again")
             textLine()
         }
 

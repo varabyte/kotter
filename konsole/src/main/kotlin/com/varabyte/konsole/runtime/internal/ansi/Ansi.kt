@@ -113,6 +113,10 @@ internal object Ansi {
                     object BOLD : Code("1${Identifiers.SGR}")
                     object UNDERLINE : Code("4${Identifiers.SGR}")
                     object STRIKETHROUGH : Code("9${Identifiers.SGR}")
+
+                    object CLEAR_BOLD : Code("21${Identifiers.SGR}")
+                    object CLEAR_UNDERLINE : Code("24${Identifiers.SGR}")
+                    object CLEAR_STRIKETHROUGH : Code("29${Identifiers.SGR}")
                 }
 
                 object Colors {
@@ -136,6 +140,8 @@ internal object Ansi {
                         object MAGENTA_BRIGHT : Code("35;1${Identifiers.SGR}")
                         object CYAN_BRIGHT : Code("36;1${Identifiers.SGR}")
                         object WHITE_BRIGHT : Code("37;1${Identifiers.SGR}")
+
+                        object CLEAR : Code("39${Identifiers.SGR}")
                     }
 
                     object Bg {
@@ -156,6 +162,8 @@ internal object Ansi {
                         object MAGENTA_BRIGHT : Code("45;1${Identifiers.SGR}")
                         object CYAN_BRIGHT : Code("46;1${Identifiers.SGR}")
                         object WHITE_BRIGHT : Code("47;1${Identifiers.SGR}")
+
+                        object CLEAR : Code("49${Identifiers.SGR}")
                     }
                 }
             }

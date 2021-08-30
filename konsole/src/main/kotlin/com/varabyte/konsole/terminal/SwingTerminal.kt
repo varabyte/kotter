@@ -174,6 +174,7 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
 private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet.() -> Unit>(
     RESET to { removeAttributes(this) },
 
+    Colors.Fg.CLEAR to { removeAttribute(StyleConstants.Foreground) },
     Colors.Fg.BLACK to { StyleConstants.setForeground(this, Color.BLACK) },
     Colors.Fg.RED to { StyleConstants.setForeground(this, Color.RED) },
     Colors.Fg.GREEN to { StyleConstants.setForeground(this, Color.GREEN) },
@@ -191,6 +192,7 @@ private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet
     Colors.Fg.CYAN_BRIGHT to { StyleConstants.setForeground(this, Color.CYAN) },
     Colors.Fg.WHITE_BRIGHT to { StyleConstants.setForeground(this, Color.WHITE) },
 
+    Colors.Bg.CLEAR to { removeAttribute(StyleConstants.Background) },
     Colors.Bg.BLACK to { StyleConstants.setBackground(this, Color.BLACK) },
     Colors.Bg.RED to { StyleConstants.setBackground(this, Color.RED) },
     Colors.Bg.GREEN to { StyleConstants.setBackground(this, Color.GREEN) },
@@ -216,8 +218,11 @@ private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet
     },
 
     Decorations.BOLD to { StyleConstants.setBold(this, true) },
+    Decorations.CLEAR_BOLD to { removeAttribute(StyleConstants.Bold) },
     Decorations.UNDERLINE to { StyleConstants.setUnderline(this, true) },
+    Decorations.CLEAR_UNDERLINE to { removeAttribute(StyleConstants.Underline) },
     Decorations.STRIKETHROUGH to { StyleConstants.setStrikeThrough(this, true) },
+    Decorations.CLEAR_STRIKETHROUGH to { removeAttribute(StyleConstants.StrikeThrough) },
 
 )
 

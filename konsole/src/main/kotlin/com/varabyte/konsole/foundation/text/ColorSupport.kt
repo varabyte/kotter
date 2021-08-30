@@ -81,6 +81,18 @@ fun RenderScope.white(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean 
     applyCommand(toWhiteCommand(colorLayer, isBright))
 }
 
+fun RenderScope.clearColor(colorLayer: ColorLayer = ColorLayer.FG) {
+    applyCommand(when(colorLayer) {
+        ColorLayer.FG -> FG_CLEAR_COMMAND
+        ColorLayer.BG -> BG_CLEAR_COMMAND
+    })
+}
+
+fun RenderScope.clearColors() {
+    applyCommand(FG_CLEAR_COMMAND)
+    applyCommand(BG_CLEAR_COMMAND)
+}
+
 fun RenderScope.invert() {
     applyCommand(INVERT_COMMAND)
 }

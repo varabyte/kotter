@@ -2,12 +2,18 @@ package com.varabyte.konsole.foundation.text
 
 import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.RenderScope
+import com.varabyte.konsole.runtime.internal.ansi.commands.*
 import com.varabyte.konsole.runtime.internal.ansi.commands.BOLD_COMMAND
+import com.varabyte.konsole.runtime.internal.ansi.commands.CLEAR_BOLD_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.STRIKETHROUGH_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.UNDERLINE_COMMAND
 
 fun RenderScope.bold() {
     applyCommand(BOLD_COMMAND)
+}
+
+fun RenderScope.clearBold() {
+    applyCommand(CLEAR_BOLD_COMMAND)
 }
 
 fun RenderScope.bold(scopedBlock: KonsoleBlock.() -> Unit) {
@@ -21,6 +27,10 @@ fun RenderScope.underline() {
     applyCommand(UNDERLINE_COMMAND)
 }
 
+fun RenderScope.clearUnderline() {
+    applyCommand(CLEAR_UNDERLINE_COMMAND)
+}
+
 fun RenderScope.underline(scopedBlock: KonsoleBlock.() -> Unit) {
     scopedState {
         underline()
@@ -30,6 +40,10 @@ fun RenderScope.underline(scopedBlock: KonsoleBlock.() -> Unit) {
 
 fun RenderScope.strikethrough() {
     applyCommand(STRIKETHROUGH_COMMAND)
+}
+
+fun RenderScope.clearStrikethrough() {
+    applyCommand(CLEAR_STRIKETHROUGH_COMMAND)
 }
 
 fun RenderScope.strikethrough(scopedBlock: KonsoleBlock.() -> Unit) {
