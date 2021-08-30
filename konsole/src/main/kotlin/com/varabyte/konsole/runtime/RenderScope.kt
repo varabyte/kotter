@@ -63,9 +63,7 @@ class RenderScope(internal val block: KonsoleBlock) {
     private fun popState() {
         check(state.parent != null) { "Called popState more times than pushState" }
         state.parent!!.let { prevState ->
-            if (state.isDirty) {
-                prevState.applyTo(block, force = true)
-            }
+            state.undoOn(block)
             state = prevState
         }
     }

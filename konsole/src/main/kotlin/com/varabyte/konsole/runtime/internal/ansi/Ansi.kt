@@ -121,6 +121,7 @@ internal object Ansi {
 
                 object Colors {
                     object INVERT : Code("7${Identifiers.SGR}")
+                    object CLEAR_INVERT : Code("27${Identifiers.SGR}")
 
                     object Fg {
                         object BLACK : Code("30${Identifiers.SGR}")

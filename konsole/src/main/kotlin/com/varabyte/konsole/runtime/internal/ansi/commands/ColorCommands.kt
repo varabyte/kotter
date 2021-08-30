@@ -69,3 +69,8 @@ internal val INVERT_COMMAND = object : AnsiCsiCommand(Colors.INVERT) {
         state.inverted = this
     }
 }
+internal val CLEAR_INVERT_COMMAND = object : AnsiCsiCommand(Colors.CLEAR_INVERT) {
+    override fun updateState(state: KonsoleState) {
+        state.inverted = null
+    }
+}

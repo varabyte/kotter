@@ -11,7 +11,7 @@ internal val BOLD_COMMAND = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decoratio
 
 internal val CLEAR_BOLD_COMMAND = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decorations.CLEAR_BOLD) {
     override fun updateState(state: KonsoleState) {
-        state.bolded = this
+        state.bolded = null
     }
 }
 
@@ -23,7 +23,7 @@ internal val UNDERLINE_COMMAND = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Deco
 
 internal val CLEAR_UNDERLINE_COMMAND = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decorations.CLEAR_UNDERLINE) {
     override fun updateState(state: KonsoleState) {
-        state.underlined = this
+        state.underlined = null
     }
 }
 
@@ -35,6 +35,6 @@ internal val STRIKETHROUGH_COMMAND = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.
 
 internal val CLEAR_STRIKETHROUGH_COMMAND = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decorations.CLEAR_STRIKETHROUGH) {
     override fun updateState(state: KonsoleState) {
-        state.struckThrough = this
+        state.struckThrough = null
     }
 }

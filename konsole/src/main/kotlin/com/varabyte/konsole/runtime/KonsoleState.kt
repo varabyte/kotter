@@ -1,6 +1,11 @@
 package com.varabyte.konsole.runtime
 
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
+import com.varabyte.konsole.runtime.internal.ansi.commands.*
+import com.varabyte.konsole.runtime.internal.ansi.commands.BG_CLEAR_COMMAND
+import com.varabyte.konsole.runtime.internal.ansi.commands.CLEAR_BOLD_COMMAND
+import com.varabyte.konsole.runtime.internal.ansi.commands.CLEAR_UNDERLINE_COMMAND
+import com.varabyte.konsole.runtime.internal.ansi.commands.FG_CLEAR_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.RESET_COMMAND
 
 /**
@@ -79,6 +84,13 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
     internal val struckThroughRecursive: KonsoleCommand? get() = struckThrough ?: parent?.struckThroughRecursive
     internal val invertedRecursive: KonsoleCommand? get() = inverted ?: parent?.invertedRecursive
 
+    private val fgColorParent: KonsoleCommand? get() = parent?.fgColorRecursive
+    private val bgColorParent: KonsoleCommand? get() = parent?.bgColorRecursive
+    private val underlinedParent: KonsoleCommand? get() = parent?.underlinedRecursive
+    private val boldedParent: KonsoleCommand? get() = parent?.boldedRecursive
+    private val struckThroughParent: KonsoleCommand? get() = parent?.struckThroughRecursive
+    private val invertedParent: KonsoleCommand? get() = parent?.invertedRecursive
+
     internal fun clear() {
         fgColor = null
         bgColor = null
@@ -88,16 +100,18 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
         inverted = null
     }
 
-    internal fun applyTo(block: KonsoleBlock, force: Boolean = false) {
-        if (isDirty || force) {
-            block.appendCommand(RESET_COMMAND)
-            (fgColorRecursive)?.let { block.appendCommand(it) }
-            (bgColorRecursive)?.let { block.appendCommand(it) }
-            (underlinedRecursive)?.let { block.appendCommand(it) }
-            (boldedRecursive)?.let { block.appendCommand(it) }
-            (struckThroughRecursive)?.let { block.appendCommand(it) }
-            (invertedRecursive)?.let { block.appendCommand(it) }
-        }
-
+    /**
+     * Given the current state of a block, issue the commands that would undo it.
+     *
+     * This is slightly tricky because you can't simply undo a value that's been set, but you need to restore a value
+     * from a parent state if it's set.
+     */
+    internal fun undoOn(block: KonsoleBlock) {
+        if (fgColor != null) { block.appendCommand(fgColorParent ?: FG_CLEAR_COMMAND) }
+        if (bgColor != null) { block.appendCommand(bgColorParent ?: BG_CLEAR_COMMAND) }
+        if (underlined != null) { block.appendCommand(underlinedParent ?: CLEAR_UNDERLINE_COMMAND) }
+        if (bolded != null) { block.appendCommand(boldedParent ?: CLEAR_BOLD_COMMAND) }
+        if (struckThrough != null) { block.appendCommand(struckThroughParent ?: CLEAR_STRIKETHROUGH_COMMAND) }
+        if (inverted != null) { block.appendCommand(invertedParent ?: CLEAR_INVERT_COMMAND) }
     }
 }

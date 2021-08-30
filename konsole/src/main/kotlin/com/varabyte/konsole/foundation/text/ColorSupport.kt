@@ -97,6 +97,10 @@ fun RenderScope.invert() {
     applyCommand(INVERT_COMMAND)
 }
 
+fun RenderScope.clearInvert() {
+    applyCommand(CLEAR_INVERT_COMMAND)
+}
+
 fun RenderScope.black(
     colorLayer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,

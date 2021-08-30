@@ -171,51 +171,82 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
     }
 }
 
+private const val Inverted = "inverted"
+private fun MutableAttributeSet.invertColors() {
+    val prevFg = StyleConstants.getForeground(this)
+    val prevBg = StyleConstants.getBackground(this)
+    StyleConstants.setForeground(this, prevBg)
+    StyleConstants.setBackground(this, prevFg)
+}
+private fun MutableAttributeSet.setInverseAwareForeground(color: Color) {
+    if (getAttribute(Inverted) == true) {
+        StyleConstants.setBackground(this, color)
+    }
+    else {
+        StyleConstants.setForeground(this, color)
+    }
+}
+private fun MutableAttributeSet.setInverseAwareBackground(color: Color) {
+    if (getAttribute(Inverted) == true) {
+        StyleConstants.setForeground(this, color)
+    }
+    else {
+        StyleConstants.setBackground(this, color)
+    }
+}
+
 private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet.() -> Unit>(
     RESET to { removeAttributes(this) },
 
     Colors.Fg.CLEAR to { removeAttribute(StyleConstants.Foreground) },
-    Colors.Fg.BLACK to { StyleConstants.setForeground(this, Color.BLACK) },
-    Colors.Fg.RED to { StyleConstants.setForeground(this, Color.RED) },
-    Colors.Fg.GREEN to { StyleConstants.setForeground(this, Color.GREEN) },
-    Colors.Fg.YELLOW to { StyleConstants.setForeground(this, Color.YELLOW) },
-    Colors.Fg.BLUE to { StyleConstants.setForeground(this, Color.BLUE) },
-    Colors.Fg.MAGENTA to { StyleConstants.setForeground(this, Color.MAGENTA) },
-    Colors.Fg.CYAN to { StyleConstants.setForeground(this, Color.CYAN) },
-    Colors.Fg.WHITE to { StyleConstants.setForeground(this, Color.WHITE) },
-    Colors.Fg.BLACK_BRIGHT to { StyleConstants.setForeground(this, Color.BLACK) },
-    Colors.Fg.RED_BRIGHT to { StyleConstants.setForeground(this, Color.RED) },
-    Colors.Fg.GREEN_BRIGHT to { StyleConstants.setForeground(this, Color.GREEN) },
-    Colors.Fg.YELLOW_BRIGHT to { StyleConstants.setForeground(this, Color.YELLOW) },
-    Colors.Fg.BLUE_BRIGHT to { StyleConstants.setForeground(this, Color.BLUE) },
-    Colors.Fg.MAGENTA_BRIGHT to { StyleConstants.setForeground(this, Color.MAGENTA) },
-    Colors.Fg.CYAN_BRIGHT to { StyleConstants.setForeground(this, Color.CYAN) },
-    Colors.Fg.WHITE_BRIGHT to { StyleConstants.setForeground(this, Color.WHITE) },
+    Colors.Fg.BLACK to { setInverseAwareForeground(Color.BLACK) },
+    Colors.Fg.RED to { setInverseAwareForeground(Color.RED) },
+    Colors.Fg.GREEN to { setInverseAwareForeground(Color.GREEN) },
+    Colors.Fg.YELLOW to { setInverseAwareForeground(Color.YELLOW) },
+    Colors.Fg.BLUE to { setInverseAwareForeground(Color.BLUE) },
+    Colors.Fg.MAGENTA to { setInverseAwareForeground(Color.MAGENTA) },
+    Colors.Fg.CYAN to { setInverseAwareForeground(Color.CYAN) },
+    Colors.Fg.WHITE to { setInverseAwareForeground(Color.WHITE) },
+    Colors.Fg.BLACK_BRIGHT to { setInverseAwareForeground(Color.BLACK) },
+    Colors.Fg.RED_BRIGHT to { setInverseAwareForeground(Color.RED) },
+    Colors.Fg.GREEN_BRIGHT to { setInverseAwareForeground(Color.GREEN) },
+    Colors.Fg.YELLOW_BRIGHT to { setInverseAwareForeground(Color.YELLOW) },
+    Colors.Fg.BLUE_BRIGHT to { setInverseAwareForeground(Color.BLUE) },
+    Colors.Fg.MAGENTA_BRIGHT to { setInverseAwareForeground(Color.MAGENTA) },
+    Colors.Fg.CYAN_BRIGHT to { setInverseAwareForeground(Color.CYAN) },
+    Colors.Fg.WHITE_BRIGHT to { setInverseAwareForeground(Color.WHITE) },
 
     Colors.Bg.CLEAR to { removeAttribute(StyleConstants.Background) },
-    Colors.Bg.BLACK to { StyleConstants.setBackground(this, Color.BLACK) },
-    Colors.Bg.RED to { StyleConstants.setBackground(this, Color.RED) },
-    Colors.Bg.GREEN to { StyleConstants.setBackground(this, Color.GREEN) },
-    Colors.Bg.YELLOW to { StyleConstants.setBackground(this, Color.YELLOW) },
-    Colors.Bg.BLUE to { StyleConstants.setBackground(this, Color.BLUE) },
-    Colors.Bg.MAGENTA to { StyleConstants.setBackground(this, Color.MAGENTA) },
-    Colors.Bg.CYAN to { StyleConstants.setBackground(this, Color.CYAN) },
-    Colors.Bg.WHITE to { StyleConstants.setBackground(this, Color.WHITE) },
-    Colors.Bg.BLACK_BRIGHT to { StyleConstants.setBackground(this, Color.BLACK) },
-    Colors.Bg.RED_BRIGHT to { StyleConstants.setBackground(this, Color.RED) },
-    Colors.Bg.GREEN_BRIGHT to { StyleConstants.setBackground(this, Color.GREEN) },
-    Colors.Bg.YELLOW_BRIGHT to { StyleConstants.setBackground(this, Color.YELLOW) },
-    Colors.Bg.BLUE_BRIGHT to { StyleConstants.setBackground(this, Color.BLUE) },
-    Colors.Bg.MAGENTA_BRIGHT to { StyleConstants.setBackground(this, Color.MAGENTA) },
-    Colors.Bg.CYAN_BRIGHT to { StyleConstants.setBackground(this, Color.CYAN) },
-    Colors.Bg.WHITE_BRIGHT to { StyleConstants.setBackground(this, Color.WHITE) },
+    Colors.Bg.BLACK to { setInverseAwareBackground(Color.BLACK) },
+    Colors.Bg.RED to { setInverseAwareBackground(Color.RED) },
+    Colors.Bg.GREEN to { setInverseAwareBackground(Color.GREEN) },
+    Colors.Bg.YELLOW to { setInverseAwareBackground(Color.YELLOW) },
+    Colors.Bg.BLUE to { setInverseAwareBackground(Color.BLUE) },
+    Colors.Bg.MAGENTA to { setInverseAwareBackground(Color.MAGENTA) },
+    Colors.Bg.CYAN to { setInverseAwareBackground(Color.CYAN) },
+    Colors.Bg.WHITE to { setInverseAwareBackground(Color.WHITE) },
+    Colors.Bg.BLACK_BRIGHT to { setInverseAwareBackground(Color.BLACK) },
+    Colors.Bg.RED_BRIGHT to { setInverseAwareBackground(Color.RED) },
+    Colors.Bg.GREEN_BRIGHT to { setInverseAwareBackground(Color.GREEN) },
+    Colors.Bg.YELLOW_BRIGHT to { setInverseAwareBackground(Color.YELLOW) },
+    Colors.Bg.BLUE_BRIGHT to { setInverseAwareBackground(Color.BLUE) },
+    Colors.Bg.MAGENTA_BRIGHT to { setInverseAwareBackground(Color.MAGENTA) },
+    Colors.Bg.CYAN_BRIGHT to { setInverseAwareBackground(Color.CYAN) },
+    Colors.Bg.WHITE_BRIGHT to { setInverseAwareBackground(Color.WHITE) },
 
     Colors.INVERT to {
-        val prevFg = StyleConstants.getForeground(this)
-        val prevBg = StyleConstants.getBackground(this)
-        StyleConstants.setForeground(this, prevBg)
-        StyleConstants.setBackground(this, prevFg)
-    },
+        if (getAttribute(Inverted) == null) {
+            invertColors()
+            addAttribute(Inverted, true)
+        }
+     },
+    Colors.CLEAR_INVERT to {
+        if (getAttribute(Inverted) != null) {
+
+            invertColors()
+            removeAttribute(Inverted)
+        }
+   },
 
     Decorations.BOLD to { StyleConstants.setBold(this, true) },
     Decorations.CLEAR_BOLD to { removeAttribute(StyleConstants.Bold) },
@@ -223,7 +254,6 @@ private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet
     Decorations.CLEAR_UNDERLINE to { removeAttribute(StyleConstants.Underline) },
     Decorations.STRIKETHROUGH to { StyleConstants.setStrikeThrough(this, true) },
     Decorations.CLEAR_STRIKETHROUGH to { removeAttribute(StyleConstants.StrikeThrough) },
-
 )
 
 private fun Document.getText() = getText(0, length)
