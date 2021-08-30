@@ -1,10 +1,10 @@
 package com.varabyte.konsole.runtime
 
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
+import com.varabyte.konsole.runtime.internal.executor.KonsoleExecutor
 import com.varabyte.konsole.runtime.terminal.Terminal
-import java.util.concurrent.ExecutorService
 
-class KonsoleApp internal constructor(internal val executor: ExecutorService, internal val terminal: Terminal) {
+class KonsoleApp internal constructor(internal val terminal: Terminal) {
     /**
      * A long-lived lifecycle that sticks around for the length of the entire app.
      *
@@ -12,6 +12,7 @@ class KonsoleApp internal constructor(internal val executor: ExecutorService, in
      */
     object Lifecycle : ConcurrentScopedData.Lifecycle
 
+    internal val executor = KonsoleExecutor
     internal val data = ConcurrentScopedData()
     internal val activeBlock: KonsoleBlock? get() = data[ActiveBlockKey]
 
