@@ -614,7 +614,7 @@ konsoleApp(terminal = run {
   try {
     SystemTerminal()
   } catch (ex: Exception) {
-    SwingTerminal.create()
+    SwingTerminal.create(terminalSize = Dimension(30, 30))
   }
 }) {
   /* ... */
