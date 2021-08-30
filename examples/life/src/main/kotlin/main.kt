@@ -12,6 +12,13 @@ private const val HEIGHT = 30
 
 // The rules of life: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 class Cells {
+    companion object {
+        private val NEIGHBOR_DELTAS =
+            (-1..1)
+                .flatMap { dx -> (-1..1).map { dy -> dx to dy } }
+                .filterNot { it.first == 0 && it.second == 0 }
+    }
+
     enum class State {
         DEAD,
         ALIVE,
@@ -23,8 +30,8 @@ class Cells {
     }
 
     private val buffer = Array(WIDTH * HEIGHT) { State.DEAD }
-    private operator fun Array<State>.get(x: Int, y: Int) = buffer[y * WIDTH + x]
-    private operator fun Array<State>.set(x: Int, y: Int, state: State) { buffer[y * WIDTH + x] = state }
+    private operator fun Array<State>.get(x: Int, y: Int) = this[y * WIDTH + x]
+    private operator fun Array<State>.set(x: Int, y: Int, state: State) { this[y * WIDTH + x] = state }
     operator fun get(x: Int, y: Int) = buffer[x, y]
 
     var onChanged: () -> Unit = {}
@@ -42,15 +49,11 @@ class Cells {
 
     private fun Array<State>.countNeighbors(x: Int, y: Int): Int {
         var count = 0
-        for (dx in listOf(-1, 0, 1)) {
-            for (dy in listOf(-1, 0, 1)) {
-                if (dx != 0 || dy != 0) {
-                    val neighborX = x + dx
-                    val neighborY = y + dy
-                    if (neighborX in 0 until WIDTH && neighborY in 0 until HEIGHT && this[neighborX, neighborY].isAlive()) {
-                        ++count
-                    }
-                }
+        for (deltas in NEIGHBOR_DELTAS) {
+            val neighborX = x + deltas.first
+            val neighborY = y + deltas.second
+            if (neighborX in 0 until WIDTH && neighborY in 0 until HEIGHT && this[neighborX, neighborY].isAlive()) {
+                ++count
             }
         }
         return count
@@ -59,8 +62,8 @@ class Cells {
     fun step() {
         // Make a copy because we're going to modify `buffer` in place but need to compare against the old values
         val bufferCurr = buffer.copyOf()
-        for (x in 0 until WIDTH) {
-            for (y in 0 until HEIGHT) {
+        for (y in 0 until HEIGHT) {
+            for (x in 0 until WIDTH) {
                 val neighborCount = bufferCurr.countNeighbors(x, y)
                 val alive = when(bufferCurr[x, y].isAlive()) {
                     true -> neighborCount == 2 || neighborCount == 3
