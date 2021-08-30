@@ -359,6 +359,8 @@ the user or some external event indicates they should quit.
 
 ### User input
 
+#### Typed input
+
 Konsole consumes keypresses, so as the user types into the console, nothing will show up unless you intentionally print
 it. You can easily do this using the `input` method, which handles listening to kepresses and adding text into your
 Konsole block at that location:
@@ -427,8 +429,31 @@ konsole {
 }
 ```
 
-If you're interested in specific keypresses and not simply input that's been typed in, you can use `runUntilKeyPressed`.
-Here, we detect the Q keypress and quit.
+#### Keypresses
+
+If you're interested in specific keypresses and not simply input that's been typed in, you can register a listener to
+the `onKeyPressed` event:
+
+```kotlin
+konsole {
+  textLine("Press Q to quit")
+  /* ... */
+}.run {
+  var quit = false
+  onKeyPressed {
+    when(key) {
+      Keys.Q -> quit = true
+    }
+  }
+
+  while (!quit) {
+    delay(16)
+    /* ... */
+  }
+}
+```
+
+For convenience, there's also a `runUntilKeyPressed` method you can use to help with patterns like the above.
 
 ```kotlin
 konsole {
@@ -436,6 +461,7 @@ konsole {
   /* ... */
 }.runUntilKeyPressed(Keys.Q) {
   while (true) {
+    delay(16)
     /* ... */
   }
 }
