@@ -588,10 +588,10 @@ val spinners = (1..10).map { konsoleAnimOf(SPINNER_TEMPLATE) }
 
 ### Thread Affinity
 
-Setting aside the fact that the `run` block runs in a background thread, the experience of using Konsole is essentially
-single-threaded. Anytime you make a call to run a Konsole block, no matter which thread it is called from, a single
-thread ultimately handles the work of rendering the block. At the same time, if you attempt to run one `konsole` block
-while another block is already running, an exception is thrown.
+Setting aside the fact that the `run` block runs in a background thread, Konsole blocks themselves are rendered
+sequentionally on a single thread. Anytime you make a call to run a Konsole block, no matter which thread it is called
+from, a single thread ultimately handles it. At the same time, if you attempt to run one `konsole` block while another
+block is already running, an exception is thrown.
 
 I made this decision so that:
 
