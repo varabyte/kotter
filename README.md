@@ -646,8 +646,8 @@ Konsole's API is inspired by Compose, which astute readers may have already noti
 rerun for you automatically as necessary without you having to worry about it, and special state variables which, when
 modified, automatically "recompose" the current console block. Why not just use Compose directly?
 
-In fact, this is exactly what [Jake Wharton's Mosaic](https://github.com/JakeWharton/mosaic) is doing. I tried using it
-first but ultimately decided against it before deciding to write Konsole, for the following reasons:
+In fact, this is exactly what [Jake Wharton's Mosaic](https://github.com/JakeWharton/mosaic) is doing. Actually, I tried
+using it first but ultimately decided against it before deciding to write Konsole, for the following reasons:
 
 * Compose is tightly tied to the current Kotlin compiler version, which means if you are targeting a particular
 version of the Kotlin language, you can easily see the dreaded error message: `This version (x.y.z) of the Compose
@@ -671,7 +671,7 @@ that I envisioned Konsole.
   about performance allowed a more pared down API to emerge.
 
 * Compose does a lot of nice tricks due to the fact it is ultimately a compiler plugin, but it is nice to see what the
-  API kind of looks like when there's no magic at all.
+  API would kind of look like with no magic at all (although, admittedly, with some features sacrificed).
 
 #### Mosaic comparison
 
@@ -703,7 +703,7 @@ konsoleApp {
 }
 ```
 
-The above case (and others) are included in the [examples](examples) folder.
+Comparisons with Mosaic are included in the [examples/mosaic](examples/mosaic) folder.
 
 ### Tested Platforms
 
