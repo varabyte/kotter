@@ -167,8 +167,7 @@ konsole {
 ```
 
 Within a Konsole block, you can also use the `scopedState` method. This creates a new scope within which any state will
-be automatically discarded after it ends. This is what the scoped text effect methods are doing for you under the hood,
-actually.
+be automatically discarded after it ends.
 
 ```kotlin
 konsole {
@@ -181,6 +180,8 @@ konsole {
   text("Text without color or decorations")
 }.run()
 ```
+
+This is what the scoped text effect methods (like `red { ... }`) are doing for you under the hood, actually.
 
 ### Dynamic Konsole block
 
