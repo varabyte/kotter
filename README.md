@@ -52,8 +52,8 @@ dependencies {
 
 ### Running examples
 
-Examples are located under the [examples](examples) folder. To run one of them, you can navigate into it on the command
-line and run it via Gradle.
+If you've cloned this respository, examples are located under the [examples](examples) folder. To try one of them, you
+can navigate into it on the command line and run it via Gradle.
 
 ```bash
 $ cd examples/life
