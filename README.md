@@ -609,11 +609,11 @@ pattern is powerful enough for most (all?) cases.
 ### Virtual Terminal
 
 It's not guaranteed that every user's command line setup supports ANSI codes. For example, debugging this project with
-IntelliJ as well as Gradle are two such environments where functionality is inconsistent or busted! According to many
-online reports, Windows is also a big offender here.
+IntelliJ as well as running within Gradle are two such environments where functionality isn't available! According to
+many online reports, Windows is also a big offender here.
 
 Konsole will attempt to detect if your console does not support the features it uses, and if not, it will open up a
-fake virtual terminal backed by Swing. This workaround gives us better cross-platform support.
+virtual terminal backed by Swing. This fallback gives your application better cross-platform support.
 
 To modify the logic to ALWAYS open the virtual terminal, you can construct the virtual terminal directly and pass it
 into the app:
@@ -626,14 +626,14 @@ konsoleApp(terminal = SwingTerminal.create()) {
 ```
 
 or if you want to keep the same behavior where you try to run a system terminal first and fall back to a virtual
-terminal later, but you want to customize the virtual terminal with different parameters:
+terminal later, but perhaps you want to customize the virtual terminal with different parameters:
 
 ```kotlin
 konsoleApp(terminal = run {
   try {
     SystemTerminal()
   } catch (ex: Exception) {
-    SwingTerminal.create(terminalSize = Dimension(30, 30))
+    SwingTerminal.create(title = "My App", terminalSize = Dimension(30, 30))
   }
 }) {
   /* ... */
