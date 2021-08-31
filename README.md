@@ -512,24 +512,21 @@ konsole {
     textLine("This line will blink for $BLINK_LEN")
   }
 
-}.runUntilSignal {
+}.run {
   var blinkCount = BLINK_TOTAL_LEN.toMillis() / BLINK_LEN.toMillis()
   addTimer(BLINK_LEN, repeat = true) {
     blinkOn = !blinkOn
     blinkCount--
     if (blinkCount == 0) {
       repeat = false
-      signal()
     }
   }
+  /* ... */
 }
 ```
 
 It's possible your block will exit while things are in a bad state due to running timers, so you can use the
-`onFinishing` callback to handle this. 
-
-***Note:** Unlike other callbacks, `onFinishing` is registered directly against the underlying `konsole` block, because
-it is actually triggered AFTER the run pass is finished but before the block is torn down.*
+`onFinishing` callback to handle this:
 
 ```kotlin
 var blinkOn by konsoleVarOf(false)
@@ -537,11 +534,14 @@ konsole {
   /* ... */
 }.onFinishing {
   blinkOn = false
-}.runUntilSignal {
+}.run {
   addTimer(Duration.ofMillis(250), repeat = true) { blinkOn = !blinkOn }
   /* ... */
 }
 ```
+
+***Note:** Unlike other callbacks, `onFinishing` is registered directly against the underlying `konsole` block, because
+it is actually triggered AFTER the run pass is finished but before the block is torn down.*
 
 `onFinishing` will only run after all timers are stopped, so you don't have to worry about setting a value that an
 errant timer will clobber later.
