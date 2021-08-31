@@ -1,3 +1,5 @@
+![version: 0.9.0](https://img.shields.io/badge/konsole-v0.9.0-blue)
+
 # Konsole
 
 ```kotlin
@@ -31,8 +33,22 @@ Specifically, this library helps with:
 
 ## Gradle
 
-### Including in your project
-(To be updated when this project is in a ready state)
+### Dependency
+
+The artifacts for this project are hosted on [JitPack.io](https://jitpack.io/), so to include Konsole in your project,
+modify your Gradle build file as follows:
+
+```groovy
+repositories {
+  /* ... */
+  maven { url 'https://jitpack.io' }
+}
+
+dependencies {
+  /* ... */
+  implementation 'com.github.varabyte:konsole:0.9.0'
+}
+```
 
 ### Running examples
 

@@ -1,9 +1,10 @@
 plugins {
     kotlin("jvm") version "1.5.10"
+    `maven-publish`
 }
 
 group = "com.varabyte"
-version = "1.0-SNAPSHOT"
+version = "0.9.0"
 
 repositories {
     mavenCentral()
@@ -25,4 +26,17 @@ dependencies {
 
     // For GuardedBy concurrency annotation
     implementation("net.jcip:jcip-annotations:1.0")
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("konsole") {
+            from(components["java"])
+        }
+    }
 }
