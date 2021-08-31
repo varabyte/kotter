@@ -548,7 +548,7 @@ errant timer will clobber later.
 
 ### Animations
 
-You can easily create custom animations, by calling `konsoleAnimOf` and then instancing it:
+You can easily create custom animations, by calling `konsoleAnimOf`:
 
 ```kotlin
 var finished = false
@@ -565,15 +565,17 @@ konsole {
 }
 ```
 
-When you reference an animation in a render for the first time, it kickstarts a timer automatically for you. All you
-have to do at that point is reference your animation as if it were a string, and Konsole takes care of the rest!
+When you reference an animation in a render for the first time, it kickstarts a timer automatically for you. In other
+words, all you have to do is treat your animation instance as if it were a string, and Konsole takes care of the rest!
+
+#### Animation templates
 
 If you have an animation that you want to share in a bunch of places, you can create a template for it and instantiate
-instances from the template. This can be useful if you have a situation where it looks more natural if the same
-animations are running off sync from one another.
+instances from the template. `KonsoleAnim.Template` takes exactly the same arguments as the `konsoleAnimOf` method.
 
-For example, if you were processing 10 threads at a time, you may want the spinner for each thread to start spinning
-whenever the thread first activates, to look more natural and chaotic:
+This may be useful if you have a single animation that you want to run in many places at the same time but all slightly
+off from one another. For example, if you were processing 10 threads at a time, you may want the spinner for each thread
+to start spinning whenever its thread activates:
 
 ```kotlin
 val SPINNER_TEMPATE = KotlinAnim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
