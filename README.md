@@ -272,8 +272,8 @@ konsole {
   var percent = 0
   while (percent < 100) {
     delay(Random.nextLong(10, 100))
-    percent += 1
-    numFilledSegments = percent / BAR_LENGTH
+    percent += Random.nextInt(1,5)
+    numFilledSegments = ((percent / 100f) * BAR_LENGTH).roundToInt()
   }
 }
 ```
