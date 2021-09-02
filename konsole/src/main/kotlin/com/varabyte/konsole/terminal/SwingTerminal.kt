@@ -379,5 +379,13 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
             }
         } while (textPtr.increment())
         flush()
+
+        // Hack alert: I'm not sure why, but calling updateUI is the only consistent way I've been able to get the text
+        // pane to refresh its text contents without stuttering. However, this sometimes affects the caret position? So
+        // we reset it back.
+        caretPosition.let { prevCaret ->
+            updateUI()
+            caretPosition = prevCaret
+        }
     }
 }
