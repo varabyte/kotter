@@ -156,6 +156,7 @@ fun main() = konsoleApp {
             red { textLine("You are dead. Press R to restart.") }
         }
 
+        black(BG)
         for (y in 0 until HEIGHT) {
             for (x in 0 until WIDTH) {
                 val pt = Pt(x, y)

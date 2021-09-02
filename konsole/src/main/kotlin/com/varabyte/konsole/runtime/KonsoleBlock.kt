@@ -125,7 +125,10 @@ class KonsoleBlock internal constructor(
 
             _textArea.clear()
             app.data.start(RenderScope.Lifecycle)
-            RenderScope(self).block()
+            RenderScope(self).apply {
+                block()
+                state.undoOn(block)
+            }
             app.data.stop(RenderScope.Lifecycle)
 
             if (textArea.toRawText().lastOrNull() != '\n') {
