@@ -1,40 +1,33 @@
 package com.varabyte.konsole.runtime.internal.text
 
+import com.varabyte.konsole.runtime.internal.KonsoleCommand
+import com.varabyte.konsole.runtime.internal.ansi.commands.CharCommand
+import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
+import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
 import com.varabyte.konsole.runtime.text.TextArea
 
 internal class MutableTextArea : TextArea {
-    private var stringBuilder = StringBuilder()
+    private val commands = mutableListOf<KonsoleCommand>()
 
-    override var numLines = 1
-        private set
+    override val numLines
+        get() = commands.count { it === NEWLINE_COMMAND } + 1
 
-    override fun isEmpty() = stringBuilder.isEmpty()
-    override val lastChar: Char? get() = stringBuilder.lastOrNull()
+    override fun isEmpty() = commands.isEmpty()
 
     fun clear(): MutableTextArea {
-        stringBuilder.clear()
-        numLines = 1
+        commands.clear()
         return this
     }
 
-    fun append(c: Char): MutableTextArea {
-        stringBuilder.append(c)
-        if (c == '\n') ++numLines
-        return this
-    }
+    fun appendCommand(command: KonsoleCommand) { commands.add(command) }
 
-    fun append(str: CharSequence): MutableTextArea {
-        val lines = str.split('\n')
-        lines.forEachIndexed { index, line ->
-            stringBuilder.append(line)
-            if (index < lines.size - 1) {
-                append('\n')
-            }
-        }
-        return this
+    override fun toRawText(): String {
+        return commands
+            .filter { it is TextCommand || it is CharCommand || it === NEWLINE_COMMAND }
+            .joinToString("") { it.text }
     }
 
     override fun toString(): String {
-        return stringBuilder.toString()
+        return commands.joinToString("") {it.text }
     }
 }

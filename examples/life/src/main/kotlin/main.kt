@@ -136,7 +136,6 @@ fun main() = konsoleApp {
         text("+")
         text("-".repeat(WIDTH))
         textLine("+")
-        textLine()
     }.runUntilKeyPressed(Keys.Q) {
         cells.onChanged = { rerender() }
 

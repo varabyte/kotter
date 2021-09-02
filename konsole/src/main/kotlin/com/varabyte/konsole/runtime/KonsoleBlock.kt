@@ -3,6 +3,7 @@ package com.varabyte.konsole.runtime
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
+import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.konsole.runtime.internal.text.MutableTextArea
 import com.varabyte.konsole.runtime.text.TextArea
 import kotlinx.coroutines.*
@@ -80,7 +81,7 @@ class KonsoleBlock internal constructor(
 
     /** Append this command to the end of this block's text area */
     internal fun appendCommand(command: KonsoleCommand) {
-        command.applyTo(_textArea)
+        _textArea.appendCommand(command)
     }
 
     /**
@@ -125,8 +126,8 @@ class KonsoleBlock internal constructor(
             RenderScope(self).block()
             app.data.stop(RenderScope.Lifecycle)
 
-            if (!textArea.isEmpty() && textArea.lastChar != '\n') {
-                _textArea.append('\n')
+            if (textArea.toRawText().lastOrNull() != '\n') {
+                _textArea.appendCommand(NEWLINE_COMMAND)
             }
 
             // Send the whole set of instructions through "write" at once so the clear and updates are processed

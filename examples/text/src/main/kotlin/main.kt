@@ -105,6 +105,5 @@ fun main() = konsoleApp {
             }
         }
         textLine("Back to default again")
-        textLine()
     }.run()
 }

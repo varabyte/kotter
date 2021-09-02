@@ -63,7 +63,6 @@ private fun RenderScope.summary(tests: List<Test>, elapsedSecs: Int) {
 
     textLine("${tests.size} total")
     textLine("Time: ${elapsedSecs}s")
-    textLine()
 }
 
 // https://github.com/JakeWharton/mosaic/tree/trunk/samples/jest

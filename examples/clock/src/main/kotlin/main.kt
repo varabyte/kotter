@@ -35,7 +35,6 @@ fun main() = konsoleApp {
         textLine()
         textLine()
         textLine("This program has been running for ${elapsedSecs}s")
-        textLine()
     }.runUntilKeyPressed(Keys.Q) {
         var isFormat12Hr = true
         fun updateDate() {

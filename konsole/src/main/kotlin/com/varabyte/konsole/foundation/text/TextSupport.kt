@@ -1,11 +1,9 @@
 package com.varabyte.konsole.foundation.text
 
 import com.varabyte.konsole.runtime.RenderScope
-import com.varabyte.konsole.runtime.internal.ansi.commands.*
 import com.varabyte.konsole.runtime.internal.ansi.commands.BG_CLEAR_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.CharCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
-import com.varabyte.konsole.runtime.internal.ansi.commands.RESET_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
 
 fun RenderScope.textLine() {
@@ -69,10 +67,19 @@ fun RenderScope.textLine(c: Char) {
  * pattern that it's nice to shorten it.
  */
 fun RenderScope.p(block: RenderScope.() -> Unit) {
-    val lastChar = this.block.textArea.lastChar
-    if (lastChar != null && lastChar != '\n') { textLine() }
+    run {
+        val lastChar = this.block.textArea.toRawText().lastOrNull()
+        if (lastChar != null && lastChar != '\n') {
+            textLine()
+        }
+    }
     textLine()
     block()
-    if (lastChar != null && lastChar != '\n') { textLine() }
+    run {
+        val lastChar = this.block.textArea.toRawText().lastOrNull()
+        if (lastChar != null && lastChar != '\n') {
+            textLine()
+        }
+    }
     textLine()
 }

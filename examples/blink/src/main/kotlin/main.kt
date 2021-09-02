@@ -3,17 +3,14 @@ import com.varabyte.konsole.foundation.input.runUntilKeyPressed
 import com.varabyte.konsole.foundation.konsoleApp
 import com.varabyte.konsole.foundation.konsoleVarOf
 import com.varabyte.konsole.foundation.text.invert
-import com.varabyte.konsole.foundation.text.p
-import com.varabyte.konsole.foundation.text.text
 import com.varabyte.konsole.foundation.text.textLine
 import com.varabyte.konsole.foundation.timer.addTimer
 import java.time.Duration
 
 fun main() = konsoleApp {
     konsole {
-        p {
-            textLine("Press SPACE to quit")
-        }
+        textLine("Press SPACE to quit")
+        textLine()
     }.run()
 
     val BLINK_LEN = Duration.ofMillis(250)
@@ -23,7 +20,6 @@ fun main() = konsoleApp {
             if (blinkOn) invert()
             textLine("This line will blink until SPACE is pressed, but will always turn off at that point.")
         }
-        textLine()
     }.onFinishing {
         blinkOn = false
     }.runUntilKeyPressed(Keys.SPACE) {
