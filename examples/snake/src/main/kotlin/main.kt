@@ -97,6 +97,7 @@ class Snake(private val level: Level, val head: Pt) {
     var onAteFood: () -> Unit = {}
     var onDied: () -> Unit = {}
 
+    /** The size of the snake. Always at least 2 (the head and the tail) */
     val size get() = _segments.size.coerceAtLeast(2)
 
     private val headPt: Pt get() = segments.first()
