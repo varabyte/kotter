@@ -9,6 +9,7 @@ import com.varabyte.konsole.runtime.text.TextArea
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -74,6 +75,7 @@ class KonsoleBlock internal constructor(
      * behind the scenes to clean up their state.
      */
     private var onFinishing = mutableListOf<() -> Unit>()
+    private var consumed = AtomicBoolean(false)
 
     init {
         app.data.start(Lifecycle)
@@ -154,6 +156,11 @@ class KonsoleBlock internal constructor(
     }
 
     fun run(block: (suspend RunScope.() -> Unit)? = null) {
+        if (consumed.get()) {
+            throw IllegalStateException("Cannot run a Konsole block that was previously run")
+        }
+        consumed.set(true)
+
         // Note: The data we're adding here will be removed by the dispose call below
         if (!app.data.tryPut(ActiveBlockKey) { this }) {
             throw IllegalStateException("Cannot run this Konsole block while another block is already running")
