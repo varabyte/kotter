@@ -268,6 +268,10 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
         isEditable = false
         font = Font(Font.MONOSPACED, Font.PLAIN, fontSize)
 
+        clearMouseListeners()
+    }
+
+    private fun clearMouseListeners() {
         // The existing mouse handlers set the cursor behind our back which mess with the repainting of the area
         // Let's just disable them for now.
         mouseListeners.toList().forEach { removeMouseListener(it) }
@@ -390,6 +394,7 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
         // we reset it back.
         caretPosition.let { prevCaret ->
             updateUI()
+            clearMouseListeners()
             caretPosition = prevCaret
         }
     }
