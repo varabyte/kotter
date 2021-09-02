@@ -613,13 +613,13 @@ IntelliJ as well as running within Gradle are two such environments where functi
 many online reports, Windows is also a big offender here.
 
 Konsole will attempt to detect if your console does not support the features it uses, and if not, it will open up a
-virtual terminal backed by Swing. This fallback gives your application better cross-platform support.
+virtual terminal. This fallback gives your application better cross-platform support.
 
 To modify the logic to ALWAYS open the virtual terminal, you can construct the virtual terminal directly and pass it
 into the app:
 
 ```kotlin
-konsoleApp(terminal = SwingTerminal.create()) {
+konsoleApp(terminal = VirtualTerminal.create()) {
   konsole { /* ... */ }
   /* ... */
 }
@@ -633,7 +633,7 @@ konsoleApp(terminal = run {
   try {
     SystemTerminal()
   } catch (ex: Exception) {
-    SwingTerminal.create(title = "My App", terminalSize = Dimension(30, 30))
+    VirtualTerminal.create(title = "My App", terminalSize = Dimension(30, 30))
   }
 }) {
   /* ... */

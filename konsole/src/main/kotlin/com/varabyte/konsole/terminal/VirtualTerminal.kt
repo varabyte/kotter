@@ -29,7 +29,7 @@ import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
 
-class SwingTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
+class VirtualTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
     companion object {
         /**
          * @param terminalSize Number of characters, so 80x32 will be expanded to fit 80 characters horizontally and
@@ -43,7 +43,7 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
             fgColor: Color = Color.LIGHT_GRAY,
             bgColor: Color = Color.DARK_GRAY,
             handleInterrupt: Boolean = true
-        ): SwingTerminal {
+        ): VirtualTerminal {
             val pane = SwingTerminalPane(fontSize)
             pane.foreground = fgColor
             pane.background = bgColor
@@ -57,7 +57,7 @@ class SwingTerminal private constructor(private val pane: SwingTerminalPane) : T
                 }
             }
 
-            val terminal = SwingTerminal(pane)
+            val terminal = VirtualTerminal(pane)
             val framePacked = CountDownLatch(1)
             CoroutineScope((Dispatchers.Swing)).launch {
                 val frame = JFrame(title)

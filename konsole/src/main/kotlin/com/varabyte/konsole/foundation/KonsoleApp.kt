@@ -2,15 +2,15 @@ package com.varabyte.konsole.foundation
 
 import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.terminal.Terminal
-import com.varabyte.konsole.terminal.SwingTerminal
 import com.varabyte.konsole.terminal.SystemTerminal
+import com.varabyte.konsole.terminal.VirtualTerminal
 
 fun konsoleApp(
     terminal: Terminal = run {
         try {
             SystemTerminal()
         } catch (ex: Exception) {
-            SwingTerminal.create()
+            VirtualTerminal.create()
         }
     },
     block: KonsoleApp.() -> Unit) {
