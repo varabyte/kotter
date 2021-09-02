@@ -1,3 +1,4 @@
+import com.varabyte.konsole.foundation.anim.KonsoleAnim
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
@@ -172,16 +173,20 @@ fun main() = konsoleApp {
     }.runUntilKeyPressed(Keys.Q) {
         fun initGameState(level: Level) {
             var firstMove = true
+            var currTickMs = 0L
             var moveTickMs = 250L
             level.snake.onMoved = {
                 if (firstMove) {
-                    addTimer(Duration.ofMillis(moveTickMs), repeat = true) {
-                        duration = Duration.ofMillis(moveTickMs)
-                        level.snake.move()
+                    addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
+                        currTickMs += elapsed.toMillis()
+                        if (currTickMs >= moveTickMs) {
+                            level.snake.move() // As a side effect, will reset currTickMs
+                        }
                         repeat = !isDead
                     }
                     firstMove = false
                 }
+                currTickMs = 0 // Could have been triggered by timer OR user pressing a key
                 rerender()
             }
             level.snake.onAteFood = {
