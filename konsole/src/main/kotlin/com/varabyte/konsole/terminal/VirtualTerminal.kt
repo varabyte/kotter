@@ -1,12 +1,10 @@
 package com.varabyte.konsole.terminal
 
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
-import com.varabyte.konsole.runtime.internal.ansi.Ansi.Csi.Codes.Sgr.Colors
-import com.varabyte.konsole.runtime.internal.ansi.Ansi.Csi.Codes.Sgr.Decorations
-import com.varabyte.konsole.runtime.internal.ansi.Ansi.Csi.Codes.Sgr.RESET
 import com.varabyte.konsole.runtime.internal.text.TextPtr
 import com.varabyte.konsole.runtime.internal.text.substring
 import com.varabyte.konsole.runtime.terminal.Terminal
+import com.varabyte.konsole.terminal.swing.SgrCodeToAttrModifiers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
@@ -27,7 +25,6 @@ import javax.swing.border.EmptyBorder
 import javax.swing.text.Document
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
-import javax.swing.text.StyleConstants
 
 class VirtualTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
     companion object {
@@ -44,9 +41,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             bgColor: Color = Color.DARK_GRAY,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
-            val pane = SwingTerminalPane(fontSize)
-            pane.foreground = fgColor
-            pane.background = bgColor
+            val pane = SwingTerminalPane(fontSize, fgColor, bgColor)
             pane.text = buildString {
                 // Set initial text to a block of blank characters so pack will set it to the right size
                 for (h in 0 until terminalSize.height) {
@@ -176,97 +171,18 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
     }
 }
 
-private const val Inverted = "inverted"
-private fun MutableAttributeSet.invertColors() {
-    val prevFg = StyleConstants.getForeground(this)
-    val prevBg = StyleConstants.getBackground(this)
-    StyleConstants.setForeground(this, prevBg)
-    StyleConstants.setBackground(this, prevFg)
-}
-private fun MutableAttributeSet.setInverseAwareForeground(color: Color) {
-    if (getAttribute(Inverted) == true) {
-        StyleConstants.setBackground(this, color)
-    }
-    else {
-        StyleConstants.setForeground(this, color)
-    }
-}
-private fun MutableAttributeSet.setInverseAwareBackground(color: Color) {
-    if (getAttribute(Inverted) == true) {
-        StyleConstants.setForeground(this, color)
-    }
-    else {
-        StyleConstants.setBackground(this, color)
-    }
-}
-
-private val SGR_CODE_TO_ATTR_MODIFIER = mapOf<Ansi.Csi.Code, MutableAttributeSet.() -> Unit>(
-    RESET to { removeAttributes(this) },
-
-    Colors.Fg.CLEAR to { removeAttribute(StyleConstants.Foreground) },
-    Colors.Fg.BLACK to { setInverseAwareForeground(Color.BLACK) },
-    Colors.Fg.RED to { setInverseAwareForeground(Color.RED) },
-    Colors.Fg.GREEN to { setInverseAwareForeground(Color.GREEN) },
-    Colors.Fg.YELLOW to { setInverseAwareForeground(Color.YELLOW) },
-    Colors.Fg.BLUE to { setInverseAwareForeground(Color.BLUE) },
-    Colors.Fg.MAGENTA to { setInverseAwareForeground(Color.MAGENTA) },
-    Colors.Fg.CYAN to { setInverseAwareForeground(Color.CYAN) },
-    Colors.Fg.WHITE to { setInverseAwareForeground(Color.WHITE) },
-    Colors.Fg.BLACK_BRIGHT to { setInverseAwareForeground(Color.BLACK) },
-    Colors.Fg.RED_BRIGHT to { setInverseAwareForeground(Color.RED) },
-    Colors.Fg.GREEN_BRIGHT to { setInverseAwareForeground(Color.GREEN) },
-    Colors.Fg.YELLOW_BRIGHT to { setInverseAwareForeground(Color.YELLOW) },
-    Colors.Fg.BLUE_BRIGHT to { setInverseAwareForeground(Color.BLUE) },
-    Colors.Fg.MAGENTA_BRIGHT to { setInverseAwareForeground(Color.MAGENTA) },
-    Colors.Fg.CYAN_BRIGHT to { setInverseAwareForeground(Color.CYAN) },
-    Colors.Fg.WHITE_BRIGHT to { setInverseAwareForeground(Color.WHITE) },
-
-    Colors.Bg.CLEAR to { removeAttribute(StyleConstants.Background) },
-    Colors.Bg.BLACK to { setInverseAwareBackground(Color.BLACK) },
-    Colors.Bg.RED to { setInverseAwareBackground(Color.RED) },
-    Colors.Bg.GREEN to { setInverseAwareBackground(Color.GREEN) },
-    Colors.Bg.YELLOW to { setInverseAwareBackground(Color.YELLOW) },
-    Colors.Bg.BLUE to { setInverseAwareBackground(Color.BLUE) },
-    Colors.Bg.MAGENTA to { setInverseAwareBackground(Color.MAGENTA) },
-    Colors.Bg.CYAN to { setInverseAwareBackground(Color.CYAN) },
-    Colors.Bg.WHITE to { setInverseAwareBackground(Color.WHITE) },
-    Colors.Bg.BLACK_BRIGHT to { setInverseAwareBackground(Color.BLACK) },
-    Colors.Bg.RED_BRIGHT to { setInverseAwareBackground(Color.RED) },
-    Colors.Bg.GREEN_BRIGHT to { setInverseAwareBackground(Color.GREEN) },
-    Colors.Bg.YELLOW_BRIGHT to { setInverseAwareBackground(Color.YELLOW) },
-    Colors.Bg.BLUE_BRIGHT to { setInverseAwareBackground(Color.BLUE) },
-    Colors.Bg.MAGENTA_BRIGHT to { setInverseAwareBackground(Color.MAGENTA) },
-    Colors.Bg.CYAN_BRIGHT to { setInverseAwareBackground(Color.CYAN) },
-    Colors.Bg.WHITE_BRIGHT to { setInverseAwareBackground(Color.WHITE) },
-
-    Colors.INVERT to {
-        if (getAttribute(Inverted) == null) {
-            invertColors()
-            addAttribute(Inverted, true)
-        }
-     },
-    Colors.CLEAR_INVERT to {
-        if (getAttribute(Inverted) != null) {
-
-            invertColors()
-            removeAttribute(Inverted)
-        }
-   },
-
-    Decorations.BOLD to { StyleConstants.setBold(this, true) },
-    Decorations.CLEAR_BOLD to { removeAttribute(StyleConstants.Bold) },
-    Decorations.UNDERLINE to { StyleConstants.setUnderline(this, true) },
-    Decorations.CLEAR_UNDERLINE to { removeAttribute(StyleConstants.Underline) },
-    Decorations.STRIKETHROUGH to { StyleConstants.setStrikeThrough(this, true) },
-    Decorations.CLEAR_STRIKETHROUGH to { removeAttribute(StyleConstants.StrikeThrough) },
-)
 
 private fun Document.getText() = getText(0, length)
 
-class SwingTerminalPane(fontSize: Int) : JTextPane() {
+class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color) : JTextPane() {
+    private val sgrCodeMap: SgrCodeToAttrModifiers
+
     init {
         isEditable = false
         font = Font(Font.MONOSPACED, Font.PLAIN, fontSize)
+        foreground = fgColor
+        background = bgColor
+        sgrCodeMap = SgrCodeToAttrModifiers(foreground, background)
 
         clearMouseListeners()
     }
@@ -330,7 +246,7 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
                 }
             }
             Ansi.Csi.Identifiers.SGR -> {
-                SGR_CODE_TO_ATTR_MODIFIER[csiCode]?.let { modifyAttributes ->
+                sgrCodeMap[csiCode]?.let { modifyAttributes ->
                     modifyAttributes(attrs)
                     true
                 } ?: false
@@ -345,9 +261,6 @@ class SwingTerminalPane(fontSize: Int) : JTextPane() {
 
         val doc = styledDocument
         val attrs = SimpleAttributeSet()
-        // Set foreground and background explicitly so color inversion can work
-        StyleConstants.setForeground(attrs, foreground)
-        StyleConstants.setBackground(attrs, background)
         val stringBuilder = StringBuilder()
         fun flush() {
             val stringToInsert = stringBuilder.toString()

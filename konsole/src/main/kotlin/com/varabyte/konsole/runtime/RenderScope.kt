@@ -62,16 +62,10 @@ class RenderScope(internal val block: KonsoleBlock) {
 
     private fun popState() {
         check(state.parent != null) { "Called popState more times than pushState" }
-        state.parent!!.let { prevState ->
-            state.undoOn(block)
-            state = prevState
-        }
+        state = state.parent!!
     }
 
     internal fun applyCommand(command: KonsoleCommand) {
-        if (!command.isRedundantGiven(state)) {
-            command.updateState(state)
-            block.appendCommand(command)
-        }
+        command.applyTo(state, block)
     }
 }

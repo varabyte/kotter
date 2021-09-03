@@ -1,39 +1,32 @@
 package com.varabyte.konsole.runtime.internal.ansi.commands
 
+import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.KonsoleState
 import com.varabyte.konsole.runtime.internal.ansi.Ansi.Csi
 import com.varabyte.konsole.runtime.internal.ansi.Ansi.Csi.Codes.Sgr.Colors
 
 internal class FgColorCommand(csiCode: Csi.Code) : AnsiCsiCommand(csiCode) {
-    override fun updateState(state: KonsoleState) {
-        state.fgColor = this
+    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+        state.deferred.fgColor = this
     }
-
-    override fun isRedundantGiven(state: KonsoleState): Boolean = state.fgColor?.text == this.text
 }
 
 internal object FG_CLEAR_COMMAND : AnsiCsiCommand(Colors.Fg.CLEAR) {
-    override fun updateState(state: KonsoleState) {
-        state.fgColor = null
+    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+        state.deferred.fgColor = null
     }
-
-    override fun isRedundantGiven(state: KonsoleState): Boolean = !state.isFgColorSet
 }
 
 internal class BgColorCommand(csiCode: Csi.Code) : AnsiCsiCommand(csiCode) {
-    override fun updateState(state: KonsoleState) {
-        state.bgColor = this
+    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+        state.deferred.bgColor = this
     }
-
-    override fun isRedundantGiven(state: KonsoleState): Boolean = state.bgColor?.text == this.text
 }
 
 internal object BG_CLEAR_COMMAND : AnsiCsiCommand(Colors.Bg.CLEAR) {
-    override fun updateState(state: KonsoleState) {
-        state.bgColor = null
+    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+        state.deferred.bgColor = null
     }
-
-    override fun isRedundantGiven(state: KonsoleState): Boolean = !state.isBgColorSet
 }
 
 
@@ -74,16 +67,12 @@ internal val BG_CYAN_BRIGHT_COMMAND = BgColorCommand(Colors.Bg.CYAN_BRIGHT)
 internal val BG_WHITE_BRIGHT_COMMAND = BgColorCommand(Colors.Bg.WHITE_BRIGHT)
 
 internal val INVERT_COMMAND = object : AnsiCsiCommand(Colors.INVERT) {
-    override fun updateState(state: KonsoleState) {
-        state.inverted = this
+    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+        state.deferred.inverted = this
     }
-
-    override fun isRedundantGiven(state: KonsoleState): Boolean = state.inverted?.text == text
 }
 internal val CLEAR_INVERT_COMMAND = object : AnsiCsiCommand(Colors.CLEAR_INVERT) {
-    override fun updateState(state: KonsoleState) {
-        state.inverted = null
+    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+        state.deferred.inverted = null
     }
-
-    override fun isRedundantGiven(state: KonsoleState): Boolean = !state.isInvertedSet
 }

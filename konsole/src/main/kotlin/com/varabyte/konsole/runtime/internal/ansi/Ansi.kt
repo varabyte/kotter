@@ -114,7 +114,7 @@ internal object Ansi {
                     object UNDERLINE : Code("4${Identifiers.SGR}")
                     object STRIKETHROUGH : Code("9${Identifiers.SGR}")
 
-                    object CLEAR_BOLD : Code("21${Identifiers.SGR}")
+                    object CLEAR_BOLD : Code("22${Identifiers.SGR}")
                     object CLEAR_UNDERLINE : Code("24${Identifiers.SGR}")
                     object CLEAR_STRIKETHROUGH : Code("29${Identifiers.SGR}")
                 }

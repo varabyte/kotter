@@ -7,28 +7,7 @@ import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
 
 fun RenderScope.textLine() {
-    val activeBgColor = state.bgColor
-    if (activeBgColor != null) {
-        // In some terminals, if you have a background color enabled, and you append a newline, the background color
-        // extends to the end of the next line. This looks awful, as if the background color is leaking, and
-        // unfortunately with Konsole this would happen every time you did something like:
-        // `blue(BG) { textLine("Hello") }; textLine("World")`
-        // Above, a user would expect for the world "Hello" to be backgrounded by blue and for "World" to show up in
-        // normal colors on the next line, but instead "Hello" is blue (good) and "World" would look correct (good) but
-        // the whole line trailing AFTER "World" would be blue (really bad)
-        //
-        // The way we fix this here is by detecting all newlines when a background color is set, resetting state BEFORE
-        // the newline, and re-enabling state afterwards.
-        //
-        // Note: We use "appendCommand" and not "applyCommand" intentionally because the latter would modify the current
-        // state, which we don't want to do because we're trying to sneakily leave the state in its previous value.
-        block.appendCommand(BG_CLEAR_COMMAND)
-        applyCommand(NEWLINE_COMMAND)
-        block.appendCommand(activeBgColor)
-    }
-    else {
-        applyCommand(NEWLINE_COMMAND)
-    }
+    applyCommand(NEWLINE_COMMAND)
 }
 
 fun RenderScope.text(text: CharSequence) {

@@ -1,9 +1,13 @@
 package com.varabyte.konsole.runtime.internal
 
+import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.KonsoleState
-import com.varabyte.konsole.runtime.internal.text.MutableTextArea
 
 internal open class KonsoleCommand(val text: String) {
-    open fun updateState(state: KonsoleState) {}
-    open fun isRedundantGiven(state: KonsoleState): Boolean { return false }
+    /**
+     * Apply this command either to the current state (if it updates the active effects) or the text block.
+     */
+    open fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+        block.appendCommand(this)
+    }
 }

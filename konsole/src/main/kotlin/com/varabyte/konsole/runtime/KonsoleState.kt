@@ -2,10 +2,6 @@ package com.varabyte.konsole.runtime
 
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.*
-import com.varabyte.konsole.runtime.internal.ansi.commands.BG_CLEAR_COMMAND
-import com.varabyte.konsole.runtime.internal.ansi.commands.CLEAR_BOLD_COMMAND
-import com.varabyte.konsole.runtime.internal.ansi.commands.CLEAR_UNDERLINE_COMMAND
-import com.varabyte.konsole.runtime.internal.ansi.commands.FG_CLEAR_COMMAND
 
 /**
  * Keep track of all state related commands which should be reapplied to the current block if the ansi terminal resets
@@ -30,38 +26,58 @@ import com.varabyte.konsole.runtime.internal.ansi.commands.FG_CLEAR_COMMAND
  * state back up again.
  */
 class KonsoleState internal constructor(internal val parent: KonsoleState? = null) {
-    internal var fgColor: KonsoleCommand? = parent?.fgColor
-        set(value) { field = value ?: parent?.fgColor }
-    internal var bgColor: KonsoleCommand? = parent?.bgColor
-        set(value) { field = value ?: parent?.bgColor }
-    internal var underlined: KonsoleCommand? = parent?.underlined
-        set(value) { field = value ?: parent?.underlined }
-    internal var bolded: KonsoleCommand? = parent?.bolded
-        set(value) { field = value ?: parent?.bolded }
-    internal var struckThrough: KonsoleCommand? = parent?.struckThrough
-        set(value) { field = value ?: parent?.struckThrough }
-    internal var inverted: KonsoleCommand? = parent?.inverted
-        set(value) { field = value ?: parent?.inverted }
-
-    internal val isFgColorSet get() = fgColor !== parent?.fgColor
-    internal val isBgColorSet get() = bgColor !== parent?.bgColor
-    internal val isUnderlinedSet get() = underlined !== parent?.underlined
-    internal val isBoldedSet get() = bolded !== parent?.bolded
-    internal val isStruckThroughSet get() = struckThrough !== parent?.struckThrough
-    internal val isInvertedSet get() = inverted !== parent?.inverted
-
-    /**
-     * Given the current state of a block, issue the commands that would undo it.
+    /** A collection of relevent ANSI styles.
      *
-     * This is slightly tricky because you can't simply undo a value that's been set, but you need to restore a value
-     * from a parent state if it's set.
+     * @param parentStyles If provided, it means this style should fall back to its parent's value when unset.
      */
-    internal fun undoOn(block: KonsoleBlock) {
-        fgColor.takeIf { it != parent?.fgColor }?.let { block.appendCommand(parent?.fgColor ?: FG_CLEAR_COMMAND) }
-        bgColor.takeIf { it != parent?.bgColor }?.let { block.appendCommand(parent?.bgColor ?: BG_CLEAR_COMMAND) }
-        underlined.takeIf { it != parent?.underlined }?.let { block.appendCommand(parent?.underlined ?: CLEAR_UNDERLINE_COMMAND) }
-        bolded.takeIf { it != parent?.bolded }?.let { block.appendCommand(parent?.bolded ?: CLEAR_BOLD_COMMAND) }
-        struckThrough.takeIf { it != parent?.struckThrough }?.let { block.appendCommand(parent?.struckThrough ?: CLEAR_STRIKETHROUGH_COMMAND) }
-        inverted.takeIf { it != parent?.inverted }?.let { block.appendCommand(parent?.inverted ?: CLEAR_INVERT_COMMAND) }
+    internal class Styles(val parentStyles: Styles? = null) {
+        var fgColor: KonsoleCommand? = parentStyles?.fgColor
+            set(value) { field = value ?: parentStyles?.fgColor }
+        var bgColor: KonsoleCommand? = parentStyles?.bgColor
+            set(value) { field = value ?: parentStyles?.bgColor }
+        var underlined: KonsoleCommand? = parentStyles?.underlined
+            set(value) { field = value ?: parentStyles?.underlined}
+        var bolded: KonsoleCommand? = parentStyles?.bolded
+            set(value) { field = value ?: parentStyles?.bolded}
+        var struckThrough: KonsoleCommand? = parentStyles?.struckThrough
+            set(value) { field = value ?: parentStyles?.struckThrough}
+        var inverted: KonsoleCommand? = parentStyles?.inverted
+            set(value) { field = value ?: parentStyles?.inverted}
+    }
+
+    /** Styles which are actively applied, and any text rendered right now would use them. */
+    internal val applied: Styles = parent?.applied ?: Styles()
+    /**
+     * The current style based on commands received so far in the current state scope.
+     *
+     * They are worth being deferred in case they change before new text is ultimately received.
+     */
+    internal val deferred: Styles = Styles(parent?.deferred)
+
+    fun applyTo(block: KonsoleBlock) {
+        if (deferred.fgColor?.text !== applied.fgColor?.text) {
+            applied.fgColor = deferred.fgColor
+            block.appendCommand(applied.fgColor ?: FG_CLEAR_COMMAND)
+        }
+        if (deferred.bgColor?.text !== applied.bgColor?.text) {
+            applied.bgColor = deferred.bgColor
+            block.appendCommand(applied.bgColor ?: BG_CLEAR_COMMAND)
+        }
+        if (deferred.underlined?.text !== applied.underlined?.text) {
+            applied.underlined = deferred.underlined
+            block.appendCommand(applied.underlined ?: CLEAR_UNDERLINE_COMMAND)
+        }
+        if (deferred.bolded?.text !== applied.bolded?.text) {
+            applied.bolded = deferred.bolded
+            block.appendCommand(applied.bolded ?: CLEAR_BOLD_COMMAND)
+        }
+        if (deferred.struckThrough?.text !== applied.struckThrough?.text) {
+            applied.struckThrough = deferred.struckThrough
+            block.appendCommand(applied.struckThrough ?: CLEAR_STRIKETHROUGH_COMMAND)
+        }
+        if (deferred.inverted?.text !== applied.inverted?.text) {
+            applied.inverted = deferred.inverted
+            block.appendCommand(applied.inverted ?: CLEAR_INVERT_COMMAND)
+        }
     }
 }
