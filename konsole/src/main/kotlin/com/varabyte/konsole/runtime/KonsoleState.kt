@@ -6,7 +6,6 @@ import com.varabyte.konsole.runtime.internal.ansi.commands.BG_CLEAR_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.CLEAR_BOLD_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.CLEAR_UNDERLINE_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.FG_CLEAR_COMMAND
-import com.varabyte.konsole.runtime.internal.ansi.commands.RESET_COMMAND
 
 /**
  * Keep track of all state related commands which should be reapplied to the current block if the ansi terminal resets
@@ -31,74 +30,18 @@ import com.varabyte.konsole.runtime.internal.ansi.commands.RESET_COMMAND
  * state back up again.
  */
 class KonsoleState internal constructor(internal val parent: KonsoleState? = null) {
-    internal var isDirty = false
-        private set
-
-    internal var fgColor: KonsoleCommand? = null
-        set(value) {
-            if (field != value) {
-                field = value
-                isDirty = true
-            }
-        }
-    internal var bgColor: KonsoleCommand? = null
-        set(value) {
-            if (field != value) {
-                field = value
-                isDirty = true
-            }
-        }
-    internal var underlined: KonsoleCommand? = null
-        set(value) {
-            if (field != value) {
-                field = value
-                isDirty = true
-            }
-        }
-    internal var bolded: KonsoleCommand? = null
-        set(value) {
-            if (field != value) {
-                field = value
-                isDirty = true
-            }
-        }
-    internal var struckThrough: KonsoleCommand? = null
-        set(value) {
-            if (field != value) {
-                field = value
-                isDirty = true
-            }
-        }
-    internal var inverted: KonsoleCommand? = null
-        set(value) {
-            if (field != value) {
-                field = value
-                isDirty = true
-            }
-        }
-
-    internal val fgColorRecursive: KonsoleCommand? get() = fgColor ?: parent?.fgColorRecursive
-    internal val bgColorRecursive: KonsoleCommand? get() = bgColor ?: parent?.bgColorRecursive
-    internal val underlinedRecursive: KonsoleCommand? get() = underlined ?: parent?.underlinedRecursive
-    internal val boldedRecursive: KonsoleCommand? get() = bolded ?: parent?.boldedRecursive
-    internal val struckThroughRecursive: KonsoleCommand? get() = struckThrough ?: parent?.struckThroughRecursive
-    internal val invertedRecursive: KonsoleCommand? get() = inverted ?: parent?.invertedRecursive
-
-    private val fgColorParent: KonsoleCommand? get() = parent?.fgColorRecursive
-    private val bgColorParent: KonsoleCommand? get() = parent?.bgColorRecursive
-    private val underlinedParent: KonsoleCommand? get() = parent?.underlinedRecursive
-    private val boldedParent: KonsoleCommand? get() = parent?.boldedRecursive
-    private val struckThroughParent: KonsoleCommand? get() = parent?.struckThroughRecursive
-    private val invertedParent: KonsoleCommand? get() = parent?.invertedRecursive
-
-    internal fun clear() {
-        fgColor = null
-        bgColor = null
-        underlined = null
-        bolded = null
-        struckThrough = null
-        inverted = null
-    }
+    internal var fgColor: KonsoleCommand? = parent?.fgColor
+        set(value) { field = value ?: parent?.fgColor }
+    internal var bgColor: KonsoleCommand? = parent?.bgColor
+        set(value) { field = value ?: parent?.bgColor }
+    internal var underlined: KonsoleCommand? = parent?.underlined
+        set(value) { field = value ?: parent?.underlined }
+    internal var bolded: KonsoleCommand? = parent?.bolded
+        set(value) { field = value ?: parent?.bolded }
+    internal var struckThrough: KonsoleCommand? = parent?.struckThrough
+        set(value) { field = value ?: parent?.struckThrough }
+    internal var inverted: KonsoleCommand? = parent?.inverted
+        set(value) { field = value ?: parent?.inverted }
 
     /**
      * Given the current state of a block, issue the commands that would undo it.
@@ -107,11 +50,11 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
      * from a parent state if it's set.
      */
     internal fun undoOn(block: KonsoleBlock) {
-        if (fgColor != null) { block.appendCommand(fgColorParent ?: FG_CLEAR_COMMAND) }
-        if (bgColor != null) { block.appendCommand(bgColorParent ?: BG_CLEAR_COMMAND) }
-        if (underlined != null) { block.appendCommand(underlinedParent ?: CLEAR_UNDERLINE_COMMAND) }
-        if (bolded != null) { block.appendCommand(boldedParent ?: CLEAR_BOLD_COMMAND) }
-        if (struckThrough != null) { block.appendCommand(struckThroughParent ?: CLEAR_STRIKETHROUGH_COMMAND) }
-        if (inverted != null) { block.appendCommand(invertedParent ?: CLEAR_INVERT_COMMAND) }
+        fgColor.takeIf { it != parent?.fgColor }?.let { block.appendCommand(parent?.fgColor ?: FG_CLEAR_COMMAND) }
+        bgColor.takeIf { it != parent?.bgColor }?.let { block.appendCommand(parent?.bgColor ?: BG_CLEAR_COMMAND) }
+        underlined.takeIf { it != parent?.underlined }?.let { block.appendCommand(parent?.underlined ?: CLEAR_UNDERLINE_COMMAND) }
+        bolded.takeIf { it != parent?.bolded }?.let { block.appendCommand(parent?.bolded ?: CLEAR_BOLD_COMMAND) }
+        struckThrough.takeIf { it != parent?.struckThrough }?.let { block.appendCommand(parent?.struckThrough ?: CLEAR_STRIKETHROUGH_COMMAND) }
+        inverted.takeIf { it != parent?.inverted }?.let { block.appendCommand(parent?.inverted ?: CLEAR_INVERT_COMMAND) }
     }
 }

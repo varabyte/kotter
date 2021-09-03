@@ -7,7 +7,7 @@ import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
 
 fun RenderScope.textLine() {
-    val activeBgColor = state.bgColorRecursive
+    val activeBgColor = state.bgColor
     if (activeBgColor != null) {
         // In some terminals, if you have a background color enabled, and you append a newline, the background color
         // extends to the end of the next line. This looks awful, as if the background color is leaking, and
