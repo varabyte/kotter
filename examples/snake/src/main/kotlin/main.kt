@@ -8,6 +8,9 @@ import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.text.ColorLayer.BG
 import com.varabyte.konsole.foundation.timer.addTimer
 import com.varabyte.konsole.runtime.RenderScope
+import com.varabyte.konsole.terminal.SystemTerminal
+import com.varabyte.konsole.terminal.VirtualTerminal
+import java.awt.Dimension
 import java.time.Duration
 import kotlin.random.Random
 
@@ -132,7 +135,9 @@ class Snake(private val level: Level, val head: Pt) {
 
 fun Snake.isBody(pt: Pt) = !isHead(pt) && !isTail(pt) && contains(pt)
 
-fun main() = konsoleApp {
+fun main() = konsoleApp(terminal = SystemTerminal.or {
+  VirtualTerminal.create(terminalSize = Dimension(WIDTH, HEIGHT + 15))
+}) {
     konsole {
         textLine()
         text("Snake: "); snakeTail(); snakeBody(); snakeBody(); snakeHead(); textLine()
@@ -140,7 +145,8 @@ fun main() = konsoleApp {
         text("Wall:  "); wall(); textLine()
 
         p {
-            textLine("Press arrow keys to change direction. Hit obstacles, you DIE.")
+            textLine("Press arrow keys to change direction.")
+            textLine("Hit obstacles, you DIE.")
             textLine("Press Q to quit.")
         }
     }.run()

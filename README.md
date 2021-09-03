@@ -626,15 +626,11 @@ konsoleApp(terminal = VirtualTerminal.create()) {
 ```
 
 or if you want to keep the same behavior where you try to run a system terminal first and fall back to a virtual
-terminal later, but perhaps you want to customize the virtual terminal with different parameters:
+terminal later, but perhaps you want to customize the virtual terminal with different parameters, you can use:
 
 ```kotlin
-konsoleApp(terminal = run {
-  try {
-    SystemTerminal()
-  } catch (ex: Exception) {
-    VirtualTerminal.create(title = "My App", terminalSize = Dimension(30, 30))
-  }
+konsoleApp(terminal = SystemTerminal.or {
+  VirtualTerminal.create(title = "My App", terminalSize = Dimension(30, 30))
 }) {
   /* ... */
 }

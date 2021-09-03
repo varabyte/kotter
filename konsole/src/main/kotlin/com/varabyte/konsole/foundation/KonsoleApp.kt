@@ -6,13 +6,7 @@ import com.varabyte.konsole.terminal.SystemTerminal
 import com.varabyte.konsole.terminal.VirtualTerminal
 
 fun konsoleApp(
-    terminal: Terminal = run {
-        try {
-            SystemTerminal()
-        } catch (ex: Exception) {
-            VirtualTerminal.create()
-        }
-    },
+    terminal: Terminal = SystemTerminal.or { VirtualTerminal.create() },
     block: KonsoleApp.() -> Unit) {
     val app = KonsoleApp(terminal).apply(block)
     app.dispose()
