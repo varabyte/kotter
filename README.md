@@ -35,13 +35,13 @@ Specifically, this library helps with:
 
 ### Dependency
 
-The artifacts for this project are hosted on [JitPack.io](https://jitpack.io/), so to include Konsole in your project,
-modify your Gradle build file as follows:
+The artifacts for this project are hosted in our own artifact repository, so to include Konsole in your project, modify
+your Gradle build file as follows:
 
 ```groovy
 repositories {
   /* ... */
-  maven { url 'https://jitpack.io' }
+  maven { url 'https://us-central1-maven.pkg.dev/varabyte-repos/public' }
 }
 
 dependencies {
