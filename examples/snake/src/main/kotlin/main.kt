@@ -149,7 +149,7 @@ fun main() = konsoleApp {
     var isDead by konsoleVarOf(false)
 
     konsole {
-        blue { magenta { textLine("SCORE: ${level.snake.size - 2}") } }
+        blue(BG) { magenta { textLine("SCORE: ${level.snake.size - 2}") } }
         if (!isDead) {
             textLine()
         }
