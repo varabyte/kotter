@@ -86,7 +86,7 @@ fun main() = konsoleApp {
                 textLine("Green on blue (inverted)")
             }
             textLine("Blue on green again")
-            clearColors()
+            clearAll()
             textLine("Normal colors again")
             textLine()
         }

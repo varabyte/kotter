@@ -5,4 +5,5 @@ import com.varabyte.konsole.runtime.internal.text.MutableTextArea
 
 internal open class KonsoleCommand(val text: String) {
     open fun updateState(state: KonsoleState) {}
+    open fun isRedundantGiven(state: KonsoleState): Boolean { return false }
 }

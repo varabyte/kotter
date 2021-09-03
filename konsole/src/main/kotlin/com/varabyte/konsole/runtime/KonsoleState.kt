@@ -43,6 +43,13 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
     internal var inverted: KonsoleCommand? = parent?.inverted
         set(value) { field = value ?: parent?.inverted }
 
+    internal val isFgColorSet get() = fgColor !== parent?.fgColor
+    internal val isBgColorSet get() = bgColor !== parent?.bgColor
+    internal val isUnderlinedSet get() = underlined !== parent?.underlined
+    internal val isBoldedSet get() = bolded !== parent?.bolded
+    internal val isStruckThroughSet get() = struckThrough !== parent?.struckThrough
+    internal val isInvertedSet get() = inverted !== parent?.inverted
+
     /**
      * Given the current state of a block, issue the commands that would undo it.
      *
