@@ -46,7 +46,7 @@ repositories {
 
 dependencies {
   /* ... */
-  implementation 'com.github.varabyte:konsole:0.9.0'
+  implementation 'com.varabyte:konsole:0.9.0'
 }
 ```
 
