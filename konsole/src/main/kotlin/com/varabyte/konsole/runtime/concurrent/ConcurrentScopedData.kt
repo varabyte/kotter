@@ -59,7 +59,11 @@ class ConcurrentScopedData {
         }
     }
 
-    private val lock = ReentrantLock()
+    /**
+     * The lock used by this data, which can be used by other classes, especially those that will be added as values to
+     * this data collection, which themselves may want their state to be thread safe.
+     */
+    val lock = ReentrantLock()
     @GuardedBy("lock")
     private val activeLifecycles = mutableSetOf<Lifecycle>()
     @GuardedBy("lock")

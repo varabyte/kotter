@@ -3,9 +3,12 @@ package com.varabyte.konsole.foundation.timer
 import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import kotlinx.coroutines.*
+import net.jcip.annotations.GuardedBy
 import java.time.Duration
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
-internal class TimerManager {
+internal class TimerManager(private val lock: ReentrantLock) {
     object Key : ConcurrentScopedData.Key<TimerManager> {
         override val lifecycle = KonsoleBlock.RunScope.Lifecycle
     }
@@ -30,43 +33,48 @@ internal class TimerManager {
             return (wakeUpTime.compareTo(other.wakeUpTime)).takeIf { it != 0 } ?: return hashCode().compareTo(other.hashCode())
         }
     }
+    @GuardedBy("lock")
     private val timers = sortedSetOf<Timer>()
 
     private val job = CoroutineScope(Dispatchers.IO).launch {
         while (true) {
             delay(16)
-            val currTime = System.currentTimeMillis()
-            val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
-            timersToFire.forEach { timer ->
-                timers.remove(timer)
-                val scope = TimerScope(
-                    timer.duration,
-                    timer.repeat,
-                    Duration.ofMillis(currTime - timer.wakeUpTimeRequested),
-                    Duration.ofMillis(currTime - timer.enqueuedTime)
-                )
-                timer.callback.invoke(scope)
-                if (scope.repeat) {
-                    timer.duration = scope.duration
-                    timer.updateWakeUpTime()
-                    timers.add(timer)
+            lock.withLock {
+                val currTime = System.currentTimeMillis()
+                val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
+                timersToFire.forEach { timer ->
+                    timers.remove(timer)
+                    val scope = TimerScope(
+                        timer.duration,
+                        timer.repeat,
+                        Duration.ofMillis(currTime - timer.wakeUpTimeRequested),
+                        Duration.ofMillis(currTime - timer.enqueuedTime)
+                    )
+                    timer.callback.invoke(scope)
+                    if (scope.repeat) {
+                        timer.duration = scope.duration
+                        timer.updateWakeUpTime()
+                        timers.add(timer)
+                    }
                 }
             }
         }
     }
 
     fun addTimer(duration: Duration, repeat: Boolean = false, callback: TimerScope.() -> Unit) {
-        timers.add(Timer(duration, repeat, callback))
+        lock.withLock {
+            timers.add(Timer(duration, repeat, callback))
+        }
     }
 
     fun dispose() {
-        // Intentionally block on dispose here, to ensure we wait for any in flight timers to fire before continuing
-        runBlocking { job.cancelAndJoin() }
+        lock.withLock { timers.clear() }
+        job.cancel()
     }
 }
 
 fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, callback: TimerScope.() -> Unit) {
-    putIfAbsent(TimerManager.Key, { TimerManager() }, { timers -> timers.dispose() }) {
+    putIfAbsent(TimerManager.Key, { TimerManager(lock) }, { timers -> timers.dispose() }) {
         addTimer(duration, repeat, callback)
     }
 }
