@@ -98,12 +98,11 @@ fun main() = konsoleApp {
 
     // Instructions never need to change; output them first
     konsole {
-        p {
-            textLine("space: play/pause")
-            textLine("right: step one frame")
-            textLine("r: randomize")
-            textLine("q: quit")
-        }
+        textLine()
+        textLine("space: play/pause")
+        textLine("right: step one frame")
+        textLine("r: randomize")
+        textLine("q: quit")
     }.run()
 
     var paused by konsoleVarOf(false)
