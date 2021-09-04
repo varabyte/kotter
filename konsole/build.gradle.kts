@@ -4,6 +4,9 @@ plugins {
     signing
 }
 
+group = "com.varabyte"
+version = "0.9.0"
+
 fun shouldSign() = (findProperty("konsole.sign") as? String).toBoolean()
 fun shouldPublishToGCloud(): Boolean {
     return (findProperty("konsole.gcloud.publish") as? String).toBoolean()
@@ -28,9 +31,6 @@ repositories {
         maven { gcloudAuth() }
     }
 }
-
-group = "com.varabyte"
-version = "0.9.1"
 
 object Versions {
     object Kotlin {
