@@ -2,17 +2,7 @@ plugins {
     kotlin("jvm")
     `maven-publish`
     signing
-    id("com.google.cloud.artifactregistry.gradle-plugin") version "2.1.1"
 }
-
-val VARABYTE_REPO_URL = uri("https://us-central1-maven.pkg.dev/varabyte-repos/public")
-repositories {
-    mavenCentral()
-    maven { url = VARABYTE_REPO_URL }
-}
-
-group = "com.varabyte"
-version = "0.9.0"
 
 fun shouldSign() = (findProperty("konsole.sign") as? String).toBoolean()
 fun shouldPublishToGCloud(): Boolean {
@@ -20,11 +10,32 @@ fun shouldPublishToGCloud(): Boolean {
             && findProperty("gcloud.artifact.registry.secret") != null
 }
 
+fun MavenArtifactRepository.gcloudAuth() {
+    url = VARABYTE_REPO_URL
+    credentials {
+        username = "_json_key_base64"
+        password = findProperty("gcloud.artifact.registry.secret") as String
+    }
+    authentication {
+        create<BasicAuthentication>("basic")
+    }
+}
+
+val VARABYTE_REPO_URL = uri("https://us-central1-maven.pkg.dev/varabyte-repos/public")
+repositories {
+    mavenCentral()
+    if (shouldPublishToGCloud()) {
+        maven { gcloudAuth() }
+    }
+}
+
+group = "com.varabyte"
+version = "0.9.0"
+
 object Versions {
     object Kotlin {
         const val Couroutines = "1.5.1"
     }
-
     const val Jline = "3.20.0"
 }
 
@@ -51,16 +62,7 @@ publishing {
     publications {
         if (shouldPublishToGCloud()) {
             repositories {
-                maven {
-                    url = VARABYTE_REPO_URL
-                    credentials {
-                        username = "_json_key_base64"
-                        password = findProperty("gcloud.artifact.registry.secret") as String
-                    }
-                    authentication {
-                        create<BasicAuthentication>("basic")
-                    }
-                }
+                maven { gcloudAuth() }
             }
         }
 
