@@ -125,7 +125,12 @@ class KonsoleBlock internal constructor(
 
             _textArea.clear()
             app.data.start(RenderScope.Lifecycle)
-            RenderScope(self).apply(block)
+            RenderScope(self).apply {
+                block()
+                // Create a dummy empty state and apply it to clear all state as we exit this block. This ensures that
+                // repaint passes don't carry state leftover from its end back to the beginning.
+                KonsoleState(state).applyTo(block)
+            }
             app.data.stop(RenderScope.Lifecycle)
 
             if (textArea.toRawText().lastOrNull() != '\n') {
