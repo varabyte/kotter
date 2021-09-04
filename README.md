@@ -18,6 +18,8 @@ konsoleApp {
 }
 ```
 
+![Code sample in action](docs/assets/readme/konsole-input.gif)
+
 ---
 
 Konsole aims to be a relatively thin, declarative, Kotlin-idiomatic API that provides useful functionality for writing
