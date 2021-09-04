@@ -71,8 +71,8 @@ internal class SgrCodeToAttrModifiers(val defaultForeground: Color, val defaultB
     operator fun get(sgrCode: Ansi.Csi.Code) = SGR_CODE_TO_ATTR_MODIFIER[sgrCode]
 
     private fun MutableAttributeSet.invertColors() {
-        val prevFg = StyleConstants.getForeground(this)
-        val prevBg = StyleConstants.getBackground(this)
+        val prevFg = getInverseAwareForeground()
+        val prevBg = getInverseAwareBackground()
         StyleConstants.setForeground(this, prevBg)
         StyleConstants.setBackground(this, prevFg)
     }
@@ -91,6 +91,20 @@ internal class SgrCodeToAttrModifiers(val defaultForeground: Color, val defaultB
         }
         else {
             StyleConstants.setBackground(this, color)
+        }
+    }
+    private fun MutableAttributeSet.getInverseAwareForeground(): Color {
+        return if (getAttribute(Inverted) == true) {
+            getAttribute(StyleConstants.Background) as? Color ?: defaultBackground
+        } else {
+            getAttribute(StyleConstants.Foreground) as? Color ?: defaultForeground
+        }
+    }
+    private fun MutableAttributeSet.getInverseAwareBackground(): Color {
+        return if (getAttribute(Inverted) == true) {
+            getAttribute(StyleConstants.Foreground) as? Color ?: defaultForeground
+        } else {
+            getAttribute(StyleConstants.Background) as? Color ?: defaultBackground
         }
     }
 }
