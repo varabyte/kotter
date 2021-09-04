@@ -52,7 +52,7 @@ dependencies {
 
 ### Running examples
 
-If you've cloned this respository, examples are located under the [examples](examples) folder. To try one of them, you
+If you've cloned this repository, examples are located under the [examples](examples) folder. To try one of them, you
 can navigate into it on the command line and run it via Gradle.
 
 ```bash
