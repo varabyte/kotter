@@ -14,7 +14,7 @@ import com.varabyte.konsole.runtime.internal.text.readInt
 internal object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
     object CtrlChars {
-        const val BACKSPACE = '\u0008'
+        const val BACKSPACE = '\u007F'
         const val ENTER = '\u000D'
         const val ESC = '\u001B'
     }
