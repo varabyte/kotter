@@ -11,7 +11,6 @@ import com.varabyte.konsole.runtime.RenderScope
 import com.varabyte.konsole.terminal.SystemTerminal
 import com.varabyte.konsole.terminal.VirtualTerminal
 import java.awt.Dimension
-import java.time.Duration
 import kotlin.random.Random
 
 private const val WIDTH = 60
@@ -180,27 +179,24 @@ fun main() = konsoleApp(terminal = SystemTerminal.or {
         }
     }.runUntilKeyPressed(Keys.Q) {
         fun initGameState(level: Level) {
-            var firstMove = true
             var currTickMs = 0L
             var moveTickMs = 250L
-            level.snake.onMoved = {
-                if (firstMove) {
-                    addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
-                        currTickMs += elapsed.toMillis()
-                        if (currTickMs >= moveTickMs) {
-                            level.snake.move() // As a side effect, will reset currTickMs
-                        }
-                        repeat = !isDead
+            val snake = level.snake
+            snake.onMoved = {
+                addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true, key = snake) {
+                    currTickMs += elapsed.toMillis()
+                    if (currTickMs >= moveTickMs) {
+                        snake.move() // As a side effect, will reset currTickMs
                     }
-                    firstMove = false
+                    repeat = !isDead
                 }
                 currTickMs = 0 // Could have been triggered by timer OR user pressing a key
                 rerender()
             }
-            level.snake.onAteFood = {
+            snake.onAteFood = {
                 moveTickMs = (moveTickMs - 10).coerceAtLeast(40)
             }
-            level.snake.onDied = {
+            snake.onDied = {
                 isDead = true
             }
         }

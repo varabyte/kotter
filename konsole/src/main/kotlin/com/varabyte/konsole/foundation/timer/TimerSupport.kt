@@ -13,7 +13,7 @@ internal class TimerManager(private val lock: ReentrantLock) {
         override val lifecycle = KonsoleBlock.RunScope.Lifecycle
     }
 
-    private class Timer(var duration: Duration, val repeat: Boolean, val callback: TimerScope.() -> Unit): Comparable<Timer> {
+    private class Timer(var duration: Duration, val repeat: Boolean, val key: Any?, val callback: TimerScope.() -> Unit): Comparable<Timer> {
         val enqueuedTime = System.currentTimeMillis()
         var wakeUpTimeRequested = 0L
         var wakeUpTime = 0L
@@ -33,6 +33,7 @@ internal class TimerManager(private val lock: ReentrantLock) {
             return (wakeUpTime.compareTo(other.wakeUpTime)).takeIf { it != 0 } ?: return hashCode().compareTo(other.hashCode())
         }
     }
+
     @GuardedBy("lock")
     private val timers = sortedSetOf<Timer>()
 
@@ -43,7 +44,6 @@ internal class TimerManager(private val lock: ReentrantLock) {
                 val currTime = System.currentTimeMillis()
                 val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
                 timersToFire.forEach { timer ->
-                    timers.remove(timer)
                     val scope = TimerScope(
                         timer.duration,
                         timer.repeat,
@@ -54,16 +54,20 @@ internal class TimerManager(private val lock: ReentrantLock) {
                     if (scope.repeat) {
                         timer.duration = scope.duration
                         timer.updateWakeUpTime()
-                        timers.add(timer)
+                    }
+                    else {
+                        timers.remove(timer)
                     }
                 }
             }
         }
     }
 
-    fun addTimer(duration: Duration, repeat: Boolean = false, callback: TimerScope.() -> Unit) {
+    fun addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit) {
         lock.withLock {
-            timers.add(Timer(duration, repeat, callback))
+            if (key == null || timers.none { timer -> key == timer.key }) {
+                timers.add(Timer(duration, repeat, key, callback))
+            }
         }
     }
 
@@ -73,9 +77,15 @@ internal class TimerManager(private val lock: ReentrantLock) {
     }
 }
 
-fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, callback: TimerScope.() -> Unit) {
+/**
+ * See [KonsoleBlock.RunScope.addTimer].
+ *
+ * This version is the same thing but which works directly on the underlying [ConcurrentScopedData] store, making it
+ * a useful helper method for other internal methods to use.
+ */
+fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, key: Any? = null, callback: TimerScope.() -> Unit) {
     putIfAbsent(TimerManager.Key, { TimerManager(lock) }, { timers -> timers.dispose() }) {
-        addTimer(duration, repeat, callback)
+        addTimer(duration, repeat, key, callback)
     }
 }
 
@@ -96,8 +106,10 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Durat
  *   on later calls by settings [TimerScope.duration] inside your callback.
  * @param repeat If true, repeat this timer indefinitely. You can set [TimerScope.repeat] to false inside your callback
  *   to stop an indefinitely repeating timer.
+ * @param key A value to uniquely identify this timer. If set, any followup calls to [addTimer] will be ignored, unless
+ *   the previous timer with this key finished running.
  * @param callback Logic to trigger every time the timer runs.
  */
-fun KonsoleBlock.RunScope.addTimer(duration: Duration, repeat: Boolean = false, callback: TimerScope.() -> Unit) {
-    data.addTimer(duration, repeat, callback)
+fun KonsoleBlock.RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit, ) {
+    data.addTimer(duration, repeat, key, callback)
 }

@@ -7,20 +7,6 @@ import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import java.time.Duration
 
-private object AnimSetKey : ConcurrentScopedData.Key<MutableSet<KonsoleAnim>> {
-    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
-}
-
-private fun ConcurrentScopedData.prepareAnim(anim: KonsoleAnim) {
-    putIfAbsent(AnimSetKey, { mutableSetOf() }) {
-        if (this.add(anim)) {
-            addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
-                anim.elapse(duration)
-            }
-        }
-    }
-}
-
 class KonsoleAnim internal constructor(private val app: KonsoleApp, val template: Template): CharSequence {
     companion object {
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
@@ -49,7 +35,7 @@ class KonsoleAnim internal constructor(private val app: KonsoleApp, val template
      * it hasn't already been done so.
      */
     private fun <R> readProperty(block: () -> R): R {
-        app.data.prepareAnim(this)
+        app.data.addTimer(ONE_FRAME_60FPS, repeat = true, key = this) { elapse(duration) }
         return block()
     }
 
