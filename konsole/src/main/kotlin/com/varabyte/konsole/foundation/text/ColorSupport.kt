@@ -230,6 +230,20 @@ fun RenderScope.white(
     }
 }
 
+fun RenderScope.clearColor(colorLayer: ColorLayer = ColorLayer.FG, scopedBlock: KonsoleBlock.() -> Unit) {
+    scopedState {
+        clearColor(colorLayer)
+        scopedBlock()
+    }
+}
+
+fun RenderScope.clearColors(scopedBlock: KonsoleBlock.() -> Unit) {
+    scopedState {
+        clearColors()
+        scopedBlock()
+    }
+}
+
 fun RenderScope.invert(scopedBlock: KonsoleBlock.() -> Unit) {
     scopedState {
         invert()
