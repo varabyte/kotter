@@ -23,6 +23,11 @@ class SystemTerminal : Terminal {
         }
     }
 
+    init {
+        // TODO(#47): Windows currently not supported
+        require(!System.getProperty("os.name").lowercase().contains("windows"))
+    }
+
     private var previousCursorSetting: InfoCmp.Capability
     private val previousOut = System.out
     private val previousErr = System.err
