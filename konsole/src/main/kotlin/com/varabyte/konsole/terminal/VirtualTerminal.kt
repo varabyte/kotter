@@ -25,6 +25,33 @@ import javax.swing.border.EmptyBorder
 import javax.swing.text.Document
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
+import com.varabyte.konsole.foundation.text.Color as AnsiColor
+
+class TerminalSize(val width: Int, val height: Int) {
+    init {
+        require(width >= 1 && height >= 1) { "TerminalSize values must both be positive. Got: $width, $height"}
+    }
+}
+
+private val ANSI_TO_SWING_COLORS = mapOf(
+    AnsiColor.BLACK to Color.DARK_GRAY,
+    AnsiColor.RED to Color.RED.darker(),
+    AnsiColor.GREEN to Color.GREEN.darker(),
+    AnsiColor.YELLOW to Color.YELLOW.darker(),
+    AnsiColor.BLUE to Color.BLUE.darker(),
+    AnsiColor.MAGENTA to Color.MAGENTA.darker(),
+    AnsiColor.CYAN to Color.CYAN.darker(),
+    AnsiColor.WHITE to Color.LIGHT_GRAY,
+    AnsiColor.BRIGHT_BLACK to Color.BLACK,
+    AnsiColor.BRIGHT_RED to Color.RED,
+    AnsiColor.BRIGHT_GREEN to Color.GREEN,
+    AnsiColor.BRIGHT_YELLOW to Color.YELLOW,
+    AnsiColor.BRIGHT_BLUE to Color.BLUE,
+    AnsiColor.BRIGHT_MAGENTA to Color.MAGENTA,
+    AnsiColor.BRIGHT_CYAN to Color.CYAN,
+    AnsiColor.BRIGHT_WHITE to Color.WHITE,
+)
+fun AnsiColor.toSwingColor(): Color = ANSI_TO_SWING_COLORS.getValue(this)
 
 class VirtualTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
     companion object {
@@ -35,13 +62,13 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
          */
         fun create(
             title: String = "Virtual Terminal",
-            terminalSize: Dimension = Dimension(100, 40),
+            terminalSize: TerminalSize = TerminalSize(100, 40),
             fontSize: Int = 16,
-            fgColor: Color = Color.LIGHT_GRAY,
-            bgColor: Color = Color.DARK_GRAY,
+            fgColor: AnsiColor = AnsiColor.WHITE,
+            bgColor: AnsiColor = AnsiColor.BLACK,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
-            val pane = SwingTerminalPane(fontSize, fgColor, bgColor)
+            val pane = SwingTerminalPane(fontSize, fgColor.toSwingColor(), bgColor.toSwingColor())
             pane.text = buildString {
                 // Set initial text to a block of blank characters so pack will set it to the right size
                 for (h in 0 until terminalSize.height) {
@@ -60,8 +87,8 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
 
                 frame.contentPane.add(JScrollPane(terminal.pane).apply {
                     border = EmptyBorder(5, 5, 5, 5)
-                    foreground = fgColor
-                    background = bgColor
+                    foreground = fgColor.toSwingColor()
+                    background = bgColor.toSwingColor()
                 })
                 frame.pack()
                 frame.setLocationRelativeTo(null)

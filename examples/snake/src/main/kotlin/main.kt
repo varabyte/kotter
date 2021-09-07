@@ -9,6 +9,7 @@ import com.varabyte.konsole.foundation.text.ColorLayer.BG
 import com.varabyte.konsole.foundation.timer.addTimer
 import com.varabyte.konsole.runtime.RenderScope
 import com.varabyte.konsole.terminal.SystemTerminal
+import com.varabyte.konsole.terminal.TerminalSize
 import com.varabyte.konsole.terminal.VirtualTerminal
 import java.awt.Dimension
 import kotlin.random.Random
@@ -135,7 +136,7 @@ class Snake(private val level: Level, val head: Pt) {
 fun Snake.isBody(pt: Pt) = !isHead(pt) && !isTail(pt) && contains(pt)
 
 fun main() = konsoleApp(terminal = SystemTerminal.or {
-  VirtualTerminal.create(terminalSize = Dimension(WIDTH, HEIGHT + 15))
+  VirtualTerminal.create(terminalSize = TerminalSize(WIDTH, HEIGHT + 15))
 }) {
     konsole {
         textLine()
@@ -155,6 +156,7 @@ fun main() = konsoleApp(terminal = SystemTerminal.or {
 
     konsole {
         blue(BG) { magenta { textLine("SCORE: ${level.snake.size - 2}") } }
+        black(BG)
         if (!isDead) {
             textLine()
         }
@@ -162,7 +164,6 @@ fun main() = konsoleApp(terminal = SystemTerminal.or {
             red { textLine("You are dead. Press R to restart.") }
         }
 
-        black(BG)
         for (y in 0 until HEIGHT) {
             for (x in 0 until WIDTH) {
                 val pt = Pt(x, y)

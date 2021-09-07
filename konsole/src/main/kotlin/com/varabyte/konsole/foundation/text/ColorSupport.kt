@@ -2,11 +2,31 @@ package com.varabyte.konsole.foundation.text
 
 import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.RenderScope
+import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.internal.ansi.commands.*
 
 enum class ColorLayer {
     FG,
     BG
+}
+
+enum class Color {
+    BLACK,
+    RED,
+    GREEN,
+    YELLOW,
+    BLUE,
+    MAGENTA,
+    CYAN,
+    WHITE,
+    BRIGHT_BLACK,
+    BRIGHT_RED,
+    BRIGHT_GREEN,
+    BRIGHT_YELLOW,
+    BRIGHT_BLUE,
+    BRIGHT_MAGENTA,
+    BRIGHT_CYAN,
+    BRIGHT_WHITE;
 }
 
 private fun toBlackCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
@@ -79,6 +99,27 @@ fun RenderScope.cyan(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean =
 
 fun RenderScope.white(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toWhiteCommand(colorLayer, isBright))
+}
+
+fun RenderScope.color(color: Color, colorLayer: ColorLayer = ColorLayer.FG) {
+    applyCommand(when (color) {
+        Color.BLACK -> toBlackCommand(colorLayer, false)
+        Color.RED -> toRedCommand(colorLayer, false)
+        Color.GREEN -> toGreenCommand(colorLayer, false)
+        Color.YELLOW -> toYellowCommand(colorLayer, false)
+        Color.BLUE -> toBlueCommand(colorLayer, false)
+        Color.MAGENTA -> toMagentaCommand(colorLayer, false)
+        Color.CYAN -> toCyanCommand(colorLayer, false)
+        Color.WHITE -> toWhiteCommand(colorLayer, false)
+        Color.BRIGHT_BLACK -> toBlackCommand(colorLayer, true)
+        Color.BRIGHT_RED -> toRedCommand(colorLayer, true)
+        Color.BRIGHT_GREEN -> toGreenCommand(colorLayer, true)
+        Color.BRIGHT_YELLOW -> toYellowCommand(colorLayer, true)
+        Color.BRIGHT_BLUE -> toBlueCommand(colorLayer, true)
+        Color.BRIGHT_MAGENTA -> toMagentaCommand(colorLayer, true)
+        Color.BRIGHT_CYAN -> toCyanCommand(colorLayer, true)
+        Color.BRIGHT_WHITE -> toWhiteCommand(colorLayer, true)
+    })
 }
 
 fun RenderScope.clearColor(colorLayer: ColorLayer = ColorLayer.FG) {
