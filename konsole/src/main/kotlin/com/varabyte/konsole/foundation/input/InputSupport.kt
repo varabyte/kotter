@@ -269,7 +269,7 @@ fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
     }
 }
 
-fun KonsoleBlock.runUntilKeyPressed(vararg keys: Key, block: suspend KonsoleBlock.RunScope.() -> Unit) {
+fun KonsoleBlock.runUntilKeyPressed(vararg keys: Key, block: suspend KonsoleBlock.RunScope.() -> Unit = {}) {
     runUntilSignal {
         data.prepareOnKeyPressed(this.block.app.terminal)
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) signal() }
@@ -307,7 +307,7 @@ fun KonsoleBlock.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Uni
     }
 }
 
-fun KonsoleBlock.runUntilInputEntered(block: suspend KonsoleBlock.RunScope.() -> Unit) {
+fun KonsoleBlock.runUntilInputEntered(block: suspend KonsoleBlock.RunScope.() -> Unit = {}) {
     runUntilSignal {
         data[SystemInputEnteredCallbackKey] = { signal() }
         block()
