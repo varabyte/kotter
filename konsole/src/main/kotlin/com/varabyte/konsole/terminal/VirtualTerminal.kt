@@ -64,8 +64,8 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             title: String = "Virtual Terminal",
             terminalSize: TerminalSize = TerminalSize(100, 40),
             fontSize: Int = 16,
-            fgColor: AnsiColor = AnsiColor.BRIGHT_WHITE,
-            bgColor: AnsiColor = AnsiColor.BRIGHT_BLACK,
+            fgColor: AnsiColor = AnsiColor.WHITE,
+            bgColor: AnsiColor = AnsiColor.BLACK,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
             val pane = SwingTerminalPane(fontSize, fgColor.toSwingColor(), bgColor.toSwingColor())
