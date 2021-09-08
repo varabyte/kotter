@@ -71,7 +71,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
 /** State needed to support the `input()` function */
 private class InputState {
     object Key : ConcurrentScopedData.Key<InputState> {
-        override val lifecycle = KonsoleBlock.RunScope.Lifecycle
+        override val lifecycle = KonsoleBlock.Lifecycle
     }
     companion object {
         private const val BLINKING_DURATION_MS = 500
