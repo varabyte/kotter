@@ -2,8 +2,7 @@ package com.varabyte.konsole.foundation.input
 
 import com.varabyte.konsole.foundation.anim.KonsoleAnim
 import com.varabyte.konsole.foundation.runUntilSignal
-import com.varabyte.konsole.foundation.text.invert
-import com.varabyte.konsole.foundation.text.text
+import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.timer.addTimer
 import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
@@ -207,20 +206,57 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
     )
 }
 
-fun RenderScope.input() {
-    data.prepareInput(this)
+interface InputCompleter {
+    /**
+     * Given some [input], return a suffix that should complete it, or null if the string does not have a matching
+     * completion.
+     *
+     * For example, for "y", you might return "es"
+     */
+    fun complete(input: String): String?
 
-    val self = this
+    val color: Color get() = Color.BRIGHT_BLACK
+}
+
+/**
+ * A default [InputCompleter] that provides completions given a list of values.
+ *
+ * If there are multiple matches, e.g. "Colorado" and "Connecticut" for "co", the item earlier in the list will be
+ * suggested as the completion.
+ */
+open class Completions(private vararg val values: String, private val ignoreCase: Boolean = true) : InputCompleter {
+    override fun complete(input: String): String? {
+        return values.firstOrNull { value ->
+            value.startsWith(input, ignoreCase)
+        }?.substring(input.length)
+    }
+}
+
+private object CompleterKey : ConcurrentScopedData.Key<InputCompleter> {
+    override val lifecycle = RenderScope.Lifecycle
+}
+
+
+fun RenderScope.input(completer: InputCompleter? = null) {
+    data.prepareInput(this)
+    completer?.let { data[CompleterKey] = it }
+
     data.get(InputState.Key) {
-        for (i in 0 until index) {
-            self.text(text[i])
-        }
-        scopedState {
-            if (blinkOn) invert()
-            self.text(text.elementAtOrNull(index) ?: ' ')
-        }
-        for (i in (index + 1)..text.lastIndex) {
-            self.text(text[i])
+        val completion = completer?.complete(text) ?: ""
+        // Note: Trailing space as cursor can be put AFTER last character
+        val finalText = "$text$completion "
+
+        for (i in finalText.indices) {
+            if (i == text.length && completer != null && completion.isNotEmpty()) {
+                color(completer.color)
+            }
+            if (i == index && blinkOn) {
+                invert()
+            }
+            text(finalText[i])
+            if (i == index && blinkOn) {
+                clearInvert()
+            }
         }
     }
 }

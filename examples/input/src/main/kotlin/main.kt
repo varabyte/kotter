@@ -1,3 +1,4 @@
+import com.varabyte.konsole.foundation.input.Completions
 import com.varabyte.konsole.foundation.input.input
 import com.varabyte.konsole.foundation.input.onInputEntered
 import com.varabyte.konsole.foundation.input.runUntilInputEntered
@@ -12,7 +13,7 @@ fun main() = konsoleApp {
     konsole {
         textLine("Would you like to learn Konsole? (Y/n)")
         text("> ")
-        input()
+        input(Completions("yes", "no"))
         if (wantsToLearn) {
             p { textLine("""\(^o^)/""") }
         }
