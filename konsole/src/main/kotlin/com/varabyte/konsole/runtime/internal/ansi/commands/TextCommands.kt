@@ -10,7 +10,9 @@ import com.varabyte.konsole.runtime.internal.KonsoleCommand
  */
 internal open class KonsoleTextCommand(text: String) : KonsoleCommand(text) {
     override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
-        state.applyTo(block)
+        if (text != "\n") {
+            state.applyTo(block)
+        }
         super.applyTo(state, block)
     }
 }

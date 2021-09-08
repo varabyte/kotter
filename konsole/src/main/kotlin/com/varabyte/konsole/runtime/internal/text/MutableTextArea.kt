@@ -29,6 +29,6 @@ internal class MutableTextArea : TextArea {
     }
 
     override fun toString(): String {
-        return commands.joinToString("") {it.text }
+        return commands.joinToString("") { it.text }
     }
 }
