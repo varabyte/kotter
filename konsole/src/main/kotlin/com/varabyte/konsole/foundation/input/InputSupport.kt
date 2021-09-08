@@ -259,16 +259,18 @@ fun RenderScope.input(completer: InputCompleter? = null) {
         // Note: Trailing space as cursor can be put AFTER last character
         val finalText = "$text$completion "
 
-        for (i in finalText.indices) {
-            if (i == text.length && completer != null && completion.isNotEmpty()) {
-                color(completer.color)
-            }
-            if (i == index && blinkOn) {
-                invert()
-            }
-            text(finalText[i])
-            if (i == index && blinkOn) {
-                clearInvert()
+        scopedState { // Make sure color changes don't leak
+            for (i in finalText.indices) {
+                if (i == text.length && completer != null && completion.isNotEmpty()) {
+                    color(completer.color)
+                }
+                if (i == index && blinkOn) {
+                    invert()
+                }
+                text(finalText[i])
+                if (i == index && blinkOn) {
+                    clearInvert()
+                }
             }
         }
     }
