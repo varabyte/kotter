@@ -8,7 +8,7 @@ konsoleApp {
   konsole {
     textLine("Would you like to learn Konsole? (Y/n)")
     text("> ")
-    input()
+    input(Completions("yes", "no"))
     if (wantsToLearn) {
       p { textLine("""\(^o^)/""") }
     }
