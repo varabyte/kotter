@@ -156,7 +156,20 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                         var proposedIndex: Int? = null
                         when (key) {
                             Keys.LEFT -> index = (index - 1).coerceAtLeast(0)
-                            Keys.RIGHT -> index = (index + 1).coerceAtMost(text.length)
+                            Keys.RIGHT -> {
+                                if (index < text.length) {
+                                    index++
+                                }
+                                else {
+                                    get(CompleterKey) {
+                                        complete(text)?.let { completion ->
+                                            val finalText = text + completion
+                                            proposedText = finalText
+                                            proposedIndex = finalText.length
+                                        }
+                                    }
+                                }
+                            }
                             Keys.HOME -> index = 0
                             Keys.END -> index = text.length
                             Keys.DELETE -> {
@@ -233,7 +246,7 @@ open class Completions(private vararg val values: String, private val ignoreCase
 }
 
 private object CompleterKey : ConcurrentScopedData.Key<InputCompleter> {
-    override val lifecycle = RenderScope.Lifecycle
+    override val lifecycle = KonsoleBlock.Lifecycle
 }
 
 
