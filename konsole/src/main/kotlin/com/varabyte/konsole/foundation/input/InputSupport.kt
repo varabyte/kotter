@@ -186,8 +186,15 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                             }
 
                             Keys.ENTER -> {
-                                get(InputEnteredCallbackKey) { this.invoke(OnInputEnteredScope(text)) }
-                                get(SystemInputEnteredCallbackKey) { this.invoke() }
+                                var rejected = false
+                                get(InputEnteredCallbackKey) {
+                                    val onInputEnteredScope = OnInputEnteredScope(text)
+                                    this.invoke(onInputEnteredScope)
+                                    rejected = onInputEnteredScope.rejected
+                                }
+                                if (!rejected) {
+                                    get(SystemInputEnteredCallbackKey) { this.invoke() }
+                                }
                             }
                             else ->
                                 if (key is CharKey) {
@@ -198,10 +205,10 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
 
                         if (proposedText != null) {
                             get(InputChangedCallbacksKey) {
-                                val scope = OnInputChangedScope(input = proposedText!!, prevInput = text)
-                                forEach { callback -> scope.callback() }
+                                val onInputChangedScope = OnInputChangedScope(input = proposedText!!, prevInput = text)
+                                forEach { callback -> onInputChangedScope.callback() }
 
-                                proposedText = if (!scope.rejected) scope.input else scope.prevInput
+                                proposedText = if (!onInputChangedScope.rejected) onInputChangedScope.input else onInputChangedScope.prevInput
                             }
 
                             text = proposedText!!
@@ -340,7 +347,10 @@ fun KonsoleBlock.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Uni
     data.putIfAbsent(InputChangedCallbacksKey, provideInitialValue = { mutableListOf() }) { add(listener) }
 }
 
-class OnInputEnteredScope(val input: String)
+class OnInputEnteredScope(val input: String) {
+    internal var rejected = false
+    fun rejectInput() { rejected = true }
+}
 private object InputEnteredCallbackKey : ConcurrentScopedData.Key<OnInputEnteredScope.() -> Unit> {
     override val lifecycle = KonsoleBlock.RunScope.Lifecycle
 }
