@@ -156,7 +156,6 @@ fun main() = konsoleApp(terminal = SystemTerminal.or {
 
     konsole {
         blue(BG) { magenta { textLine("SCORE: ${level.snake.size - 2}") } }
-        black(BG)
         if (!isDead) {
             textLine()
         }
@@ -164,6 +163,7 @@ fun main() = konsoleApp(terminal = SystemTerminal.or {
             red { textLine("You are dead. Press R to restart.") }
         }
 
+        black(BG)
         for (y in 0 until HEIGHT) {
             for (x in 0 until WIDTH) {
                 val pt = Pt(x, y)

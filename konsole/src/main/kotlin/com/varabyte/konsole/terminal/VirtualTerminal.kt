@@ -34,7 +34,7 @@ class TerminalSize(val width: Int, val height: Int) {
 }
 
 private val ANSI_TO_SWING_COLORS = mapOf(
-    AnsiColor.BLACK to Color.DARK_GRAY,
+    AnsiColor.BLACK to Color.BLACK,
     AnsiColor.RED to Color.RED.darker(),
     AnsiColor.GREEN to Color.GREEN.darker(),
     AnsiColor.YELLOW to Color.YELLOW.darker(),
@@ -42,7 +42,7 @@ private val ANSI_TO_SWING_COLORS = mapOf(
     AnsiColor.MAGENTA to Color.MAGENTA.darker(),
     AnsiColor.CYAN to Color.CYAN.darker(),
     AnsiColor.WHITE to Color.LIGHT_GRAY,
-    AnsiColor.BRIGHT_BLACK to Color.BLACK,
+    AnsiColor.BRIGHT_BLACK to Color.DARK_GRAY,
     AnsiColor.BRIGHT_RED to Color.RED,
     AnsiColor.BRIGHT_GREEN to Color.GREEN,
     AnsiColor.BRIGHT_YELLOW to Color.YELLOW,
@@ -64,8 +64,8 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             title: String = "Virtual Terminal",
             terminalSize: TerminalSize = TerminalSize(100, 40),
             fontSize: Int = 16,
-            fgColor: AnsiColor = AnsiColor.WHITE,
-            bgColor: AnsiColor = AnsiColor.BLACK,
+            fgColor: AnsiColor = AnsiColor.BRIGHT_WHITE,
+            bgColor: AnsiColor = AnsiColor.BRIGHT_BLACK,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
             val pane = SwingTerminalPane(fontSize, fgColor.toSwingColor(), bgColor.toSwingColor())
