@@ -4,6 +4,7 @@ import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
+import com.varabyte.konsole.runtime.internal.ansi.commands.RESET_COMMAND
 import com.varabyte.konsole.runtime.internal.text.MutableTextArea
 import com.varabyte.konsole.runtime.text.TextArea
 import kotlinx.coroutines.*
@@ -126,10 +127,10 @@ class KonsoleBlock internal constructor(
             _textArea.clear()
             app.data.start(RenderScope.Lifecycle)
             RenderScope(self).apply {
+                // Make sure we clear all state as we exit this block. This ensures that repaint passes don't carry
+                // state leftover from its end back to the beginning.
                 block()
-                // Create a dummy empty state and apply it to clear all state as we exit this block. This ensures that
-                // repaint passes don't carry state leftover from its end back to the beginning.
-                KonsoleState(state).applyTo(block)
+                _textArea.appendCommand(RESET_COMMAND)
             }
             app.data.stop(RenderScope.Lifecycle)
 

@@ -2,6 +2,7 @@ package com.varabyte.konsole.runtime.internal.text
 
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.CharCommand
+import com.varabyte.konsole.runtime.internal.ansi.commands.KonsoleTextCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
 import com.varabyte.konsole.runtime.text.TextArea
@@ -23,7 +24,7 @@ internal class MutableTextArea : TextArea {
 
     override fun toRawText(): String {
         return commands
-            .filter { it is TextCommand || it is CharCommand || it === NEWLINE_COMMAND }
+            .filterIsInstance<KonsoleTextCommand>()
             .joinToString("") { it.text }
     }
 

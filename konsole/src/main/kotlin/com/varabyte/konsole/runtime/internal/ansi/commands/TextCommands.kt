@@ -9,7 +9,7 @@ import com.varabyte.konsole.runtime.internal.KonsoleCommand
  * already.
  */
 internal open class KonsoleTextCommand(text: String) : KonsoleCommand(text) {
-    final override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
         state.applyTo(block)
         super.applyTo(state, block)
     }
@@ -25,7 +25,7 @@ internal class TextCommand(text: CharSequence) : KonsoleTextCommand(text.toStrin
         require(!text.contains("\n")) { "Newlines should be represented by the NEWLINE_COMMAND" }
     }
 }
-internal val NEWLINE_COMMAND = object : KonsoleCommand("\n") {
+internal val NEWLINE_COMMAND = object : KonsoleTextCommand("\n") {
     override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
         // In some terminals, if you have a background color enabled, and you append a newline, the background color
         // extends to the end of the next line. This looks awful, as if the background color is leaking, and
