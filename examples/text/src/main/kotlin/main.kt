@@ -77,6 +77,18 @@ fun main() = konsoleApp {
             textLine()
         }
 
+        // Using scoped clear methods
+        scopedState {
+            blue(BG)
+            red()
+            textLine("Red on blue")
+            clearColor {
+                textLine("Default on blue")
+            }
+            textLine("Red on blue again")
+            textLine()
+        }
+
         // Inverting colors
         scopedState {
             blue()

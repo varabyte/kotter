@@ -32,17 +32,11 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
      */
     internal class Styles(val parentStyles: Styles? = null) {
         var fgColor: KonsoleCommand? = parentStyles?.fgColor
-            set(value) { field = value ?: parentStyles?.fgColor }
         var bgColor: KonsoleCommand? = parentStyles?.bgColor
-            set(value) { field = value ?: parentStyles?.bgColor }
         var underlined: KonsoleCommand? = parentStyles?.underlined
-            set(value) { field = value ?: parentStyles?.underlined}
         var bolded: KonsoleCommand? = parentStyles?.bolded
-            set(value) { field = value ?: parentStyles?.bolded}
         var struckThrough: KonsoleCommand? = parentStyles?.struckThrough
-            set(value) { field = value ?: parentStyles?.struckThrough}
         var inverted: KonsoleCommand? = parentStyles?.inverted
-            set(value) { field = value ?: parentStyles?.inverted}
     }
 
     /** Styles which are actively applied, and any text rendered right now would use them. */
