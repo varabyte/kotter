@@ -7,8 +7,8 @@ konsoleApp {
   var wantsToLearn by konsoleVarOf(false)
   konsole {
     text("Would you like to learn "); cyan { text("Konsole") }; textLine("? (Y/n)")
-    text("> ")
-    input(Completions("yes", "no"))
+    text("> "); input(Completions("yes", "no"))
+
     if (wantsToLearn) {
       yellow(isBright = true) { p { textLine("""\(^o^)/""") } }
     }
