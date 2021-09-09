@@ -1,6 +1,7 @@
 package com.varabyte.konsole.runtime
 
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
+import com.varabyte.konsole.runtime.concurrent.createKey
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
@@ -14,9 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal object ActiveBlockKey : ConcurrentScopedData.Key<KonsoleBlock> {
-    override val lifecycle = KonsoleBlock.Lifecycle
-}
+internal val ActiveBlockKey = KonsoleBlock.Lifecycle.createKey<KonsoleBlock>()
 
 class KonsoleBlock internal constructor(
     internal val app: KonsoleApp,

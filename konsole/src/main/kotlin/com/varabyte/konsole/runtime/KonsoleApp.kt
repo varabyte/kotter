@@ -11,9 +11,9 @@ class KonsoleApp internal constructor(internal val terminal: Terminal) {
      * This lifecycle can be used for storing data that should live across multiple blocks.
      */
     object Lifecycle : ConcurrentScopedData.Lifecycle
+    val data = ConcurrentScopedData()
 
     internal val executor = KonsoleExecutor
-    internal val data = ConcurrentScopedData()
     internal val activeBlock: KonsoleBlock? get() = data[ActiveBlockKey]
 
     init {

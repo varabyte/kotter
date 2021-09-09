@@ -8,6 +8,7 @@ import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.RenderScope
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
+import com.varabyte.konsole.runtime.concurrent.createKey
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.terminal.Terminal
 import kotlinx.coroutines.*
@@ -16,13 +17,12 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.mapNotNull
 import java.time.Duration
 
-private object KeyFlowKey : ConcurrentScopedData.Key<Flow<Key>> {
-    // Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
-    // there's no reason for us to keep recreating it. It's pretty likely that if an app uses input in one block, it
-    // will use input again in others. (We can always revisit this decision later and scope this to a KonsoleBlock
-    // lifecycle)
-    override val lifecycle = KonsoleApp.Lifecycle
-}
+
+// Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
+// there's no reason for us to keep recreating it. It's pretty likely that if an app uses input in one block, it
+// will use input again in others. (We can always revisit this decision later and scope this to a KonsoleBlock
+// lifecycle)
+private val KeyFlowKey = KonsoleApp.Lifecycle.createKey<Flow<Key>>()
 
 /**
  * Create a [Flow<Key>] value which converts the ANSI values read from a terminal into Konsole's simpler abstraction
@@ -111,13 +111,8 @@ private class InputState {
     }
 }
 
-private object UpdateInputJobKey : ConcurrentScopedData.Key<Job> {
-    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
-}
-
-private object OnlyCalledOncePerRenderKey : ConcurrentScopedData.Key<Unit> {
-    override val lifecycle = RenderScope.Lifecycle
-}
+private val UpdateInputJobKey = KonsoleBlock.RunScope.Lifecycle.createKey<Job>()
+private val OnlyCalledOncePerRenderKey = RenderScope.Lifecycle.createKey<Unit>()
 
 /**
  * If necessary, instantiate data that the [input] method expects to exist.
@@ -252,10 +247,7 @@ open class Completions(private vararg val values: String, private val ignoreCase
     }
 }
 
-private object CompleterKey : ConcurrentScopedData.Key<InputCompleter> {
-    override val lifecycle = KonsoleBlock.Lifecycle
-}
-
+private val CompleterKey = KonsoleBlock.Lifecycle.createKey<InputCompleter>()
 
 fun RenderScope.input(completer: InputCompleter? = null) {
     data.prepareInput(this)
@@ -285,18 +277,12 @@ fun RenderScope.input(completer: InputCompleter? = null) {
 
 class OnKeyPressedScope(val key: Key)
 
-private object KeyPressedJobKey : ConcurrentScopedData.Key<Job> {
-    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
-}
-private object KeyPressedCallbackKey : ConcurrentScopedData.Key<OnKeyPressedScope.() -> Unit> {
-    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
-}
+private val KeyPressedJobKey = KonsoleBlock.RunScope.Lifecycle.createKey<Job>()
+private val KeyPressedCallbackKey = KonsoleBlock.RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
-private object SystemKeyPressedCallbackKey : ConcurrentScopedData.Key<OnKeyPressedScope.() -> Unit> {
-    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
-}
+private val SystemKeyPressedCallbackKey = KonsoleBlock.RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
 
 /**
  * Start running a job that collects keypresses and sends them to callbacks.
@@ -339,9 +325,7 @@ class OnInputChangedScope(var input: String, val prevInput: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
 }
-private object InputChangedCallbacksKey : ConcurrentScopedData.Key<MutableList<OnInputChangedScope.() -> Unit>> {
-    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
-}
+private val InputChangedCallbacksKey = KonsoleBlock.RunScope.Lifecycle.createKey<MutableList<OnInputChangedScope.() -> Unit>>()
 
 fun KonsoleBlock.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
     data.putIfAbsent(InputChangedCallbacksKey, provideInitialValue = { mutableListOf() }) { add(listener) }
@@ -351,9 +335,7 @@ class OnInputEnteredScope(val input: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
 }
-private object InputEnteredCallbackKey : ConcurrentScopedData.Key<OnInputEnteredScope.() -> Unit> {
-    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
-}
+private val InputEnteredCallbackKey = KonsoleBlock.RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
 
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could

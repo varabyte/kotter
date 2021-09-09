@@ -41,6 +41,11 @@ class ConcurrentScopedData {
      *
      * data[CredentialsKey] = UUID.randomUUID().toString()
      * ```
+     *
+     * For convenience, you can also create keys with the following shorthand syntax:
+     * ```
+     * val CredentialsKey = Application.Lifecycle.createKey<String>()
+     * ```
      */
     interface Lifecycle
     interface Key<T> {
@@ -199,5 +204,17 @@ class ConcurrentScopedData {
                 block((keyValues.computeIfAbsent(key) { Value(provideInitialValue(), dispose) } as Value<T>).wrapped)
             }
         }
+    }
+}
+
+/**
+ * A convenience method for creating a key when you already have the lifecycle.
+ *
+ * This often saves a few lines of code and is easier to type.
+ */
+fun <T> ConcurrentScopedData.Lifecycle.createKey(): Key<T> {
+    val self = this
+    return object : ConcurrentScopedData.Key<T> {
+        override val lifecycle = self
     }
 }
