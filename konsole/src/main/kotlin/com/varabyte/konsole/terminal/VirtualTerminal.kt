@@ -14,10 +14,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.swing.Swing
 import java.awt.*
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
+import java.awt.event.*
 import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.util.concurrent.CountDownLatch
 import javax.swing.*
@@ -125,7 +122,12 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
 
     private val Component.window get() = findAncestor<Window>()
     private val Component.scrollPane get() = findAncestor<JScrollPane>()
-    private fun BoundedRangeModel.isAtEnd() = value + extent >= maximum
+    // Note: For some reason, sometimes the text pane doesn't scroll the bar all the way to the bottom
+    private fun BoundedRangeModel.isAtEnd() = value + extent + pane.font.size >= maximum
+
+    private var listenersAdded = false
+    private var userVScrollPos: Int? = null
+    private var userHScrollPos: Int? = null
 
     override fun write(text: String) {
         runBlocking {
@@ -134,19 +136,37 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
                 // vscroll and hscroll positions. If the user has intentionally set either of those values themselves,
                 // we should fight to keep them.
                 val scrollPane = pane.scrollPane!!
+                fun updateVScrollPos() {
+                    userVScrollPos = null
+                    scrollPane.verticalScrollBar.model.let { model ->
+                        if (!model.isAtEnd()) {
+                            userVScrollPos = model.value
+                        }
+                    }
+                }
+                fun updateHScrollPos() {
+                    userHScrollPos = null
+                    scrollPane.horizontalScrollBar.model.let { model ->
+                        if (model.value > 0) {
+                            userHScrollPos = model.value
+                        }
+                    }
+                }
+                if (!listenersAdded) {
+                    scrollPane.verticalScrollBar.addAdjustmentListener { evt -> if (evt.valueIsAdjusting) updateVScrollPos() }
+                    scrollPane.horizontalScrollBar.addAdjustmentListener { evt -> if (evt.valueIsAdjusting) updateHScrollPos() }
+                    scrollPane.addMouseWheelListener { updateVScrollPos() }
 
-                val vScrollPos = scrollPane.verticalScrollBar.model.value
-                val vAtEnd = scrollPane.verticalScrollBar.model.isAtEnd()
-                val hScrollPos = scrollPane.horizontalScrollBar.model.value
-                val hAtEnd = scrollPane.horizontalScrollBar.model.isAtEnd()
+                    listenersAdded = true
+                }
 
                 pane.processAnsiText(text)
 
-                if (!vAtEnd) {
-                    launch { scrollPane.verticalScrollBar.model.value = vScrollPos }
+                userVScrollPos?.let {
+                    launch { scrollPane.verticalScrollBar.model.value = it }
                 }
-                if (!hAtEnd) {
-                    launch { scrollPane.horizontalScrollBar.model.value = hScrollPos }
+                userHScrollPos?.let {
+                    launch { scrollPane.horizontalScrollBar.model.value = it }
                 }
             }
         }
