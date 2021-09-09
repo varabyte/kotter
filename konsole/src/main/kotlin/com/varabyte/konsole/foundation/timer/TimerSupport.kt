@@ -41,8 +41,6 @@ internal class TimerManager(private val lock: ReentrantLock) {
         while (isActive) {
             delay(16)
             lock.withLock {
-                if (timers.isEmpty()) return@launch
-
                 val currTime = System.currentTimeMillis()
                 val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
                 timersToFire.forEach { timer ->
@@ -75,7 +73,10 @@ internal class TimerManager(private val lock: ReentrantLock) {
 
     fun dispose() {
         lock.withLock { timers.clear() }
-        runBlocking { job.cancelAndJoin() }
+        // Don't wait for this job - we already cleared the timers, so we know it dying is just a formality. If we try
+        // to block here waiting for it to end, we'll actually block the main thread itself (which is causing this to
+        // get disposed behind the same lock) which would cause a deadlock.
+        job.cancel()
     }
 }
 
