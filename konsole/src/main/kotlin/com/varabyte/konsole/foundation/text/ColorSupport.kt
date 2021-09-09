@@ -29,101 +29,101 @@ enum class Color {
     BRIGHT_WHITE;
 }
 
-private fun toBlackCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
+private fun toBlackCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_BLACK_BRIGHT_COMMAND else FG_BLACK_COMMAND
     ColorLayer.BG -> if (isBright) BG_BLACK_BRIGHT_COMMAND else BG_BLACK_COMMAND
 }
 
-private fun toRedCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
+private fun toRedCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_RED_BRIGHT_COMMAND else FG_RED_COMMAND
     ColorLayer.BG -> if (isBright) BG_RED_BRIGHT_COMMAND else BG_RED_COMMAND
 }
 
-private fun toGreenCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
+private fun toGreenCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_GREEN_BRIGHT_COMMAND else FG_GREEN_COMMAND
     ColorLayer.BG -> if (isBright) BG_GREEN_BRIGHT_COMMAND else BG_GREEN_COMMAND
 }
 
-private fun toYellowCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
+private fun toYellowCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_YELLOW_BRIGHT_COMMAND else FG_YELLOW_COMMAND
     ColorLayer.BG -> if (isBright) BG_YELLOW_BRIGHT_COMMAND else BG_YELLOW_COMMAND
 }
 
-private fun toBlueCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
+private fun toBlueCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_BLUE_BRIGHT_COMMAND else FG_BLUE_COMMAND
     ColorLayer.BG -> if (isBright) BG_BLUE_BRIGHT_COMMAND else BG_BLUE_COMMAND
 }
 
-private fun toMagentaCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
+private fun toMagentaCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_MAGENTA_BRIGHT_COMMAND else FG_MAGENTA_COMMAND
     ColorLayer.BG -> if (isBright) BG_MAGENTA_BRIGHT_COMMAND else BG_MAGENTA_COMMAND
 }
 
-private fun toCyanCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
+private fun toCyanCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_CYAN_BRIGHT_COMMAND else FG_CYAN_COMMAND
     ColorLayer.BG -> if (isBright) BG_CYAN_BRIGHT_COMMAND else BG_CYAN_COMMAND
 }
 
-private fun toWhiteCommand(colorLayer: ColorLayer, isBright: Boolean) = when(colorLayer) {
+private fun toWhiteCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_WHITE_BRIGHT_COMMAND else FG_WHITE_COMMAND
     ColorLayer.BG -> if (isBright) BG_WHITE_BRIGHT_COMMAND else BG_WHITE_COMMAND
 }
 
-fun RenderScope.black(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    applyCommand(toBlackCommand(colorLayer, isBright))
+fun RenderScope.black(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    applyCommand(toBlackCommand(layer, isBright))
 }
 
-fun RenderScope.red(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    applyCommand(toRedCommand(colorLayer, isBright))
+fun RenderScope.red(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    applyCommand(toRedCommand(layer, isBright))
 }
 
-fun RenderScope.green(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    applyCommand(toGreenCommand(colorLayer, isBright))
+fun RenderScope.green(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    applyCommand(toGreenCommand(layer, isBright))
 }
 
-fun RenderScope.yellow(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    applyCommand(toYellowCommand(colorLayer, isBright))
+fun RenderScope.yellow(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    applyCommand(toYellowCommand(layer, isBright))
 }
 
-fun RenderScope.blue(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    applyCommand(toBlueCommand(colorLayer, isBright))
+fun RenderScope.blue(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    applyCommand(toBlueCommand(layer, isBright))
 }
 
-fun RenderScope.magenta(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    applyCommand(toMagentaCommand(colorLayer, isBright))
+fun RenderScope.magenta(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    applyCommand(toMagentaCommand(layer, isBright))
 }
 
-fun RenderScope.cyan(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    applyCommand(toCyanCommand(colorLayer, isBright))
+fun RenderScope.cyan(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    applyCommand(toCyanCommand(layer, isBright))
 }
 
-fun RenderScope.white(colorLayer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
-    applyCommand(toWhiteCommand(colorLayer, isBright))
+fun RenderScope.white(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    applyCommand(toWhiteCommand(layer, isBright))
 }
 
-fun RenderScope.color(color: Color, colorLayer: ColorLayer = ColorLayer.FG) {
+fun RenderScope.color(color: Color, layer: ColorLayer = ColorLayer.FG) {
     applyCommand(when (color) {
-        Color.BLACK -> toBlackCommand(colorLayer, false)
-        Color.RED -> toRedCommand(colorLayer, false)
-        Color.GREEN -> toGreenCommand(colorLayer, false)
-        Color.YELLOW -> toYellowCommand(colorLayer, false)
-        Color.BLUE -> toBlueCommand(colorLayer, false)
-        Color.MAGENTA -> toMagentaCommand(colorLayer, false)
-        Color.CYAN -> toCyanCommand(colorLayer, false)
-        Color.WHITE -> toWhiteCommand(colorLayer, false)
-        Color.BRIGHT_BLACK -> toBlackCommand(colorLayer, true)
-        Color.BRIGHT_RED -> toRedCommand(colorLayer, true)
-        Color.BRIGHT_GREEN -> toGreenCommand(colorLayer, true)
-        Color.BRIGHT_YELLOW -> toYellowCommand(colorLayer, true)
-        Color.BRIGHT_BLUE -> toBlueCommand(colorLayer, true)
-        Color.BRIGHT_MAGENTA -> toMagentaCommand(colorLayer, true)
-        Color.BRIGHT_CYAN -> toCyanCommand(colorLayer, true)
-        Color.BRIGHT_WHITE -> toWhiteCommand(colorLayer, true)
+        Color.BLACK -> toBlackCommand(layer, false)
+        Color.RED -> toRedCommand(layer, false)
+        Color.GREEN -> toGreenCommand(layer, false)
+        Color.YELLOW -> toYellowCommand(layer, false)
+        Color.BLUE -> toBlueCommand(layer, false)
+        Color.MAGENTA -> toMagentaCommand(layer, false)
+        Color.CYAN -> toCyanCommand(layer, false)
+        Color.WHITE -> toWhiteCommand(layer, false)
+        Color.BRIGHT_BLACK -> toBlackCommand(layer, true)
+        Color.BRIGHT_RED -> toRedCommand(layer, true)
+        Color.BRIGHT_GREEN -> toGreenCommand(layer, true)
+        Color.BRIGHT_YELLOW -> toYellowCommand(layer, true)
+        Color.BRIGHT_BLUE -> toBlueCommand(layer, true)
+        Color.BRIGHT_MAGENTA -> toMagentaCommand(layer, true)
+        Color.BRIGHT_CYAN -> toCyanCommand(layer, true)
+        Color.BRIGHT_WHITE -> toWhiteCommand(layer, true)
     })
 }
 
-fun RenderScope.clearColor(colorLayer: ColorLayer = ColorLayer.FG) {
-    applyCommand(when(colorLayer) {
+fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG) {
+    applyCommand(when(layer) {
         ColorLayer.FG -> FG_CLEAR_COMMAND
         ColorLayer.BG -> BG_CLEAR_COMMAND
     })
@@ -143,96 +143,96 @@ fun RenderScope.clearInvert() {
 }
 
 fun RenderScope.black(
-    colorLayer: ColorLayer = ColorLayer.FG,
+    layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     scopedState {
-        black(colorLayer, isBright)
+        black(layer, isBright)
         scopedBlock()
     }
 }
 
 fun RenderScope.red(
-    colorLayer: ColorLayer = ColorLayer.FG,
+    layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     scopedState {
-        red(colorLayer, isBright)
+        red(layer, isBright)
         scopedBlock()
     }
 }
 
 fun RenderScope.green(
-    colorLayer: ColorLayer = ColorLayer.FG,
+    layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     scopedState {
-        green(colorLayer, isBright)
+        green(layer, isBright)
         scopedBlock()
     }
 }
 
 fun RenderScope.yellow(
-    colorLayer: ColorLayer = ColorLayer.FG,
+    layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     scopedState {
-        yellow(colorLayer, isBright)
+        yellow(layer, isBright)
         scopedBlock()
     }
 }
 
 fun RenderScope.blue(
-    colorLayer: ColorLayer = ColorLayer.FG,
+    layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     scopedState {
-        blue(colorLayer, isBright)
+        blue(layer, isBright)
         scopedBlock()
     }
 }
 
 fun RenderScope.cyan(
-    colorLayer: ColorLayer = ColorLayer.FG,
+    layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     scopedState {
-        cyan(colorLayer, isBright)
+        cyan(layer, isBright)
         scopedBlock()
     }
 }
 
 fun RenderScope.magenta(
-    colorLayer: ColorLayer = ColorLayer.FG,
+    layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     scopedState {
-        magenta(colorLayer, isBright)
+        magenta(layer, isBright)
         scopedBlock()
     }
 }
 
 fun RenderScope.white(
-    colorLayer: ColorLayer = ColorLayer.FG,
+    layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
     scopedBlock: KonsoleBlock.() -> Unit
 ) {
     scopedState {
-        white(colorLayer, isBright)
+        white(layer, isBright)
         scopedBlock()
     }
 }
 
-fun RenderScope.clearColor(colorLayer: ColorLayer = ColorLayer.FG, scopedBlock: KonsoleBlock.() -> Unit) {
+fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG, scopedBlock: KonsoleBlock.() -> Unit) {
     scopedState {
-        clearColor(colorLayer)
+        clearColor(layer)
         scopedBlock()
     }
 }
