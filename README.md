@@ -18,7 +18,7 @@ konsoleApp {
 }
 ```
 
-![Code sample in action](docs/assets/readme/konsole-input.gif)
+![Code sample in action](examples/input/konsole-input.gif)
 
 ---
 
