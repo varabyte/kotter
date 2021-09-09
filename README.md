@@ -107,7 +107,7 @@ You can call color methods directly, which remain in effect until the next color
 ```kotlin
 konsole {
   green(layer = BG)
-  red() // defaults to FG layer
+  red() // defaults to FG layer if no layer specified
   textLine("Red on green")
   blue()
   textLine("Blue on green")
