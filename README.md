@@ -201,7 +201,6 @@ konsole {
   if (result != null) {
     text("Done! Result = $result")
   }
-  textLine()
 }.run {
   result = doNetworkFetchAndExpensiveCalculation()
   rerender()
@@ -560,7 +559,6 @@ konsole {
   if (!finished) { text(spinnerAnim) } else { text("✓") }
   text(" Searching for files")
   if (!finished) { text(thinkingAnim) } else { text("... Done!") }
-  textLine()
 }.run {
   doExpensiveFileSearching()
   finished = true
