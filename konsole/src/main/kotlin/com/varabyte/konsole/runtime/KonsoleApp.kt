@@ -32,8 +32,12 @@ class KonsoleApp internal constructor(internal val terminal: Terminal) {
     }
 
     internal fun dispose() {
-        assertNoActiveBlocks()
-        data.stop(Lifecycle)
-        terminal.close()
+        try {
+            assertNoActiveBlocks()
+        }
+        finally {
+            data.stopAll()
+            terminal.close()
+        }
     }
 }

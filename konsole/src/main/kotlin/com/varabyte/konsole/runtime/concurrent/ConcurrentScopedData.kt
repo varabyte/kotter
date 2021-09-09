@@ -106,6 +106,19 @@ class ConcurrentScopedData {
         }
     }
 
+    /**
+     * Dispose and remove ALL keys in this data store.
+     *
+     * Of course, [stop] should be preferred, but this can be useful if handling an unrecoverable exception, for
+     * example, or if we're shutting down the whole app.
+     */
+    fun stopAll() {
+        lock.withLock {
+            // Make a copy of the list to avoid concurrent modification exception
+            activeLifecycles.toList().forEach { stop(it) }
+        }
+    }
+
     fun isActive(lifecycle: Lifecycle) = lock.withLock { activeLifecycles.contains(lifecycle) }
 
     /**

@@ -8,6 +8,11 @@ import com.varabyte.konsole.terminal.VirtualTerminal
 fun konsoleApp(
     terminal: Terminal = SystemTerminal.or { VirtualTerminal.create() },
     block: KonsoleApp.() -> Unit) {
-    val app = KonsoleApp(terminal).apply(block)
-    app.dispose()
+    val app = KonsoleApp(terminal)
+    try {
+        app.apply(block)
+    }
+    finally {
+        app.dispose()
+    }
 }
