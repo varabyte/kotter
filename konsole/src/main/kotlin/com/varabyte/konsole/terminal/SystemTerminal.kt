@@ -3,6 +3,7 @@ package com.varabyte.konsole.terminal
 import com.varabyte.konsole.runtime.terminal.Terminal
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.isActive
 import org.jline.terminal.TerminalBuilder
 import org.jline.utils.InfoCmp
 import java.io.IOException
@@ -64,17 +65,26 @@ class SystemTerminal : Terminal {
         terminal.writer().flush()
     }
 
-    override fun read(): Flow<Int> {
-        return callbackFlow {
-            while (true) {
+    private val charFlow: Flow<Int> by lazy {
+        callbackFlow {
+            var quit = false
+            while (!quit && isActive) {
                 try {
-                    trySend(terminal.reader().read())
+                    val c = terminal.reader().read(16)
+                    if (c >= 0) {
+                        trySend(c)
+                    }
+                    else {
+                        quit = (c == -1)
+                    }
                 } catch (ex: IOException) {
                     break
                 }
             }
         }
     }
+
+    override fun read(): Flow<Int> = charFlow
 
     override fun close() {
         terminal.puts(previousCursorSetting)

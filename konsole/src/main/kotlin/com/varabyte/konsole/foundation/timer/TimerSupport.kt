@@ -38,9 +38,11 @@ internal class TimerManager(private val lock: ReentrantLock) {
     private val timers = sortedSetOf<Timer>()
 
     private val job = CoroutineScope(Dispatchers.IO).launch {
-        while (true) {
+        while (isActive) {
             delay(16)
             lock.withLock {
+                if (timers.isEmpty()) return@launch
+
                 val currTime = System.currentTimeMillis()
                 val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
                 timersToFire.forEach { timer ->
@@ -73,7 +75,7 @@ internal class TimerManager(private val lock: ReentrantLock) {
 
     fun dispose() {
         lock.withLock { timers.clear() }
-        job.cancel()
+        runBlocking { job.cancelAndJoin() }
     }
 }
 

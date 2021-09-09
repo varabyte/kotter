@@ -222,7 +222,7 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                 }
             }
         },
-        dispose = { job -> job.cancel() }
+        dispose = { job -> runBlocking { job.cancelAndJoin() } }
     )
 }
 
@@ -316,7 +316,7 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
                 }
             }
         },
-        dispose = { job -> job.cancel() }
+        dispose = { job -> runBlocking { job.cancelAndJoin() } }
     )
 }
 

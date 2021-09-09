@@ -152,34 +152,38 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
         }
     }
 
-    override fun read(): Flow<Int> = callbackFlow {
-        pane.addKeyListener(object : KeyAdapter() {
-            override fun keyPressed(e: KeyEvent) {
-                val chars: CharSequence = when(e.keyCode) {
-                    KeyEvent.VK_UP -> Ansi.Csi.Codes.Keys.UP.toFullEscapeCode()
-                    KeyEvent.VK_DOWN -> Ansi.Csi.Codes.Keys.DOWN.toFullEscapeCode()
-                    KeyEvent.VK_LEFT -> Ansi.Csi.Codes.Keys.LEFT.toFullEscapeCode()
-                    KeyEvent.VK_RIGHT -> Ansi.Csi.Codes.Keys.RIGHT.toFullEscapeCode()
-                    KeyEvent.VK_HOME -> Ansi.Csi.Codes.Keys.HOME.toFullEscapeCode()
-                    KeyEvent.VK_END -> Ansi.Csi.Codes.Keys.END.toFullEscapeCode()
-                    KeyEvent.VK_DELETE -> Ansi.Csi.Codes.Keys.DELETE.toFullEscapeCode()
-                    KeyEvent.VK_ENTER -> Ansi.CtrlChars.ENTER.toString()
-                    KeyEvent.VK_BACK_SPACE -> Ansi.CtrlChars.BACKSPACE.toString()
-                    else -> e.keyChar.takeIf { it.isDefined() && it.category != CharCategory.CONTROL }?.toString() ?: ""
+    private val charFlow: Flow<Int> by lazy {
+        callbackFlow {
+            pane.addKeyListener(object : KeyAdapter() {
+                override fun keyPressed(e: KeyEvent) {
+                    val chars: CharSequence = when (e.keyCode) {
+                        KeyEvent.VK_UP -> Ansi.Csi.Codes.Keys.UP.toFullEscapeCode()
+                        KeyEvent.VK_DOWN -> Ansi.Csi.Codes.Keys.DOWN.toFullEscapeCode()
+                        KeyEvent.VK_LEFT -> Ansi.Csi.Codes.Keys.LEFT.toFullEscapeCode()
+                        KeyEvent.VK_RIGHT -> Ansi.Csi.Codes.Keys.RIGHT.toFullEscapeCode()
+                        KeyEvent.VK_HOME -> Ansi.Csi.Codes.Keys.HOME.toFullEscapeCode()
+                        KeyEvent.VK_END -> Ansi.Csi.Codes.Keys.END.toFullEscapeCode()
+                        KeyEvent.VK_DELETE -> Ansi.Csi.Codes.Keys.DELETE.toFullEscapeCode()
+                        KeyEvent.VK_ENTER -> Ansi.CtrlChars.ENTER.toString()
+                        KeyEvent.VK_BACK_SPACE -> Ansi.CtrlChars.BACKSPACE.toString()
+                        else -> e.keyChar.takeIf { it.isDefined() && it.category != CharCategory.CONTROL }?.toString()
+                            ?: ""
+                    }
+                    chars.forEach { c -> trySend(c.code) }
+                    if (chars.isNotEmpty()) e.consume()
                 }
-                chars.forEach { c -> trySend(c.code) }
-                if (chars.isNotEmpty()) e.consume()
-            }
-        })
+            })
 
-        pane.window!!.addWindowListener(object : WindowAdapter() {
-            override fun windowClosing(e: WindowEvent?) {
-                channel.close()
-            }
-        })
+            pane.window!!.addWindowListener(object : WindowAdapter() {
+                override fun windowClosing(e: WindowEvent?) {
+                    channel.close()
+                }
+            })
 
-        awaitClose()
+            awaitClose()
+        }
     }
+    override fun read(): Flow<Int> = charFlow
 
     override fun close() {
         CoroutineScope((Dispatchers.Swing)).launch {
