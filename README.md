@@ -6,11 +6,11 @@
 konsoleApp {
   var wantsToLearn by konsoleVarOf(false)
   konsole {
-    textLine("Would you like to learn Konsole? (Y/n)")
+    text("Would you like to learn "); cyan { text("Konsole") }; textLine("? (Y/n)")
     text("> ")
     input(Completions("yes", "no"))
     if (wantsToLearn) {
-      p { textLine("""\(^o^)/""") }
+      yellow(isBright = true) { p { textLine("""\(^o^)/""") } }
     }
   }.runUntilInputEntered {
     onInputEntered { wantsToLearn = "yes".startsWith(input.lowercase()) }
