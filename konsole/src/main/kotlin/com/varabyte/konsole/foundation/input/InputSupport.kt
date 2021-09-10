@@ -12,9 +12,7 @@ import com.varabyte.konsole.runtime.concurrent.createKey
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.terminal.Terminal
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.*
 import java.time.Duration
 
 
@@ -65,6 +63,9 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                 }
             }
         }
+            // We only want to collect keypresses in one place per app. Use shareIn so collecters don't spawn new flows.
+            // For example, multiple flows here would really mess with the escSeq logic
+            .shareIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily)
     }
 }
 
@@ -217,7 +218,7 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                 }
             }
         },
-        dispose = { job -> runBlocking { job.cancelAndJoin() } }
+        dispose = { job -> job.cancel() }
     )
 }
 
@@ -302,7 +303,7 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
                 }
             }
         },
-        dispose = { job -> runBlocking { job.cancelAndJoin() } }
+        dispose = { job -> job.cancel() }
     )
 }
 
