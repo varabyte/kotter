@@ -13,7 +13,7 @@ fun main() = konsoleApp {
     var x by konsoleVarOf(0)
     var y by konsoleVarOf(0)
     konsole {
-        textLine("Use arrow keys to move the face. Press “q” to exit.")
+        textLine("Use arrow keys to move the face. Press Q to quit.")
         textLine("Position: $x, $y   World: $WIDTH, $HEIGHT")
         textLine()
         textLine(buildString {
