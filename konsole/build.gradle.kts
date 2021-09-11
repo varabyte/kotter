@@ -42,7 +42,6 @@ object Versions {
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.Kotlin.Couroutines}")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:${Versions.Kotlin.Couroutines}")
 
     // For system terminal implementation
     implementation("org.jline:jline-terminal:${Versions.Jline}")

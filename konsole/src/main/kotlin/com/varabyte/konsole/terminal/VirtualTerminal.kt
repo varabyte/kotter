@@ -5,16 +5,14 @@ import com.varabyte.konsole.runtime.internal.text.TextPtr
 import com.varabyte.konsole.runtime.internal.text.substring
 import com.varabyte.konsole.runtime.terminal.Terminal
 import com.varabyte.konsole.terminal.swing.SgrCodeToAttrModifiers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.swing.Swing
 import java.awt.*
-import java.awt.event.*
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.util.concurrent.CountDownLatch
 import javax.swing.*
@@ -78,7 +76,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
 
             val terminal = VirtualTerminal(pane)
             val framePacked = CountDownLatch(1)
-            CoroutineScope((Dispatchers.Swing)).launch {
+            SwingUtilities.invokeLater {
                 val frame = JFrame(title)
                 frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
@@ -130,44 +128,43 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
     private var userHScrollPos: Int? = null
 
     override fun write(text: String) {
-        runBlocking {
-            CoroutineScope(Dispatchers.Swing).launch {
-                // Here, we update our text pane causing it to repaint, but as a side effect, this screws with the
-                // vscroll and hscroll positions. If the user has intentionally set either of those values themselves,
-                // we should fight to keep them.
-                val scrollPane = pane.scrollPane!!
-                fun updateVScrollPos() {
-                    userVScrollPos = null
-                    scrollPane.verticalScrollBar.model.let { model ->
-                        if (!model.isAtEnd()) {
-                            userVScrollPos = model.value
-                        }
+        SwingUtilities.invokeLater {
+            // Here, we update our text pane causing it to repaint, but as a side effect, this screws with the
+            // vscroll and hscroll positions. If the user has intentionally set either of those values themselves,
+            // we should fight to keep them.
+            val scrollPane = pane.scrollPane!!
+            fun updateVScrollPos() {
+                userVScrollPos = null
+                scrollPane.verticalScrollBar.model.let { model ->
+                    if (!model.isAtEnd()) {
+                        userVScrollPos = model.value
                     }
                 }
-                fun updateHScrollPos() {
-                    userHScrollPos = null
-                    scrollPane.horizontalScrollBar.model.let { model ->
-                        if (model.value > 0) {
-                            userHScrollPos = model.value
-                        }
+            }
+
+            fun updateHScrollPos() {
+                userHScrollPos = null
+                scrollPane.horizontalScrollBar.model.let { model ->
+                    if (model.value > 0) {
+                        userHScrollPos = model.value
                     }
                 }
-                if (!listenersAdded) {
-                    scrollPane.verticalScrollBar.addAdjustmentListener { evt -> if (evt.valueIsAdjusting) updateVScrollPos() }
-                    scrollPane.horizontalScrollBar.addAdjustmentListener { evt -> if (evt.valueIsAdjusting) updateHScrollPos() }
-                    scrollPane.addMouseWheelListener { updateVScrollPos() }
+            }
+            if (!listenersAdded) {
+                scrollPane.verticalScrollBar.addAdjustmentListener { evt -> if (evt.valueIsAdjusting) updateVScrollPos() }
+                scrollPane.horizontalScrollBar.addAdjustmentListener { evt -> if (evt.valueIsAdjusting) updateHScrollPos() }
+                scrollPane.addMouseWheelListener { updateVScrollPos() }
 
-                    listenersAdded = true
-                }
+                listenersAdded = true
+            }
 
-                pane.processAnsiText(text)
+            pane.processAnsiText(text)
 
-                userVScrollPos?.let {
-                    launch { scrollPane.verticalScrollBar.model.value = it }
-                }
-                userHScrollPos?.let {
-                    launch { scrollPane.horizontalScrollBar.model.value = it }
-                }
+            userVScrollPos?.let {
+                SwingUtilities.invokeLater { scrollPane.verticalScrollBar.model.value = it }
+            }
+            userHScrollPos?.let {
+                SwingUtilities.invokeLater { scrollPane.horizontalScrollBar.model.value = it }
             }
         }
     }
@@ -206,7 +203,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
     override fun read(): Flow<Int> = charFlow
 
     override fun close() {
-        CoroutineScope((Dispatchers.Swing)).launch {
+        SwingUtilities.invokeLater {
             // There should always be two newlines before this final text so this looks good. Append them
             // if they're not there!
             val prependNewlines = "\n".repeat(2 - pane.text.takeLast(2).count { it == '\n' })
