@@ -315,10 +315,11 @@ fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
 }
 
 fun KonsoleBlock.runUntilKeyPressed(vararg keys: Key, block: suspend KonsoleBlock.RunScope.() -> Unit = {}) {
-    runUntilSignal {
+    run {
         data.prepareOnKeyPressed(this.block.app.terminal)
-        data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) signal() }
+        data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) abort() }
         block()
+        CompletableDeferred<Unit>().await() // The only way out of this function is by aborting
     }
 }
 
@@ -352,8 +353,9 @@ fun KonsoleBlock.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Uni
 }
 
 fun KonsoleBlock.runUntilInputEntered(block: suspend KonsoleBlock.RunScope.() -> Unit = {}) {
-    runUntilSignal {
-        data[SystemInputEnteredCallbackKey] = { signal() }
+    run {
+        data[SystemInputEnteredCallbackKey] = { abort() }
         block()
+        CompletableDeferred<Unit>().await() // The only way out of this function is by aborting
     }
 }

@@ -46,19 +46,12 @@ class KonsoleBlock internal constructor(
          */
         val data = block.app.data
 
-        internal var onSignal: () -> Unit = {}
         private val waitLatch = CountDownLatch(1)
         /** Forcefully exit this runscope early, even if it's still in progress */
         internal fun abort() { scope.cancel() }
         fun rerender() = block.requestRerender()
-        fun waitForSignal() {
-            waitLatch.await()
-        }
-
-        fun signal() {
-            waitLatch.countDown()
-            onSignal()
-        }
+        fun waitForSignal() = waitLatch.await()
+        fun signal() = waitLatch.countDown()
     }
 
     private val _textArea = MutableTextArea()

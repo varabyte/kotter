@@ -374,10 +374,6 @@ konsole {
 }
 ```
 
-This is actually a bit more powerful than the above `run` + `waitForSignal` version, as `signal` will quit your `run`
-block even if it's still running. This could be useful if you have a forever-running while loop that should abort when
-the user or some external event indicates they should quit.
-
 ### User input
 
 #### Typed input
