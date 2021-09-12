@@ -20,7 +20,7 @@ class KonsoleApp internal constructor(internal val terminal: Terminal) {
         data.start(Lifecycle)
     }
 
-    private fun assertNoActiveBlocks() {
+    internal fun assertNoActiveBlocks() {
         check(!data.isActive(KonsoleBlock.Lifecycle)) {
             "A previous konsole block was never finished. Did you forget to call `run` on it?"
         }
@@ -32,10 +32,8 @@ class KonsoleApp internal constructor(internal val terminal: Terminal) {
     }
 
     internal fun dispose() {
-        try {
-            assertNoActiveBlocks()
-        }
-        finally {
+        // Protect against dispose being called multiple times
+        if (data.isActive(Lifecycle)) {
             data.stopAll()
             terminal.close()
         }
