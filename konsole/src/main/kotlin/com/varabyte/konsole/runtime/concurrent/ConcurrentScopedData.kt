@@ -65,8 +65,8 @@ class ConcurrentScopedData {
     }
 
     /**
-     * The lock used by this data, which can be used by other classes, especially those that will be added as values to
-     * this data collection, which themselves may want their state to be thread safe.
+     * The lock used by this data, which however is exposed so that it can be shared by other threaded logic, in order
+     * to eliminate possible deadlocks caused by multiple locks being held at the same time.
      */
     val lock = ReentrantLock()
     @GuardedBy("lock")

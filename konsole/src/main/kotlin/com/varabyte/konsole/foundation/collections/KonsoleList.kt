@@ -5,7 +5,6 @@ import com.varabyte.konsole.foundation.konsoleVarOf
 import com.varabyte.konsole.runtime.KonsoleApp
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
-import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 /**
@@ -26,18 +25,17 @@ import kotlin.concurrent.withLock
  * This class's value can be queried and modified across different values, so it is designed to be thread safe.
  */
 @ThreadSafe
-class KonsoleList<T> internal constructor(app: KonsoleApp, vararg elements: T) : MutableList<T> {
+class KonsoleList<T> internal constructor(private val app: KonsoleApp, vararg elements: T) : MutableList<T> {
     // KonsoleVar already has a lot of nice logic for updating the render block as necessary, so we delegate to it to
     // avoid reimplementing the logic here
     private var modifyCountVar by app.konsoleVarOf(0)
     private var modifyCount = 0
 
-    private val lock = ReentrantLock()
-    @GuardedBy("lock")
+    @GuardedBy("app.data.lock")
     private val delegateList = mutableListOf(*elements)
 
     private fun <R> readLock(block: () -> R): R {
-        return lock.withLock {
+        return app.data.lock.withLock {
             // Triggers KonsoleVar.getValue but not setValue (which, here, aborts early because value is the same)
             modifyCountVar = modifyCountVar
             block()
@@ -45,7 +43,7 @@ class KonsoleList<T> internal constructor(app: KonsoleApp, vararg elements: T) :
     }
 
     private fun <R> writeLock(block: () -> R): R {
-        return lock.withLock {
+        return app.data.lock.withLock {
             // Triggers KonsoleVar.setValue but not getValue
             modifyCountVar = ++modifyCount
             block()
@@ -58,7 +56,7 @@ class KonsoleList<T> internal constructor(app: KonsoleApp, vararg elements: T) :
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withLock(block: KonsoleList<T>.() -> R): R = lock.withLock { this.block() }
+    fun <R> withLock(block: KonsoleList<T>.() -> R): R = app.data.lock.withLock { this.block() }
 
     // Immutable functions
     override val size: Int get() = readLock { delegateList.size }
