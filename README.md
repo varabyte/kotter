@@ -295,8 +295,13 @@ val fileWalker = FileWalker(".")
 val fileMatches = konsoleListOf<String>()
 konsole {
   textLine("Matches found so far: ")
-  for (match in fileMatches) {
-    textLine(" - $match")
+  if (fileMatches.isNotEmpty()) {
+    for (match in fileMatches) {
+      textLine(" - $match")
+    }
+  }
+  else {
+    textLine("No matches so far...")
   }
 }.run {
   fileWalker.findFiles("*.txt") { file ->
@@ -306,31 +311,34 @@ konsole {
 }
 ```
 
-The `KonsoleList` class is thread safe, but you can still run into trouble if you check multiple values on the list one
-after the other, as a lock is released between each check, and if multiple threads are hammering on the same list at the
-same time, it's always possible that you missed an update. To handle this, you can use the `KonsoleList#withLock`
-method:
+The `KonsoleList` class is thread safe, but you can still run into trouble if you acess multiple values on the list one
+after the other, as a lock is released between each check. It's always possible that modifying the first property will
+kick off a new render which will start before the additional values are set, in other words.
+
+To handle this, you can use the `KonsoleList#withWriteLock` method:
 
 ```kotlin
-val fileMatches = konsoleListOf<String>()
+val fileWalker = FileWalker(".")
+val last10Matches = konsoleListOf<String>()
 konsole {
-  fileMatches.withLock {
-    if (isEmpty()) {
-      textLine("No matches found so far")
-    } else {
-      textLine("Matches found so far: ")
-      for (match in this) {
-        textLine(" - $match")
-      }
+  ...
+}.run {
+  fileWalker.findFiles("*.txt") { file ->
+    last10Matches.withWriteLock {
+      add(file.name)
+      if (size > 10) { removeAt(0) }
     }
   }
-}.run {
   /* ... */
+
 }
 ```
 
-The general rule of thumb is: use `withLock` if you want to access or modify more than one property from the list
-at the same time.
+The general rule of thumb is: use `withWriteLock` if you want to access or modify more than one property from the list
+at the same time within your `run` block.
+
+Note that you don't have to worry about locking within a `konsole` render pass. Data access is already locked for you in
+that context.
 
 #### Signals and waiting
 

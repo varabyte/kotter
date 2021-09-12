@@ -4,7 +4,9 @@ import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
 import net.jcip.annotations.ThreadSafe
 import java.lang.ref.WeakReference
+import kotlin.concurrent.read
 import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 import kotlin.reflect.KProperty
 
 /**
@@ -37,13 +39,13 @@ class KonsoleVar<T> internal constructor(private val app: KonsoleApp, private va
 
     private var associatedBlockRef: WeakReference<KonsoleBlock>? = null
     operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
-        return app.data.lock.withLock {
+        return app.data.lock.read {
             associatedBlockRef = app.activeBlock?.let { WeakReference(it) }
             value
         }
     }
     operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
-        app.data.lock.withLock {
+        app.data.lock.write {
             if (this.value != value) {
                 this.value = value
                 associatedBlockRef?.get()?.let { associatedBlock ->

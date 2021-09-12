@@ -5,10 +5,10 @@ import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
 import java.time.Duration
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.write
 
-internal class TimerManager(private val lock: ReentrantLock) {
+internal class TimerManager(private val lock: ReentrantReadWriteLock) {
     object Key : ConcurrentScopedData.Key<TimerManager> {
         override val lifecycle = KonsoleBlock.RunScope.Lifecycle
     }
@@ -40,7 +40,7 @@ internal class TimerManager(private val lock: ReentrantLock) {
     private val job = CoroutineScope(Dispatchers.IO).launch {
         while (isActive) {
             delay(16)
-            lock.withLock {
+            lock.write {
                 val currTime = System.currentTimeMillis()
                 val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
                 timersToFire.forEach { timer ->
@@ -64,7 +64,7 @@ internal class TimerManager(private val lock: ReentrantLock) {
     }
 
     fun addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit) {
-        lock.withLock {
+        lock.write {
             if (key == null || timers.none { timer -> key == timer.key }) {
                 timers.add(Timer(duration, repeat, key, callback))
             }
@@ -72,7 +72,7 @@ internal class TimerManager(private val lock: ReentrantLock) {
     }
 
     fun dispose() {
-        lock.withLock { timers.clear() }
+        lock.write { timers.clear() }
         // Don't wait for this job - we already cleared the timers, so we know it dying is just a formality. If we try
         // to block here waiting for it to end, we'll actually block the main thread itself (which is causing this to
         // get disposed behind the same lock) which would cause a deadlock.

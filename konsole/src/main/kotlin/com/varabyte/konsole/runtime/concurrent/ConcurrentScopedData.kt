@@ -5,7 +5,10 @@ import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData.Lifecycle
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
 import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 
 /**
  * A thread-safe package of key/value pairs.
@@ -68,7 +71,7 @@ class ConcurrentScopedData {
      * The lock used by this data, which however is exposed so that it can be shared by other threaded logic, in order
      * to eliminate possible deadlocks caused by multiple locks being held at the same time.
      */
-    val lock = ReentrantLock()
+    val lock = ReentrantReadWriteLock()
     @GuardedBy("lock")
     private val activeLifecycles = mutableSetOf<Lifecycle>()
     @GuardedBy("lock")
@@ -81,7 +84,7 @@ class ConcurrentScopedData {
      * ignored.
      */
     fun start(lifecycle: Lifecycle) {
-        lock.withLock {
+        lock.write {
             if (!activeLifecycles.add(lifecycle)) {
                 throw IllegalStateException("Attempted to start a lifecycle that was already started without being stopped.")
             }
@@ -92,7 +95,7 @@ class ConcurrentScopedData {
      * Dispose and remove all keys tied to the specified [Lifecycle]
      */
     fun stop(lifecycle: Lifecycle) {
-        lock.withLock {
+        lock.write {
             if (activeLifecycles.remove(lifecycle)) {
                 keyValues.entries.removeAll { entry ->
                     if (entry.key.lifecycle === lifecycle) {
@@ -113,13 +116,13 @@ class ConcurrentScopedData {
      * example, or if we're shutting down the whole app.
      */
     fun stopAll() {
-        lock.withLock {
+        lock.write {
             // Make a copy of the list to avoid concurrent modification exception
             activeLifecycles.toList().forEach { stop(it) }
         }
     }
 
-    fun isActive(lifecycle: Lifecycle) = lock.withLock { activeLifecycles.contains(lifecycle) }
+    fun isActive(lifecycle: Lifecycle) = lock.read { activeLifecycles.contains(lifecycle) }
 
     /**
      * Access the stored value directly.
@@ -128,7 +131,7 @@ class ConcurrentScopedData {
      * Prefer using the [get] method which takes a block for maximum safety.
      */
     operator fun <T : Any> get(key: Key<T>): T? {
-        return lock.withLock { (keyValues[key] as? Value<T>)?.wrapped }
+        return lock.read { (keyValues[key] as? Value<T>)?.wrapped }
     }
 
     /**
@@ -146,9 +149,7 @@ class ConcurrentScopedData {
      * consider using [putIfAbsent] instead.
      */
     fun <T : Any> get(key: Key<T>, block: T.() -> Unit) {
-        lock.withLock {
-            this[key]?.let { value -> value.block() }
-        }
+        lock.read { this[key]?.let { value -> value.block() } }
     }
 
     operator fun <T: Any> set(key: Key<T>, value: T) {
@@ -162,9 +163,7 @@ class ConcurrentScopedData {
      * a cache of lazily instantiated values, but this method is provided in case direct setting is needed.
      */
     fun <T: Any> set(key: Key<T>, value: T, dispose: (T) -> Unit) {
-        return lock.withLock {
-            keyValues[key] = Value(value, dispose)
-        }
+        return lock.write { keyValues[key] = Value(value, dispose) }
     }
 
     /**
@@ -173,7 +172,7 @@ class ConcurrentScopedData {
      * Returns true if the key was removed and disposed, false otherwise.
      */
     fun <T : Any> remove(key: Key<T>): Boolean {
-        return lock.withLock {
+        return lock.write {
             val value = keyValues.remove(key)?.also { it.dispose() }
             value != null
         }
@@ -194,10 +193,12 @@ class ConcurrentScopedData {
      * lifecycle associated for the current key hasn't yet been activated with [start].
      */
     fun <T : Any> tryPut(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit): Boolean {
-        return lock.withLock {
+        return lock.read {
             var wasPut = false
-            if (activeLifecycles.contains(key.lifecycle)) {
-                keyValues.computeIfAbsent(key) { wasPut = true; Value(provideInitialValue(), dispose) }
+            if (isActive(key.lifecycle)) {
+                lock.write {
+                    keyValues.computeIfAbsent(key) { wasPut = true; Value(provideInitialValue(), dispose) }
+                }
             }
             wasPut
         }
@@ -211,10 +212,17 @@ class ConcurrentScopedData {
      * Note that this fails silently if the key being added is for a lifecycle that hasn't yet been activated with
      * [start].
      */
-    fun <T : Any> putIfAbsent(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit = {}, block: T.() -> Unit) {
-        return lock.withLock {
-            if (activeLifecycles.contains(key.lifecycle)) {
-                block((keyValues.computeIfAbsent(key) { Value(provideInitialValue(), dispose) } as Value<T>).wrapped)
+    fun <T : Any> putIfAbsent(
+        key: Key<T>,
+        provideInitialValue: () -> T,
+        dispose: (T) -> Unit = {},
+        block: T.() -> Unit
+    ) {
+        return lock.read {
+            if (isActive(key.lifecycle)) {
+                lock.write {
+                    block((keyValues.computeIfAbsent(key) { Value(provideInitialValue(), dispose) } as Value<T>).wrapped)
+                }
             }
         }
     }
@@ -225,7 +233,7 @@ class ConcurrentScopedData {
  *
  * This often saves a few lines of code and is easier to type.
  */
-fun <T> ConcurrentScopedData.Lifecycle.createKey(): Key<T> {
+fun <T> Lifecycle.createKey(): Key<T> {
     val self = this
     return object : ConcurrentScopedData.Key<T> {
         override val lifecycle = self
