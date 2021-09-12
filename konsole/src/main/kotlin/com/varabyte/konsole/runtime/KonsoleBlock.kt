@@ -14,6 +14,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 
 internal val ActiveBlockKey = KonsoleBlock.Lifecycle.createKey<KonsoleBlock>()
 
@@ -119,9 +120,10 @@ class KonsoleBlock internal constructor(
             _textArea.clear()
             app.data.start(RenderScope.Lifecycle)
             RenderScope(self).apply {
+                // Make sure run logic doesn't modify values while we're in the middle of rendering
+                app.data.lock.write { block() }
                 // Make sure we clear all state as we exit this block. This ensures that repaint passes don't carry
                 // state leftover from its end back to the beginning.
-                block()
                 _textArea.appendCommand(RESET_COMMAND)
             }
             app.data.stop(RenderScope.Lifecycle)
