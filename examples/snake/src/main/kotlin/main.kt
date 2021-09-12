@@ -11,7 +11,6 @@ import com.varabyte.konsole.runtime.RenderScope
 import com.varabyte.konsole.terminal.SystemTerminal
 import com.varabyte.konsole.terminal.TerminalSize
 import com.varabyte.konsole.terminal.VirtualTerminal
-import java.awt.Dimension
 import kotlin.random.Random
 
 private const val WIDTH = 60
@@ -155,7 +154,7 @@ fun main() = konsoleApp(terminal = SystemTerminal.or {
     var isDead by konsoleVarOf(false)
 
     konsole {
-        blue(BG) { magenta { textLine("SCORE: ${level.snake.size - 2}") } }
+        blue { textLine("SCORE: ${level.snake.size - 2}") }
         if (!isDead) {
             textLine()
         }

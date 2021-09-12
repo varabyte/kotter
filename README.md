@@ -23,6 +23,8 @@ konsoleApp {
 
 ![Code sample in action](examples/input/konsole-input.gif)
 
+*See also: [the game of life](examples/life) and [snake](examples/snake) implemented in Konsole!*
+
 ---
 
 Konsole aims to be a relatively thin, declarative, Kotlin-idiomatic API that provides useful functionality for writing
