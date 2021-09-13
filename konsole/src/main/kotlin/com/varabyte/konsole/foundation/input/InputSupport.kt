@@ -121,7 +121,8 @@ private val OnlyCalledOncePerRenderKey = KonsoleBlock.Render.Lifecycle.createKey
  */
 private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
     // The input() function makes no sense in and is not supported in aside blocks
-    val konsoleBlock = scope.renderer.app.activeBlock?.takeIf { it.renderer === scope.renderer } ?: return
+    val konsoleBlock = scope.renderer.app.activeBlock?.takeIf { it.renderer === scope.renderer } ?:
+        throw IllegalStateException("`input` was called in an invalid context")
 
     if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
