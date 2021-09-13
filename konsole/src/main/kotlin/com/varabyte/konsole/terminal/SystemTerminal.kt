@@ -60,6 +60,9 @@ class SystemTerminal : Terminal {
             puts(InfoCmp.Capability.cursor_invisible)
         }
 
+    override val width: Int
+        get() = terminal.width
+
     override fun write(text: String) {
         terminal.writer().print(text)
         terminal.writer().flush()
