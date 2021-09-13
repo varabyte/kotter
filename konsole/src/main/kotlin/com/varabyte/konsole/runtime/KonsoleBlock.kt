@@ -59,6 +59,10 @@ class KonsoleBlock internal constructor(val app: KonsoleApp, private val block: 
         fun signal() = waitLatch.countDown()
     }
 
+    init {
+        app.data.start(Lifecycle)
+    }
+
     internal val renderer = Renderer(app)
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
@@ -148,8 +152,6 @@ class KonsoleBlock internal constructor(val app: KonsoleApp, private val block: 
             throw IllegalStateException("Cannot run a Konsole block that was previously run")
         }
         consumed.set(true)
-
-        app.data.start(Lifecycle)
 
         // Note: The data we're adding here will be removed by the dispose call below
         if (!app.data.tryPut(ActiveBlockKey) { this }) {
