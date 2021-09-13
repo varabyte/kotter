@@ -709,9 +709,3 @@ konsoleApp {
 ```
 
 Comparisons with Mosaic are included in the [examples/mosaic](examples/mosaic) folder.
-
-### Tested Platforms
-
-* [x] Linux
-* [ ] Mac
-* [ ] Windows
