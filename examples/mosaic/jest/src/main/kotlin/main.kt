@@ -5,7 +5,7 @@ import com.varabyte.konsole.foundation.konsoleVarOf
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.text.ColorLayer.BG
 import com.varabyte.konsole.foundation.timer.addTimer
-import com.varabyte.konsole.runtime.RenderScope
+import com.varabyte.konsole.runtime.render.RenderScope
 import kotlinx.coroutines.*
 import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedDeque

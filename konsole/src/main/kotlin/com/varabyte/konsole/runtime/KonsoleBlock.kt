@@ -2,12 +2,9 @@ package com.varabyte.konsole.runtime
 
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.concurrent.createKey
-import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
-import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
-import com.varabyte.konsole.runtime.internal.ansi.commands.RESET_COMMAND
-import com.varabyte.konsole.runtime.internal.text.MutableTextArea
-import com.varabyte.konsole.runtime.text.TextArea
+import com.varabyte.konsole.runtime.render.RenderScope
+import com.varabyte.konsole.runtime.render.Renderer
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
@@ -17,16 +14,23 @@ import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 
 internal val ActiveBlockKey = KonsoleBlock.Lifecycle.createKey<KonsoleBlock>()
+internal val AsideRendersKey = KonsoleBlock.RunScope.Lifecycle.createKey<MutableList<Renderer>>()
 
-class KonsoleBlock internal constructor(
-    internal val app: KonsoleApp,
-    private val block: RenderScope.() -> Unit) {
+/**
+ * The class which represents the state of a `konsole` block and its registered event handlers (e.g. [run] and
+ * [onFinishing])
+ */
+
+class KonsoleBlock internal constructor(val app: KonsoleApp, private val block: RenderScope.() -> Unit) {
     /**
      * A moderately long lifecycle that lives as long as the block is running.
      *
      * This lifecycle can be used for storing data relevant to the current block only.
      */
     object Lifecycle : ConcurrentScopedData.Lifecycle
+    object Render {
+        object Lifecycle : ConcurrentScopedData.Lifecycle
+    }
 
     /**
      * A scope associated with the [run] function.
@@ -55,9 +59,7 @@ class KonsoleBlock internal constructor(
         fun signal() = waitLatch.countDown()
     }
 
-    private val _textArea = MutableTextArea()
-    val textArea: TextArea = _textArea
-
+    internal val renderer = Renderer(app)
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
     private var renderRequested = false
@@ -70,15 +72,6 @@ class KonsoleBlock internal constructor(
      */
     private var onFinishing = mutableListOf<() -> Unit>()
     private var consumed = AtomicBoolean(false)
-
-    init {
-        app.data.start(Lifecycle)
-    }
-
-    /** Append this command to the end of this block's text area */
-    internal fun appendCommand(command: KonsoleCommand) {
-        _textArea.appendCommand(command)
-    }
 
     /**
      * Let the block know we want to rerender an additional frame.
@@ -99,42 +92,37 @@ class KonsoleBlock internal constructor(
     }
 
     private fun renderOnceAsync(): Job {
-        val self = this
         return CoroutineScope(app.executor.asCoroutineDispatcher()).launch {
             renderLock.withLock { renderRequested = false }
 
             val clearBlockCommand = buildString {
-                if (!textArea.isEmpty()) {
+                if (!renderer.textArea.isEmpty()) {
                     // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                     // last one down to the beginning (in other words, don't consume the \n of the previous line)
-                    for (i in 0 until textArea.numLines) {
+                    for (i in 0 until renderer.textArea.numLines) {
                         append('\r')
                         append(Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode())
-                        if (i < textArea.numLines - 1) {
+                        if (i < renderer.textArea.numLines - 1) {
                             append(Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
                         }
                     }
                 }
             }
 
-            _textArea.clear()
-            app.data.start(RenderScope.Lifecycle)
-            RenderScope(self).apply {
-                // Make sure run logic doesn't modify values while we're in the middle of rendering
-                app.data.lock.write { block() }
-                // Make sure we clear all state as we exit this block. This ensures that repaint passes don't carry
-                // state leftover from its end back to the beginning.
-                _textArea.appendCommand(RESET_COMMAND)
-            }
-            app.data.stop(RenderScope.Lifecycle)
+            app.data.start(Render.Lifecycle)
+            // Make sure run logic doesn't modify values while we're in the middle of rendering
+            app.data.lock.write { renderer.render(block) }
+            app.data.stop(Render.Lifecycle)
 
-            if (textArea.toRawText().lastOrNull() != '\n') {
-                _textArea.appendCommand(NEWLINE_COMMAND)
+            val asideTextBuilder = StringBuilder()
+            app.data.get(AsideRendersKey) {
+                forEach { renderer -> asideTextBuilder.append(renderer.textArea.toString()) }
+                // Only render asides once. Since we don't erase them, they'll be baked into the history.
+                clear()
             }
-
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
             // in one pass.
-            app.terminal.write(clearBlockCommand + textArea.toString())
+            app.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.textArea.toString())
         }
     }
     private fun renderOnce() = runBlocking {
@@ -160,6 +148,8 @@ class KonsoleBlock internal constructor(
             throw IllegalStateException("Cannot run a Konsole block that was previously run")
         }
         consumed.set(true)
+
+        app.data.start(Lifecycle)
 
         // Note: The data we're adding here will be removed by the dispose call below
         if (!app.data.tryPut(ActiveBlockKey) { this }) {

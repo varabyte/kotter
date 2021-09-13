@@ -1,19 +1,19 @@
 package com.varabyte.konsole.runtime.internal.ansi.commands
 
-import com.varabyte.konsole.runtime.KonsoleBlock
 import com.varabyte.konsole.runtime.KonsoleState
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
+import com.varabyte.konsole.runtime.render.Renderer
 
 /**
  * A console command which prints text to the screen, and should ensure the current state effects are applied if not
  * already.
  */
 internal open class KonsoleTextCommand(text: String) : KonsoleCommand(text) {
-    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+    override fun applyTo(state: KonsoleState, renderer: Renderer) {
         if (text != "\n") {
-            state.applyTo(block)
+            state.applyTo(renderer)
         }
-        super.applyTo(state, block)
+        super.applyTo(state, renderer)
     }
 }
 
@@ -28,7 +28,7 @@ internal class TextCommand(text: CharSequence) : KonsoleTextCommand(text.toStrin
     }
 }
 internal val NEWLINE_COMMAND = object : KonsoleTextCommand("\n") {
-    override fun applyTo(state: KonsoleState, block: KonsoleBlock) {
+    override fun applyTo(state: KonsoleState, renderer: Renderer) {
         // In some terminals, if you have a background color enabled, and you append a newline, the background color
         // extends to the end of the next line. This looks awful, as if the background color is leaking, and
         // unfortunately with Konsole this would happen every time you did something like:
@@ -41,8 +41,8 @@ internal val NEWLINE_COMMAND = object : KonsoleTextCommand("\n") {
         // newline. When text is encountered again, any deferred state will be reapplied.
         if (state.applied.bgColor != null) {
             state.applied.bgColor = null
-            block.appendCommand(BG_CLEAR_COMMAND)
+            renderer.appendCommand(BG_CLEAR_COMMAND)
         }
-        super.applyTo(state, block)
+        super.applyTo(state, renderer)
     }
 }

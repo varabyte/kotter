@@ -1,6 +1,6 @@
 package com.varabyte.konsole.foundation.text
 
-import com.varabyte.konsole.runtime.RenderScope
+import com.varabyte.konsole.runtime.render.RenderScope
 
 /**
  * Clear all actively set properties for the current scope.

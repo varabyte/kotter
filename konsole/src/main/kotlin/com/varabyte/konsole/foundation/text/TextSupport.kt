@@ -1,10 +1,9 @@
 package com.varabyte.konsole.foundation.text
 
-import com.varabyte.konsole.runtime.RenderScope
-import com.varabyte.konsole.runtime.internal.ansi.commands.BG_CLEAR_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.CharCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
+import com.varabyte.konsole.runtime.render.RenderScope
 
 fun RenderScope.textLine() {
     applyCommand(NEWLINE_COMMAND)
@@ -47,7 +46,7 @@ fun RenderScope.textLine(c: Char) {
  */
 fun RenderScope.p(block: RenderScope.() -> Unit) {
     run {
-        val lastChar = this.block.textArea.toRawText().lastOrNull()
+        val lastChar = renderer.textArea.toRawText().lastOrNull()
         if (lastChar != null && lastChar != '\n') {
             textLine()
         }
@@ -55,7 +54,7 @@ fun RenderScope.p(block: RenderScope.() -> Unit) {
     textLine()
     block()
     run {
-        val lastChar = this.block.textArea.toRawText().lastOrNull()
+        val lastChar = renderer.textArea.toRawText().lastOrNull()
         if (lastChar != null && lastChar != '\n') {
             textLine()
         }

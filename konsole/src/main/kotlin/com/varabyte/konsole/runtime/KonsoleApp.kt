@@ -2,6 +2,7 @@ package com.varabyte.konsole.runtime
 
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.executor.KonsoleExecutor
+import com.varabyte.konsole.runtime.render.RenderScope
 import com.varabyte.konsole.runtime.terminal.Terminal
 
 class KonsoleApp internal constructor(internal val terminal: Terminal) {

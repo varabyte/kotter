@@ -1,9 +1,7 @@
 package com.varabyte.konsole.foundation.text
 
-import com.varabyte.konsole.runtime.KonsoleBlock
-import com.varabyte.konsole.runtime.RenderScope
-import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.internal.ansi.commands.*
+import com.varabyte.konsole.runtime.render.RenderScope
 
 enum class ColorLayer {
     FG,
@@ -145,7 +143,7 @@ fun RenderScope.clearInvert() {
 fun RenderScope.black(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
-    scopedBlock: KonsoleBlock.() -> Unit
+    scopedBlock: RenderScope.() -> Unit
 ) {
     scopedState {
         black(layer, isBright)
@@ -156,7 +154,7 @@ fun RenderScope.black(
 fun RenderScope.red(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
-    scopedBlock: KonsoleBlock.() -> Unit
+    scopedBlock: RenderScope.() -> Unit
 ) {
     scopedState {
         red(layer, isBright)
@@ -167,7 +165,7 @@ fun RenderScope.red(
 fun RenderScope.green(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
-    scopedBlock: KonsoleBlock.() -> Unit
+    scopedBlock: RenderScope.() -> Unit
 ) {
     scopedState {
         green(layer, isBright)
@@ -178,7 +176,7 @@ fun RenderScope.green(
 fun RenderScope.yellow(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
-    scopedBlock: KonsoleBlock.() -> Unit
+    scopedBlock: RenderScope.() -> Unit
 ) {
     scopedState {
         yellow(layer, isBright)
@@ -189,7 +187,7 @@ fun RenderScope.yellow(
 fun RenderScope.blue(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
-    scopedBlock: KonsoleBlock.() -> Unit
+    scopedBlock: RenderScope.() -> Unit
 ) {
     scopedState {
         blue(layer, isBright)
@@ -200,7 +198,7 @@ fun RenderScope.blue(
 fun RenderScope.cyan(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
-    scopedBlock: KonsoleBlock.() -> Unit
+    scopedBlock: RenderScope.() -> Unit
 ) {
     scopedState {
         cyan(layer, isBright)
@@ -211,7 +209,7 @@ fun RenderScope.cyan(
 fun RenderScope.magenta(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
-    scopedBlock: KonsoleBlock.() -> Unit
+    scopedBlock: RenderScope.() -> Unit
 ) {
     scopedState {
         magenta(layer, isBright)
@@ -222,7 +220,7 @@ fun RenderScope.magenta(
 fun RenderScope.white(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
-    scopedBlock: KonsoleBlock.() -> Unit
+    scopedBlock: RenderScope.() -> Unit
 ) {
     scopedState {
         white(layer, isBright)
@@ -230,21 +228,21 @@ fun RenderScope.white(
     }
 }
 
-fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG, scopedBlock: KonsoleBlock.() -> Unit) {
+fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG, scopedBlock: RenderScope.() -> Unit) {
     scopedState {
         clearColor(layer)
         scopedBlock()
     }
 }
 
-fun RenderScope.clearColors(scopedBlock: KonsoleBlock.() -> Unit) {
+fun RenderScope.clearColors(scopedBlock: RenderScope.() -> Unit) {
     scopedState {
         clearColors()
         scopedBlock()
     }
 }
 
-fun RenderScope.invert(scopedBlock: KonsoleBlock.() -> Unit) {
+fun RenderScope.invert(scopedBlock: RenderScope.() -> Unit) {
     scopedState {
         invert()
         scopedBlock()

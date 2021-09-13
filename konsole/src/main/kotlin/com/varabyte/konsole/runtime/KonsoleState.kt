@@ -2,6 +2,7 @@ package com.varabyte.konsole.runtime
 
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.*
+import com.varabyte.konsole.runtime.render.Renderer
 
 /**
  * Keep track of all state related commands which should be reapplied to the current block if the ansi terminal resets
@@ -48,30 +49,30 @@ class KonsoleState internal constructor(internal val parent: KonsoleState? = nul
      */
     internal val deferred: Styles = Styles(parent?.deferred)
 
-    fun applyTo(block: KonsoleBlock) {
+    fun applyTo(renderer: Renderer) {
         if (deferred.fgColor?.text !== applied.fgColor?.text) {
             applied.fgColor = deferred.fgColor
-            block.appendCommand(applied.fgColor ?: FG_CLEAR_COMMAND)
+            renderer.appendCommand(applied.fgColor ?: FG_CLEAR_COMMAND)
         }
         if (deferred.bgColor?.text !== applied.bgColor?.text) {
             applied.bgColor = deferred.bgColor
-            block.appendCommand(applied.bgColor ?: BG_CLEAR_COMMAND)
+            renderer.appendCommand(applied.bgColor ?: BG_CLEAR_COMMAND)
         }
         if (deferred.underlined?.text !== applied.underlined?.text) {
             applied.underlined = deferred.underlined
-            block.appendCommand(applied.underlined ?: CLEAR_UNDERLINE_COMMAND)
+            renderer.appendCommand(applied.underlined ?: CLEAR_UNDERLINE_COMMAND)
         }
         if (deferred.bolded?.text !== applied.bolded?.text) {
             applied.bolded = deferred.bolded
-            block.appendCommand(applied.bolded ?: CLEAR_BOLD_COMMAND)
+            renderer.appendCommand(applied.bolded ?: CLEAR_BOLD_COMMAND)
         }
         if (deferred.struckThrough?.text !== applied.struckThrough?.text) {
             applied.struckThrough = deferred.struckThrough
-            block.appendCommand(applied.struckThrough ?: CLEAR_STRIKETHROUGH_COMMAND)
+            renderer.appendCommand(applied.struckThrough ?: CLEAR_STRIKETHROUGH_COMMAND)
         }
         if (deferred.inverted?.text !== applied.inverted?.text) {
             applied.inverted = deferred.inverted
-            block.appendCommand(applied.inverted ?: CLEAR_INVERT_COMMAND)
+            renderer.appendCommand(applied.inverted ?: CLEAR_INVERT_COMMAND)
         }
     }
 }

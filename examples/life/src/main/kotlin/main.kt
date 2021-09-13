@@ -5,7 +5,7 @@ import com.varabyte.konsole.foundation.input.runUntilKeyPressed
 import com.varabyte.konsole.foundation.konsoleApp
 import com.varabyte.konsole.foundation.konsoleVarOf
 import com.varabyte.konsole.foundation.text.*
-import com.varabyte.konsole.runtime.RenderScope
+import com.varabyte.konsole.runtime.render.RenderScope
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 

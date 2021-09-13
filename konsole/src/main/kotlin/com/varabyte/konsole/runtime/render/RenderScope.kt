@@ -1,5 +1,6 @@
-package com.varabyte.konsole.runtime
+package com.varabyte.konsole.runtime.render
 
+import com.varabyte.konsole.runtime.KonsoleState
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.internal.KonsoleCommand
 
@@ -20,20 +21,9 @@ import com.varabyte.konsole.runtime.internal.KonsoleCommand
  * }
  * ```
  *
- * the concept of the block itself is represented by the [KonsoleBlock] class, while each render pass (triggered every
- * 250ms, above) is passed a new instance of this class.
- *
- * Despite this class's transient state, it often works with the underlying block, offering a limited subset of passthru
- * functionality that simply delegates the operation to the underlying block.
+ * the part between the `konsole` curly braces represents a render block, where `this` is a `RenderScope`.
  */
-class RenderScope(internal val block: KonsoleBlock) {
-    /**
-     * A very short lifecycle that lives for a single block render pass.
-     *
-     * This could be useful for verifying that a method with a side effect was only executed once, for example.
-     */
-    object Lifecycle : ConcurrentScopedData.Lifecycle
-
+class RenderScope(internal val renderer: Renderer) {
     internal var state = KonsoleState()
 
     /**
@@ -41,7 +31,7 @@ class RenderScope(internal val block: KonsoleBlock) {
      *
      * It is exposed directly and publicly here so methods extending the RunScope can use it.
      */
-    val data = block.app.data
+    val data = renderer.app.data
 
     /**
      * Run the [scopedBlock] within a fresh, new [KonsoleState] context, which gets removed afterwards.
@@ -49,9 +39,9 @@ class RenderScope(internal val block: KonsoleBlock) {
      * This is useful if the scoped block is going to set one (or more) styles that are reflected in the
      * [KonsoleState] class and which should only apply to that block.
      */
-    fun scopedState(scopedBlock: KonsoleBlock.() -> Unit) {
+    fun scopedState(scopedBlock: RenderScope.() -> Unit) {
         pushState()
-        block.scopedBlock()
+        scopedBlock()
         popState()
     }
 
@@ -66,6 +56,6 @@ class RenderScope(internal val block: KonsoleBlock) {
     }
 
     internal fun applyCommand(command: KonsoleCommand) {
-        command.applyTo(state, block)
+        command.applyTo(state, renderer)
     }
 }

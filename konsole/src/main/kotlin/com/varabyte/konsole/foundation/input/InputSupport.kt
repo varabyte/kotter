@@ -1,12 +1,11 @@
 package com.varabyte.konsole.foundation.input
 
 import com.varabyte.konsole.foundation.anim.KonsoleAnim
-import com.varabyte.konsole.foundation.runUntilSignal
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.timer.addTimer
 import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
-import com.varabyte.konsole.runtime.RenderScope
+import com.varabyte.konsole.runtime.render.RenderScope
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.concurrent.createKey
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
@@ -113,7 +112,7 @@ private class InputState {
 }
 
 private val UpdateInputJobKey = KonsoleBlock.RunScope.Lifecycle.createKey<Job>()
-private val OnlyCalledOncePerRenderKey = RenderScope.Lifecycle.createKey<Unit>()
+private val OnlyCalledOncePerRenderKey = KonsoleBlock.Render.Lifecycle.createKey<Unit>()
 
 /**
  * If necessary, instantiate data that the [input] method expects to exist.
@@ -121,22 +120,25 @@ private val OnlyCalledOncePerRenderKey = RenderScope.Lifecycle.createKey<Unit>()
  * Is a no-op after the first time.
  */
 private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
+    // The input() function makes no sense in and is not supported in aside blocks
+    val konsoleBlock = scope.renderer.app.activeBlock?.takeIf { it.renderer === scope.renderer } ?: return
+
     if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
 
-    prepareKeyFlow(scope.block.app.terminal)
+    prepareKeyFlow(konsoleBlock.app.terminal)
     if (tryPut(InputState.Key) { InputState() }) {
         val state = get(InputState.Key)!!
         addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
             if (state.elapse(elapsed)) {
-                scope.block.requestRerender()
+                konsoleBlock.requestRerender()
             }
         }
-        scope.block.onFinishing {
+        konsoleBlock.onFinishing {
             if (state.blinkOn) {
                 state.blinkOn = false
-                scope.block.requestRerender()
+                konsoleBlock.requestRerender()
             }
         }
     }
@@ -212,7 +214,7 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                         }
 
                         if (text != prevText || index != prevIndex) {
-                            scope.block.requestRerender()
+                            konsoleBlock.requestRerender()
                         }
                     }
                 }
