@@ -53,7 +53,7 @@ repositories {
 
 dependencies {
   /* ... */
-  implementation 'com.varabyte:konsole:0.9.0'
+  implementation 'com.varabyte:konsole:0.9.0-SNAPSHOT'
 }
 ```
 
