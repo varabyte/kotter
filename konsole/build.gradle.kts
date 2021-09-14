@@ -4,7 +4,7 @@ plugins {
     signing
 }
 
-group = "com.varabyte"
+group = "com.varabyte.konsole"
 version = "0.9.0-SNAPSHOT"
 
 fun shouldSign() = (findProperty("konsole.sign") as? String).toBoolean()

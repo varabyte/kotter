@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "com.varabyte"
+group = "com.varabyte.konsole"
 version = "1.0-SNAPSHOT"
 
 repositories {
