@@ -101,17 +101,11 @@ class KonsoleBlock internal constructor(val app: KonsoleApp, private val block: 
 
             val clearBlockCommand = buildString {
                 if (!renderer.textArea.isEmpty()) {
-                    // Note: Terminals auto-wrap lines, which is nice for the user but screws up our "erase the lines"
-                    // calculations. We make a best effort to figure out where extra newlines would be added, here,
-                    // although note that if the user keeps resizing their terminal while our app is running, it seems
-                    // like the width value we get doesn't update. See also: bug #34
-                    val extraNumLines = renderer.textArea.toRawText()
-                        .split("\n")
-                        // The line gets an implicit newline once it goes ONE over the terminal width - or in other
-                        // words, a 20 character line fits perfectly in a 20 column terminal, so don't treat that case
-                        // as an extra newline
-                        .sumOf { line -> (line.length - 1) / app.terminal.width }
-                    val totalNumLines = renderer.textArea.numLines + extraNumLines
+
+                    // Note: This logic works when a terminal first starts up, but if the user keeps resizing their
+                    // terminal while our app is running, it seems like the width value we get doesn't update. See also:
+                    // bug #34
+                    val totalNumLines = renderer.textArea.numLines(app.terminal.width)
 
                     // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                     // last one down to the beginning (in other words, don't consume the \n of the previous line)
