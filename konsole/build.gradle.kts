@@ -13,6 +13,7 @@ fun shouldPublishToGCloud(): Boolean {
             && findProperty("gcloud.artifact.registry.secret") != null
 }
 
+val VARABYTE_REPO_URL = uri("https://us-central1-maven.pkg.dev/varabyte-repos/public")
 fun MavenArtifactRepository.gcloudAuth() {
     url = VARABYTE_REPO_URL
     credentials {
@@ -24,7 +25,6 @@ fun MavenArtifactRepository.gcloudAuth() {
     }
 }
 
-val VARABYTE_REPO_URL = uri("https://us-central1-maven.pkg.dev/varabyte-repos/public")
 repositories {
     mavenCentral()
     if (shouldPublishToGCloud()) {
