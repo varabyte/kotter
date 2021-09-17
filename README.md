@@ -21,7 +21,7 @@ konsoleApp {
 }
 ```
 
-![Code sample in action](examples/input/konsole-input.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-input.gif)
 
 *See also: [the game of life](examples/life) and [snake](examples/snake) implemented in Konsole!*
 

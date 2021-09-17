@@ -4,4 +4,4 @@ This demo showcases how you might integrate some sort of engine (here, a "game o
 
 See also: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 
-![Code sample in action](konsole-life.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-life.gif)
