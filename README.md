@@ -666,6 +666,7 @@ compatible.`
 the user is interacting with, and the history, which is static. To support this with Compose, you'd need to manage the
 history list yourself and keep appending to it, and it was while thinking about an API that addressed this limitation
 that I envisioned Konsole.
+  * For a concrete example, see the [compiler demo](examples/compiler).
 
 * Compose encourages using a set of powerful layout primitives, namely `Box`, `Column`, and `Row`, with margins and
   shapes and layers. Command line apps don't really need this level of power, however.
