@@ -20,15 +20,13 @@ data class CharKey(val code: Char) : Key
 //  e.g. 'a' and 'A' are the same underlying key
 
 object Keys {
-    object ESC : IsoControlKey // TODO(Bug #15): Support ESC key
+    object ESC : IsoControlKey
     object ENTER : IsoControlKey
 
     object BACKSPACE : IsoControlKey
     object DELETE : IsoControlKey
 
-    object SHIFT : IsoControlKey // TODO(Bug #22, Bug #57): Support
-    object CONTROL : IsoControlKey // TODO(Bug #22, Bug #57): Support
-    object ALT : IsoControlKey // TODO(Bug #22, Bug #57): Support
+    object EOF: IsoControlKey
 
     object UP : IsoControlKey
     object DOWN : IsoControlKey
@@ -37,25 +35,11 @@ object Keys {
 
     object HOME : IsoControlKey
     object END : IsoControlKey
-    object INSERT : IsoControlKey // TODO(Bug #22, Bug #58): Support
-    object PAGE_UP : IsoControlKey // TODO(Bug #22): Support
-    object PAGE_DOWN : IsoControlKey // TODO(Bug #22): Support
+    object INSERT : IsoControlKey
+    object PAGE_UP : IsoControlKey
+    object PAGE_DOWN : IsoControlKey
 
-    object TAB : IsoControlKey // TODO(Bug #22): Support
-    object CAPS_LOCK : IsoControlKey // TODO(Bug #22): Support
-
-    object F1 : IsoControlKey // TODO(Bug #22): Support
-    object F2 : IsoControlKey // TODO(Bug #22): Support
-    object F3 : IsoControlKey // TODO(Bug #22): Support
-    object F4 : IsoControlKey // TODO(Bug #22): Support
-    object F5 : IsoControlKey // TODO(Bug #22): Support
-    object F6 : IsoControlKey // TODO(Bug #22): Support
-    object F7 : IsoControlKey // TODO(Bug #22): Support
-    object F8 : IsoControlKey // TODO(Bug #22): Support
-    object F9 : IsoControlKey // TODO(Bug #22): Support
-    object F10 : IsoControlKey // TODO(Bug #22): Support
-    object F11 : IsoControlKey // TODO(Bug #22): Support
-    object F12 : IsoControlKey // TODO(Bug #22): Support
+    object TAB : IsoControlKey
 
     val A = CharKey('a')
     val B = CharKey('b')

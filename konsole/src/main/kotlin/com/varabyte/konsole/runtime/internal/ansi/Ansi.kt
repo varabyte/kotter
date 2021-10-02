@@ -14,7 +14,9 @@ import com.varabyte.konsole.runtime.internal.text.readInt
 internal object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
     object CtrlChars {
+        const val EOF = '\u0004'
         const val BACKSPACE = '\u007F'
+        const val TAB = '\u0009'
         const val ENTER = '\u000D'
         const val ESC = '\u001B'
     }
@@ -171,8 +173,11 @@ internal object Ansi {
 
             object Keys {
                 object HOME : Code("1${Identifiers.KEYCODE}")
-                object END : Code("4${Identifiers.KEYCODE}")
+                object INSERT : Code("2${Identifiers.KEYCODE}")
                 object DELETE : Code("3${Identifiers.KEYCODE}")
+                object END : Code("4${Identifiers.KEYCODE}")
+                object PG_UP : Code("5${Identifiers.KEYCODE}")
+                object PG_DOWN : Code("6${Identifiers.KEYCODE}")
 
                 object UP : Code("${Identifiers.CURSOR_UP}")
                 object DOWN : Code("${Identifiers.CURSOR_DOWN}")

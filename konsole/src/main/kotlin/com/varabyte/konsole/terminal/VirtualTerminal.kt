@@ -179,12 +179,28 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
                         KeyEvent.VK_LEFT -> Ansi.Csi.Codes.Keys.LEFT.toFullEscapeCode()
                         KeyEvent.VK_RIGHT -> Ansi.Csi.Codes.Keys.RIGHT.toFullEscapeCode()
                         KeyEvent.VK_HOME -> Ansi.Csi.Codes.Keys.HOME.toFullEscapeCode()
-                        KeyEvent.VK_END -> Ansi.Csi.Codes.Keys.END.toFullEscapeCode()
+                        KeyEvent.VK_INSERT -> Ansi.Csi.Codes.Keys.INSERT.toFullEscapeCode()
                         KeyEvent.VK_DELETE -> Ansi.Csi.Codes.Keys.DELETE.toFullEscapeCode()
+                        KeyEvent.VK_END -> Ansi.Csi.Codes.Keys.END.toFullEscapeCode()
+                        KeyEvent.VK_PAGE_UP -> Ansi.Csi.Codes.Keys.PG_UP.toFullEscapeCode()
+                        KeyEvent.VK_PAGE_DOWN -> Ansi.Csi.Codes.Keys.PG_DOWN.toFullEscapeCode()
                         KeyEvent.VK_ENTER -> Ansi.CtrlChars.ENTER.toString()
                         KeyEvent.VK_BACK_SPACE -> Ansi.CtrlChars.BACKSPACE.toString()
-                        else -> e.keyChar.takeIf { it.isDefined() && it.category != CharCategory.CONTROL }?.toString()
-                            ?: ""
+                        KeyEvent.VK_TAB -> Ansi.CtrlChars.TAB.toString()
+                        KeyEvent.VK_ESCAPE -> Ansi.CtrlChars.ESC.toString()
+
+                        else -> {
+                            if (e.isControlDown) {
+                                when (e.keyCode) {
+                                    KeyEvent.VK_D -> Ansi.CtrlChars.EOF.toString()
+                                    else -> ""
+                                }
+                            }
+                            else {
+                                e.keyChar.takeIf { it.isDefined() && it.category != CharCategory.CONTROL }?.toString()
+                                    ?: ""
+                            }
+                        }
                     }
                     chars.forEach { c -> trySend(c.code) }
                     if (chars.isNotEmpty()) e.consume()
