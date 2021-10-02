@@ -1,5 +1,5 @@
 ![version: 0.9.0](https://img.shields.io/badge/konsole-v0.9.0-blue)
-<a href="https://discord.gg/bCdxPr7aTV">
+<a href="https://discord.gg/5NZ2GKV5Cs">
   <img alt="Varabyte Discord" src="https://img.shields.io/discord/886036660767305799.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2" />
 </a>
 
