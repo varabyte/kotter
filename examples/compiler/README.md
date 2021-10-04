@@ -4,4 +4,4 @@ This demo helps showcase the `aside` function, which allows one to generate extr
 dynamically updating text. Here, the dynamic text is the state of the threads, while the static text is a trail of
 "compilation succeeded" and "compilation failed" messages.
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-compiler.gif)
+![Example in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-compiler.gif)
