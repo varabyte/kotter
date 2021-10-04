@@ -100,8 +100,8 @@ konsoleApp {
 ```
 
 `konsole { ... }` defines a `KonsoleBlock` which, on its own, is inert. It needs to be run to output text to the
-console. Above, we use the `run` method above to trigger this. The method blocks until the render is finished (which,
-for console text, probably won't be very long).
+console. Above, we use the `run` method above to trigger this. The method blocks until the render (i.e. text printing
+to the console) is finished (which, for console text, probably won't be very long).
 
 While the above simple case is a bit verbose for what it's doing, Konsole starts to show its strength when doing
 background work (or other async tasks like waiting for user input) during which time the block may update several times.
