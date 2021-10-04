@@ -42,7 +42,7 @@ Specifically, this library helps with:
 
 ### Dependency
 
-The artifacts for this project are hosted in our own artifact repository, so to include Konsole in your project, modify
+The artifact for this project is hosted in our own artifact repository (*), so to include Konsole in your project, modify
 your Gradle build file as follows:
 
 ```groovy
@@ -56,6 +56,8 @@ dependencies {
   implementation 'com.varabyte.konsole:konsole:0.9.0'
 }
 ```
+
+(* To be hosted in `mavenCentral` eventually)
 
 ### Running examples
 
