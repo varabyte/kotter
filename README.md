@@ -153,12 +153,12 @@ konsole {
   p {
     text("This paragraph has an ")
     underline { text("underlined") }
-    text(" word in it")
+    textLine(" word in it")
   }
 }.run()
 ```
 
-### Konsole state and scopedState
+### Konsole block state and scopedState
 
 To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
 `konsole` block only:
@@ -190,7 +190,7 @@ konsole {
 }.run()
 ```
 
-This is what the scoped text effect methods (like `red { ... }`) are doing for you under the hood, actually.
+***Note:** This is what the scoped text effect methods (like `red { ... }`) are doing for you under the hood, actually.*
 
 ### Dynamic Konsole block
 
@@ -227,10 +227,10 @@ As you can see above, the `run` callback uses a `rerender` method, which you can
 However, remembering to call `rerender` yourself is potentially fragile and could be a source of bugs in the future when
 trying to figure out why your console isn't updating.
 
-For this purpose, Konsole provides the `KonsoleVar` class, which, when modified, will automatically request a rerender
-to the last block that referenced it. An example will demonstrate this in action shortly.
+For this purpose, Konsole provides the `KonsoleVar` class, which, when modified, will automatically request a rerender.
+An example will demonstrate this in action shortly.
 
-To create a `KonsoleVar`, simply change a line like:
+To create a `KonsoleVar`, simply change a normal variable declaration line like:
 
 ```kotlin
 konsoleApp {
@@ -248,8 +248,8 @@ konsoleApp {
 }
 ```
 
-***Note:** The `konsoleVarOf` method can't be called outside of the `konsoleApp` block. For many remaining examples,
-we'll elide the `konsoleApp` boilerplate, but that doesn't mean you can omit it in your own program!*
+***Note:** The `konsoleVarOf` method is actually part of the `konsoleApp` block. For many remaining examples, we'll
+elide the `konsoleApp` boilerplate, but that doesn't mean you can omit it in your own program!*
 
 Let's apply `konsoleVarOf` to our earlier example in order to remove the `rerender` call:
 
@@ -293,7 +293,7 @@ removed from it, causes a rerender to happen automatically. You don't need to us
 Instead, in a `konsoleApp` block, use the `konsoleListOf` method:
 
 ```kotlin
-val fileWalker = FileWalker(".")
+val fileWalker = FileWalker(".") // This class doesn't exist but just pretend for this example...
 val fileMatches = konsoleListOf<String>()
 konsole {
   textLine("Matches found so far: ")
@@ -313,7 +313,7 @@ konsole {
 }
 ```
 
-The `KonsoleList` class is thread safe, but you can still run into trouble if you acess multiple values on the list one
+The `KonsoleList` class is thread safe, but you can still run into trouble if you access multiple values on the list one
 after the other, as a lock is released between each check. It's always possible that modifying the first property will
 kick off a new render which will start before the additional values are set, in other words.
 
@@ -339,8 +339,8 @@ konsole {
 The general rule of thumb is: use `withWriteLock` if you want to access or modify more than one property from the list
 at the same time within your `run` block.
 
-Note that you don't have to worry about locking within a `konsole` render pass. Data access is already locked for you in
-that context.
+Note that you don't have to worry about locking within a `konsole { ... }` block. Data access is already locked for you
+in that context.
 
 #### Signals and waiting
 
@@ -686,7 +686,7 @@ that I envisioned Konsole.
 ```kotlin
 // Mosaic
 runMosaic {
-  val count by remember { mutableStateOf(0) }
+  var count by remember { mutableStateOf(0) }
   Text("The count is: $count")
 
   LaunchedEffect(null) {
