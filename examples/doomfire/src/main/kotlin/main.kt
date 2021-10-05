@@ -24,11 +24,12 @@ enum class FireColor(val ansiColor: Color) {
     RED_BRIGHT(Color.BRIGHT_RED),
     RED(Color.RED),
     BRIGHT_BLACK(Color.BRIGHT_BLACK),
-    BLACK(Color.BLACK);
+    BLACK(Color.BLACK),
+    NOTHING(Color.MAGENTA); // Debug color, it should never be visible if my code logic is right
 
     fun cooler(): FireColor {
         return when (this) {
-            BLACK -> BLACK
+            NOTHING -> NOTHING
             else -> values()[ordinal + 1]
         }
     }
@@ -40,7 +41,7 @@ operator fun Array<FireColor>.set(x: Int, y: Int, value: FireColor) {
 }
 
 class DoomFireModel {
-    val buffer = Array(VIEW_WIDTH * VIEW_HEIGHT) { FireColor.BLACK }
+    val buffer = Array(VIEW_WIDTH * VIEW_HEIGHT) { FireColor.NOTHING }
     private var isFireOn = false
 
     init {
@@ -59,9 +60,9 @@ class DoomFireModel {
         for (y in 0 until MAX_Y) { // until: Always leave the last Y line alone, it's the source of the fire
             for (x in 0..MAX_X) {
                 val srcColor = buffer[x, y + 1]
-                var dstColor = FireColor.BLACK
+                var dstColor = FireColor.NOTHING
                 var xFinal = x
-                if (srcColor != FireColor.BLACK) {
+                if (srcColor != FireColor.NOTHING) {
                     val shouldDecay = (Random.nextFloat() > 0.4)
                     val xOffsetRandomness = (Random.nextFloat() * 3.0).toInt() - 1 // Windy to the left
                     dstColor = if (shouldDecay) srcColor.cooler() else srcColor
@@ -96,10 +97,10 @@ fun main() = konsoleApp {
         for (y in 0..MAX_Y) {
             for (x in 0..MAX_X) {
                 val fireColor = doomFire.buffer[x, y]
-                color(fireColor.ansiColor)
-                if (fireColor == FireColor.BLACK) {
+                if (fireColor == FireColor.NOTHING) {
                     text(" ")
                 } else {
+                    color(fireColor.ansiColor)
                     text("*")
                 }
             }
