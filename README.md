@@ -681,6 +681,10 @@ that I envisioned Konsole.
 * Compose does a lot of nice tricks due to the fact it is ultimately a compiler plugin, but it is nice to see what the
   API would kind of look like with no magic at all (although, admittedly, with some features sacrificed).
 
+* Mosaic doesn't support input well yet (at the time of writing this README, maybe this has changed in the future).
+  For example, compare [Mosaic](https://github.com/JakeWharton/mosaic/blob/fd213711ce2b828a6436a61d6d345692222bdb95/samples/robot/src/main/kotlin/example/robot.kt#L45)
+  to [Konsole](https://github.com/varabyte/konsole/blob/1996828448116f299f0b4d565dfbecb93624a938/examples/mosaic/robot/src/main/kotlin/main.kt#L27).
+
 #### Mosaic comparison
 
 ```kotlin
