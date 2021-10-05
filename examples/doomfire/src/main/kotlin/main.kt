@@ -9,7 +9,7 @@ import kotlin.random.Random
 
 // Fire renderer ported from https://fabiensanglard.net/doom_fire_psx/
 
-// Size chosen to product a ~16:9 final gif render (in my terminal, the line height is higher than char width)
+// Size chosen to produce a ~16:9 final gif render (in my terminal, the line height is higher than char width)
 private const val VIEW_WIDTH = 70
 private const val VIEW_HEIGHT = 17
 private const val MAX_X = VIEW_WIDTH - 1
