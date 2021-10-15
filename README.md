@@ -522,7 +522,7 @@ var blinkOn by konsoleVarOf(false)
 konsole {
   scopedState {
     if (blinkOn) invert()
-    textLine("This line will blink for $BLINK_LEN")
+    textLine("This line will blink for ${BLINK_TOTAL_LEN.toSeconds()} seconds")
   }
 
 }.run {
@@ -530,13 +530,15 @@ konsole {
   addTimer(BLINK_LEN, repeat = true) {
     blinkOn = !blinkOn
     blinkCount--
-    if (blinkCount == 0) {
+    if (blinkCount == 0L) {
       repeat = false
     }
   }
   /* ... */
 }
 ```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-blink.gif)
 
 It's possible your block will exit while things are in a bad state due to running timers, so you can use the
 `onFinishing` callback to handle this:
@@ -566,7 +568,7 @@ You can easily create custom animations, by calling `konsoleAnimOf`:
 ```kotlin
 var finished = false
 val spinnerAnim = konsoleAnimOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
-val thinkingAnim = konsoleAnimOf(listOf(".", "..", "..."), Duration.ofMillis(500))
+val thinkingAnim = konsoleAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
 konsole {
   if (!finished) { text(spinnerAnim) } else { text("✓") }
   text(" Searching for files")
@@ -576,6 +578,8 @@ konsole {
   finished = true
 }
 ```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-spinner.gif)
 
 When you reference an animation in a render for the first time, it kickstarts a timer automatically for you. In other
 words, all you have to do is treat your animation instance as if it were a string, and Konsole takes care of the rest!
@@ -590,7 +594,7 @@ off from one another. For example, if you were processing 10 threads at a time, 
 to start spinning whenever its thread activates:
 
 ```kotlin
-val SPINNER_TEMPATE = KotlinAnim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
+val SPINNER_TEMPATE = KonsoleAnim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
 
 val spinners = (1..10).map { konsoleAnimOf(SPINNER_TEMPLATE) }
 /* ... */
