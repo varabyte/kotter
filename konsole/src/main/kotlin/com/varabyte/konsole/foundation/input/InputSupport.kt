@@ -1,17 +1,31 @@
 package com.varabyte.konsole.foundation.input
 
 import com.varabyte.konsole.foundation.anim.KonsoleAnim
-import com.varabyte.konsole.foundation.text.*
+import com.varabyte.konsole.foundation.text.Color
+import com.varabyte.konsole.foundation.text.clearInvert
+import com.varabyte.konsole.foundation.text.color
+import com.varabyte.konsole.foundation.text.invert
+import com.varabyte.konsole.foundation.text.text
 import com.varabyte.konsole.foundation.timer.addTimer
 import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
-import com.varabyte.konsole.runtime.render.RenderScope
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.concurrent.createKey
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
+import com.varabyte.konsole.runtime.render.RenderScope
 import com.varabyte.konsole.runtime.terminal.Terminal
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import java.time.Duration
 
 
@@ -28,7 +42,7 @@ private val KeyFlowKey = KonsoleApp.Lifecycle.createKey<Flow<Key>>()
 private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
     tryPut(KeyFlowKey) {
         val escSeq = StringBuilder()
-        callbackFlow {
+        channelFlow {
             terminal.read().collect { byte ->
                 val c = byte.toChar()
                 val key = when {
@@ -71,7 +85,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                                     delay(50)
                                     if (escSeq.isNotEmpty()) {
                                         if (escSeq.length == 1) {
-                                            trySend(Keys.ESC)
+                                            send(Keys.ESC)
                                         }
                                         escSeq.clear()
                                     }
@@ -85,7 +99,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                 }
 
                 if (key != null) {
-                    trySend(key)
+                    send(key)
                 }
             }
         }

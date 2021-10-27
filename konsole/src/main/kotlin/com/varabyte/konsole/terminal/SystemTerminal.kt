@@ -1,8 +1,9 @@
 package com.varabyte.konsole.terminal
 
 import com.varabyte.konsole.runtime.terminal.Terminal
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import org.jline.terminal.TerminalBuilder
 import org.jline.utils.InfoCmp
@@ -69,13 +70,14 @@ class SystemTerminal : Terminal {
     }
 
     private val charFlow: Flow<Int> by lazy {
-        callbackFlow {
+        flow {
             var quit = false
-            while (!quit && isActive) {
+            val context = currentCoroutineContext()
+            while (!quit && context.isActive) {
                 try {
                     val c = terminal.reader().read(16)
                     if (c >= 0) {
-                        trySend(c)
+                        emit(c)
                     }
                     else {
                         quit = (c == -1)
