@@ -1,11 +1,7 @@
 package com.varabyte.konsole.foundation.input
 
 import com.varabyte.konsole.foundation.anim.KonsoleAnim
-import com.varabyte.konsole.foundation.text.Color
-import com.varabyte.konsole.foundation.text.clearInvert
-import com.varabyte.konsole.foundation.text.color
-import com.varabyte.konsole.foundation.text.invert
-import com.varabyte.konsole.foundation.text.text
+import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.timer.addTimer
 import com.varabyte.konsole.runtime.KonsoleApp
 import com.varabyte.konsole.runtime.KonsoleBlock
@@ -14,18 +10,8 @@ import com.varabyte.konsole.runtime.concurrent.createKey
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.render.RenderScope
 import com.varabyte.konsole.runtime.terminal.Terminal
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.shareIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import java.time.Duration
 
 
@@ -56,7 +42,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                                 Ansi.Csi.Codes.Keys.DOWN -> Keys.DOWN
                                 Ansi.Csi.Codes.Keys.LEFT -> Keys.LEFT
                                 Ansi.Csi.Codes.Keys.RIGHT -> Keys.RIGHT
-                                Ansi.Csi.Codes.Keys.HOME -> Keys.HOME
+                                Ansi.Csi.Codes.Keys.HOME, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_START -> Keys.HOME
                                 Ansi.Csi.Codes.Keys.INSERT -> Keys.INSERT
                                 Ansi.Csi.Codes.Keys.DELETE -> Keys.DELETE
                                 Ansi.Csi.Codes.Keys.END -> Keys.END
@@ -71,7 +57,8 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                     else -> {
                         when (c) {
                             Ansi.CtrlChars.EOF -> Keys.EOF
-                            Ansi.CtrlChars.BACKSPACE -> Keys.BACKSPACE
+                            // Windows uses BACKSPACE, *nix uses DELETE? Best to support both
+                            Ansi.CtrlChars.BACKSPACE, Ansi.CtrlChars.DELETE -> Keys.BACKSPACE
                             Ansi.CtrlChars.TAB -> Keys.TAB
                             Ansi.CtrlChars.ENTER -> Keys.ENTER
                             Ansi.CtrlChars.ESC -> {

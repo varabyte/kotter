@@ -15,19 +15,24 @@ internal object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
     object CtrlChars {
         const val EOF = '\u0004'
-        const val BACKSPACE = '\u007F'
+        const val BACKSPACE = '\u0008'
         const val TAB = '\u0009'
         const val ENTER = '\u000D'
         const val ESC = '\u001B'
+        const val DELETE = '\u007F'
     }
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Fe_Escape_sequences
     object EscSeq {
         const val CSI = '['
+        // Hack alert: For a reason I don't understand yet, Windows uses 'O' and not '[' for a handful of its escape
+        // sequence characters. 'O' normally represents "function shift" but I'm not finding great documentation about
+        // it. For now, it seems to work OK if we just treat 'O' like '[' on Windows sometimes.
+        private const val CSI_ALT = 'O'
 
         fun toCode(sequence: CharSequence): Csi.Code? {
             if (sequence.length < 3) return null
-            if (sequence[0] != CtrlChars.ESC || sequence[1] != CSI) return null
+            if (sequence[0] != CtrlChars.ESC || (sequence[1] !in listOf(CSI, CSI_ALT))) return null
             val parts = Csi.Code.parts(TextPtr(sequence, 2)) ?: return null
             return Csi.Code(parts)
         }
@@ -57,6 +62,8 @@ internal object Ansi {
             object CURSOR_RIGHT : Identifier('C')
             object CURSOR_LEFT : Identifier('D')
             object CURSOR_PREV_LINE : Identifier('F')
+            object CURSOR_POSITION : Identifier('H')
+
             object ERASE_LINE : Identifier('K')
             object SGR : Identifier('m')
             object KEYCODE : Identifier('~')
@@ -101,6 +108,7 @@ internal object Ansi {
         object Codes {
             object Cursor {
                 object MOVE_TO_PREV_LINE : Code("1${Identifiers.CURSOR_PREV_LINE}")
+                object MOVE_TO_LINE_START : Code("${Identifiers.CURSOR_POSITION}")
             }
 
             object Erase {

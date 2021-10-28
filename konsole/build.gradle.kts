@@ -46,8 +46,7 @@ dependencies {
     // For system terminal implementation
     implementation("org.jline:jline-terminal:${Versions.Jline}")
     implementation("org.jline:jline-terminal-jansi:${Versions.Jline}")
-    // TODO(#47): Windows currently not supported
-    //runtimeOnly(files("libs/jansi-1.18.jar")) // Required for windows support
+    runtimeOnly(files("libs/jansi-1.18.jar")) // Required for windows support
 
     // For GuardedBy concurrency annotation
     implementation("net.jcip:jcip-annotations:1.0")
