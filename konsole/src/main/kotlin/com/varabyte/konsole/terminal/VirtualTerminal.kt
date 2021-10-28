@@ -64,6 +64,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
             val pane = SwingTerminalPane(fontSize, fgColor.toSwingColor(), bgColor.toSwingColor())
+            pane.focusTraversalKeysEnabled = false // Don't handle TAB, we want to send it to the user
             pane.text = buildString {
                 // Set initial text to a block of blank characters so pack will set it to the right size
                 for (h in 0 until terminalSize.height) {
