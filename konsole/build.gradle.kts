@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.varabyte.konsole"
-version = "0.9.1"
+version = "0.9.2-SNAPSHOT"
 
 fun shouldSign() = (findProperty("konsole.sign") as? String).toBoolean()
 fun shouldPublishToGCloud(): Boolean {
