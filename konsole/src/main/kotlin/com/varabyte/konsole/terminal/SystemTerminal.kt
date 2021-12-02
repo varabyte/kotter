@@ -15,16 +15,6 @@ import java.io.PrintStream
  * A class which interacts directly with the underlying system terminal, e.g. println
  */
 class SystemTerminal : Terminal {
-    companion object {
-        fun or(other: () -> Terminal): Terminal {
-            return try {
-                SystemTerminal()
-            } catch (ex: Exception) {
-                other()
-            }
-        }
-    }
-
     private var previousCursorSetting: InfoCmp.Capability
     private val previousOut = System.out
     private val previousErr = System.err

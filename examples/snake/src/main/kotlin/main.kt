@@ -1,4 +1,5 @@
 import com.varabyte.konsole.foundation.anim.KonsoleAnim
+import com.varabyte.konsole.foundation.runUntilSuccess
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
@@ -134,9 +135,12 @@ class Snake(private val level: Level, val head: Pt) {
 
 fun Snake.isBody(pt: Pt) = !isHead(pt) && !isTail(pt) && contains(pt)
 
-fun main() = konsoleApp(terminal = SystemTerminal.or {
-  VirtualTerminal.create(terminalSize = TerminalSize(WIDTH, HEIGHT + 15))
-}) {
+fun main() = konsoleApp(
+    terminal = listOf(
+        { SystemTerminal() },
+        { VirtualTerminal.create(terminalSize = TerminalSize(WIDTH, HEIGHT + 15)) }
+    ).runUntilSuccess()
+){
     konsole {
         textLine()
         text("Snake: "); snakeTail(); snakeBody(); snakeBody(); snakeHead(); textLine()

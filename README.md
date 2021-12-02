@@ -631,8 +631,8 @@ many online reports, Windows is also a big offender here.
 Konsole will attempt to detect if your console does not support the features it uses, and if not, it will open up a
 virtual terminal. This fallback gives your application better cross-platform support.
 
-To modify the logic to ALWAYS open the virtual terminal, you can construct the virtual terminal directly and pass it
-into the app:
+To modify the logic to ALWAYS open the virtual terminal, you can set the `terminal` parameter in `konsoleApp` like
+this:
 
 ```kotlin
 konsoleApp(terminal = VirtualTerminal.create()) {
@@ -641,13 +641,18 @@ konsoleApp(terminal = VirtualTerminal.create()) {
 }
 ```
 
-or if you want to keep the same behavior where you try to run a system terminal first and fall back to a virtual
-terminal later, but perhaps you want to customize the virtual terminal with different parameters, you can use:
+or you can chain multiple factory methods together using the `runUntilSuccess` method, which will try to start each
+terminal type in turn. If you want to mimic Konsole's current behavior where you try to run a system terminal first and
+fall back to a virtual terminal later, but perhaps you want to customize the virtual terminal with different parameters,
+you can write code like so:
 
 ```kotlin
-konsoleApp(terminal = SystemTerminal.or {
-  VirtualTerminal.create(title = "My App", terminalSize = Dimension(30, 30))
-}) {
+konsoleApp(
+  terminal = listOf(
+    { SystemTerminal() },
+    { VirtualTerminal.create(title = "My App", terminalSize = Dimension(30, 30)) },
+  ).runUntilSuccess()
+) {
   /* ... */
 }
 ```
