@@ -2,8 +2,8 @@ import Cells.State
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.session
+import com.varabyte.konsole.foundation.liveVarOf
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.runtime.render.RenderScope
 import kotlinx.coroutines.delay
@@ -93,11 +93,11 @@ private fun RenderScope.centered(text: String, width: Int): String {
     }
 }
 
-fun main() = konsoleApp {
+fun main() = session {
     val cells = Cells()
 
     // Instructions never need to change; output them first
-    konsole {
+    section {
         textLine()
         textLine("space: play/pause")
         textLine("right: step one frame")
@@ -105,8 +105,8 @@ fun main() = konsoleApp {
         textLine("q: quit")
     }.run()
 
-    var paused by konsoleVarOf(false)
-    konsole {
+    var paused by liveVarOf(false)
+    section {
         textLine(if (paused) { centered("* PAUSED *", WIDTH + 2) } else "")
 
         text("+")

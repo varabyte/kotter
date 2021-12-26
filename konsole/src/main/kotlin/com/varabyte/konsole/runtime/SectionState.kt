@@ -1,6 +1,6 @@
 package com.varabyte.konsole.runtime
 
-import com.varabyte.konsole.runtime.internal.KonsoleCommand
+import com.varabyte.konsole.runtime.internal.TerminalCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.*
 import com.varabyte.konsole.runtime.render.Renderer
 
@@ -26,18 +26,18 @@ import com.varabyte.konsole.runtime.render.Renderer
  * order to, say, remove a foreground color setting, what we're really doing is nuking everything and building the whole
  * state back up again.
  */
-class KonsoleState internal constructor(internal val parent: KonsoleState? = null) {
+class SectionState internal constructor(internal val parent: SectionState? = null) {
     /** A collection of relevent ANSI styles.
      *
      * @param parentStyles If provided, it means this style should fall back to its parent's value when unset.
      */
     internal class Styles(val parentStyles: Styles? = null) {
-        var fgColor: KonsoleCommand? = parentStyles?.fgColor
-        var bgColor: KonsoleCommand? = parentStyles?.bgColor
-        var underlined: KonsoleCommand? = parentStyles?.underlined
-        var bolded: KonsoleCommand? = parentStyles?.bolded
-        var struckThrough: KonsoleCommand? = parentStyles?.struckThrough
-        var inverted: KonsoleCommand? = parentStyles?.inverted
+        var fgColor: TerminalCommand? = parentStyles?.fgColor
+        var bgColor: TerminalCommand? = parentStyles?.bgColor
+        var underlined: TerminalCommand? = parentStyles?.underlined
+        var bolded: TerminalCommand? = parentStyles?.bolded
+        var struckThrough: TerminalCommand? = parentStyles?.struckThrough
+        var inverted: TerminalCommand? = parentStyles?.inverted
     }
 
     /** Styles which are actively applied, and any text rendered right now would use them. */

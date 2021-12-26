@@ -21,21 +21,22 @@ class SystemTerminal : Terminal {
     private val terminal = TerminalBuilder.builder()
         .system(true)
         // According to https://github.com/jline/jline3#jansi-vs-jna, both of these are equally valid libraries but
-        // jansi is a bit smaller. Since we're not doing anything particularly complex with Konsole, we choose jansi.
+        // jansi is a bit smaller. Since we're not doing anything particularly complex here, we choose jansi.
         .jansi(true).jna(false)
         // Don't use JLine's virtual terminal - use ours! Because this is false, this builder will throw an exception
-        // if the current terminal environment doesn't support standards we expect to run Konsole on top of. We can
-        // listen for that exception to either halt the problem or start up a virtual terminal instead.
+        // if the current terminal environment doesn't support standards we require. We can listen for that exception to
+        // either halt the problem or start up a virtual terminal instead.
         .dumb(false)
         .build().apply {
-            // Swallow keypresses - instead, Konsole will handle them
+            // Swallow keypresses - instead, we will handle them
             enterRawMode()
 
             val disabledPrintStream = PrintStream(object : OutputStream() {
                 override fun write(b: Int) = Unit
             })
 
-            // Disable printlns, as they allow users to screw with assumptions that Konsole makes
+            // Disable printlns, as they allow users to screw with assumptions that this library makes (e.g. inserting
+            // in ANSI commands whose state we don't keep track of)
             System.setOut(disabledPrintStream)
             System.setErr(disabledPrintStream)
 

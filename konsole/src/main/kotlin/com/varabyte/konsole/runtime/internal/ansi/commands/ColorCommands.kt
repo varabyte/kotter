@@ -1,30 +1,30 @@
 package com.varabyte.konsole.runtime.internal.ansi.commands
 
-import com.varabyte.konsole.runtime.KonsoleState
+import com.varabyte.konsole.runtime.SectionState
 import com.varabyte.konsole.runtime.internal.ansi.Ansi.Csi
 import com.varabyte.konsole.runtime.internal.ansi.Ansi.Csi.Codes.Sgr.Colors
 import com.varabyte.konsole.runtime.render.Renderer
 
 internal class FgColorCommand(csiCode: Csi.Code) : AnsiCsiCommand(csiCode) {
-    override fun applyTo(state: KonsoleState, renderer: Renderer) {
+    override fun applyTo(state: SectionState, renderer: Renderer) {
         state.deferred.fgColor = this
     }
 }
 
 internal object FG_CLEAR_COMMAND : AnsiCsiCommand(Colors.Fg.CLEAR) {
-    override fun applyTo(state: KonsoleState, renderer: Renderer) {
+    override fun applyTo(state: SectionState, renderer: Renderer) {
         state.deferred.fgColor = null
     }
 }
 
 internal class BgColorCommand(csiCode: Csi.Code) : AnsiCsiCommand(csiCode) {
-    override fun applyTo(state: KonsoleState, renderer: Renderer) {
+    override fun applyTo(state: SectionState, renderer: Renderer) {
         state.deferred.bgColor = this
     }
 }
 
 internal object BG_CLEAR_COMMAND : AnsiCsiCommand(Colors.Bg.CLEAR) {
-    override fun applyTo(state: KonsoleState, renderer: Renderer) {
+    override fun applyTo(state: SectionState, renderer: Renderer) {
         state.deferred.bgColor = null
     }
 }
@@ -66,12 +66,12 @@ internal val BG_CYAN_BRIGHT_COMMAND = BgColorCommand(Colors.Bg.CYAN_BRIGHT)
 internal val BG_WHITE_BRIGHT_COMMAND = BgColorCommand(Colors.Bg.WHITE_BRIGHT)
 
 internal val INVERT_COMMAND = object : AnsiCsiCommand(Colors.INVERT) {
-    override fun applyTo(state: KonsoleState, renderer: Renderer) {
+    override fun applyTo(state: SectionState, renderer: Renderer) {
         state.deferred.inverted = this
     }
 }
 internal val CLEAR_INVERT_COMMAND = object : AnsiCsiCommand(Colors.CLEAR_INVERT) {
-    override fun applyTo(state: KonsoleState, renderer: Renderer) {
+    override fun applyTo(state: SectionState, renderer: Renderer) {
         state.deferred.inverted = null
     }
 }

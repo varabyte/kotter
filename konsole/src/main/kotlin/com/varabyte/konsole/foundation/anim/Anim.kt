@@ -1,13 +1,11 @@
 package com.varabyte.konsole.foundation.anim
 
-import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.liveVarOf
 import com.varabyte.konsole.foundation.timer.addTimer
-import com.varabyte.konsole.runtime.KonsoleApp
-import com.varabyte.konsole.runtime.KonsoleBlock
-import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
+import com.varabyte.konsole.runtime.Session
 import java.time.Duration
 
-class KonsoleAnim internal constructor(private val app: KonsoleApp, val template: Template): CharSequence {
+class Anim internal constructor(private val app: Session, val template: Template): CharSequence {
     companion object {
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
     }
@@ -20,7 +18,7 @@ class KonsoleAnim internal constructor(private val app: KonsoleApp, val template
     }
 
     private var elapsedMs: Int = 0
-    private var currFrame by app.konsoleVarOf(template.frames[0])
+    private var currFrame by app.liveVarOf(template.frames[0])
 
     private val frameMs = template.frameDuration.toMillis().toInt()
     private val animMs = frameMs * template.frames.size
@@ -45,6 +43,6 @@ class KonsoleAnim internal constructor(private val app: KonsoleApp, val template
     override fun subSequence(startIndex: Int, endIndex: Int) = readProperty { currFrame.subSequence(startIndex, endIndex) }
 }
 
-fun KonsoleApp.konsoleAnimOf(template: KonsoleAnim.Template) = KonsoleAnim(this, template)
-fun KonsoleApp.konsoleAnimOf(frames: List<String>, frameDuration: Duration) =
-    KonsoleAnim(this, KonsoleAnim.Template(frames, frameDuration))
+fun Session.animOf(template: Anim.Template) = Anim(this, template)
+fun Session.animOf(frames: List<String>, frameDuration: Duration) =
+    Anim(this, Anim.Template(frames, frameDuration))

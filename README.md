@@ -7,9 +7,9 @@
 # Konsole
 
 ```kotlin
-konsoleApp {
-  var wantsToLearn by konsoleVarOf(false)
-  konsole {
+session {
+  var wantsToLearn by liveVarOf(false)
+  section {
     text("Would you like to learn "); cyan { text("Konsole") }; textLine("? (Y/n)")
     text("> "); input(Completions("yes", "no"))
 
@@ -93,16 +93,18 @@ virtual terminal.*
 The following is equivalent to `println("Hello, World")`. In this simple case, it's definitely overkill!
 
 ```kotlin
-konsoleApp {
-  konsole {
-    textLine("Hello, World")
-  }.run()
+session {
+  section { textLine("Hello, World") }.run()
 }
 ```
 
-`konsole { ... }` defines a `KonsoleBlock` which, on its own, is inert. It needs to be run to output text to the
-console. Above, we use the `run` method above to trigger this. The method blocks until the render (i.e. text printing
-to the console) is finished (which, for console text, probably won't be very long).
+`section { ... }` defines a `Section` which, on its own, is inert. It needs to be run to output text to the
+console. Above, we use the `run` method to trigger this. The method blocks until the render (i.e. text printing to the
+console) is finished (which, for console text, probably won't be very long).
+
+`session { ... }` sets the outer scope for your whole program (e.g. it specifies the lifetime of some data). While we're
+just calling it with default arguments here, you can also pass in parameters that apply to the entire application.
+A Konsole `session` can contain one or more `section`s. 
 
 While the above simple case is a bit verbose for what it's doing, Konsole starts to show its strength when doing
 background work (or other async tasks like waiting for user input) during which time the block may update several times.
@@ -113,7 +115,7 @@ We'll see many examples throughout this document later.
 You can call color methods directly, which remain in effect until the next color method is called:
 
 ```kotlin
-konsole {
+section {
   green(layer = BG)
   red() // defaults to FG layer if no layer specified
   textLine("Red on green")
@@ -126,7 +128,7 @@ or, if you only want the color effect to live for a limited time, you can use sc
 clearing colors for you automatically at the end of their block:
 
 ```kotlin
-konsole {
+section {
   green(layer = BG) {
     red {
       textLine("Red on green")
@@ -142,20 +144,20 @@ konsole {
 If the user's terminal supports truecolor mode, you can specify rgb (or hsv) values directly:
 
 ```kotlin
-konsole {
+section {
   rgb(0xFFFF00) { textLine("Yellow!") }
   hsv(35, 1.0, 1.0) { textLine("Orange!") }
 }.run()
 ```
 
 ***Note:** If truecolor is not supported, terminals may attempt to emulate it by falling back to a nearby color, which
-may look decent! However, to be safe, you may want to avoid subtle gradient tricks, as they may come out clumpy for some
-users.*
+may look decent! However, to be safe, you may want to avoid subtle gradient tricks, as they may come out clumped for
+some users.*
 
-Various text effects are also available:
+Various text effects (like bold) are also available:
 
 ```kotlin
-konsole {
+section {
   bold {
     textLine("Title")
   }
@@ -172,28 +174,30 @@ konsole {
 }.run()
 ```
 
-### Konsole block state and scopedState
+***Note:** Italics support is not currently exposed, as it is not a standard feature and is inconsistently supported.*
+
+### State and scopedState
 
 To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
-`konsole` block only:
+`section` block only:
 
 ```kotlin
-konsole {
+section {
   blue(BG)
   red()
   text("This text is red on blue")
 }.run()
 
-konsole {
+section {
   text("This text is rendered using default colors")
 }.run()
 ```
 
-Within a Konsole block, you can also use the `scopedState` method. This creates a new scope within which any state will
-be automatically discarded after it ends.
+Within a section, you can also use the `scopedState` method. This creates a new scope within which any state will be
+automatically discarded after it ends.
 
 ```kotlin
-konsole {
+section {
   scopedState {
     red()
     blue(BG)
@@ -206,18 +210,18 @@ konsole {
 
 ***Note:** This is what the scoped text effect methods (like `red { ... }`) are doing for you under the hood, actually.*
 
-### Dynamic Konsole block
+### Dynamic sections
 
-The `konsole` block is designed to be run one _or more_ times. That is, you can write logic inside it which may not get
+The `section` block is designed to be run one _or more_ times. That is, you can write logic inside it which may not get
 executed on the first run but will be on a followup run.
 
-Here, we pass in a callback to the `run` method which updates a value referenced by the `konsole` block (the `result`
-integer). This example will run the Konsole block twice - once when `run` is first called and again when it calls
+Here, we pass in a callback to the `run` method which updates a value referenced by the `section` block (the `result`
+integer). This example will run the section twice - once when `run` is first called and again when it calls
 `rerender`:
 
 ```kotlin
 var result: Int? = null
-konsole {
+section {
   text("Calculating... ")
   if (result != null) {
     text("Done! Result = $result")
@@ -231,23 +235,23 @@ konsole {
 The `run` callback automatically runs on a background thread for you (as a suspend function, so you can call other
 suspend methods from within it).
 
-Unlike using `run` without a callback, here your program will be blocked until the callback has finished (or, if it
-has triggered a rerender, until the last rerender finishes after your callback is done).
+Unlike using `run` without a callback (i.e. simply `run()`), here your program will be blocked until the callback has
+finished (or, if it has triggered a rerender, until the last rerender finishes after your callback is done).
 
-#### KonsoleVar
+#### LiveVar
 
 As you can see above, the `run` callback uses a `rerender` method, which you can call to request another render pass.
 
 However, remembering to call `rerender` yourself is potentially fragile and could be a source of bugs in the future when
 trying to figure out why your console isn't updating.
 
-For this purpose, Konsole provides the `KonsoleVar` class, which, when modified, will automatically request a rerender.
+For this purpose, Konsole provides the `LiveVar` class, which, when modified, will automatically request a rerender.
 An example will demonstrate this in action shortly.
 
-To create a `KonsoleVar`, simply change a normal variable declaration line like:
+To create a `LiveVar`, simply change a normal variable declaration line like:
 
 ```kotlin
-konsoleApp {
+session {
   var result: Int? = null
   /* ... */
 }
@@ -256,20 +260,20 @@ konsoleApp {
 to:
 
 ```kotlin
-konsoleApp {
-  var result by konsoleVarOf<Int?>(null)
+session {
+  var result by liveVarOf<Int?>(null)
   /* ... */
 }
 ```
 
-***Note:** The `konsoleVarOf` method is actually part of the `konsoleApp` block. For many remaining examples, we'll
-elide the `konsoleApp` boilerplate, but that doesn't mean you can omit it in your own program!*
+***Note:** The `liveVarOf` method is actually scoped to the `session` block. For many remaining examples, we'll elide
+the `session` boilerplate, but that doesn't mean you can omit it in your own program!*
 
-Let's apply `konsoleVarOf` to our earlier example in order to remove the `rerender` call:
+Let's apply `liveVarOf` to our earlier example in order to remove the `rerender` call:
 
 ```kotlin
-var result by konsoleVarOf<Int?>(null)
-konsole {
+var result by liveVarOf<Int?>(null)
+section {
   /* ... no changes ... */
 }.run {
   result = doNetworkFetchAndExpensiveCalculation()
@@ -283,8 +287,8 @@ Here's another example, showing how you can use `run` for something like a progr
 ```kotlin
 // Prints something like: [****------]
 val BAR_LENGTH = 10
-var numFilledSegments by konsoleVarOf(0)
-konsole {
+var numFilledSegments by liveVarOf(0)
+section {
   text("[")
   for (i in 0 until BAR_LENGTH) {
     text(if (i < numFilledSegments) "*" else "-")
@@ -300,16 +304,16 @@ konsole {
 }
 ```
 
-#### KonsoleList
+#### LiveList
 
-Similar to `KonsoleVar`, a `KonsoleList` is a reactive primitive which, when modified by having elements added to or
-removed from it, causes a rerender to happen automatically. You don't need to use the `by` keyword with `KonsoleList`.
-Instead, in a `konsoleApp` block, use the `konsoleListOf` method:
+Similar to `LiveVar`, a `LiveList` is a reactive primitive which, when modified by having elements added to or
+removed from it, causes a rerender to happen automatically. You don't need to use the `by` keyword with `LiveList`.
+Instead, within a `session`, use the `liveListOf` method:
 
 ```kotlin
 val fileWalker = FileWalker(".") // This class doesn't exist but just pretend for this example...
-val fileMatches = konsoleListOf<String>()
-konsole {
+val fileMatches = liveListOf<String>()
+section {
   textLine("Matches found so far: ")
   if (fileMatches.isNotEmpty()) {
     for (match in fileMatches) {
@@ -327,16 +331,16 @@ konsole {
 }
 ```
 
-The `KonsoleList` class is thread safe, but you can still run into trouble if you access multiple values on the list one
+The `LiveList` class is thread safe, but you can still run into trouble if you access multiple values on the list one
 after the other, as a lock is released between each check. It's always possible that modifying the first property will
 kick off a new render which will start before the additional values are set, in other words.
 
-To handle this, you can use the `KonsoleList#withWriteLock` method:
+To handle this, you can use the `LiveList#withWriteLock` method:
 
 ```kotlin
 val fileWalker = FileWalker(".")
-val last10Matches = konsoleListOf<String>()
-konsole {
+val last10Matches = liveListOf<String>()
+section {
   ...
 }.run {
   fileWalker.findFiles("*.txt") { file ->
@@ -353,7 +357,7 @@ konsole {
 The general rule of thumb is: use `withWriteLock` if you want to access or modify more than one property from the list
 at the same time within your `run` block.
 
-Note that you don't have to worry about locking within a `konsole { ... }` block. Data access is already locked for you
+Note that you don't have to worry about locking within a `section { ... }` block. Data access is already locked for you
 in that context.
 
 #### Signals and waiting
@@ -365,7 +369,7 @@ event. You could always use a general threading trick for this, such as a `Count
 ```kotlin
 val fileDownloader = FileDownloader("...")
 fileDownloader.start()
-konsole {
+section {
   /* ... */
 }.run {
   val finished = CompletableDeffered<Unit>()
@@ -378,7 +382,7 @@ but, for convenience, Konsole provides the `signal` and `waitForSignal` methods,
 
 ```kotlin
 val fileDownloader = FileDownloader("...")
-konsole {
+section {
   /* ... */
 }.run {
   fileDownloader.onFinished += { signal() }
@@ -389,11 +393,12 @@ konsole {
 These methods are enough in most cases. Note that if you call `signal` before you reach `waitForSignal`, then
 `waitForSignal` will just pass through without stopping.
 
-Alternately, there's a `runUntilSignal` you can use, within which you don't need to call `waitForSignal` yourself:
+There's also a convenience `runUntilSignal` method you can use, within which you don't need to call `waitForSignal` yourself, since
+this case is so common:
 
 ```kotlin
 val fileDownloader = FileDownloader("...")
-konsole {
+section {
   /* ... */
 }.runUntilSignal {
   fileDownloader.onFinished += { signal() }
@@ -406,13 +411,12 @@ konsole {
 
 Konsole consumes keypresses, so as the user types into the console, nothing will show up unless you intentionally print
 it. You can easily do this using the `input` method, which handles listening to kepresses and adding text into your
-Konsole block at that location:
+section at that location:
 
 ```kotlin
-konsole {
+section {
   // `input` is a method that appends the user's input typed so far in this
-  // konsole block. If your block uses it, the block is automatically
-  // rerendered when it changes.
+  // Once your section references it, the block is automatically rerendered when its value changes.
   text("Please enter your name: "); input()
 }.run { /* ... */ }
 ```
@@ -423,7 +427,7 @@ moving the cursor back and forth between the bounds of the input string.
 You can intercept input as it is typed using the `onInputChanged` event:
 
 ```kotlin
-konsole {
+section {
   text("Please enter your name: "); input()
 }.run {
   onInputChanged {
@@ -436,7 +440,7 @@ konsole {
 You can also use the `rejectInput` method to return your input to the previous (presumably valid) state.
 
 ```kotlin
-konsole {
+section {
   text("Please enter your name: "); input()
 }.run {
   onInputChanged {
@@ -451,7 +455,7 @@ You can also use `onInputEntered`. This will be triggered whenever the user pres
 
 ```kotlin
 var name = ""
-konsole {
+section {
   text("Please enter your name: "); input()
 }.runUntilSignal {
   onInputChanged { input = input.filter { it.isLetter() } }
@@ -464,7 +468,7 @@ Using it, we can slightly simplify the above example, typing fewer characters fo
 
 ```kotlin
 var name = ""
-konsole {
+section {
   text("Please enter your name: "); input()
 }.runUntilInputEntered {
   onInputChanged { input = input.filter { it.isLetter() } }
@@ -478,7 +482,7 @@ If you're interested in specific keypresses and not simply input that's been typ
 the `onKeyPressed` event:
 
 ```kotlin
-konsole {
+section {
   textLine("Press Q to quit")
   /* ... */
 }.run {
@@ -499,7 +503,7 @@ konsole {
 For convenience, there's also a `runUntilKeyPressed` method you can use to help with patterns like the above.
 
 ```kotlin
-konsole {
+section {
   textLine("Press Q to quit")
   /* ... */
 }.runUntilKeyPressed(Keys.Q) {
@@ -512,10 +516,10 @@ konsole {
 
 ### Timers
 
-A Konsole block can manage a set of timers for you. Use the `addTimer` method in your `run` block to add some:
+Konsole can manage a set of timers for you. Use the `addTimer` method in your `run` block to add some:
 
 ```kotlin
-konsole {
+section {
   /* ... */
 }.runUntilSignal {
   addTimer(Duration.ofMillis(500)) {
@@ -531,8 +535,8 @@ at some point, set `repeat = false` inside the timer block when it is triggered:
 ```kotlin
 val BLINK_TOTAL_LEN = Duration.ofSeconds(5)
 val BLINK_LEN = Duration.ofMillis(250)
-var blinkOn by konsoleVarOf(false)
-konsole {
+var blinkOn by liveVarOf(false)
+section {
   scopedState {
     if (blinkOn) invert()
     textLine("This line will blink for ${BLINK_TOTAL_LEN.toSeconds()} seconds")
@@ -557,8 +561,8 @@ It's possible your block will exit while things are in a bad state due to runnin
 `onFinishing` callback to handle this:
 
 ```kotlin
-var blinkOn by konsoleVarOf(false)
-konsole {
+var blinkOn by liveVarOf(false)
+section {
   /* ... */
 }.onFinishing {
   blinkOn = false
@@ -568,21 +572,21 @@ konsole {
 }
 ```
 
-***Note:** Unlike other callbacks, `onFinishing` is registered directly against the underlying `konsole` block, because
-it is actually triggered AFTER the run pass is finished but before the block is torn down.*
+***Note:** Unlike other callbacks, `onFinishing` is registered directly against the underlying `section`, because it is
+actually triggered AFTER the run pass is finished but before the block is torn down.*
 
 `onFinishing` will only run after all timers are stopped, so you don't have to worry about setting a value that an
 errant timer will clobber later.
 
 ### Animations
 
-You can easily create custom animations, by calling `konsoleAnimOf`:
+You can easily create custom animations, by calling `animOf`:
 
 ```kotlin
 var finished = false
-val spinnerAnim = konsoleAnimOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
-val thinkingAnim = konsoleAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
-konsole {
+val spinnerAnim = animOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
+val thinkingAnim = animOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+section {
   if (!finished) { text(spinnerAnim) } else { text("✓") }
   text(" Searching for files")
   if (!finished) { text(thinkingAnim) } else { text("... Done!") }
@@ -600,16 +604,16 @@ words, all you have to do is treat your animation instance as if it were a strin
 #### Animation templates
 
 If you have an animation that you want to share in a bunch of places, you can create a template for it and instantiate
-instances from the template. `KonsoleAnim.Template` takes exactly the same arguments as the `konsoleAnimOf` method.
+instances from the template. `Anim.Template` takes exactly the same arguments as the `animOf` method.
 
 This may be useful if you have a single animation that you want to run in many places at the same time but all slightly
 off from one another. For example, if you were processing 10 threads at a time, you may want the spinner for each thread
 to start spinning whenever its thread activates:
 
 ```kotlin
-val SPINNER_TEMPATE = KonsoleAnim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
+val SPINNER_TEMPATE = Anim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
 
-val spinners = (1..10).map { konsoleAnimOf(SPINNER_TEMPLATE) }
+val spinners = (1..10).map { animOf(SPINNER_TEMPLATE) }
 /* ... */
 ```
 
@@ -617,23 +621,23 @@ val spinners = (1..10).map { konsoleAnimOf(SPINNER_TEMPLATE) }
 
 ### Thread Affinity
 
-Setting aside the fact that the `run` block runs in a background thread, Konsole blocks themselves are rendered
-sequentionally on a single thread. Anytime you make a call to run a Konsole block, no matter which thread it is called
-from, a single thread ultimately handles it. At the same time, if you attempt to run one `konsole` block while another
-block is already running, an exception is thrown.
+Setting aside the fact that the `run` block runs in a background thread, sections themselves are rendered sequentially
+on a single thread. Anytime you make a call to run a Konsole block, no matter which thread it is called from, a single
+thread ultimately handles it. At the same time, if you attempt to run one `konsole` block while another block is already
+running, an exception is thrown.
 
 I made this decision so that:
 
-* I don't have to worry about multiple Konsole blocks `println`ing at the same time - who likes clobbered text?
-* Konsole handles repainting by moving the terminal cursor around, which would fail horribly if multiple Konsole blocks
-tried doing this at the same time.
-* Konsole embraces the idea of a dynamic, active block trailed by a bunch of static history. If two dynamic blocks
+* I don't have to worry about multiple sections `println`ing at the same time - who likes clobbered text?
+* Konsole handles repainting by moving the terminal cursor around, which would fail horribly if multiple sections tried
+doing this at the same time.
+* Konsole embraces the idea of a dynamic, active section preceded by a bunch of static history. If two dynamic blocks
 wanted to be active at the same time, what would that even mean?
 
 In practice, I expect this decision won't be an issue for most users. Command line apps are expected to have a main flow
 anyway -- ask the user a question, do some work, then ask another question, etc. It is expected that a user won't ever
-even need to call `konsole` from more than one thread. It is hoped that the `konsole { ... }.run { ... }`
-pattern is powerful enough for most (all?) cases.
+even need to call `section` from more than one thread. It is hoped that the
+`section { ... main thread ... }.run { ... background thread ... }` pattern is powerful enough for most (all?) cases.
 
 ### Virtual Terminal
 
@@ -644,12 +648,12 @@ many online reports, Windows is also a big offender here.
 Konsole will attempt to detect if your console does not support the features it uses, and if not, it will open up a
 virtual terminal. This fallback gives your application better cross-platform support.
 
-To modify the logic to ALWAYS open the virtual terminal, you can set the `terminal` parameter in `konsoleApp` like
+To modify the logic to ALWAYS open the virtual terminal, you can set the `terminal` parameter in `session` like
 this:
 
 ```kotlin
-konsoleApp(terminal = VirtualTerminal.create()) {
-  konsole { /* ... */ }
+session(terminal = VirtualTerminal.create()) {
+  section { /* ... */ }
   /* ... */
 }
 ```
@@ -660,7 +664,7 @@ fall back to a virtual terminal later, but perhaps you want to customize the vir
 you can write code like so:
 
 ```kotlin
-konsoleApp(
+session(
   terminal = listOf(
     { SystemTerminal() },
     { VirtualTerminal.create(title = "My App", terminalSize = Dimension(30, 30)) },
@@ -725,9 +729,9 @@ runMosaic {
 }
 
 // Konsole
-konsoleApp {
-  var count by konsoleVarOf(0)
-  konsole {
+session {
+  var count by liveVarOf(0)
+  section {
     textLine("The count is: $count")
   }.run {
     for (i in 1..20) {

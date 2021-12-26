@@ -1,17 +1,16 @@
 package com.varabyte.konsole.runtime.render
 
-import com.varabyte.konsole.runtime.KonsoleState
-import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
-import com.varabyte.konsole.runtime.internal.KonsoleCommand
+import com.varabyte.konsole.runtime.SectionState
+import com.varabyte.konsole.runtime.internal.TerminalCommand
 
 /**
- * A scope which represents a single render pass inside a Konsole block.
+ * A scope which represents a single render pass inside a section.
  *
  * So for this simple, never-ending example:
  *
  * ```
- * var count by KonsoleVar(0)
- * konsole {
+ * var count by liveVarOf(0)
+ * section {
  *   textLine("Count: $count")
  * }.run {
  *   while (true) {
@@ -21,10 +20,10 @@ import com.varabyte.konsole.runtime.internal.KonsoleCommand
  * }
  * ```
  *
- * the part between the `konsole` curly braces represents a render block, where `this` is a `RenderScope`.
+ * the part between the `section` curly braces represents a render block, where `this` is a `RenderScope`.
  */
 class RenderScope(internal val renderer: Renderer) {
-    internal var state = KonsoleState()
+    internal var state = SectionState()
 
     /**
      * Data store for this app.
@@ -34,10 +33,10 @@ class RenderScope(internal val renderer: Renderer) {
     val data = renderer.app.data
 
     /**
-     * Run the [scopedBlock] within a fresh, new [KonsoleState] context, which gets removed afterwards.
+     * Run the [scopedBlock] within a fresh, new [SectionState] context, which gets removed afterwards.
      *
      * This is useful if the scoped block is going to set one (or more) styles that are reflected in the
-     * [KonsoleState] class and which should only apply to that block.
+     * [SectionState] class and which should only apply to that block.
      */
     fun scopedState(scopedBlock: RenderScope.() -> Unit) {
         pushState()
@@ -45,8 +44,8 @@ class RenderScope(internal val renderer: Renderer) {
         popState()
     }
 
-    private fun pushState(): KonsoleState {
-        state = KonsoleState(state)
+    private fun pushState(): SectionState {
+        state = SectionState(state)
         return state
     }
 
@@ -55,7 +54,7 @@ class RenderScope(internal val renderer: Renderer) {
         state = state.parent!!
     }
 
-    internal fun applyCommand(command: KonsoleCommand) {
+    internal fun applyCommand(command: TerminalCommand) {
         command.applyTo(state, renderer)
     }
 }

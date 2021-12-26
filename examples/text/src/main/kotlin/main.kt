@@ -1,9 +1,9 @@
-import com.varabyte.konsole.foundation.konsoleApp
+import com.varabyte.konsole.foundation.session
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.text.ColorLayer.BG
 
-fun main() = konsoleApp {
-    konsole {
+fun main() = session {
+    section {
         bold { textLine("Bolded") }
         underline { textLine("Underlined") }
         strikethrough { textLine("Struck through") }

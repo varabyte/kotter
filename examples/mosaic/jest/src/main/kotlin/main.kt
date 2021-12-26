@@ -1,7 +1,7 @@
 import TestState.*
-import com.varabyte.konsole.foundation.collections.konsoleListOf
-import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.collections.liveListOf
+import com.varabyte.konsole.foundation.session
+import com.varabyte.konsole.foundation.liveVarOf
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.text.ColorLayer.BG
 import com.varabyte.konsole.foundation.timer.addTimer
@@ -66,12 +66,12 @@ private fun RenderScope.summary(tests: List<Test>, elapsedSecs: Int) {
 }
 
 // https://github.com/JakeWharton/mosaic/tree/trunk/samples/jest
-fun main() = konsoleApp {
+fun main() = session {
     // Use a random with a fixed seed for deterministic output.
     val random = Random(1234)
 
-    var elapsedSecs by konsoleVarOf(0)
-    val tests = konsoleListOf<Test>()
+    var elapsedSecs by liveVarOf(0)
+    val tests = liveListOf<Test>()
     val paths = ConcurrentLinkedDeque(
         listOf(
             "tests/login.kt",
@@ -87,7 +87,7 @@ fun main() = konsoleApp {
         )
     )
 
-    konsole {
+    section {
         val (done, running) = tests.partition { it.state != Running }
         if (done.isNotEmpty()) {
             for (test in done) {

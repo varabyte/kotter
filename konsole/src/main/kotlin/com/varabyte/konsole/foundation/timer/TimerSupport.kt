@@ -1,6 +1,6 @@
 package com.varabyte.konsole.foundation.timer
 
-import com.varabyte.konsole.runtime.KonsoleBlock
+import com.varabyte.konsole.runtime.Section
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
@@ -10,7 +10,7 @@ import kotlin.concurrent.write
 
 internal class TimerManager(private val lock: ReentrantReadWriteLock) {
     object Key : ConcurrentScopedData.Key<TimerManager> {
-        override val lifecycle = KonsoleBlock.RunScope.Lifecycle
+        override val lifecycle = Section.RunScope.Lifecycle
     }
 
     private class Timer(var duration: Duration, val repeat: Boolean, val key: Any?, val callback: TimerScope.() -> Unit): Comparable<Timer> {
@@ -81,7 +81,7 @@ internal class TimerManager(private val lock: ReentrantReadWriteLock) {
 }
 
 /**
- * See [KonsoleBlock.RunScope.addTimer].
+ * See [Section.RunScope.addTimer].
  *
  * This version is the same thing but which works directly on the underlying [ConcurrentScopedData] store, making it
  * a useful helper method for other internal methods to use.
@@ -103,7 +103,7 @@ fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, key: Any?
 class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Duration, val totalElapsed: Duration)
 
 /**
- * Add a timer that will be fired as long as the current Konsole block is still running.
+ * Add a timer that will be fired as long as the current section is still running.
  *
  * @param duration The amount of time after which this timer's callback will fire. This value can optionally be updated
  *   on later calls by settings [TimerScope.duration] inside your callback.
@@ -113,6 +113,6 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Durat
  *   the previous timer with this key finished running.
  * @param callback Logic to trigger every time the timer runs.
  */
-fun KonsoleBlock.RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit, ) {
+fun Section.RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit, ) {
     data.addTimer(duration, repeat, key, callback)
 }

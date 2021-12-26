@@ -4,10 +4,8 @@ import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData.Key
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData.Lifecycle
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
-import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
-import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 
 /**
@@ -31,14 +29,14 @@ class ConcurrentScopedData {
      *
      * ```
      * class Application {
-     *    object Lifecycle : KonsoleData.Lifecycle
+     *    object Lifecycle : ConcurrentScopedData.Lifecycle
      * }
      * ```
      *
      * and then, if you ever create a new key for some unique data you want to add, you can write:
      *
      * ```
-     * object CredentialsKey : KonsoleData.Key<String> {
+     * object CredentialsKey : ConcurrentScopedData.Key<String> {
      *   override val lifecycle = Application.Lifecycle
      * }
      *

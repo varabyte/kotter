@@ -1,15 +1,15 @@
 package com.varabyte.konsole.runtime.internal.ansi.commands
 
-import com.varabyte.konsole.runtime.KonsoleState
-import com.varabyte.konsole.runtime.internal.KonsoleCommand
+import com.varabyte.konsole.runtime.SectionState
+import com.varabyte.konsole.runtime.internal.TerminalCommand
 import com.varabyte.konsole.runtime.render.Renderer
 
 /**
  * A console command which prints text to the screen, and should ensure the current state effects are applied if not
  * already.
  */
-internal open class KonsoleTextCommand(text: String) : KonsoleCommand(text) {
-    override fun applyTo(state: KonsoleState, renderer: Renderer) {
+internal open class TextCommand(text: String) : TerminalCommand(text) {
+    override fun applyTo(state: SectionState, renderer: Renderer) {
         if (text != "\n") {
             state.applyTo(renderer)
         }
@@ -17,21 +17,21 @@ internal open class KonsoleTextCommand(text: String) : KonsoleCommand(text) {
     }
 }
 
-internal class CharCommand(char: Char) : KonsoleTextCommand(char.toString()) {
+internal class CharCommand(char: Char) : TextCommand(char.toString()) {
     init {
         require(char != '\n') { "Newlines should be represented by the NEWLINE_COMMAND" }
     }
 }
-internal class TextCommand(text: CharSequence) : KonsoleTextCommand(text.toString()) {
+internal class CharSequenceCommand(text: CharSequence) : TextCommand(text.toString()) {
     init {
         require(!text.contains("\n")) { "Newlines should be represented by the NEWLINE_COMMAND" }
     }
 }
-internal val NEWLINE_COMMAND = object : KonsoleTextCommand("\n") {
-    override fun applyTo(state: KonsoleState, renderer: Renderer) {
+internal val NEWLINE_COMMAND = object : TextCommand("\n") {
+    override fun applyTo(state: SectionState, renderer: Renderer) {
         // In some terminals, if you have a background color enabled, and you append a newline, the background color
         // extends to the end of the next line. This looks awful, as if the background color is leaking, and
-        // unfortunately with Konsole this would happen every time you did something like:
+        // unfortunately this would happen every time you did something like:
         // `blue(BG) { textLine("Hello") }; textLine("World")`
         // Above, a user would expect for the world "Hello" to be backgrounded by blue and for "World" to show up in
         // normal colors on the next line, but instead "Hello" is blue (good) and "World" would look correct (good) but

@@ -1,22 +1,22 @@
 package com.varabyte.konsole.foundation.collections
 
-import com.varabyte.konsole.foundation.KonsoleVar
-import com.varabyte.konsole.foundation.konsoleVarOf
-import com.varabyte.konsole.runtime.KonsoleApp
+import com.varabyte.konsole.foundation.LiveVar
+import com.varabyte.konsole.foundation.liveVarOf
+import com.varabyte.konsole.runtime.Session
 import net.jcip.annotations.GuardedBy
 import net.jcip.annotations.ThreadSafe
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
- * Like [KonsoleVar], but for lists.
+ * Like [LiveVar], but for lists.
  *
- * In other words, adding or removing to the list will cause the konsole block to rerender automatically.
+ * In other words, adding or removing to the list will cause the active section to rerender automatically.
  *
  * ```
- * val ids = KonsoleList<String>()
+ * val ids = liveListOf<String>()
  *
- * konsole {
+ * section {
  *   for (id in ids) { ... }
  * }.run {
  *   ids.add(...)
@@ -26,10 +26,10 @@ import kotlin.concurrent.write
  * This class's value can be queried and modified across different values, so it is designed to be thread safe.
  */
 @ThreadSafe
-class KonsoleList<T> internal constructor(private val app: KonsoleApp, vararg elements: T) : MutableList<T> {
-    // KonsoleVar already has a lot of nice logic for updating the render block as necessary, so we delegate to it to
+class LiveList<T> internal constructor(private val app: Session, vararg elements: T) : MutableList<T> {
+    // LiveVar already has a lot of nice logic for updating the render block as necessary, so we delegate to it to
     // avoid reimplementing the logic here
-    private var modifyCountVar by app.konsoleVarOf(0)
+    private var modifyCountVar by app.liveVarOf(0)
     private var modifyCount = 0
 
     @GuardedBy("app.data.lock")
@@ -37,7 +37,7 @@ class KonsoleList<T> internal constructor(private val app: KonsoleApp, vararg el
 
     private fun <R> read(block: () -> R): R {
         return app.data.lock.read {
-            // Triggers KonsoleVar.getValue but not setValue (which, here, aborts early because value is the same)
+            // Triggers LiveVar.getValue but not setValue (which, here, aborts early because value is the same)
             modifyCountVar = modifyCountVar
             block()
         }
@@ -45,7 +45,7 @@ class KonsoleList<T> internal constructor(private val app: KonsoleApp, vararg el
 
     private fun <R> write(block: () -> R): R {
         return app.data.lock.write {
-            // Triggers KonsoleVar.setValue but not getValue
+            // Triggers LiveVar.setValue but not getValue
             modifyCountVar = ++modifyCount
             block()
         }
@@ -57,7 +57,7 @@ class KonsoleList<T> internal constructor(private val app: KonsoleApp, vararg el
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withReadLock(block: KonsoleList<T>.() -> R): R = app.data.lock.read { this.block() }
+    fun <R> withReadLock(block: LiveList<T>.() -> R): R = app.data.lock.read { this.block() }
 
     /**
      * Allow calls to write lock the list for a longer time than just a single field at a time, useful if
@@ -65,7 +65,7 @@ class KonsoleList<T> internal constructor(private val app: KonsoleApp, vararg el
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withWriteLock(block: KonsoleList<T>.() -> R): R = app.data.lock.write { this.block() }
+    fun <R> withWriteLock(block: LiveList<T>.() -> R): R = app.data.lock.write { this.block() }
 
     // Immutable functions
     override val size: Int get() = read { delegateList.size }
@@ -98,6 +98,6 @@ class KonsoleList<T> internal constructor(private val app: KonsoleApp, vararg el
     override fun set(index: Int, element: T): T = write { delegateList.set(index, element) }
 }
 
-/** Create a [KonsoleList] whose scope is tied to this app. */
+/** Create a [LiveList] whose scope is tied to this app. */
 @Suppress("FunctionName") // Intentionally made to look like a class constructor
-fun <T> KonsoleApp.konsoleListOf(vararg elements: T): KonsoleList<T> = KonsoleList<T>(this, *elements)
+fun <T> Session.liveListOf(vararg elements: T): LiveList<T> = LiveList<T>(this, *elements)

@@ -3,8 +3,8 @@ import com.varabyte.konsole.foundation.input.input
 import com.varabyte.konsole.foundation.input.onInputEntered
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.session
+import com.varabyte.konsole.foundation.liveVarOf
 import com.varabyte.konsole.foundation.text.HSV
 import com.varabyte.konsole.foundation.text.hsv
 import com.varabyte.konsole.foundation.text.text
@@ -17,9 +17,9 @@ const val H = 15
 private fun Int.toHexStr() = this.toString(16).padStart(2, '0')
 private fun Float.toPercentStr() = "${(this * 100).roundToInt()}%"
 
-fun main() = konsoleApp {
+fun main() = session {
     // Instructions never need to change; output them first
-    konsole {
+    section {
         textLine()
         textLine("h: enter hue")
         textLine("arrows: move picker (changes saturation and value)")
@@ -32,11 +32,11 @@ fun main() = konsoleApp {
     }.run()
 
     // Instructions never need to change; output them first
-    var xCurr by konsoleVarOf(0)
-    var yCurr by konsoleVarOf(0)
-    var h by konsoleVarOf(0)
-    var enteringHue by konsoleVarOf(false)
-    konsole {
+    var xCurr by liveVarOf(0)
+    var yCurr by liveVarOf(0)
+    var h by liveVarOf(0)
+    var enteringHue by liveVarOf(false)
+    section {
         val sCurr = (xCurr / W.toFloat())
         val vCurr = 1f - (yCurr / H.toFloat())
 

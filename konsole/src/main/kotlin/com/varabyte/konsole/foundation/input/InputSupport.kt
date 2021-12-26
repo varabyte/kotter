@@ -1,10 +1,10 @@
 package com.varabyte.konsole.foundation.input
 
-import com.varabyte.konsole.foundation.anim.KonsoleAnim
+import com.varabyte.konsole.foundation.anim.Anim
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.timer.addTimer
-import com.varabyte.konsole.runtime.KonsoleApp
-import com.varabyte.konsole.runtime.KonsoleBlock
+import com.varabyte.konsole.runtime.Session
+import com.varabyte.konsole.runtime.Section
 import com.varabyte.konsole.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.konsole.runtime.concurrent.createKey
 import com.varabyte.konsole.runtime.internal.ansi.Ansi
@@ -17,13 +17,13 @@ import java.time.Duration
 
 // Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
 // there's no reason for us to keep recreating it. It's pretty likely that if an app uses input in one block, it
-// will use input again in others. (We can always revisit this decision later and scope this to a KonsoleBlock
-// lifecycle)
-private val KeyFlowKey = KonsoleApp.Lifecycle.createKey<Flow<Key>>()
+// will use input again in others. (We can always revisit this decision later and scope this to a Section lifecycle
+// instead)
+private val KeyFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
 
 /**
- * Create a [Flow<Key>] value which converts the ANSI values read from a terminal into Konsole's simpler abstraction
- * (which is a flat collection of keys instead of multi-encoded bytes and other historical legacy).
+ * Create a [Flow<Key>] value which converts bytes read from a terminal into keys, handling some gnarly multi-byte
+ * cases and smoothing over other inconsistent, historical legacy.
  */
 private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
     tryPut(KeyFlowKey) {
@@ -99,7 +99,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
 /** State needed to support the `input()` function */
 private class InputState {
     object Key : ConcurrentScopedData.Key<InputState> {
-        override val lifecycle = KonsoleBlock.Lifecycle
+        override val lifecycle = Section.Lifecycle
     }
     companion object {
         private const val BLINKING_DURATION_MS = 500
@@ -139,8 +139,8 @@ private class InputState {
     }
 }
 
-private val UpdateInputJobKey = KonsoleBlock.RunScope.Lifecycle.createKey<Job>()
-private val OnlyCalledOncePerRenderKey = KonsoleBlock.Render.Lifecycle.createKey<Unit>()
+private val UpdateInputJobKey = Section.RunScope.Lifecycle.createKey<Job>()
+private val OnlyCalledOncePerRenderKey = Section.Render.Lifecycle.createKey<Unit>()
 
 /**
  * Clear all input related data when we're done using it
@@ -160,29 +160,29 @@ private fun ConcurrentScopedData.finishInput() {
  */
 private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
     // The input() function makes no sense in and is not supported in aside blocks
-    val konsoleBlock = scope.renderer.app.activeBlock?.takeIf { it.renderer === scope.renderer } ?:
+    val section = scope.renderer.app.activeBlock?.takeIf { it.renderer === scope.renderer } ?:
         throw IllegalStateException("`input` was called in an invalid context")
 
     if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
 
-    prepareKeyFlow(konsoleBlock.app.terminal)
+    prepareKeyFlow(section.app.terminal)
     var stopTimer = false
     if (tryPut(InputState.Key, { InputState() }, { stopTimer = true })) {
         val state = get(InputState.Key)!!
-        addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
+        addTimer(Anim.ONE_FRAME_60FPS, repeat = true) {
             if (state.elapse(elapsed)) {
-                konsoleBlock.requestRerender()
+                section.requestRerender()
             }
             if (stopTimer) {
                 repeat = false
             }
         }
-        konsoleBlock.onFinishing {
+        section.onFinishing {
             if (state.blinkOn) {
                 state.blinkOn = false
-                konsoleBlock.requestRerender()
+                section.requestRerender()
             }
         }
     }
@@ -259,7 +259,7 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                         }
 
                         if (text != prevText || index != prevIndex) {
-                            konsoleBlock.requestRerender()
+                            section.requestRerender()
                         }
                     }
                 }
@@ -295,7 +295,7 @@ open class Completions(private vararg val values: String, private val ignoreCase
     }
 }
 
-private val CompleterKey = KonsoleBlock.Lifecycle.createKey<InputCompleter>()
+private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
 
 fun RenderScope.input(completer: InputCompleter? = null) {
     data.prepareInput(this)
@@ -325,12 +325,12 @@ fun RenderScope.input(completer: InputCompleter? = null) {
 
 class OnKeyPressedScope(val key: Key)
 
-private val KeyPressedJobKey = KonsoleBlock.RunScope.Lifecycle.createKey<Job>()
-private val KeyPressedCallbackKey = KonsoleBlock.RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+private val KeyPressedJobKey = Section.RunScope.Lifecycle.createKey<Job>()
+private val KeyPressedCallbackKey = Section.RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
-private val SystemKeyPressedCallbackKey = KonsoleBlock.RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+private val SystemKeyPressedCallbackKey = Section.RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
 
 /**
  * Start running a job that collects keypresses and sends them to callbacks.
@@ -354,14 +354,14 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
     )
 }
 
-fun KonsoleBlock.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
+fun Section.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
     data.prepareOnKeyPressed(block.app.terminal)
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
     }
 }
 
-fun KonsoleBlock.runUntilKeyPressed(vararg keys: Key, block: suspend KonsoleBlock.RunScope.() -> Unit = {}) {
+fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend Section.RunScope.() -> Unit = {}) {
     run {
         data.prepareOnKeyPressed(this.block.app.terminal)
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) abort() }
@@ -374,9 +374,9 @@ class OnInputChangedScope(var input: String, val prevInput: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
 }
-private val InputChangedCallbacksKey = KonsoleBlock.RunScope.Lifecycle.createKey<MutableList<OnInputChangedScope.() -> Unit>>()
+private val InputChangedCallbacksKey = Section.RunScope.Lifecycle.createKey<MutableList<OnInputChangedScope.() -> Unit>>()
 
-fun KonsoleBlock.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
+fun Section.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
     data.putIfAbsent(InputChangedCallbacksKey, provideInitialValue = { mutableListOf() }) { add(listener) }
 }
 
@@ -384,22 +384,22 @@ class OnInputEnteredScope(val input: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
 }
-private val InputEnteredCallbackKey = KonsoleBlock.RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
+private val InputEnteredCallbackKey = Section.RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
 
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
 private object SystemInputEnteredCallbackKey : ConcurrentScopedData.Key<() -> Unit> {
-    override val lifecycle = KonsoleBlock.RunScope.Lifecycle
+    override val lifecycle = Section.RunScope.Lifecycle
 }
 
-fun KonsoleBlock.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
+fun Section.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
     if (!data.tryPut(InputEnteredCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputEntered` callback at a time is supported.")
     }
 }
 
-fun KonsoleBlock.runUntilInputEntered(block: suspend KonsoleBlock.RunScope.() -> Unit = {}) {
+fun Section.runUntilInputEntered(block: suspend Section.RunScope.() -> Unit = {}) {
     run {
         data[SystemInputEnteredCallbackKey] = { abort() }
         block()

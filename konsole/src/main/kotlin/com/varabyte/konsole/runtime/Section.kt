@@ -13,15 +13,15 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 
-internal val ActiveBlockKey = KonsoleBlock.Lifecycle.createKey<KonsoleBlock>()
-internal val AsideRendersKey = KonsoleBlock.RunScope.Lifecycle.createKey<MutableList<Renderer>>()
+internal val ActiveBlockKey = Section.Lifecycle.createKey<Section>()
+internal val AsideRendersKey = Section.RunScope.Lifecycle.createKey<MutableList<Renderer>>()
 
 /**
- * The class which represents the state of a `konsole` block and its registered event handlers (e.g. [run] and
+ * The class which represents the state of a `section` block and its registered event handlers (e.g. [run] and
  * [onFinishing])
  */
 
-class KonsoleBlock internal constructor(val app: KonsoleApp, private val block: RenderScope.() -> Unit) {
+class Section internal constructor(val app: Session, private val block: RenderScope.() -> Unit) {
     /**
      * A moderately long lifecycle that lives as long as the block is running.
      *
@@ -35,11 +35,11 @@ class KonsoleBlock internal constructor(val app: KonsoleApp, private val block: 
     /**
      * A scope associated with the [run] function.
      *
-     * While the lifecycle is probably *almost* the same as the Konsole block's lifecycle, it is a little shorter, and
-     * this matters because some data may need to be cleaned up before the block is actually finished.
+     * While the lifecycle is probably *almost* the same as its section's lifecycle, it is a little shorter, and
+     * this matters because some data may need to be cleaned up after running but before the block is actually finished.
      */
     class RunScope(
-        internal val block: KonsoleBlock,
+        internal val block: Section,
         private val scope: CoroutineScope,
     ) {
         object Lifecycle : ConcurrentScopedData.Lifecycle
@@ -146,7 +146,7 @@ class KonsoleBlock internal constructor(val app: KonsoleApp, private val block: 
      * This is a good opportunity to change any values back to some initial state if necessary (such as a blinking
      * cursor). Changes made in `onFinishing` may potentially kick off one final render pass.
      */
-    fun onFinishing(block: () -> Unit): KonsoleBlock {
+    fun onFinishing(block: () -> Unit): Section {
         require(app.data.isActive(Lifecycle))
         onFinishing.add(block)
 
@@ -155,13 +155,13 @@ class KonsoleBlock internal constructor(val app: KonsoleApp, private val block: 
 
     fun run(block: (suspend RunScope.() -> Unit)? = null) {
         if (consumed.get()) {
-            throw IllegalStateException("Cannot run a Konsole block that was previously run")
+            throw IllegalStateException("Cannot rerun a section that was previously run")
         }
         consumed.set(true)
 
         // Note: The data we're adding here will be removed by the dispose call below
         if (!app.data.tryPut(ActiveBlockKey) { this }) {
-            throw IllegalStateException("Cannot run this Konsole block while another block is already running")
+            throw IllegalStateException("Cannot run this section while another section is already running")
         }
 
         app.data.start(RunScope.Lifecycle)

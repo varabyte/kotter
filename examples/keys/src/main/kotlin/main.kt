@@ -2,13 +2,13 @@ import com.varabyte.konsole.foundation.input.CharKey
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.session
+import com.varabyte.konsole.foundation.liveVarOf
 import com.varabyte.konsole.foundation.text.textLine
 
-fun main() = konsoleApp {
-    var keyName by konsoleVarOf("")
-    konsole {
+fun main() = session {
+    var keyName by liveVarOf("")
+    section {
         textLine("Press any key (and Q will quit)")
         textLine()
         textLine("Last key pressed: $keyName")

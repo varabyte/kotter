@@ -1,7 +1,7 @@
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.konsoleApp
+import com.varabyte.konsole.foundation.session
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.timer.addTimer
 import java.time.Duration
@@ -84,8 +84,8 @@ class DoomFireModel {
     }
 }
 
-fun main() = konsoleApp {
-    konsole {
+fun main() = session {
+    section {
         p {
             textLine("Press SPACE to toggle fire on and off")
             textLine("Press Q to quit")
@@ -93,7 +93,7 @@ fun main() = konsoleApp {
     }.run()
 
     val doomFire = DoomFireModel()
-    konsole {
+    section {
         for (y in 0..MAX_Y) {
             for (x in 0..MAX_X) {
                 val fireColor = doomFire.buffer[x, y]

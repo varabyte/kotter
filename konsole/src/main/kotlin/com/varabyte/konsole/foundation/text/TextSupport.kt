@@ -2,7 +2,7 @@ package com.varabyte.konsole.foundation.text
 
 import com.varabyte.konsole.runtime.internal.ansi.commands.CharCommand
 import com.varabyte.konsole.runtime.internal.ansi.commands.NEWLINE_COMMAND
-import com.varabyte.konsole.runtime.internal.ansi.commands.TextCommand
+import com.varabyte.konsole.runtime.internal.ansi.commands.CharSequenceCommand
 import com.varabyte.konsole.runtime.render.RenderScope
 
 fun RenderScope.textLine() {
@@ -12,7 +12,7 @@ fun RenderScope.textLine() {
 fun RenderScope.text(text: CharSequence) {
     val lines = text.split('\n')
     lines.forEachIndexed { i, line ->
-        applyCommand(TextCommand(line))
+        applyCommand(CharSequenceCommand(line))
         if (i < lines.size - 1) {
             textLine()
         }

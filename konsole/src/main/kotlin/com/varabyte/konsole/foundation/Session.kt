@@ -1,6 +1,6 @@
 package com.varabyte.konsole.foundation
 
-import com.varabyte.konsole.runtime.KonsoleApp
+import com.varabyte.konsole.runtime.Session
 import com.varabyte.konsole.runtime.terminal.Terminal
 import com.varabyte.konsole.terminal.SystemTerminal
 import com.varabyte.konsole.terminal.VirtualTerminal
@@ -23,15 +23,11 @@ fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
 
 inline val DEFAULT_TERMINAL_FACTORY_METHODS get() = listOf({ SystemTerminal() }, { VirtualTerminal.create() })
 
-/**
- * @param terminal The underlying terminal that Konsole delegates to. Consider using [runUntilSuccess] to run through an
- *   ordered chain of factory methods.
- */
-fun konsoleApp(
+fun session(
     terminal: Terminal = DEFAULT_TERMINAL_FACTORY_METHODS.runUntilSuccess(),
-    block: KonsoleApp.() -> Unit) {
+    block: Session.() -> Unit) {
 
-    val app = KonsoleApp(terminal)
+    val app = Session(terminal)
     Runtime.getRuntime().addShutdownHook(Thread {
         // Clean-up even if the user presses control-C
         app.dispose()

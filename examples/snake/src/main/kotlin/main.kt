@@ -1,10 +1,10 @@
-import com.varabyte.konsole.foundation.anim.KonsoleAnim
+import com.varabyte.konsole.foundation.anim.Anim
 import com.varabyte.konsole.foundation.runUntilSuccess
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.session
+import com.varabyte.konsole.foundation.liveVarOf
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.text.ColorLayer.BG
 import com.varabyte.konsole.foundation.timer.addTimer
@@ -135,13 +135,13 @@ class Snake(private val level: Level, val head: Pt) {
 
 fun Snake.isBody(pt: Pt) = !isHead(pt) && !isTail(pt) && contains(pt)
 
-fun main() = konsoleApp(
+fun main() = session(
     terminal = listOf(
         { SystemTerminal() },
         { VirtualTerminal.create(terminalSize = TerminalSize(WIDTH, HEIGHT + 15)) }
     ).runUntilSuccess()
 ){
-    konsole {
+    section {
         textLine()
         text("Snake: "); snakeTail(); snakeBody(); snakeBody(); snakeHead(); textLine()
         text("Food:  "); food(); textLine()
@@ -155,9 +155,9 @@ fun main() = konsoleApp(
     }.run()
 
     var level = Level()
-    var isDead by konsoleVarOf(false)
+    var isDead by liveVarOf(false)
 
-    konsole {
+    section {
         blue { textLine("SCORE: ${level.snake.size - 2}") }
         if (!isDead) {
             textLine()
@@ -187,7 +187,7 @@ fun main() = konsoleApp(
             var moveTickMs = 250L
             val snake = level.snake
             snake.onMoved = {
-                addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true, key = snake) {
+                addTimer(Anim.ONE_FRAME_60FPS, repeat = true, key = snake) {
                     currTickMs += elapsed.toMillis()
                     if (currTickMs >= moveTickMs) {
                         snake.move() // As a side effect, will reset currTickMs

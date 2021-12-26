@@ -1,6 +1,6 @@
-import com.varabyte.konsole.foundation.collections.konsoleListOf
-import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.collections.liveListOf
+import com.varabyte.konsole.foundation.session
+import com.varabyte.konsole.foundation.liveVarOf
 import com.varabyte.konsole.foundation.render.aside
 import com.varabyte.konsole.foundation.text.*
 import com.varabyte.konsole.foundation.timer.addTimer
@@ -55,21 +55,21 @@ private val SAMPLE_ERRORS = listOf(
     "Unresolved name",
 )
 
-fun main() = konsoleApp {
-    var elapsedMs by konsoleVarOf(0L)
-    var finished by konsoleVarOf(false)
-    val filesToCompile = konsoleListOf<String>().apply {
+fun main() = session {
+    var elapsedMs by liveVarOf(0L)
+    var finished by liveVarOf(false)
+    val filesToCompile = liveListOf<String>().apply {
         val rootDir = "/home/user/projects/demo/src/main/kotlin"
         ('a'..'z')
             .map { "$rootDir/$it.kt" }
             .forEach { filename -> add(filename) }
     }
-    val results = konsoleListOf<CompileResult>()
-    val threads = konsoleListOf<ThreadState>().apply {
+    val results = liveListOf<CompileResult>()
+    val threads = liveListOf<ThreadState>().apply {
         repeat(4) { add(ThreadState.Idle) }
     }
 
-    konsole {
+    section {
         threads.forEachIndexed { i, threadState ->
             text("Thread #${i + 1}: ")
             when (threadState) {

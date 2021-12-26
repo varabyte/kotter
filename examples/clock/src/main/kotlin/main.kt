@@ -1,8 +1,8 @@
 import com.varabyte.konsole.foundation.input.Keys
 import com.varabyte.konsole.foundation.input.onKeyPressed
 import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.konsoleApp
-import com.varabyte.konsole.foundation.konsoleVarOf
+import com.varabyte.konsole.foundation.session
+import com.varabyte.konsole.foundation.liveVarOf
 import com.varabyte.konsole.foundation.text.p
 import com.varabyte.konsole.foundation.text.text
 import com.varabyte.konsole.foundation.text.textLine
@@ -10,24 +10,24 @@ import com.varabyte.konsole.foundation.timer.addTimer
 import java.time.Duration
 import java.time.LocalDateTime
 
-fun main() = konsoleApp {
-    konsole {
+fun main() = session {
+    section {
         p {
             textLine("Press Q to quit")
             textLine("Press SPACE to toggle 12hr / 24hr")
         }
     }.run()
 
-    var dateReady by konsoleVarOf(false)
-    var month by konsoleVarOf("")
-    var day by konsoleVarOf(0)
-    var currHour by konsoleVarOf(0)
-    var currMin by konsoleVarOf(0)
-    var amPm by konsoleVarOf("")
-    var tick by konsoleVarOf(true)
-    var elapsedSecs by konsoleVarOf(0)
-    konsole {
-        if (!dateReady) return@konsole
+    var dateReady by liveVarOf(false)
+    var month by liveVarOf("")
+    var day by liveVarOf(0)
+    var currHour by liveVarOf(0)
+    var currMin by liveVarOf(0)
+    var amPm by liveVarOf("")
+    var tick by liveVarOf(true)
+    var elapsedSecs by liveVarOf(0)
+    section {
+        if (!dateReady) return@section
 
         textLine("$month $day")
         text("${currHour.toString().padStart(2, '0')}:${currMin.toString().padStart(2, '0')}")
