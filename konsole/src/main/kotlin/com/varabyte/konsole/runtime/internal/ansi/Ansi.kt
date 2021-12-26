@@ -160,8 +160,7 @@ internal object Ansi {
 
                         object CLEAR : Code("39${Identifiers.SGR}")
 
-                        // TODO(#72): Add support for lookup colors
-                        //fun lookup(index: Int) = Code("$FG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
+                        fun lookup(index: Int) = Code("$FG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
                         fun truecolor(r: Int, g: Int, b: Int) = Code("$FG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
                     }
 
@@ -186,8 +185,7 @@ internal object Ansi {
 
                         object CLEAR : Code("49${Identifiers.SGR}")
 
-                        // TODO(#72): Add support for lookup colors
-//                        fun lookup(index: Int) = Code("$BG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
+                        fun lookup(index: Int) = Code("$BG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
                         fun truecolor(r: Int, g: Int, b: Int) = Code("$BG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
                     }
                 }

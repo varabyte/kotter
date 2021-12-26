@@ -76,8 +76,7 @@ internal val CLEAR_INVERT_COMMAND = object : AnsiCsiCommand(Colors.CLEAR_INVERT)
     }
 }
 
-// internal fun fgLookupCommand(index: Int) = FgColorCommand(Colors.Fg.lookup(index))
+internal fun fgLookupCommand(index: Int) = FgColorCommand(Colors.Fg.lookup(index))
 internal fun fgTruecolorCommand(r: Int, g: Int, b: Int) = FgColorCommand(Colors.Fg.truecolor(r, g, b))
-// TODO(#72): Add support for lookup colors
-// internal fun bgLookupCommand(index: Int) = BgColorCommand(Colors.Bg.lookup(index))
+internal fun bgLookupCommand(index: Int) = BgColorCommand(Colors.Bg.lookup(index))
 internal fun bgTruecolorCommand(r: Int, g: Int, b: Int) = BgColorCommand(Colors.Bg.truecolor(r, g, b))

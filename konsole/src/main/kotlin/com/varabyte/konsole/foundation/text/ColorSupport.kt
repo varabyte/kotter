@@ -118,11 +118,10 @@ private fun toWhiteCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.BG -> if (isBright) BG_WHITE_BRIGHT_COMMAND else BG_WHITE_COMMAND
 }
 
-//// TODO(#72): Add support for lookup colors
-//private fun toLookupCommand(layer: ColorLayer, index: Int) = when(layer) {
-//    ColorLayer.FG -> fgLookupCommand(index)
-//    ColorLayer.BG -> bgLookupCommand(index)
-//}
+private fun toLookupCommand(layer: ColorLayer, index: Int) = when(layer) {
+    ColorLayer.FG -> fgLookupCommand(index)
+    ColorLayer.BG -> bgLookupCommand(index)
+}
 
 private fun toTruecolorCommand(layer: ColorLayer, r: Int, g: Int, b: Int) = when(layer) {
     ColorLayer.FG -> fgTruecolorCommand(r, g, b)
@@ -182,10 +181,9 @@ fun RenderScope.color(color: Color, layer: ColorLayer = ColorLayer.FG) {
     })
 }
 
-// TODO(#72): Add support for lookup colors
-//fun RenderScope.color(index: Int, layer: ColorLayer = ColorLayer.FG) {
-//    applyCommand(toLookupCommand(layer, index))
-//}
+fun RenderScope.color(index: Int, layer: ColorLayer = ColorLayer.FG) {
+    applyCommand(toLookupCommand(layer, index))
+}
 
 fun RenderScope.rgb(r: Int, g: Int, b: Int, layer: ColorLayer = ColorLayer.FG) {
     applyCommand(toTruecolorCommand(layer, r, g, b))
@@ -309,17 +307,21 @@ fun RenderScope.white(
     }
 }
 
-// TODO(#72): Add support for lookup colors
-//fun RenderScope.color(
-//    index: Int,
-//    layer: ColorLayer = ColorLayer.FG,
-//    scopedBlock: RenderScope.() -> Unit
-//) {
-//    scopedState {
-//        color(index, layer)
-//        scopedBlock()
-//    }
-//}
+/**
+ * Use an index to lookup an 8-bit color.
+ *
+ * See also: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+ */
+fun RenderScope.color(
+    index: Int,
+    layer: ColorLayer = ColorLayer.FG,
+    scopedBlock: RenderScope.() -> Unit
+) {
+    scopedState {
+        color(index, layer)
+        scopedBlock()
+    }
+}
 
 fun RenderScope.rgb(
     r: Int,

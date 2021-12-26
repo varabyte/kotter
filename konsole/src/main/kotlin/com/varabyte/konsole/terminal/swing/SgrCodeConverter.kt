@@ -9,6 +9,54 @@ import com.varabyte.konsole.foundation.text.Color as AnsiColor
 
 private const val Inverted = "inverted"
 
+// Taken from https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit and https://stackoverflow.com/a/27165165
+private val IndexedColors by lazy {
+    // Range 0 - 15 (legacy colors)
+    val legacyColors = listOf(
+        AnsiColor.BLACK.toSwingColor(),
+        AnsiColor.RED.toSwingColor(),
+        AnsiColor.GREEN.toSwingColor(),
+        AnsiColor.YELLOW.toSwingColor(),
+        AnsiColor.BLUE.toSwingColor(),
+        AnsiColor.MAGENTA.toSwingColor(),
+        AnsiColor.CYAN.toSwingColor(),
+        AnsiColor.WHITE.toSwingColor(),
+        AnsiColor.BRIGHT_BLACK.toSwingColor(),
+        AnsiColor.BRIGHT_RED.toSwingColor(),
+        AnsiColor.BRIGHT_GREEN.toSwingColor(),
+        AnsiColor.BRIGHT_YELLOW.toSwingColor(),
+        AnsiColor.BRIGHT_BLUE.toSwingColor(),
+        AnsiColor.BRIGHT_MAGENTA.toSwingColor(),
+        AnsiColor.BRIGHT_CYAN.toSwingColor(),
+        AnsiColor.BRIGHT_WHITE.toSwingColor(),
+    ).mapIndexed { i, color -> i to color }.toMap()
+
+    // Range 16-231: Representative RGB values
+    val coreColors = (16..231).associateWith { i ->
+        val zeroOffset = i - 16
+        val rIndex = zeroOffset / 36
+        val gIndex = (zeroOffset % 36) / 6
+        val bIndex = zeroOffset % 6
+
+        val r = if (rIndex > 0) 55 + rIndex * 40 else 0
+        val g = if (gIndex > 0) 55 + gIndex * 40 else 0
+        val b = if (bIndex > 0) 55 + bIndex * 40 else 0
+
+        println("$i -> $r $g $b")
+        Color(r, g, b)
+    }
+
+    // Range 232 - 255: Grayscale
+    val grayscaleColors = (232 .. 255).associateWith { i ->
+        val zeroOffset = i - 232
+        val gray = zeroOffset * 10 + 8
+
+        Color(gray, gray, gray)
+    }
+
+    legacyColors + coreColors + grayscaleColors
+}
+
 /**
  * Convert ANSI SGR codes to instructions that Swing can understand.
  */
@@ -76,17 +124,31 @@ internal class SgrCodeConverter(val defaultForeground: Color, val defaultBackgro
             else -> {
                 val optionalCodes = code.parts.optionalCodes ?: return null
                 var attrSetModifier: (MutableAttributeSet.() -> Unit)? = null
-                if (code.parts.numericCode == Ansi.Csi.Codes.Sgr.Colors.FG_NUMERIC &&
-                    optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.TRUECOLOR_SUBCODE
-                ) {
-                    attrSetModifier =
-                        { setInverseAwareForeground(Color(optionalCodes[1], optionalCodes[2], optionalCodes[3])) }
+                if (code.parts.numericCode == Ansi.Csi.Codes.Sgr.Colors.FG_NUMERIC) {
+                    val color = if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.TRUECOLOR_SUBCODE) {
+                        Color(optionalCodes[1], optionalCodes[2], optionalCodes[3])
+                    } else if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.LOOKUP_SUBCODE) {
+                        IndexedColors[optionalCodes[1]]
+                    } else {
+                        null
+                    }
+
+                    if (color != null) {
+                        attrSetModifier = { setInverseAwareForeground(color) }
+                    }
                 }
-                else if (code.parts.numericCode == Ansi.Csi.Codes.Sgr.Colors.BG_NUMERIC &&
-                    optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.TRUECOLOR_SUBCODE
-                ) {
-                    attrSetModifier =
-                        { setInverseAwareBackground(Color(optionalCodes[1], optionalCodes[2], optionalCodes[3])) }
+                else if (code.parts.numericCode == Ansi.Csi.Codes.Sgr.Colors.BG_NUMERIC) {
+                    val color = if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.TRUECOLOR_SUBCODE) {
+                        Color(optionalCodes[1], optionalCodes[2], optionalCodes[3])
+                    } else if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.LOOKUP_SUBCODE) {
+                        IndexedColors[optionalCodes[1]]
+                    } else {
+                        null
+                    }
+
+                    if (color != null) {
+                        attrSetModifier = { setInverseAwareBackground(color) }
+                    }
                 }
 
                 attrSetModifier
