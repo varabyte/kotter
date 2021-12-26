@@ -139,6 +139,19 @@ konsole {
 }.run()
 ```
 
+If the user's terminal supports truecolor mode, you can specify rgb (or hsv) values directly:
+
+```kotlin
+konsole {
+  rgb(0xFFFF00) { textLine("Yellow!") }
+  hsv(35, 1.0, 1.0) { textLine("Orange!") }
+}.run()
+```
+
+***Note:** If truecolor is not supported, terminals may attempt to emulate it by falling back to a nearby color, which
+may look decent! However, to be safe, you may want to avoid subtle gradient tricks, as they may come out clumpy for some
+users.*
+
 Various text effects are also available:
 
 ```kotlin

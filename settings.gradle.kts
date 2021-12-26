@@ -10,6 +10,7 @@ include(":examples:doomfire")
 include(":examples:input")
 include(":examples:keys")
 include(":examples:life")
+include(":examples:picker")
 include(":examples:snake")
 include(":examples:text")
 

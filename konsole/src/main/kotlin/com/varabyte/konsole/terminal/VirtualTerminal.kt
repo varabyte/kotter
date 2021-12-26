@@ -4,7 +4,7 @@ import com.varabyte.konsole.runtime.internal.ansi.Ansi
 import com.varabyte.konsole.runtime.internal.text.TextPtr
 import com.varabyte.konsole.runtime.internal.text.substring
 import com.varabyte.konsole.runtime.terminal.Terminal
-import com.varabyte.konsole.terminal.swing.SgrCodeToAttrModifiers
+import com.varabyte.konsole.terminal.swing.SgrCodeConverter
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -240,14 +240,14 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
 private fun Document.getText() = getText(0, length)
 
 class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color) : JTextPane() {
-    private val sgrCodeMap: SgrCodeToAttrModifiers
+    private val sgrCodeConverter: SgrCodeConverter
 
     init {
         isEditable = false
         font = Font(Font.MONOSPACED, Font.PLAIN, fontSize)
         foreground = fgColor
         background = bgColor
-        sgrCodeMap = SgrCodeToAttrModifiers(foreground, background)
+        sgrCodeConverter = SgrCodeConverter(foreground, background)
 
         clearMouseListeners()
     }
@@ -311,7 +311,7 @@ class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color) : JTextPa
                 }
             }
             Ansi.Csi.Identifiers.SGR -> {
-                sgrCodeMap[csiCode]?.let { modifyAttributes ->
+                sgrCodeConverter.convert(csiCode)?.let { modifyAttributes ->
                     modifyAttributes(attrs)
                     true
                 } ?: false

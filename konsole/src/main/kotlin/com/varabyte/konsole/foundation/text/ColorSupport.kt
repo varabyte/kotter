@@ -2,6 +2,8 @@ package com.varabyte.konsole.foundation.text
 
 import com.varabyte.konsole.runtime.internal.ansi.commands.*
 import com.varabyte.konsole.runtime.render.RenderScope
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 enum class ColorLayer {
     FG,
@@ -25,6 +27,55 @@ enum class Color {
     BRIGHT_MAGENTA,
     BRIGHT_CYAN,
     BRIGHT_WHITE;
+}
+
+data class RGB(val r: Int, val g: Int, val b: Int) {
+    constructor(r: Float, g: Float, b: Float)
+            : this((r * 255).roundToInt(), (g * 255).roundToInt(), (b * 255).roundToInt())
+
+    init {
+        require(r in (0..255) && g in (0 .. 255) && b in (0 .. 255)) { "Color values must be between 0 and 255 (inclusive). Got: ($r, $g, $b)"}
+    }
+
+    companion object {
+        fun from(value: Int) = RGB(
+            value.and(0xFF0000).shr(16),
+            value.and(0x00FF00).shr(8),
+            value.and(0x0000FF),
+        )
+    }
+}
+
+data class HSV(val h: Int, val s: Float, val v: Float) {
+    init {
+        require(h in (0 .. 360) && s in (0.0 .. 1.0) && v in (0.0 .. 1.0)) {
+            "Hue must be between 0 and 360 (inclusive). Saturation and value must be between 0.0 and 1.0 (inclusive) Got: ($h, $s, $v)"
+        }
+    }
+
+    // See also: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
+    fun toRgb(): RGB {
+        if (s == 0.0f) {
+            val vInt = (v * 255).roundToInt()
+            return RGB(vInt, vInt, vInt)
+        }
+
+        val region = (h % 360) / 60
+        val chroma = v * s
+        val remainder = (h / 60f) % 2
+        val secondary = chroma * (1 - abs(remainder - 1f))
+        val (r1, g1, b1) = when (region) {
+            0 -> arrayOf(chroma, secondary, 0f)
+            1 -> arrayOf(secondary, chroma, 0f)
+            2 -> arrayOf(0f, chroma, secondary)
+            3 -> arrayOf(0f, secondary, chroma)
+            4 -> arrayOf(secondary, 0f, chroma)
+            else -> arrayOf(chroma, 0f, secondary)
+        }
+
+        val delta = v - chroma
+        return RGB(r1 + delta, g1 + delta, b1 + delta)
+    }
 }
 
 private fun toBlackCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
@@ -65,6 +116,17 @@ private fun toCyanCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
 private fun toWhiteCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
     ColorLayer.FG -> if (isBright) FG_WHITE_BRIGHT_COMMAND else FG_WHITE_COMMAND
     ColorLayer.BG -> if (isBright) BG_WHITE_BRIGHT_COMMAND else BG_WHITE_COMMAND
+}
+
+//// TODO(#72): Add support for lookup colors
+//private fun toLookupCommand(layer: ColorLayer, index: Int) = when(layer) {
+//    ColorLayer.FG -> fgLookupCommand(index)
+//    ColorLayer.BG -> bgLookupCommand(index)
+//}
+
+private fun toTruecolorCommand(layer: ColorLayer, r: Int, g: Int, b: Int) = when(layer) {
+    ColorLayer.FG -> fgTruecolorCommand(r, g, b)
+    ColorLayer.BG -> bgTruecolorCommand(r, g, b)
 }
 
 fun RenderScope.black(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
@@ -118,6 +180,25 @@ fun RenderScope.color(color: Color, layer: ColorLayer = ColorLayer.FG) {
         Color.BRIGHT_CYAN -> toCyanCommand(layer, true)
         Color.BRIGHT_WHITE -> toWhiteCommand(layer, true)
     })
+}
+
+// TODO(#72): Add support for lookup colors
+//fun RenderScope.color(index: Int, layer: ColorLayer = ColorLayer.FG) {
+//    applyCommand(toLookupCommand(layer, index))
+//}
+
+fun RenderScope.rgb(r: Int, g: Int, b: Int, layer: ColorLayer = ColorLayer.FG) {
+    applyCommand(toTruecolorCommand(layer, r, g, b))
+}
+
+fun RenderScope.hsv(h: Int, s: Float, v: Float, layer: ColorLayer = ColorLayer.FG) {
+    val rgb = HSV(h, s, v).toRgb()
+    applyCommand(toTruecolorCommand(layer, rgb.r, rgb.g, rgb.b))
+}
+
+fun RenderScope.rgb(value: Int, layer: ColorLayer = ColorLayer.FG) {
+    val (r, g, b) = RGB.from(value)
+    applyCommand(toTruecolorCommand(layer, r, g, b))
 }
 
 fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG) {
@@ -224,6 +305,53 @@ fun RenderScope.white(
 ) {
     scopedState {
         white(layer, isBright)
+        scopedBlock()
+    }
+}
+
+// TODO(#72): Add support for lookup colors
+//fun RenderScope.color(
+//    index: Int,
+//    layer: ColorLayer = ColorLayer.FG,
+//    scopedBlock: RenderScope.() -> Unit
+//) {
+//    scopedState {
+//        color(index, layer)
+//        scopedBlock()
+//    }
+//}
+
+fun RenderScope.rgb(
+    r: Int,
+    g: Int,
+    b: Int,
+    layer: ColorLayer = ColorLayer.FG,
+    scopedBlock: RenderScope.() -> Unit
+) {
+    scopedState {
+        rgb(r, g, b, layer)
+        scopedBlock()
+    }
+}
+
+fun RenderScope.rgb(
+    value: Int,
+    layer: ColorLayer = ColorLayer.FG,
+    scopedBlock: RenderScope.() -> Unit
+) {
+    val (r, g, b) = RGB.from(value)
+    rgb(r, g, b, layer, scopedBlock)
+}
+
+fun RenderScope.hsv(
+    h: Int,
+    s: Float,
+    v: Float,
+    layer: ColorLayer = ColorLayer.FG,
+    scopedBlock: RenderScope.() -> Unit
+) {
+    scopedState {
+        hsv(h, s, v, layer)
         scopedBlock()
     }
 }

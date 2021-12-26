@@ -82,19 +82,18 @@ internal object Ansi {
 
                 fun parts(textPtr: TextPtr): Parts? {
                     val numericCode = textPtr.readInt()
-                    val optionalCode = if (textPtr.currChar == ';') {
+                    val optionalCodes = mutableListOf<Int>()
+                    while (textPtr.currChar == ';') {
                         textPtr.increment()
-                        textPtr.readInt()
-                    } else {
-                        null
+                        optionalCodes.add(textPtr.readInt() ?: break)
                     }
                     val identifier = textPtr.currChar.takeIf { !it.isISOControl() } ?: return null
-                    return Parts(numericCode, optionalCode, identifier)
+                    return Parts(numericCode, optionalCodes.takeIf { it.isNotEmpty() }, identifier)
                 }
             }
 
-            data class Parts(val numericCode: Int?, val optionalCode: Int?, val identifier: Char) {
-                override fun toString() = "${if (numericCode != null) "$numericCode" else ""}${if (optionalCode != null) ";$optionalCode" else ""}$identifier"
+            data class Parts(val numericCode: Int?, val optionalCodes: List<Int>?, val identifier: Char) {
+                override fun toString() = "${if (numericCode != null) "$numericCode" else ""}${if (optionalCodes != null) ";${optionalCodes.joinToString(";")}" else ""}$identifier"
             }
 
             fun toFullEscapeCode(): String = "${CtrlChars.ESC}${EscSeq.CSI}${parts}"
@@ -133,6 +132,11 @@ internal object Ansi {
                     object INVERT : Code("7${Identifiers.SGR}")
                     object CLEAR_INVERT : Code("27${Identifiers.SGR}")
 
+                    const val FG_NUMERIC = 38
+                    const val BG_NUMERIC = 48
+                    const val LOOKUP_SUBCODE = 5
+                    const val TRUECOLOR_SUBCODE = 2
+
                     object Fg {
                         object BLACK : Code("30${Identifiers.SGR}")
                         object RED : Code("31${Identifiers.SGR}")
@@ -153,6 +157,10 @@ internal object Ansi {
                         object WHITE_BRIGHT : Code("97${Identifiers.SGR}")
 
                         object CLEAR : Code("39${Identifiers.SGR}")
+
+                        // TODO(#72): Add support for lookup colors
+                        //fun lookup(index: Int) = Code("$FG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
+                        fun truecolor(r: Int, g: Int, b: Int) = Code("$FG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
                     }
 
                     object Bg {
@@ -175,6 +183,10 @@ internal object Ansi {
                         object WHITE_BRIGHT : Code("107${Identifiers.SGR}")
 
                         object CLEAR : Code("49${Identifiers.SGR}")
+
+                        // TODO(#72): Add support for lookup colors
+//                        fun lookup(index: Int) = Code("$BG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
+                        fun truecolor(r: Int, g: Int, b: Int) = Code("$BG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
                     }
                 }
             }

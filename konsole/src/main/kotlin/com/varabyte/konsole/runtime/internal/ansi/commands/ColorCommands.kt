@@ -29,7 +29,6 @@ internal object BG_CLEAR_COMMAND : AnsiCsiCommand(Colors.Bg.CLEAR) {
     }
 }
 
-
 internal val FG_BLACK_COMMAND = FgColorCommand(Colors.Fg.BLACK)
 internal val FG_RED_COMMAND = FgColorCommand(Colors.Fg.RED)
 internal val FG_GREEN_COMMAND = FgColorCommand(Colors.Fg.GREEN)
@@ -76,3 +75,9 @@ internal val CLEAR_INVERT_COMMAND = object : AnsiCsiCommand(Colors.CLEAR_INVERT)
         state.deferred.inverted = null
     }
 }
+
+// internal fun fgLookupCommand(index: Int) = FgColorCommand(Colors.Fg.lookup(index))
+internal fun fgTruecolorCommand(r: Int, g: Int, b: Int) = FgColorCommand(Colors.Fg.truecolor(r, g, b))
+// TODO(#72): Add support for lookup colors
+// internal fun bgLookupCommand(index: Int) = BgColorCommand(Colors.Bg.lookup(index))
+internal fun bgTruecolorCommand(r: Int, g: Int, b: Int) = BgColorCommand(Colors.Bg.truecolor(r, g, b))
