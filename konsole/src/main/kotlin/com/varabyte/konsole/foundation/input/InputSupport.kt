@@ -45,7 +45,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                                 Ansi.Csi.Codes.Keys.HOME, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_START -> Keys.HOME
                                 Ansi.Csi.Codes.Keys.INSERT -> Keys.INSERT
                                 Ansi.Csi.Codes.Keys.DELETE -> Keys.DELETE
-                                Ansi.Csi.Codes.Keys.END -> Keys.END
+                                Ansi.Csi.Codes.Keys.END, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_END -> Keys.END
                                 Ansi.Csi.Codes.Keys.PG_UP -> Keys.PAGE_UP
                                 Ansi.Csi.Codes.Keys.PG_DOWN -> Keys.PAGE_DOWN
                                 else -> null

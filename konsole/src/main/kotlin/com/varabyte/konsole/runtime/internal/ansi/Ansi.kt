@@ -108,6 +108,8 @@ internal object Ansi {
             object Cursor {
                 object MOVE_TO_PREV_LINE : Code("1${Identifiers.CURSOR_PREV_LINE}")
                 object MOVE_TO_LINE_START : Code("${Identifiers.CURSOR_POSITION}")
+                // Some terminals use "0 F" to mean to go the end of the current line??
+                object MOVE_TO_LINE_END : Code("${Identifiers.CURSOR_PREV_LINE}")
             }
 
             object Erase {
