@@ -143,6 +143,17 @@ private val UpdateInputJobKey = KonsoleBlock.RunScope.Lifecycle.createKey<Job>()
 private val OnlyCalledOncePerRenderKey = KonsoleBlock.Render.Lifecycle.createKey<Unit>()
 
 /**
+ * Clear all input related data when we're done using it
+ *
+ * This can be useful if we, for example, allow calling "input()" serially multiple times in the same block.
+ */
+private fun ConcurrentScopedData.finishInput() {
+    remove(OnlyCalledOncePerRenderKey)
+    remove(InputState.Key)
+    remove(UpdateInputJobKey)
+}
+
+/**
  * If necessary, instantiate data that the [input] method expects to exist.
  *
  * Is a no-op after the first time.
@@ -157,11 +168,15 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
     }
 
     prepareKeyFlow(konsoleBlock.app.terminal)
-    if (tryPut(InputState.Key) { InputState() }) {
+    var stopTimer = false
+    if (tryPut(InputState.Key, { InputState() }, { stopTimer = true })) {
         val state = get(InputState.Key)!!
         addTimer(KonsoleAnim.ONE_FRAME_60FPS, repeat = true) {
             if (state.elapse(elapsed)) {
                 konsoleBlock.requestRerender()
+            }
+            if (stopTimer) {
+                repeat = false
             }
         }
         konsoleBlock.onFinishing {
@@ -221,6 +236,7 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                                 }
                                 if (!rejected) {
                                     get(SystemInputEnteredCallbackKey) { this.invoke() }
+                                    finishInput()
                                 }
                             }
                             else ->
