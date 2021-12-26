@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "com.varabyte.konsole"
+group = "com.varabyte.kotter"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
-    implementation(project(":konsole"))
+    implementation(project(":kotter"))
 }
 
 application {

@@ -1,17 +1,17 @@
-import com.varabyte.konsole.foundation.anim.Anim
-import com.varabyte.konsole.foundation.runUntilSuccess
-import com.varabyte.konsole.foundation.input.Keys
-import com.varabyte.konsole.foundation.input.onKeyPressed
-import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.session
-import com.varabyte.konsole.foundation.liveVarOf
-import com.varabyte.konsole.foundation.text.*
-import com.varabyte.konsole.foundation.text.ColorLayer.BG
-import com.varabyte.konsole.foundation.timer.addTimer
-import com.varabyte.konsole.runtime.render.RenderScope
-import com.varabyte.konsole.terminal.SystemTerminal
-import com.varabyte.konsole.terminal.TerminalSize
-import com.varabyte.konsole.terminal.VirtualTerminal
+import com.varabyte.kotter.foundation.anim.Anim
+import com.varabyte.kotter.foundation.runUntilSuccess
+import com.varabyte.kotter.foundation.input.Keys
+import com.varabyte.kotter.foundation.input.onKeyPressed
+import com.varabyte.kotter.foundation.input.runUntilKeyPressed
+import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.text.ColorLayer.BG
+import com.varabyte.kotter.foundation.timer.addTimer
+import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.terminal.SystemTerminal
+import com.varabyte.kotter.terminal.TerminalSize
+import com.varabyte.kotter.terminal.VirtualTerminal
 import kotlin.random.Random
 
 private const val WIDTH = 60

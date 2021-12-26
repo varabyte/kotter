@@ -1,6 +1,6 @@
-import com.varabyte.konsole.foundation.session
-import com.varabyte.konsole.foundation.liveVarOf
-import com.varabyte.konsole.foundation.text.textLine
+import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.text.textLine
 import kotlinx.coroutines.delay
 
 // https://github.com/JakeWharton/mosaic/tree/trunk/samples/counter

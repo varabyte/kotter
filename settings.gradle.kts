@@ -1,6 +1,6 @@
-rootProject.name = "konsole"
+rootProject.name = "kotter"
 
-include(":konsole")
+include(":kotter")
 
 include(":examples:anim")
 include(":examples:blink")

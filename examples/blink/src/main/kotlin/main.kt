@@ -1,10 +1,10 @@
-import com.varabyte.konsole.foundation.input.Keys
-import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.session
-import com.varabyte.konsole.foundation.liveVarOf
-import com.varabyte.konsole.foundation.text.invert
-import com.varabyte.konsole.foundation.text.textLine
-import com.varabyte.konsole.foundation.timer.addTimer
+import com.varabyte.kotter.foundation.input.Keys
+import com.varabyte.kotter.foundation.input.runUntilKeyPressed
+import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.text.invert
+import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.timer.addTimer
 import java.time.Duration
 
 fun main() = session {

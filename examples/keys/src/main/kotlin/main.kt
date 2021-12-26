@@ -1,10 +1,10 @@
-import com.varabyte.konsole.foundation.input.CharKey
-import com.varabyte.konsole.foundation.input.Keys
-import com.varabyte.konsole.foundation.input.onKeyPressed
-import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.session
-import com.varabyte.konsole.foundation.liveVarOf
-import com.varabyte.konsole.foundation.text.textLine
+import com.varabyte.kotter.foundation.input.CharKey
+import com.varabyte.kotter.foundation.input.Keys
+import com.varabyte.kotter.foundation.input.onKeyPressed
+import com.varabyte.kotter.foundation.input.runUntilKeyPressed
+import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.text.textLine
 
 fun main() = session {
     var keyName by liveVarOf("")

@@ -1,10 +1,10 @@
-import com.varabyte.konsole.foundation.collections.liveListOf
-import com.varabyte.konsole.foundation.session
-import com.varabyte.konsole.foundation.liveVarOf
-import com.varabyte.konsole.foundation.render.aside
-import com.varabyte.konsole.foundation.text.*
-import com.varabyte.konsole.foundation.timer.addTimer
-import com.varabyte.konsole.runtime.render.RenderScope
+import com.varabyte.kotter.foundation.collections.liveListOf
+import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.render.aside
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.timer.addTimer
+import com.varabyte.kotter.runtime.render.RenderScope
 import kotlinx.coroutines.*
 import java.time.Duration
 import kotlin.math.roundToInt

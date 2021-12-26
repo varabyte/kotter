@@ -1,16 +1,16 @@
-![version: 0.9.1](https://img.shields.io/badge/konsole-v0.9.1-blue)
+![version: 0.9.2](https://img.shields.io/badge/kotter-v0.9.2-blue)
 <a href="https://discord.gg/5NZ2GKV5Cs">
   <img alt="Varabyte Discord" src="https://img.shields.io/discord/886036660767305799.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2" />
 </a>
 [![Follow @bitspittle](https://img.shields.io/twitter/follow/bitspittle.svg?style=social)](https://twitter.com/intent/follow?screen_name=bitspittle)
 
-# Konsole
+# Kotter 🦦
 
 ```kotlin
 session {
   var wantsToLearn by liveVarOf(false)
   section {
-    text("Would you like to learn "); cyan { text("Konsole") }; textLine("? (Y/n)")
+    text("Would you like to learn "); cyan { text("Kotter") }; textLine("? (Y/n)")
     text("> "); input(Completions("yes", "no"))
 
     if (wantsToLearn) {
@@ -22,15 +22,15 @@ session {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-input.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-input.gif)
 
-*See also: [the game of life](examples/life), [snake](examples/snake), and [doom fire](examples/doomfire) implemented in Konsole!*
+*See also: [the game of life](examples/life), [snake](examples/snake), and [doom fire](examples/doomfire) implemented in Kotter!*
 
 ---
 
-Konsole aims to be a relatively thin, declarative, Kotlin-idiomatic API that provides useful functionality for writing
-delightful command line applications. It strives to keep things simple, providing a solution a bit more opinionated than
-making raw `println` calls but way less featured than something like _Java Curses_.
+Kotter (**KOT**lin **TER**minal) aims to be a relatively thin, declarative, Kotlin-idiomatic API that provides useful
+functionality for writing delightful console applications. It strives to keep things simple, providing a solution a
+bit more opinionated than making raw `println` calls but way less featured than something like _Java Curses_.
 
 Specifically, this library helps with:
 
@@ -43,7 +43,7 @@ Specifically, this library helps with:
 
 ### Dependency
 
-The artifact for this project is hosted in our own artifact repository (*), so to include Konsole in your project, modify
+The artifact for this project is hosted in our own artifact repository (*), so to include Kotter in your project, modify
 your Gradle build file as follows:
 
 ```groovy
@@ -54,7 +54,7 @@ repositories {
 
 dependencies {
   /* ... */
-  implementation 'com.varabyte.konsole:konsole:0.9.0'
+  implementation 'com.varabyte.kotter:kotter:0.9.2'
 }
 ```
 
@@ -83,7 +83,7 @@ $ cd build/install/life/bin
 $ ./life
 ```
 
-***Note:** If your terminal does not support features needed by Konsole, then this still may end up running inside a
+***Note:** If your terminal does not support features needed by Kotter, then this still may end up running inside a
 virtual terminal.*
 
 ## Usage
@@ -104,9 +104,9 @@ console) is finished (which, for console text, probably won't be very long).
 
 `session { ... }` sets the outer scope for your whole program (e.g. it specifies the lifetime of some data). While we're
 just calling it with default arguments here, you can also pass in parameters that apply to the entire application.
-A Konsole `session` can contain one or more `section`s. 
+A Kotter `session` can contain one or more `section`s. 
 
-While the above simple case is a bit verbose for what it's doing, Konsole starts to show its strength when doing
+While the above simple case is a bit verbose for what it's doing, Kotter starts to show its strength when doing
 background work (or other async tasks like waiting for user input) during which time the block may update several times.
 We'll see many examples throughout this document later.
 
@@ -245,7 +245,7 @@ As you can see above, the `run` callback uses a `rerender` method, which you can
 However, remembering to call `rerender` yourself is potentially fragile and could be a source of bugs in the future when
 trying to figure out why your console isn't updating.
 
-For this purpose, Konsole provides the `LiveVar` class, which, when modified, will automatically request a rerender.
+For this purpose, Kotter provides the `LiveVar` class, which, when modified, will automatically request a rerender.
 An example will demonstrate this in action shortly.
 
 To create a `LiveVar`, simply change a normal variable declaration line like:
@@ -378,7 +378,7 @@ section {
 }
 ```
 
-but, for convenience, Konsole provides the `signal` and `waitForSignal` methods, which do this for you.
+but, for convenience, Kotter provides the `signal` and `waitForSignal` methods, which do this for you.
 
 ```kotlin
 val fileDownloader = FileDownloader("...")
@@ -409,7 +409,7 @@ section {
 
 #### Typed input
 
-Konsole consumes keypresses, so as the user types into the console, nothing will show up unless you intentionally print
+Kotter consumes keypresses, so as the user types into the console, nothing will show up unless you intentionally print
 it. You can easily do this using the `input` method, which handles listening to kepresses and adding text into your
 section at that location:
 
@@ -516,7 +516,7 @@ section {
 
 ### Timers
 
-Konsole can manage a set of timers for you. Use the `addTimer` method in your `run` block to add some:
+Kotter can manage a set of timers for you. Use the `addTimer` method in your `run` block to add some:
 
 ```kotlin
 section {
@@ -555,7 +555,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-blink.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-blink.gif)
 
 It's possible your block will exit while things are in a bad state due to running timers, so you can use the
 `onFinishing` callback to handle this:
@@ -596,10 +596,10 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/konsole/screencasts/konsole-spinner.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-spinner.gif)
 
 When you reference an animation in a render for the first time, it kickstarts a timer automatically for you. In other
-words, all you have to do is treat your animation instance as if it were a string, and Konsole takes care of the rest!
+words, all you have to do is treat your animation instance as if it were a string, and Kotter takes care of the rest!
 
 #### Animation templates
 
@@ -622,16 +622,16 @@ val spinners = (1..10).map { animOf(SPINNER_TEMPLATE) }
 ### Thread Affinity
 
 Setting aside the fact that the `run` block runs in a background thread, sections themselves are rendered sequentially
-on a single thread. Anytime you make a call to run a Konsole block, no matter which thread it is called from, a single
-thread ultimately handles it. At the same time, if you attempt to run one `konsole` block while another block is already
-running, an exception is thrown.
+on a single thread. Anytime you make a call to run a section, no matter which thread it is called from, a single thread
+ultimately handles it. At the same time, if you attempt to run one section while another is already running, an
+exception is thrown.
 
 I made this decision so that:
 
 * I don't have to worry about multiple sections `println`ing at the same time - who likes clobbered text?
-* Konsole handles repainting by moving the terminal cursor around, which would fail horribly if multiple sections tried
+* Kotter handles repainting by moving the terminal cursor around, which would fail horribly if multiple sections tried
 doing this at the same time.
-* Konsole embraces the idea of a dynamic, active section preceded by a bunch of static history. If two dynamic blocks
+* Kotter embraces the idea of a dynamic, active section preceded by a bunch of static history. If two dynamic blocks
 wanted to be active at the same time, what would that even mean?
 
 In practice, I expect this decision won't be an issue for most users. Command line apps are expected to have a main flow
@@ -645,7 +645,7 @@ It's not guaranteed that every user's command line setup supports ANSI codes. Fo
 IntelliJ as well as running within Gradle are two such environments where functionality isn't available! According to
 many online reports, Windows is also a big offender here.
 
-Konsole will attempt to detect if your console does not support the features it uses, and if not, it will open up a
+Kotter will attempt to detect if your console does not support the features it uses, and if not, it will open up a
 virtual terminal. This fallback gives your application better cross-platform support.
 
 To modify the logic to ALWAYS open the virtual terminal, you can set the `terminal` parameter in `session` like
@@ -659,8 +659,8 @@ session(terminal = VirtualTerminal.create()) {
 ```
 
 or you can chain multiple factory methods together using the `runUntilSuccess` method, which will try to start each
-terminal type in turn. If you want to mimic Konsole's current behavior where you try to run a system terminal first and
-fall back to a virtual terminal later, but perhaps you want to customize the virtual terminal with different parameters,
+terminal type in turn. If you want to mimic the current behavior where you try to run a system terminal first and fall
+back to a virtual terminal later, but perhaps you want to customize the virtual terminal with different parameters,
 you can write code like so:
 
 ```kotlin
@@ -676,12 +676,12 @@ session(
 
 ### Why Not Compose / Mosaic?
 
-Konsole's API is inspired by Compose, which astute readers may have already noticed -- it has a core block which gets
+Kotter's API is inspired by Compose, which astute readers may have already noticed -- it has a core block which gets
 rerun for you automatically as necessary without you having to worry about it, and special state variables which, when
 modified, automatically "recompose" the current console block. Why not just use Compose directly?
 
 In fact, this is exactly what [Jake Wharton's Mosaic](https://github.com/JakeWharton/mosaic) is doing. Actually, I tried
-using it first but ultimately decided against it before deciding to write Konsole, for the following reasons:
+using it first but ultimately decided against it before deciding to write Kotter, for the following reasons:
 
 * Compose is tightly tied to the current Kotlin compiler version, which means if you are targeting a particular
 version of the Kotlin language, you can easily see the dreaded error message: `This version (x.y.z) of the Compose
@@ -694,7 +694,7 @@ compatible.`
 * Compose is great for rendering a whole, interactive UI, but console printing is often two parts: the active part that
 the user is interacting with, and the history, which is static. To support this with Compose, you'd need to manage the
 history list yourself and keep appending to it, and it was while thinking about an API that addressed this limitation
-that I envisioned Konsole.
+that I envisioned Kotter.
   * For a concrete example, see the [compiler demo](examples/compiler).
 
 * Compose encourages using a set of powerful layout primitives, namely `Box`, `Column`, and `Row`, with margins and
@@ -710,7 +710,7 @@ that I envisioned Konsole.
 
 * Mosaic doesn't support input well yet (at the time of writing this README, maybe this has changed in the future).
   For example, compare [Mosaic](https://github.com/JakeWharton/mosaic/blob/fd213711ce2b828a6436a61d6d345692222bdb95/samples/robot/src/main/kotlin/example/robot.kt#L45)
-  to [Konsole](https://github.com/varabyte/konsole/blob/1996828448116f299f0b4d565dfbecb93624a938/examples/mosaic/robot/src/main/kotlin/main.kt#L27).
+  to [Kotter](https://github.com/varabyte/kotter/blob/main/examples/mosaic/robot/src/main/kotlin/main.kt#L27).
 
 #### Mosaic comparison
 
@@ -728,7 +728,7 @@ runMosaic {
   }
 }
 
-// Konsole
+// Kotter
 session {
   var count by liveVarOf(0)
   section {

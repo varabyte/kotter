@@ -1,9 +1,9 @@
-import com.varabyte.konsole.foundation.input.Keys
-import com.varabyte.konsole.foundation.input.onKeyPressed
-import com.varabyte.konsole.foundation.input.runUntilKeyPressed
-import com.varabyte.konsole.foundation.session
-import com.varabyte.konsole.foundation.text.*
-import com.varabyte.konsole.foundation.timer.addTimer
+import com.varabyte.kotter.foundation.input.Keys
+import com.varabyte.kotter.foundation.input.onKeyPressed
+import com.varabyte.kotter.foundation.input.runUntilKeyPressed
+import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.timer.addTimer
 import java.time.Duration
 import kotlin.random.Random
 

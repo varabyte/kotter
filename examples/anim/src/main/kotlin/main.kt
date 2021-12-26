@@ -1,10 +1,10 @@
-import com.varabyte.konsole.foundation.anim.animOf
-import com.varabyte.konsole.foundation.session
-import com.varabyte.konsole.foundation.liveVarOf
-import com.varabyte.konsole.foundation.text.green
-import com.varabyte.konsole.foundation.text.p
-import com.varabyte.konsole.foundation.text.text
-import com.varabyte.konsole.foundation.text.textLine
+import com.varabyte.kotter.foundation.anim.animOf
+import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.text.green
+import com.varabyte.kotter.foundation.text.p
+import com.varabyte.kotter.foundation.text.text
+import com.varabyte.kotter.foundation.text.textLine
 import kotlinx.coroutines.delay
 import java.time.Duration
 
