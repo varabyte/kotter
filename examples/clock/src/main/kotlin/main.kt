@@ -43,7 +43,7 @@ fun main() = session {
             currHour = now.hour
             if (isFormat12Hr) {
                 amPm = "A.M."
-                if (currHour > 12) {
+                if (currHour >= 12) {
                     amPm = "P.M."
                     currHour -= 12
                 }
