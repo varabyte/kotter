@@ -28,9 +28,9 @@ session {
 
 ---
 
-Kotter (**KOT**lin **TER**minal) aims to be a relatively thin, declarative, Kotlin-idiomatic API that provides useful
-functionality for writing delightful console applications. It strives to keep things simple, providing a solution a
-bit more opinionated than making raw `println` calls but way less featured than something like _Java Curses_.
+Kotter (a **KOT**lin **TER**minal library) aims to be a relatively thin, declarative, Kotlin-idiomatic API that provides
+useful functionality for writing delightful console applications. It strives to keep things simple, providing a solution
+a bit more opinionated than making raw `println` calls but way less featured than something like _Java Curses_.
 
 Specifically, this library helps with:
 
