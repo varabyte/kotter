@@ -6,26 +6,21 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.text.TextArea
 
 internal class MutableTextArea : TextArea {
-    private val commands = mutableListOf<TerminalCommand>()
+    internal val commands = mutableListOf<TerminalCommand>()
 
-    override fun numLines(width: Int): Int {
-        val lineLengths = commands.fold(mutableListOf(0)) { acc, command ->
-            if (command is TextCommand) {
-                if (command === NEWLINE_COMMAND) {
-                    acc.add(0)
+    override val lineLengths: List<Int>
+        get() {
+            return commands.fold(mutableListOf(0)) { lengths, command ->
+                if (command is TextCommand) {
+                    if (command === NEWLINE_COMMAND) {
+                        lengths.add(0)
+                    } else {
+                        lengths[lengths.lastIndex] += command.text.length
+                    }
                 }
-                else {
-                    acc[acc.lastIndex] += command.text.length
-                }
+                lengths
             }
-            acc
         }
-        return lineLengths.size +
-                // The line gets an implicit newline once it goes ONE over the terminal width - or in other
-                // words, a 20 character line fits perfectly in a 20 column terminal, so don't treat that case
-                // as an extra newline until we hit 21 characters
-                lineLengths.sumOf { len -> (len - 1) / width }
-    }
 
     override fun isEmpty() = commands.isEmpty()
 

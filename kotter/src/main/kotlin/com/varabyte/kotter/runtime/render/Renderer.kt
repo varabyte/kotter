@@ -11,8 +11,9 @@ import com.varabyte.kotter.runtime.text.TextArea
  * A class responsible for executing some block of logic which contains render instructions, which ultimately modify an
  * internal [MutableTextArea].
  */
-class Renderer(val app: Session) {
+class Renderer(val app: Session, val autoAppendNewline: Boolean = true) {
     private val _textArea = MutableTextArea()
+    internal val commands: List<TerminalCommand> = _textArea.commands
     val textArea: TextArea = _textArea
 
     /** Append this command to the end of this block's text area */
@@ -29,7 +30,7 @@ class Renderer(val app: Session) {
             _textArea.appendCommand(RESET_COMMAND)
         }
 
-        if (textArea.toRawText().lastOrNull() != '\n') {
+        if (autoAppendNewline && textArea.toRawText().lastOrNull() != '\n') {
             _textArea.appendCommand(NEWLINE_COMMAND)
         }
     }

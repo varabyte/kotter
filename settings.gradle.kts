@@ -4,6 +4,7 @@ include(":kotter")
 
 include(":examples:anim")
 include(":examples:blink")
+include(":examples:border")
 include(":examples:clock")
 include(":examples:compiler")
 include(":examples:doomfire")

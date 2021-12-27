@@ -5,6 +5,7 @@ import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
+import com.varabyte.kotter.runtime.text.numLines
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
