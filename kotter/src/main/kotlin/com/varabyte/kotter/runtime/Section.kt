@@ -73,6 +73,8 @@ class Section internal constructor(val session: Session, private val block: Rend
         fun signal() = waitLatch.countDown()
     }
 
+    class OnRenderedScope(var removeListener: Boolean = false)
+
     init {
         session.data.start(Lifecycle)
     }
@@ -83,12 +85,21 @@ class Section internal constructor(val session: Session, private val block: Rend
     private var renderRequested = false
 
     /**
+     * A list of callbacks to trigger after every render.
+     *
+     * It is not expected for a user to add more than one, but internal components might themselves add listeners as
+     * well.
+     */
+    private var onRendered = mutableListOf<OnRenderedScope.() -> Unit>()
+
+    /**
      * A list of callbacks to trigger right before the block exits.
      *
      * It is not expected for a user to add more than one, but internal components might themselves add listeners
      * behind the scenes to clean up their state.
      */
     private var onFinishing = mutableListOf<() -> Unit>()
+
     private var consumed = AtomicBoolean(false)
 
     /**
@@ -135,7 +146,14 @@ class Section internal constructor(val session: Session, private val block: Rend
 
             session.data.start(Render.Lifecycle)
             // Make sure run logic doesn't modify values while we're in the middle of rendering
-            session.data.lock.write { renderer.render(block) }
+            session.data.lock.write {
+                renderer.render(block)
+                onRendered.removeIf {
+                    val scope = OnRenderedScope()
+                    it.invoke(scope)
+                    scope.removeListener
+                }
+            }
             session.data.stop(Render.Lifecycle)
 
             val asideTextBuilder = StringBuilder()
@@ -151,6 +169,21 @@ class Section internal constructor(val session: Session, private val block: Rend
     }
     private fun renderOnce() = runBlocking {
         renderOnceAsync().join()
+    }
+
+    /**
+     * Add a callback which will get triggered after this block has just about finished running and is about to shut
+     * down.
+     *
+     * Users shouldn't need this - they can just put a counter variable directly inside a section for example - but
+     * various components that allocate side state could use this to see if they were called one frame and not the
+     * next (at which point, they could clean up their resources).
+     */
+    fun onRendered(block: OnRenderedScope.() -> Unit): Section {
+        require(session.data.isActive(Lifecycle))
+        onRendered.add(block)
+
+        return this
     }
 
     /**

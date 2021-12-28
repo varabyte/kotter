@@ -172,6 +172,16 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
     prepareKeyFlow(section.session.terminal)
     var stopTimer = false
     if (tryPut(InputState.Key, { InputState() }, { stopTimer = true })) {
+        section.onRendered {
+            if (get(OnlyCalledOncePerRenderKey) == null) {
+                // input() was not called this frame. We can safely clear its resources.
+                stop(InputLifecycle)
+
+                // We don't need this listener anymore
+                removeListener = true
+            }
+        }
+
         val state = get(InputState.Key)!!
         addTimer(Anim.ONE_FRAME_60FPS, repeat = true) {
             if (state.elapse(elapsed)) {
