@@ -9,11 +9,19 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import java.awt.*
+import java.awt.Cursor.HAND_CURSOR
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
+import java.awt.event.MouseMotionAdapter
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.awt.event.WindowEvent.WINDOW_CLOSING
+import java.awt.geom.Point2D
+import java.net.MalformedURLException
+import java.net.URI
+import java.net.URL
 import java.util.concurrent.CountDownLatch
 import javax.swing.BoundedRangeModel
 import javax.swing.JFrame
@@ -272,14 +280,48 @@ class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color, maxNumLin
             }
         }
 
-        clearMouseListeners()
+        resetMouseListeners()
     }
 
-    private fun clearMouseListeners() {
+    private fun getWordUnderPt(pt: Point2D): String {
+        val offset = this.viewToModel2D(pt)
+        val textPtr = TextPtr(styledDocument.getText(), offset)
+
+        textPtr.incrementUntil { it.isWhitespace() }
+        val end = textPtr.charIndex
+
+        textPtr.decrementUntil { it.isWhitespace() }
+        val start = textPtr.charIndex
+        return textPtr.substring(end - start)
+    }
+
+    private fun resetMouseListeners() {
         // The existing mouse handlers set the cursor behind our back which mess with the repainting of the area
         // Let's just disable them for now.
         mouseListeners.toList().forEach { removeMouseListener(it) }
         mouseMotionListeners.toList().forEach { removeMouseMotionListener(it) }
+
+        addMouseMotionListener(object : MouseMotionAdapter() {
+            override fun mouseMoved(e: MouseEvent) {
+                val wordUnderCursor = getWordUnderPt(e.point)
+                cursor = try {
+                    URL(wordUnderCursor)
+                    Cursor.getPredefinedCursor(HAND_CURSOR)
+                } catch (ignored: MalformedURLException) {
+                    Cursor.getDefaultCursor()
+                }
+            }
+        })
+
+        addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                val wordUnderCursor = getWordUnderPt(e.point)
+                try {
+                    Desktop.getDesktop().browse(URL(wordUnderCursor).toURI())
+                }
+                catch (ignored: MalformedURLException) {}
+            }
+        })
     }
 
     private fun processEscapeCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
@@ -395,7 +437,7 @@ class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color, maxNumLin
         // we reset it back.
         caretPosition.let { prevCaret ->
             updateUI()
-            clearMouseListeners()
+            resetMouseListeners()
             caretPosition = prevCaret
         }
     }
