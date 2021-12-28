@@ -46,16 +46,14 @@ fun RenderScope.textLine(c: Char) {
  */
 fun RenderScope.p(block: RenderScope.() -> Unit) {
     run {
-        val lastChar = renderer.textArea.toRawText().lastOrNull()
-        if (lastChar != null && lastChar != '\n') {
+        if (renderer.commands.lastOrNull() !== NEWLINE_COMMAND) {
             textLine()
         }
     }
     textLine()
     block()
     run {
-        val lastChar = renderer.textArea.toRawText().lastOrNull()
-        if (lastChar != null && lastChar != '\n') {
+        if (renderer.commands.lastOrNull() !== NEWLINE_COMMAND) {
             textLine()
         }
     }

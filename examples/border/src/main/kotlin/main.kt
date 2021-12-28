@@ -21,10 +21,7 @@ fun main() = session {
         cyan {
             bordered(BorderCharacters.CURVED, paddingLeftRight = 1) {
                 yellow {
-                    LOREM_IPSUM.forEachIndexed { i, line ->
-                        text(line)
-                        if (i < LOREM_IPSUM.lastIndex) textLine()
-                    }
+                    LOREM_IPSUM.forEach { line -> textLine(line) }
                 }
             }
         }

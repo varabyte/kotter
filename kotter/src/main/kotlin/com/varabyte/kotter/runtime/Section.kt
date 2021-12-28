@@ -3,10 +3,17 @@ package com.varabyte.kotter.runtime
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.internal.text.numLines
+import com.varabyte.kotter.runtime.internal.text.toRawText
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
-import com.varabyte.kotter.runtime.text.numLines
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.jcip.annotations.GuardedBy
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
@@ -101,12 +108,12 @@ class Section internal constructor(val app: Session, private val block: RenderSc
             renderLock.withLock { renderRequested = false }
 
             val clearBlockCommand = buildString {
-                if (!renderer.textArea.isEmpty()) {
+                if (renderer.commands.isNotEmpty()) {
 
                     // Note: This logic works when a terminal first starts up, but if the user keeps resizing their
                     // terminal while our app is running, it seems like the width value we get doesn't update. See also:
                     // bug #34
-                    val totalNumLines = renderer.textArea.numLines(app.terminal.width)
+                    val totalNumLines = renderer.commands.numLines(app.terminal.width)
 
                     // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                     // last one down to the beginning (in other words, don't consume the \n of the previous line)
@@ -127,13 +134,13 @@ class Section internal constructor(val app: Session, private val block: RenderSc
 
             val asideTextBuilder = StringBuilder()
             app.data.get(AsideRendersKey) {
-                forEach { renderer -> asideTextBuilder.append(renderer.textArea.toString()) }
+                forEach { renderer -> asideTextBuilder.append(renderer.commands.toRawText()) }
                 // Only render asides once. Since we don't erase them, they'll be baked into the history.
                 clear()
             }
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
             // in one pass.
-            app.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.textArea.toString())
+            app.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.commands.toRawText())
         }
     }
     private fun renderOnce() = runBlocking {
