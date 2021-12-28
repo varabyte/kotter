@@ -10,7 +10,7 @@ fun main() = session {
     var wantsToLearn by liveVarOf(false)
     section {
         text("Would you like to learn "); cyan { text("Kotter") }; textLine("? (Y/n)")
-        text("> "); input(Completions("yes", "no"))
+        text("> "); input(Completions("yes", "no"), initialText = "y")
 
         if (wantsToLearn) {
             yellow(isBright = true) { p { textLine("""\(^o^)/""") } }

@@ -116,6 +116,8 @@ private class InputState {
         private const val BLINKING_DURATION_MS = 500
     }
 
+    var id: Any? = null
+
     var text = ""
         set(value) {
             if (field != value) {
@@ -152,16 +154,6 @@ private class InputState {
 
 private val OnlyCalledOncePerRenderKey = Section.Render.Lifecycle.createKey<Unit>()
 private val UpdateInputJobKey = InputLifecycle.createKey<Job>()
-
-/**
- * Clear all input related data when we're done using it
- *
- * This can be useful if we, for example, allow calling "input()" serially multiple times in the same block.
- */
-private fun ConcurrentScopedData.finishInput() {
-    remove(OnlyCalledOncePerRenderKey)
-    stop(InputLifecycle)
-}
 
 /**
  * If necessary, instantiate data that the [input] method expects to exist.
@@ -246,7 +238,6 @@ private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
                                 }
                                 if (!rejected) {
                                     get(SystemInputEnteredCallbackKey) { this.invoke() }
-                                    finishInput()
                                 }
                             }
                             else ->
@@ -307,11 +298,58 @@ open class Completions(private vararg val values: String, private val ignoreCase
 
 private val CompleterKey = InputLifecycle.createKey<InputCompleter>()
 
-fun RenderScope.input(completer: InputCompleter? = null) {
+/**
+ * A function which, when called, will replace itself dynamically with some input text plus a blinking cursor.
+ *
+ * You can only call `input()` ONCE each render pass - if you call it twice, you'll get a runtime exception.
+ *
+ * You can use the `onInputChanged` and `onInputEntered` callbacks to query the value as the user types it / commits it.
+ *
+ * ```
+ * section {
+ *   text("Enter your name: "); input()
+ * }.run {
+ *   onInputEntered {
+ *     // here, "input" is what the user typed in
+ *   }
+ * }
+ * ```
+ *
+ * An optional ID can be passed if for the (fairly rare?) case where you might have a conditional switch where each
+ * branch calls `input()`:
+ *
+ * ```
+ * when (state) {
+ *   ASK_NAME -> text("Your name? "); input(id = "name")
+ *   ASK_AGE -> text("Your age? "); input(id = "age")
+ *   ...
+ * }
+ * ```
+ *
+ * Usually you would do this in separate sections, but perhaps you want to cycle through questions within the same
+ * section for a particular UX feel.
+ *
+ * Without IDs, any input you typed into the first block would carry over to the second, because we can't tell the
+ * difference between calls, but by passing in an ID for each case, we can understand that we're being triggered by a
+ * new call.
+ *
+ * @param completer Optional logic for suggesting auto-completions based on what the user typed in. See
+ *   [Completions] which is a generally useful and common implementation.
+ * @param initialText Text which will be used the first time `input()` is called and ignored subsequently.
+ * @param id See docs above for more details. The value of this parameter can be anything - this method simply does an
+ *   equality check on it with a previous value.
+ */
+fun RenderScope.input(completer: InputCompleter? = null, initialText: String = "", id: Any = Unit) {
     data.prepareInput(this)
     completer?.let { data[CompleterKey] = it }
 
     data.get(InputState.Key) {
+        if (this.id != id) {
+            this.id = id
+            text = initialText
+            index = initialText.length
+        }
+
         val completion = completer?.complete(text) ?: ""
         // Note: Trailing space as cursor can be put AFTER last character
         val finalText = "$text$completion "
