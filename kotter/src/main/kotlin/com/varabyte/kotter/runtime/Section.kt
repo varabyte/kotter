@@ -35,9 +35,13 @@ class Section internal constructor(val app: Session, private val block: RenderSc
      *
      * This lifecycle can be used for storing data relevant to the current block only.
      */
-    object Lifecycle : ConcurrentScopedData.Lifecycle
+    object Lifecycle : ConcurrentScopedData.Lifecycle {
+        override val parent = Session.Lifecycle
+    }
     object Render {
-        object Lifecycle : ConcurrentScopedData.Lifecycle
+        object Lifecycle : ConcurrentScopedData.Lifecycle {
+            override val parent = Section.Lifecycle
+        }
     }
 
     /**
@@ -50,7 +54,9 @@ class Section internal constructor(val app: Session, private val block: RenderSc
         internal val block: Section,
         private val scope: CoroutineScope,
     ) {
-        object Lifecycle : ConcurrentScopedData.Lifecycle
+        object Lifecycle : ConcurrentScopedData.Lifecycle {
+            override val parent = Section.Lifecycle
+        }
 
         /**
          * Data store for this app.

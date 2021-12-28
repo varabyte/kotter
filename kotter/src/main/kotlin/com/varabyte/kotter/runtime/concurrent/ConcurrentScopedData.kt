@@ -47,8 +47,22 @@ class ConcurrentScopedData {
      * ```
      * val CredentialsKey = Application.Lifecycle.createKey<String>()
      * ```
+     *
+     * Finally, you can associate one lifecycle as a child of another, so that if the parent lifecycle is stopped,
+     * this one will get stopped as well too:
+     *
+     * ```
+     * // You can either stop this dialog's lifecycle directly, or it will get stopped when the overall UI is stopped.
+     * class Dialog {
+     *   object Lifecycle : ConcurrentScopedData.Lifecycle {
+     *     override val parent = Ui.Lifecycle
+     *   }
+     * }
+     * ```
      */
-    interface Lifecycle
+    interface Lifecycle {
+        val parent: Lifecycle? get() = null
+    }
     interface Key<T> {
         val lifecycle: Lifecycle
     }
@@ -104,6 +118,8 @@ class ConcurrentScopedData {
                     }
                 }
             }
+
+            activeLifecycles.filter { it.parent === lifecycle }.forEach { stop(it) }
         }
     }
 
