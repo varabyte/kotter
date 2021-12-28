@@ -34,22 +34,22 @@ import kotlin.reflect.KProperty
  * This class's value can be queried and set across different values, so it is designed to be thread safe.
  */
 @ThreadSafe
-class LiveVar<T> internal constructor(private val app: Session, private var value: T) {
+class LiveVar<T> internal constructor(private val session: Session, private var value: T) {
 
     private var associatedBlockRef: WeakReference<Section>? = null
     operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
-        return app.data.lock.read {
-            associatedBlockRef = app.activeBlock?.let { WeakReference(it) }
+        return session.data.lock.read {
+            associatedBlockRef = session.activeSection?.let { WeakReference(it) }
             value
         }
     }
     operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
-        app.data.lock.write {
+        session.data.lock.write {
             if (this.value != value) {
                 this.value = value
                 associatedBlockRef?.get()?.let { associatedBlock ->
-                    app.activeBlock?.let { activeBlock ->
-                        if (associatedBlock === activeBlock) activeBlock.requestRerender()
+                    session.activeSection?.let { activeSection ->
+                        if (associatedBlock === activeSection) activeSection.requestRerender()
                     } ?: run {
                         // Our old block is finished, no need to keep a reference around to it anymore.
                         associatedBlockRef = null

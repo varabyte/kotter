@@ -9,7 +9,7 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
  * A class responsible for executing some block of logic which requests render instructions, which ultimately modify an
  * internal [TerminalCommand] list.
  */
-class Renderer(val app: Session) {
+class Renderer(val session: Session) {
     private val _commands = mutableListOf<TerminalCommand>()
     internal val commands: List<TerminalCommand> = _commands
 

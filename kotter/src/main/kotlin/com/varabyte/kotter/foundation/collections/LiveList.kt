@@ -26,17 +26,17 @@ import kotlin.concurrent.write
  * This class's value can be queried and modified across different values, so it is designed to be thread safe.
  */
 @ThreadSafe
-class LiveList<T> internal constructor(private val app: Session, vararg elements: T) : MutableList<T> {
+class LiveList<T> internal constructor(private val session: Session, vararg elements: T) : MutableList<T> {
     // LiveVar already has a lot of nice logic for updating the render block as necessary, so we delegate to it to
     // avoid reimplementing the logic here
-    private var modifyCountVar by app.liveVarOf(0)
+    private var modifyCountVar by session.liveVarOf(0)
     private var modifyCount = 0
 
     @GuardedBy("app.data.lock")
     private val delegateList = mutableListOf(*elements)
 
     private fun <R> read(block: () -> R): R {
-        return app.data.lock.read {
+        return session.data.lock.read {
             // Triggers LiveVar.getValue but not setValue (which, here, aborts early because value is the same)
             modifyCountVar = modifyCountVar
             block()
@@ -44,7 +44,7 @@ class LiveList<T> internal constructor(private val app: Session, vararg elements
     }
 
     private fun <R> write(block: () -> R): R {
-        return app.data.lock.write {
+        return session.data.lock.write {
             // Triggers LiveVar.setValue but not getValue
             modifyCountVar = ++modifyCount
             block()
@@ -57,7 +57,7 @@ class LiveList<T> internal constructor(private val app: Session, vararg elements
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withReadLock(block: LiveList<T>.() -> R): R = app.data.lock.read { this.block() }
+    fun <R> withReadLock(block: LiveList<T>.() -> R): R = session.data.lock.read { this.block() }
 
     /**
      * Allow calls to write lock the list for a longer time than just a single field at a time, useful if
@@ -65,7 +65,7 @@ class LiveList<T> internal constructor(private val app: Session, vararg elements
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withWriteLock(block: LiveList<T>.() -> R): R = app.data.lock.write { this.block() }
+    fun <R> withWriteLock(block: LiveList<T>.() -> R): R = session.data.lock.write { this.block() }
 
     // Immutable functions
     override val size: Int get() = read { delegateList.size }

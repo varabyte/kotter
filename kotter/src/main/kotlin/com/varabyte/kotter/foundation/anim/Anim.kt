@@ -5,7 +5,7 @@ import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.Session
 import java.time.Duration
 
-class Anim internal constructor(private val app: Session, val template: Template): CharSequence {
+class Anim internal constructor(private val session: Session, val template: Template): CharSequence {
     companion object {
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
     }
@@ -18,7 +18,7 @@ class Anim internal constructor(private val app: Session, val template: Template
     }
 
     private var elapsedMs: Int = 0
-    private var currFrame by app.liveVarOf(template.frames[0])
+    private var currFrame by session.liveVarOf(template.frames[0])
 
     private val frameMs = template.frameDuration.toMillis().toInt()
     private val animMs = frameMs * template.frames.size
@@ -33,7 +33,7 @@ class Anim internal constructor(private val app: Session, val template: Template
      * it hasn't already been done so.
      */
     private fun <R> readProperty(block: () -> R): R {
-        app.data.addTimer(ONE_FRAME_60FPS, repeat = true, key = this) { elapse(duration) }
+        session.data.addTimer(ONE_FRAME_60FPS, repeat = true, key = this) { elapse(duration) }
         return block()
     }
 

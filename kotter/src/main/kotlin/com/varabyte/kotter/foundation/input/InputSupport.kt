@@ -170,14 +170,14 @@ private fun ConcurrentScopedData.finishInput() {
  */
 private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
     // The input() function makes no sense in and is not supported in aside blocks
-    val section = scope.renderer.app.activeBlock?.takeIf { it.renderer === scope.renderer } ?:
+    val section = scope.renderer.session.activeSection?.takeIf { it.renderer === scope.renderer } ?:
         throw IllegalStateException("`input` was called in an invalid context")
 
     if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
 
-    prepareKeyFlow(section.app.terminal)
+    prepareKeyFlow(section.session.terminal)
     var stopTimer = false
     if (tryPut(InputState.Key, { InputState() }, { stopTimer = true })) {
         val state = get(InputState.Key)!!
@@ -365,7 +365,7 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
 }
 
 fun Section.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
-    data.prepareOnKeyPressed(block.app.terminal)
+    data.prepareOnKeyPressed(section.session.terminal)
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
     }
@@ -373,7 +373,7 @@ fun Section.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
 
 fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend Section.RunScope.() -> Unit = {}) {
     run {
-        data.prepareOnKeyPressed(this.block.app.terminal)
+        data.prepareOnKeyPressed(this.section.session.terminal)
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) abort() }
         block()
         CompletableDeferred<Unit>().await() // The only way out of this function is by aborting

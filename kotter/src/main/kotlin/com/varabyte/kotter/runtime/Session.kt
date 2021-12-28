@@ -21,20 +21,20 @@ class Session internal constructor(internal val terminal: Terminal) {
             isDaemon = true
         }
     }
-    internal val activeBlock: Section? get() = data[ActiveBlockKey]
+    internal val activeSection: Section? get() = data[ActiveSectionKey]
 
     init {
         data.start(Lifecycle)
     }
 
-    internal fun assertNoActiveBlocks() {
+    internal fun assertNoActiveSections() {
         check(!data.isActive(Section.Lifecycle)) {
             "A previous section was created but unused. Did you forget to call `run` on it?"
         }
     }
 
     fun section(block: RenderScope.() -> Unit): Section {
-        assertNoActiveBlocks()
+        assertNoActiveSections()
         return Section(this, block)
     }
 

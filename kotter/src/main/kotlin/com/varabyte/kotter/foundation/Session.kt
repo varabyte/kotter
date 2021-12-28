@@ -36,7 +36,7 @@ fun session(
 
     try {
         app.apply(block)
-        app.assertNoActiveBlocks()
+        app.assertNoActiveSections()
     }
     finally {
         app.dispose()

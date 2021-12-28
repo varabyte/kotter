@@ -14,11 +14,12 @@ import com.varabyte.kotter.runtime.render.Renderer
  * generates a history warnings and errors as it runs).
  */
 fun Section.RunScope.aside(block: RenderScope.() -> Unit) {
-    val mainBlock = this.block
-    val asideRenderer = Renderer(mainBlock.app).apply { render(block) }
+    val session = section.session
 
-    mainBlock.app.data.putIfAbsent(AsideRendersKey, { mutableListOf() }) {
+    val asideRenderer = Renderer(session).apply { render(block) }
+
+    session.data.putIfAbsent(AsideRendersKey, { mutableListOf() }) {
         add(asideRenderer)
-        mainBlock.requestRerender()
+        section.requestRerender()
     }
 }

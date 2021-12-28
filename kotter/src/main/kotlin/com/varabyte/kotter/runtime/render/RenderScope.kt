@@ -30,7 +30,7 @@ class RenderScope(internal val renderer: Renderer) {
      *
      * It is exposed directly and publicly here so methods extending the RunScope can use it.
      */
-    val data = renderer.app.data
+    val data = renderer.session.data
 
     /**
      * Run the [scopedBlock] within a fresh, new [SectionState] context, which gets removed afterwards.

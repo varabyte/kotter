@@ -8,7 +8,7 @@ import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
 
 class OffscreenBuffer(private val parentScope: RenderScope, render: RenderScope.() -> Unit) {
-    private val offscreenRenderer = Renderer(parentScope.renderer.app)
+    private val offscreenRenderer = Renderer(parentScope.renderer.session)
     private val offscreenScope = RenderScope(offscreenRenderer).apply(render)
 
     // The final newline shouldn't leak into the output. For example, `offscreen { lines.forEach { textLine(it } }`

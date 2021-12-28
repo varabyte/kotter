@@ -21,7 +21,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 
-internal val ActiveBlockKey = Section.Lifecycle.createKey<Section>()
+internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
 internal val AsideRendersKey = Section.RunScope.Lifecycle.createKey<MutableList<Renderer>>()
 
 /**
@@ -29,7 +29,7 @@ internal val AsideRendersKey = Section.RunScope.Lifecycle.createKey<MutableList<
  * [onFinishing])
  */
 
-class Section internal constructor(val app: Session, private val block: RenderScope.() -> Unit) {
+class Section internal constructor(val session: Session, private val block: RenderScope.() -> Unit) {
     /**
      * A moderately long lifecycle that lives as long as the block is running.
      *
@@ -51,7 +51,7 @@ class Section internal constructor(val app: Session, private val block: RenderSc
      * this matters because some data may need to be cleaned up after running but before the block is actually finished.
      */
     class RunScope(
-        internal val block: Section,
+        internal val section: Section,
         private val scope: CoroutineScope,
     ) {
         object Lifecycle : ConcurrentScopedData.Lifecycle {
@@ -63,21 +63,21 @@ class Section internal constructor(val app: Session, private val block: RenderSc
          *
          * It is exposed directly and publicly here so methods extending the RunScope can use it.
          */
-        val data = block.app.data
+        val data = section.session.data
 
         private val waitLatch = CountDownLatch(1)
         /** Forcefully exit this runscope early, even if it's still in progress */
         internal fun abort() { scope.cancel() }
-        fun rerender() = block.requestRerender()
+        fun rerender() = section.requestRerender()
         fun waitForSignal() = waitLatch.await()
         fun signal() = waitLatch.countDown()
     }
 
     init {
-        app.data.start(Lifecycle)
+        session.data.start(Lifecycle)
     }
 
-    internal val renderer = Renderer(app)
+    internal val renderer = Renderer(session)
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
     private var renderRequested = false
@@ -97,7 +97,7 @@ class Section internal constructor(val app: Session, private val block: RenderSc
      * This will not enqueue a render if one is already queued up.
      */
     fun requestRerender() {
-        if (app.activeBlock != this) return
+        if (session.activeSection != this) return
 
         renderLock.withLock {
             // If we get multiple render requests in a short period of time, we only need to handle one of them - the
@@ -110,7 +110,7 @@ class Section internal constructor(val app: Session, private val block: RenderSc
     }
 
     private fun renderOnceAsync(): Job {
-        return CoroutineScope(app.executor.asCoroutineDispatcher()).launch {
+        return CoroutineScope(session.executor.asCoroutineDispatcher()).launch {
             renderLock.withLock { renderRequested = false }
 
             val clearBlockCommand = buildString {
@@ -119,7 +119,7 @@ class Section internal constructor(val app: Session, private val block: RenderSc
                     // Note: This logic works when a terminal first starts up, but if the user keeps resizing their
                     // terminal while our app is running, it seems like the width value we get doesn't update. See also:
                     // bug #34
-                    val totalNumLines = renderer.commands.numLines(app.terminal.width)
+                    val totalNumLines = renderer.commands.numLines(session.terminal.width)
 
                     // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                     // last one down to the beginning (in other words, don't consume the \n of the previous line)
@@ -133,20 +133,20 @@ class Section internal constructor(val app: Session, private val block: RenderSc
                 }
             }
 
-            app.data.start(Render.Lifecycle)
+            session.data.start(Render.Lifecycle)
             // Make sure run logic doesn't modify values while we're in the middle of rendering
-            app.data.lock.write { renderer.render(block) }
-            app.data.stop(Render.Lifecycle)
+            session.data.lock.write { renderer.render(block) }
+            session.data.stop(Render.Lifecycle)
 
             val asideTextBuilder = StringBuilder()
-            app.data.get(AsideRendersKey) {
+            session.data.get(AsideRendersKey) {
                 forEach { renderer -> asideTextBuilder.append(renderer.commands.toRawText()) }
                 // Only render asides once. Since we don't erase them, they'll be baked into the history.
                 clear()
             }
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
             // in one pass.
-            app.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.commands.toRawText())
+            session.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.commands.toRawText())
         }
     }
     private fun renderOnce() = runBlocking {
@@ -161,7 +161,7 @@ class Section internal constructor(val app: Session, private val block: RenderSc
      * cursor). Changes made in `onFinishing` may potentially kick off one final render pass.
      */
     fun onFinishing(block: () -> Unit): Section {
-        require(app.data.isActive(Lifecycle))
+        require(session.data.isActive(Lifecycle))
         onFinishing.add(block)
 
         return this
@@ -174,11 +174,11 @@ class Section internal constructor(val app: Session, private val block: RenderSc
         consumed.set(true)
 
         // Note: The data we're adding here will be removed by the dispose call below
-        if (!app.data.tryPut(ActiveBlockKey) { this }) {
+        if (!session.data.tryPut(ActiveSectionKey) { this }) {
             throw IllegalStateException("Cannot run this section while another section is already running")
         }
 
-        app.data.start(RunScope.Lifecycle)
+        session.data.start(RunScope.Lifecycle)
         renderOnce()
         if (block != null) {
             val self = this
@@ -189,15 +189,15 @@ class Section internal constructor(val app: Session, private val block: RenderSc
 
             runBlocking { job.join() }
         }
-        app.data.stop(RunScope.Lifecycle)
+        session.data.stop(RunScope.Lifecycle)
         onFinishing.forEach { it() }
 
         // Our run block is done, let's just wait until any remaining renders are finished. We can do this by adding
         // ourselves to the end of the line and waiting to get through.
         val allRendersFinishedLatch = CountDownLatch(1)
-        app.executor.submit { allRendersFinishedLatch.countDown() }
+        session.executor.submit { allRendersFinishedLatch.countDown() }
         allRendersFinishedLatch.await()
 
-        app.data.stop(Lifecycle)
+        session.data.stop(Lifecycle)
     }
 }
