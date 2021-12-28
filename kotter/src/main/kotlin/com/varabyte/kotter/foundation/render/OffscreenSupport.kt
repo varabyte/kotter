@@ -81,8 +81,25 @@ class CommandRenderer internal constructor(
  * }
  * ```
  *
- * This is mainly useful for layout purposes, where you can calculate the size of what the render area will be, e.g.
- * to wrap things with a border.
+ * Note that the initial state for the offscreen buffer uses the parent state, so that this would render blue the
+ * first time and green the second:
+ *
+ * ```
+ * val buffer = offscreen { textLine("Inherits color from parent") }
+ *
+ * green()
+ * buffer.createRenderer().let { renderer1 ->
+ *   ... render all rows, will be green ...
+ * }
+ *
+ * blue()
+ * buffer.createRenderer().let { renderer2 ->
+ *   ... render all rows, will be blue ...
+ * }
+ * ```
+ *
+ * This method is particularly useful for layout purposes, where you can calculate the size of what the render area will
+ * be, e.g. to wrap things with a border.
  */
 fun RenderScope.offscreen(render: RenderScope.() -> Unit): OffscreenBuffer {
     return OffscreenBuffer(this, render)
