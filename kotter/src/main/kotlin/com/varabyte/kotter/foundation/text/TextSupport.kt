@@ -46,7 +46,7 @@ fun RenderScope.textLine(c: Char) {
  */
 fun RenderScope.p(block: RenderScope.() -> Unit) {
     run {
-        if (renderer.commands.lastOrNull() !== NEWLINE_COMMAND) {
+        if (renderer.commands.isNotEmpty() && renderer.commands.lastOrNull() !== NEWLINE_COMMAND) {
             textLine()
         }
     }
