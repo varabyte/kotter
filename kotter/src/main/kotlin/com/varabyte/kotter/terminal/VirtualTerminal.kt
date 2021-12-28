@@ -15,9 +15,16 @@ import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.util.concurrent.CountDownLatch
-import javax.swing.*
+import javax.swing.BoundedRangeModel
+import javax.swing.JFrame
+import javax.swing.JScrollPane
+import javax.swing.JTextPane
+import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
+import javax.swing.text.AbstractDocument
+import javax.swing.text.AttributeSet
 import javax.swing.text.Document
+import javax.swing.text.DocumentFilter
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
@@ -53,6 +60,8 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
         /**
          * @param terminalSize Number of characters, so 80x32 will be expanded to fit 80 characters horizontally and
          *   32 lines vertically (before scrolling is needed)
+         * @param maxNumLines The number of text lines to keep before truncating oldest ones. Will be clamped to at
+         *   least [TerminalSize.height]. Set to [Int.MAX_VALUE] if you don't want truncation to happen.
          * @param handleInterrupt If true, handle CTRL-C by closing the window.
          */
         fun create(
@@ -61,9 +70,10 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             fontSize: Int = 16,
             fgColor: AnsiColor = AnsiColor.WHITE,
             bgColor: AnsiColor = AnsiColor.BLACK,
+            maxNumLines: Int = 1000,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
-            val pane = SwingTerminalPane(fontSize, fgColor.toSwingColor(), bgColor.toSwingColor())
+            val pane = SwingTerminalPane(fontSize, fgColor.toSwingColor(), bgColor.toSwingColor(), maxNumLines.coerceAtLeast(terminalSize.height))
             pane.focusTraversalKeysEnabled = false // Don't handle TAB, we want to send it to the user
             pane.text = buildString {
                 // Set initial text to a block of blank characters so pack will set it to the right size
@@ -239,7 +249,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
 
 private fun Document.getText() = getText(0, length)
 
-class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color) : JTextPane() {
+class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color, maxNumLines: Int) : JTextPane() {
     private val sgrCodeConverter: SgrCodeConverter
 
     init {
@@ -248,6 +258,19 @@ class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color) : JTextPa
         foreground = fgColor
         background = bgColor
         sgrCodeConverter = SgrCodeConverter(foreground, background)
+
+        (styledDocument as AbstractDocument).documentFilter = object : DocumentFilter() {
+            override fun insertString(fb: FilterBypass, offset: Int, string: String, attr: AttributeSet) {
+                super.insertString(fb, offset, string, attr)
+                val rootElement = styledDocument.defaultRootElement
+                val numLines = rootElement.elementCount
+                if (numLines > maxNumLines) {
+                    val lastLineIndex = numLines - maxNumLines - 1
+                    val lastLineOffset = rootElement.getElement(lastLineIndex).startOffset
+                    remove(fb, 0, lastLineOffset)
+                }
+            }
+        }
 
         clearMouseListeners()
     }
