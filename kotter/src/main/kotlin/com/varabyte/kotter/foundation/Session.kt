@@ -10,15 +10,16 @@ import com.varabyte.kotter.terminal.VirtualTerminal
  * or, if they all fail, throws an error.
  */
 fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
+    val creationErrors = mutableListOf<Exception>()
     return this.asSequence().mapNotNull { createTerminal ->
         try {
             createTerminal()
         }
         catch (ex: Exception) {
-            System.err.println(ex)
+            creationErrors.add(ex)
             null
         }
-    }.firstOrNull() ?: error("No terminals could successfully be created")
+    }.firstOrNull() ?: error("No terminals could successfully be created. Encountered exceptions:\n\t{${creationErrors.joinToString("\n\t")}")
 }
 
 inline val DEFAULT_TERMINAL_FACTORY_METHODS get() = listOf({ SystemTerminal() }, { VirtualTerminal.create() })
