@@ -14,6 +14,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.time.Duration
 
+/**
+ * Lifecycle associated with the `input()` function.
+ *
+ * Normally this is the same as the section lifecycle, but occasionally the same section can call `input()` multiple
+ * times in a row, at which point it should be cleared between each call.
+ */
+private object InputLifecycle : ConcurrentScopedData.Lifecycle {
+    override val parent = Section.Lifecycle
+}
 
 // Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
 // there's no reason for us to keep recreating it. It's pretty likely that if an app uses input in one block, it
@@ -26,6 +35,8 @@ private val KeyFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
  * cases and smoothing over other inconsistent, historical legacy.
  */
 private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
+    start(InputLifecycle)
+
     tryPut(KeyFlowKey) {
         val escSeq = StringBuilder()
         channelFlow {
@@ -99,7 +110,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
 /** State needed to support the `input()` function */
 private class InputState {
     object Key : ConcurrentScopedData.Key<InputState> {
-        override val lifecycle = Section.Lifecycle
+        override val lifecycle = InputLifecycle
     }
     companion object {
         private const val BLINKING_DURATION_MS = 500
@@ -139,8 +150,8 @@ private class InputState {
     }
 }
 
-private val UpdateInputJobKey = Section.RunScope.Lifecycle.createKey<Job>()
 private val OnlyCalledOncePerRenderKey = Section.Render.Lifecycle.createKey<Unit>()
+private val UpdateInputJobKey = InputLifecycle.createKey<Job>()
 
 /**
  * Clear all input related data when we're done using it
@@ -149,8 +160,7 @@ private val OnlyCalledOncePerRenderKey = Section.Render.Lifecycle.createKey<Unit
  */
 private fun ConcurrentScopedData.finishInput() {
     remove(OnlyCalledOncePerRenderKey)
-    remove(InputState.Key)
-    remove(UpdateInputJobKey)
+    stop(InputLifecycle)
 }
 
 /**
@@ -295,7 +305,7 @@ open class Completions(private vararg val values: String, private val ignoreCase
     }
 }
 
-private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
+private val CompleterKey = InputLifecycle.createKey<InputCompleter>()
 
 fun RenderScope.input(completer: InputCompleter? = null) {
     data.prepareInput(this)

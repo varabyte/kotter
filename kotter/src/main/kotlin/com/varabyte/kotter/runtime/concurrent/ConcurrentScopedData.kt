@@ -90,16 +90,14 @@ class ConcurrentScopedData {
     private val keyValues = mutableMapOf<Key<out Any>, Value<out Any>>()
 
     /**
-     * Start a lifecycle.
+     * Start a lifecycle (if not already active).
      *
      * Any keys that are added (e.g. with [tryPut] and [putIfAbsent]) when a lifecycle is not active will be silently
      * ignored.
      */
     fun start(lifecycle: Lifecycle) {
         lock.write {
-            if (!activeLifecycles.add(lifecycle)) {
-                throw IllegalStateException("Attempted to start a lifecycle that was already started without being stopped.")
-            }
+            activeLifecycles.add(lifecycle)
         }
     }
 
