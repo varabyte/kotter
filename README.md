@@ -163,7 +163,7 @@ section {
   }
 
   p {
-    textLine("This is the first paragraph of text")
+    textLine("A paragraph is content auto-surrounded by newlines")
   }
 
   p {
@@ -174,7 +174,8 @@ section {
 }.run()
 ```
 
-***Note:** Italics support is not currently exposed, as it is not a standard feature and is inconsistently supported.*
+***Note:** Italics functionality is not currently exposed, as it is not a standard feature and is inconsistently
+supported across terminals.*
 
 ### State and scopedState
 
