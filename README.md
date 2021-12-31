@@ -24,7 +24,7 @@ session {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-input.gif)
 
-*See also: [the game of life](examples/life), [snake](examples/snake), and [doom fire](examples/doomfire) implemented in Kotter!*
+*See also: [the game of life](examples/life), [snake](examples/snake), [sliding tiles](examples/sliding), and [doom fire](examples/doomfire) implemented in Kotter!*
 
 ---
 

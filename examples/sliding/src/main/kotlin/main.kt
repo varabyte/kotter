@@ -66,7 +66,7 @@ class Board(val sideLen: Int = 4) {
     operator fun get(pos: Pos) = buffer[pos]
 
     init {
-        assert(isSolved()) // Board is set up correctly
+        assert(isSolved()) // Board is created in a solved state. User should call `randomize` next.
     }
 
     fun move(dir: Dir): Boolean {
@@ -140,7 +140,7 @@ fun main() = session {
     section {
         p {
             textLine("Press arrow keys to \"fill\" in the blank space.")
-            textLine("Q to quit, R to restart")
+            textLine("Q to quit, R to randomize")
         }
     }.run()
     section {
@@ -158,6 +158,8 @@ fun main() = session {
                     } else {
                         white(ColorLayer.BG); red(ColorLayer.FG)
                     }
+
+                    // Draw each tile in three passes - the top line, the middle line, and the bottom one
                     when (lineY % 3) {
                         0 -> {
                             val up = "↑".takeIf { !isFinished && tilePos.getNeighbor(Dir.UP) == board.blankPos } ?: " "
