@@ -1,5 +1,6 @@
 package com.varabyte.kotter.runtime.render
 
+import com.varabyte.kotter.runtime.SectionScope
 import com.varabyte.kotter.runtime.SectionState
 import com.varabyte.kotter.runtime.internal.TerminalCommand
 
@@ -22,7 +23,7 @@ import com.varabyte.kotter.runtime.internal.TerminalCommand
  *
  * the part between the `section` curly braces represents a render block, where `this` is a `RenderScope`.
  */
-class RenderScope(internal val renderer: Renderer) {
+abstract class RenderScope(internal val renderer: Renderer<*>): SectionScope {
     internal var state = SectionState()
 
     /**
@@ -30,7 +31,15 @@ class RenderScope(internal val renderer: Renderer) {
      *
      * It is exposed directly and publicly here so methods extending the RunScope can use it.
      */
-    val data = renderer.session.data
+    override val data = renderer.session.data
+
+    /**
+     * The current section this block is being rendered into.
+     *
+     * It is an error to call this outside of a running section, which shouldn't happen in practice in case you keep a
+     * reference to a stale render scope and call this between sections.
+     */
+    val section get() = renderer.session.activeSection!!
 
     /**
      * Run the [scopedBlock] within a fresh, new [SectionState] context, which gets removed afterwards.
@@ -58,3 +67,6 @@ class RenderScope(internal val renderer: Renderer) {
         command.applyTo(state, renderer)
     }
 }
+
+/** Marker base class for render scopes that are only ever meant to fire once */
+abstract class OneShotRenderScope(renderer: Renderer<*>): RenderScope(renderer)

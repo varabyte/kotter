@@ -1,5 +1,6 @@
 package com.varabyte.kotter.runtime
 
+import com.varabyte.kotter.foundation.render.AsideRenderScope
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
@@ -22,14 +23,72 @@ import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 
 internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
-internal val AsideRendersKey = Section.RunScope.Lifecycle.createKey<MutableList<Renderer>>()
+internal val AsideRendersKey = RunScope.Lifecycle.createKey<MutableList<Renderer<AsideRenderScope>>>()
+
+/**
+ * Common interface used for scopes that can appear in both the render and run blocks.
+ *
+ * ```
+ * section {
+ *   ... # A
+ * }.run {
+ *   ... # B
+ * }
+ *
+ * A is a RenderScope and ALSO a SectionScope
+ * B is a RunScope and ALSO a SectionScope
+ * ```
+ */
+interface SectionScope {
+    val data: ConcurrentScopedData
+}
+
+/**
+ * A scope associated with the [run] function.
+ *
+ * While the lifecycle is probably *almost* the same as its section's lifecycle, it is a little shorter, and
+ * this matters because some data may need to be cleaned up after running but before the block is actually finished.
+ */
+class RunScope(
+    val section: Section,
+    private val scope: CoroutineScope,
+): SectionScope {
+    object Lifecycle : ConcurrentScopedData.Lifecycle {
+        override val parent = Section.Lifecycle
+    }
+
+    /**
+     * Data store for this session.
+     *
+     * It is exposed directly and publicly here so methods extending the RunScope can use it.
+     */
+    override val data = section.session.data
+
+    private val waitLatch = CountDownLatch(1)
+    /** Forcefully exit this runscope early, even if it's still in progress */
+    internal fun abort() { scope.cancel() }
+    fun rerender() = section.requestRerender()
+    fun waitForSignal() = waitLatch.await()
+    fun signal() = waitLatch.countDown()
+}
+
+/**
+ * The main [RenderScope] used for rendering a section.
+ *
+ * While it seems unnecessary to create an empty class like this, this can be useful if library authors want to provide
+ * extension methods that only apply to `section` render scopes.
+ */
+class MainRenderScope(renderer: Renderer<MainRenderScope>): RenderScope(renderer) {
+    object Lifecycle : ConcurrentScopedData.Lifecycle {
+        override val parent = Section.Lifecycle
+    }
+}
 
 /**
  * The class which represents the state of a `section` block and its registered event handlers (e.g. [run] and
  * [onFinishing])
  */
-
-class Section internal constructor(val session: Session, private val block: RenderScope.() -> Unit) {
+class Section internal constructor(val session: Session, private val render: MainRenderScope.() -> Unit) {
     /**
      * A moderately long lifecycle that lives as long as the block is running.
      *
@@ -38,40 +97,6 @@ class Section internal constructor(val session: Session, private val block: Rend
     object Lifecycle : ConcurrentScopedData.Lifecycle {
         override val parent = Session.Lifecycle
     }
-    object Render {
-        object Lifecycle : ConcurrentScopedData.Lifecycle {
-            override val parent = Section.Lifecycle
-        }
-    }
-
-    /**
-     * A scope associated with the [run] function.
-     *
-     * While the lifecycle is probably *almost* the same as its section's lifecycle, it is a little shorter, and
-     * this matters because some data may need to be cleaned up after running but before the block is actually finished.
-     */
-    class RunScope(
-        internal val section: Section,
-        private val scope: CoroutineScope,
-    ) {
-        object Lifecycle : ConcurrentScopedData.Lifecycle {
-            override val parent = Section.Lifecycle
-        }
-
-        /**
-         * Data store for this session.
-         *
-         * It is exposed directly and publicly here so methods extending the RunScope can use it.
-         */
-        val data = section.session.data
-
-        private val waitLatch = CountDownLatch(1)
-        /** Forcefully exit this runscope early, even if it's still in progress */
-        internal fun abort() { scope.cancel() }
-        fun rerender() = section.requestRerender()
-        fun waitForSignal() = waitLatch.await()
-        fun signal() = waitLatch.countDown()
-    }
 
     class OnRenderedScope(var removeListener: Boolean = false)
 
@@ -79,7 +104,7 @@ class Section internal constructor(val session: Session, private val block: Rend
         session.data.start(Lifecycle)
     }
 
-    internal val renderer = Renderer(session)
+    internal val renderer = Renderer<MainRenderScope>(session) { MainRenderScope(it) }
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
     private var renderRequested = false
@@ -144,17 +169,17 @@ class Section internal constructor(val session: Session, private val block: Rend
                 }
             }
 
-            session.data.start(Render.Lifecycle)
+            session.data.start(MainRenderScope.Lifecycle)
             // Make sure run logic doesn't modify values while we're in the middle of rendering
             session.data.lock.write {
-                renderer.render(block)
+                renderer.render(render)
                 onRendered.removeIf {
                     val scope = OnRenderedScope()
                     it.invoke(scope)
                     scope.removeListener
                 }
             }
-            session.data.stop(Render.Lifecycle)
+            session.data.stop(MainRenderScope.Lifecycle)
 
             val asideTextBuilder = StringBuilder()
             session.data.get(AsideRendersKey) {
@@ -206,7 +231,7 @@ class Section internal constructor(val session: Session, private val block: Rend
         }
         consumed.set(true)
 
-        // Note: The data we're adding here will be removed by the dispose call below
+        // Note: The data we're adding here will be removed by the `dispose` call below
         if (!session.data.tryPut(ActiveSectionKey) { this }) {
             throw IllegalStateException("Cannot run this section while another section is already running")
         }

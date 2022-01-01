@@ -3,6 +3,8 @@ package com.varabyte.kotter.foundation.input
 import com.varabyte.kotter.foundation.anim.Anim
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
+import com.varabyte.kotter.runtime.MainRenderScope
+import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
@@ -152,7 +154,7 @@ private class InputState {
     }
 }
 
-private val OnlyCalledOncePerRenderKey = Section.Render.Lifecycle.createKey<Unit>()
+private val OnlyCalledOncePerRenderKey = MainRenderScope.Lifecycle.createKey<Unit>()
 private val UpdateInputJobKey = InputLifecycle.createKey<Job>()
 
 /**
@@ -160,15 +162,12 @@ private val UpdateInputJobKey = InputLifecycle.createKey<Job>()
  *
  * Is a no-op after the first time.
  */
-private fun ConcurrentScopedData.prepareInput(scope: RenderScope) {
-    // The input() function makes no sense in and is not supported in aside blocks
-    val section = scope.renderer.session.activeSection?.takeIf { it.renderer === scope.renderer } ?:
-        throw IllegalStateException("`input` was called in an invalid context")
-
+private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
     if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
         throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
     }
 
+    val section = scope.section
     prepareKeyFlow(section.session.terminal)
     var stopTimer = false
     if (tryPut(InputState.Key, { InputState() }, { stopTimer = true })) {
@@ -349,7 +348,7 @@ private val CompleterKey = InputLifecycle.createKey<InputCompleter>()
  * @param id See docs above for more details. The value of this parameter can be anything - this method simply does an
  *   equality check on it with a previous value.
  */
-fun RenderScope.input(completer: InputCompleter? = null, initialText: String = "", id: Any = Unit) {
+fun MainRenderScope.input(completer: InputCompleter? = null, initialText: String = "", id: Any = Unit) {
     data.prepareInput(this)
     completer?.let { data[CompleterKey] = it }
 
@@ -383,12 +382,12 @@ fun RenderScope.input(completer: InputCompleter? = null, initialText: String = "
 
 class OnKeyPressedScope(val key: Key)
 
-private val KeyPressedJobKey = Section.RunScope.Lifecycle.createKey<Job>()
-private val KeyPressedCallbackKey = Section.RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+private val KeyPressedJobKey = RunScope.Lifecycle.createKey<Job>()
+private val KeyPressedCallbackKey = RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
-private val SystemKeyPressedCallbackKey = Section.RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+private val SystemKeyPressedCallbackKey = RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
 
 /**
  * Start running a job that collects keypresses and sends them to callbacks.
@@ -412,14 +411,14 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
     )
 }
 
-fun Section.RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
+fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
     data.prepareOnKeyPressed(section.session.terminal)
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
     }
 }
 
-fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend Section.RunScope.() -> Unit = {}) {
+fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> Unit = {}) {
     run {
         data.prepareOnKeyPressed(this.section.session.terminal)
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) abort() }
@@ -432,9 +431,9 @@ class OnInputChangedScope(var input: String, val prevInput: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
 }
-private val InputChangedCallbacksKey = Section.RunScope.Lifecycle.createKey<MutableList<OnInputChangedScope.() -> Unit>>()
+private val InputChangedCallbacksKey = RunScope.Lifecycle.createKey<MutableList<OnInputChangedScope.() -> Unit>>()
 
-fun Section.RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
+fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
     data.putIfAbsent(InputChangedCallbacksKey, provideInitialValue = { mutableListOf() }) { add(listener) }
 }
 
@@ -442,22 +441,22 @@ class OnInputEnteredScope(val input: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
 }
-private val InputEnteredCallbackKey = Section.RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
+private val InputEnteredCallbackKey = RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
 
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
 private object SystemInputEnteredCallbackKey : ConcurrentScopedData.Key<() -> Unit> {
-    override val lifecycle = Section.RunScope.Lifecycle
+    override val lifecycle = RunScope.Lifecycle
 }
 
-fun Section.RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
+fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
     if (!data.tryPut(InputEnteredCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputEntered` callback at a time is supported.")
     }
 }
 
-fun Section.runUntilInputEntered(block: suspend Section.RunScope.() -> Unit = {}) {
+fun Section.runUntilInputEntered(block: suspend RunScope.() -> Unit = {}) {
     run {
         data[SystemInputEnteredCallbackKey] = { abort() }
         block()

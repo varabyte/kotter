@@ -49,7 +49,7 @@ class SectionState internal constructor(internal val parent: SectionState? = nul
      */
     internal val deferred: Styles = Styles(parent?.deferred)
 
-    fun applyTo(renderer: Renderer) {
+    fun applyTo(renderer: Renderer<*>) {
         if (deferred.fgColor?.text !== applied.fgColor?.text) {
             applied.fgColor = deferred.fgColor
             renderer.appendCommand(applied.fgColor ?: FG_CLEAR_COMMAND)

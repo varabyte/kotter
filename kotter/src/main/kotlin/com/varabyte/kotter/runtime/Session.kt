@@ -33,9 +33,9 @@ class Session internal constructor(internal val terminal: Terminal) {
         }
     }
 
-    fun section(block: RenderScope.() -> Unit): Section {
+    fun section(render: MainRenderScope.() -> Unit): Section {
         assertNoActiveSections()
-        return Section(this, block)
+        return Section(this, render)
     }
 
     internal fun dispose() {

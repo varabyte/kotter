@@ -233,7 +233,14 @@ class ConcurrentScopedData {
         return lock.read {
             if (isActive(key.lifecycle)) {
                 lock.write {
-                    block((keyValues.computeIfAbsent(key) { Value(provideInitialValue(), dispose) } as Value<T>).wrapped)
+                    // Add manually instead of using computeIfAbsent, as `provideInitialValue()` may itself
+                    // register additional keys, which is legal but we don't want it to cause a
+                    // ConcurrentModificationException
+                    if (!keyValues.containsKey(key)) {
+                        keyValues[key] = Value(provideInitialValue(), dispose)
+                    }
+
+                    block((keyValues.getValue(key) as Value<T>).wrapped)
                 }
             }
         }

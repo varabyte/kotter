@@ -3,17 +3,33 @@ package com.varabyte.kotter.foundation.render
 import com.varabyte.kotter.runtime.SectionState
 import com.varabyte.kotter.runtime.internal.TerminalCommand
 import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
+import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
 import com.varabyte.kotter.runtime.internal.text.lineLengths
+import com.varabyte.kotter.runtime.render.OneShotRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
 
-class OffscreenBuffer(private val parentScope: RenderScope, render: RenderScope.() -> Unit) {
-    private val offscreenRenderer = Renderer(parentScope.renderer.session)
-    private val offscreenScope = RenderScope(offscreenRenderer).apply(render)
+/**
+ * A [RenderScope] used for the [offscreen] method.
+ *
+ * While it seems unnecessary to create an empty class like this, this can be useful if library authors want to provide
+ * extension methods that only apply to `offscreen` scopes.
+ */
+class OffscreenRenderScope(renderer: Renderer<OffscreenRenderScope>): OneShotRenderScope(renderer)
 
-    // The final newline shouldn't leak into the output. For example, `offscreen { lines.forEach { textLine(it } }`
-    // shouldn't create a trailing single empty line.
-    private val commands = if (offscreenRenderer.commands.lastOrNull() !== NEWLINE_COMMAND) offscreenRenderer.commands else offscreenRenderer.commands.dropLast(1)
+class OffscreenBuffer(private val parentScope: RenderScope, render: RenderScope.() -> Unit) {
+    private val commands = run {
+        val offscreenRenderer = Renderer<OffscreenRenderScope>(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
+            render(render)
+        }
+        // The renderer normally makes sure that a command block ends with a trailing newline and a state reset, but we
+        // don't need those in an offscreen buffer.
+        // 1) The final newline shouldn't leak into the output. For example,
+        // `offscreen { lines.forEach { textLine(it } }` shouldn't create a trailing single empty line.
+        // 2) `CommandRenderer` below handles its own state cleanup logic
+        assert(offscreenRenderer.commands.takeLast(2) == listOf(NEWLINE_COMMAND, RESET_COMMAND))
+        offscreenRenderer.commands.dropLast(2)
+    }
 
     val lineLengths = commands.lineLengths
 

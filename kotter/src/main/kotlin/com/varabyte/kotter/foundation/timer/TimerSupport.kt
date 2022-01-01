@@ -1,5 +1,6 @@
 package com.varabyte.kotter.foundation.timer
 
+import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import kotlinx.coroutines.*
@@ -10,7 +11,7 @@ import kotlin.concurrent.write
 
 internal class TimerManager(private val lock: ReentrantReadWriteLock) {
     object Key : ConcurrentScopedData.Key<TimerManager> {
-        override val lifecycle = Section.RunScope.Lifecycle
+        override val lifecycle = RunScope.Lifecycle
     }
 
     private class Timer(var duration: Duration, val repeat: Boolean, val key: Any?, val callback: TimerScope.() -> Unit): Comparable<Timer> {
@@ -113,6 +114,6 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Durat
  *   the previous timer with this key finished running.
  * @param callback Logic to trigger every time the timer runs.
  */
-fun Section.RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit, ) {
+fun RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit, ) {
     data.addTimer(duration, repeat, key, callback)
 }

@@ -9,7 +9,7 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
  * A class responsible for executing some block of logic which requests render instructions, which ultimately modify an
  * internal [TerminalCommand] list.
  */
-class Renderer(val session: Session) {
+class Renderer<R: RenderScope>(val session: Session, private val createScope: (Renderer<R>) -> R) {
     private val _commands = mutableListOf<TerminalCommand>()
     internal val commands: List<TerminalCommand> = _commands
 
@@ -18,18 +18,17 @@ class Renderer(val session: Session) {
         _commands.add(command)
     }
 
-    internal fun render(block: RenderScope.() -> Unit) {
+    internal fun render(render: R.() -> Unit) {
         _commands.clear()
-        RenderScope(this).apply {
-            block()
 
-            if (_commands.lastOrNull() !== NEWLINE_COMMAND) {
-                _commands.add(NEWLINE_COMMAND)
-            }
+        createScope(this).render()
 
-            // Make sure we clear all state as we exit this block. This ensures that repaint passes don't carry
-            // state leftover from its end back to the beginning.
-            _commands.add(RESET_COMMAND)
+        if (_commands.lastOrNull() !== NEWLINE_COMMAND) {
+            _commands.add(NEWLINE_COMMAND)
         }
+
+        // Make sure we clear all state as we exit this block. This ensures that repaint passes don't carry
+        // state leftover from its end back to the beginning.
+        _commands.add(RESET_COMMAND)
     }
 }

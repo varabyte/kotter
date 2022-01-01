@@ -9,7 +9,7 @@ import com.varabyte.kotter.runtime.render.Renderer
  * already.
  */
 internal open class TextCommand(text: String) : TerminalCommand(text) {
-    override fun applyTo(state: SectionState, renderer: Renderer) {
+    override fun applyTo(state: SectionState, renderer: Renderer<*>) {
         if (text != "\n") {
             state.applyTo(renderer)
         }
@@ -28,7 +28,7 @@ internal class CharSequenceCommand(text: CharSequence) : TextCommand(text.toStri
     }
 }
 internal val NEWLINE_COMMAND = object : TextCommand("\n") {
-    override fun applyTo(state: SectionState, renderer: Renderer) {
+    override fun applyTo(state: SectionState, renderer: Renderer<*>) {
         // In some terminals, if you have a background color enabled, and you append a newline, the background color
         // extends to the end of the next line. This looks awful, as if the background color is leaking, and
         // unfortunately this would happen every time you did something like:
