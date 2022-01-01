@@ -59,7 +59,7 @@ class Section internal constructor(val session: Session, private val block: Rend
         }
 
         /**
-         * Data store for this app.
+         * Data store for this session.
          *
          * It is exposed directly and publicly here so methods extending the RunScope can use it.
          */
@@ -128,8 +128,8 @@ class Section internal constructor(val session: Session, private val block: Rend
                 if (renderer.commands.isNotEmpty()) {
 
                     // Note: This logic works when a terminal first starts up, but if the user keeps resizing their
-                    // terminal while our app is running, it seems like the width value we get doesn't update. See also:
-                    // bug #34
+                    // terminal while our session is running, it seems like the width value we get doesn't update. See
+                    // also: bug #34
                     val totalNumLines = renderer.commands.numLines(session.terminal.width)
 
                     // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the

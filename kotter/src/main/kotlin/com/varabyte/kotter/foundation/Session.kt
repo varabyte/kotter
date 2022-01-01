@@ -28,17 +28,17 @@ fun session(
     terminal: Terminal = DEFAULT_TERMINAL_FACTORY_METHODS.runUntilSuccess(),
     block: Session.() -> Unit) {
 
-    val app = Session(terminal)
+    val session = Session(terminal)
     Runtime.getRuntime().addShutdownHook(Thread {
         // Clean-up even if the user presses control-C
-        app.dispose()
+        session.dispose()
     })
 
     try {
-        app.apply(block)
-        app.assertNoActiveSections()
+        session.apply(block)
+        session.assertNoActiveSections()
     }
     finally {
-        app.dispose()
+        session.dispose()
     }
 }

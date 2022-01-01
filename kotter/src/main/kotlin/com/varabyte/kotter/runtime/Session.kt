@@ -7,7 +7,7 @@ import java.util.concurrent.Executors
 
 class Session internal constructor(internal val terminal: Terminal) {
     /**
-     * A long-lived lifecycle that sticks around for the length of the entire app.
+     * A long-lived lifecycle that sticks around for the length of the entire session.
      *
      * This lifecycle can be used for storing data that should live across multiple blocks.
      */

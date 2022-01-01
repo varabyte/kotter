@@ -32,7 +32,7 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
     private var modifyCountVar by session.liveVarOf(0)
     private var modifyCount = 0
 
-    @GuardedBy("app.data.lock")
+    @GuardedBy("session.data.lock")
     private val delegateList = mutableListOf(*elements)
 
     private fun <R> read(block: () -> R): R {
@@ -98,6 +98,6 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
     override fun set(index: Int, element: T): T = write { delegateList.set(index, element) }
 }
 
-/** Create a [LiveList] whose scope is tied to this app. */
+/** Create a [LiveList] whose scope is tied to this session. */
 @Suppress("FunctionName") // Intentionally made to look like a class constructor
 fun <T> Session.liveListOf(vararg elements: T): LiveList<T> = LiveList<T>(this, *elements)

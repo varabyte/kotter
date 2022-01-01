@@ -24,8 +24,8 @@ private object InputLifecycle : ConcurrentScopedData.Lifecycle {
     override val parent = Section.Lifecycle
 }
 
-// Once created, we keep it alive for the app, because Flow is designed to be collected multiple times, meaning
-// there's no reason for us to keep recreating it. It's pretty likely that if an app uses input in one block, it
+// Once created, we keep it alive for the session, because Flow is designed to be collected multiple times, meaning
+// there's no reason for us to keep recreating it. It's pretty likely that if a session uses input in one block, it
 // will use input again in others. (We can always revisit this decision later and scope this to a Section lifecycle
 // instead)
 private val KeyFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
@@ -101,8 +101,8 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                 }
             }
         }
-            // We only want to collect keypresses in one place per app. Use shareIn so collecters don't spawn new flows.
-            // For example, multiple flows here would really mess with the escSeq logic
+            // We only want to collect keypresses in one place per session. Use shareIn so collecters don't spawn new
+            // flows. For example, multiple flows here would really mess with the escSeq logic
             .shareIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily)
     }
 }

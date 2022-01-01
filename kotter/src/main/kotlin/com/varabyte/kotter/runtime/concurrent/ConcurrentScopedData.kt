@@ -125,7 +125,7 @@ class ConcurrentScopedData {
      * Dispose and remove ALL keys in this data store.
      *
      * Of course, [stop] should be preferred, but this can be useful if handling an unrecoverable exception, for
-     * example, or if we're shutting down the whole app.
+     * example, or if we're shutting down the whole session.
      */
     fun stopAll() {
         lock.write {

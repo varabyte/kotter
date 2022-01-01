@@ -26,7 +26,7 @@ class RenderScope(internal val renderer: Renderer) {
     internal var state = SectionState()
 
     /**
-     * Data store for this app.
+     * Data store for this session.
      *
      * It is exposed directly and publicly here so methods extending the RunScope can use it.
      */
