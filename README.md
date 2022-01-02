@@ -88,7 +88,7 @@ virtual terminal.*
 
 ## Usage
 
-### Basic
+### Basics
 
 The following is equivalent to `println("Hello, World")`. In this simple case, it's definitely overkill!
 
@@ -618,6 +618,168 @@ val spinners = (1..10).map { animOf(SPINNER_TEMPLATE) }
 /* ... */
 ```
 
+### Offscreen
+
+Occasionally, when you want to render some marked up text, you'll wish you could measure it, for example padding both
+sides with spaces to center it, or putting the right count of "=" characters above and below it to give the text a sort
+of header effect. But by the time you've rendered something out, then it's too late!
+
+`offscreen` to the rescue. You can think of `offscreen` as a temporary buffer to render to, after which you can both
+query it and control when it actually renders to the screen.
+
+`offscreen` returns a buffer, which is a read-only view of the content. To render it, you need to call
+`offscreen.createRenderer` and then use `renderer.renderNextRow` to render out each line at a time.  
+
+```kotlin
+section {
+  // NOTE: This is just example code. As is, it isn't useful in practice, as it just immediately renders the offscreen
+  // buffer onscreen, but it showcases all the moving parts.
+  val buffer = offscreen { ... }
+  val renderer = buffer.createRenderer()
+  while (renderer.hasNextRow()) { renderer.renderNextRow() } 
+}
+```
+
+***Note:** Although you usually won't need to, you can create multiple renderers, each which manages its own state for
+what row to render out next.*
+
+One nice thing about the offscreen buffer is it manages its own local state, and while it originally inherits its parent
+scope's color / text states, any changes you make within the offscreen buffer will be remembered to its end.
+
+This is easier seen than described. The following example:
+
+```kotlin
+section {
+  val buffer = offscreen {
+    textLine("Inherited color (red)")
+    cyan()
+    textLine("Local color (cyan)")
+    textLine("Still blue")
+  }
+
+  val renderer = buffer.createRenderer()
+  red()
+  while (renderer.hasNextRow()) {
+    text("red -- "); renderer.renderNextRow(); textLine(" -- red")
+  }
+}
+```
+
+will render:
+
+![Offscreen local state example](https://github.com/varabyte/media/raw/main/kotter/images/offscreen-local-state.png)
+
+The driving motivation for adding offscreen buffers was to be able to easily add borders around any block of text, so
+when this functionality went in, we also added the `bordered` method ([link to code](https://github.com/varabyte/kotter/blob/main/kotter/src/main/kotlin/com/varabyte/kotterx/decorations/BorderSupport.kt)).
+You can check the implementation yourself to see how it delegates to `offscreen`, padding each row with the right
+number of spaces so that the border sides all line up.
+
+### Aside
+
+In order to understand aside blocks, you should start to think of Kotter output as two parts -- some static history, and
+a dynamic, active area at the bottom. The static history will never change, while the active area will be written and
+cleared and rewritten over and over and over again as needed.
+
+In general, a section is active *until* it is finished running, at which point it becomes static history, and the next
+section becomes active. You can almost think about *consuming* an active section, which freezes it after one final
+render, at which point it becomes static. 
+
+For example, it's a common pattern to get static instructions out of the way first, in its own section, so we don't
+waste time rerendering them over and over in the main block:
+
+```kotlin
+session {
+  section {
+    textLine("Press arrow keys to move")
+    textLine("Press R to restart")
+    textLine("Press Q to quit")
+    textLine();  
+  }.run()
+
+  section {
+    ... constantly rerendered lines ...
+  }.runUntilKeyPressed(Keys.Q) { ... }
+}
+```
+
+Occasionally, however, you want to generate static history *while* a block is still active. For example, imagine an old
+text adventure game, with a blinking input cursor waiting for you to type in some command, with a growing backlog of
+history text streaming off the top of the screen as you play the game.
+
+To accomplish this, you could put a `section` within a while loop, and then when the user enters a command, immediately
+change the section to render the output of that command before finishing it and then starting up the next `section`.
+
+Or, you could run `aside` inside a `run` block each time a command is entered.
+
+Assume you have a `state: GameState` model which contains the logic for parsing these commands and updating the current
+text adventure room. Your program could look something like this:
+
+```kotlin
+session {
+  section {
+    textLine("Type commands to navigate the world. Type \"exit\" to quit.")
+    textLine()
+    textLine(state.currentText)
+    textLine()
+  }.run()
+
+  var commandCount = 0 // Used as an id in input() so it clears itself each time it gets incremented
+  section {
+    text("Command > "); input(id = commandCount)
+  }.runUntilSignal {
+    onInputEntered {
+      when (input) {
+        "exit" -> signal()
+        else -> {
+          ++commandCount
+          state.handleCommand(input)
+          aside {
+            black(isBright = true) { textLine("You typed: $input") }
+            textLine()
+            textLine(state.currentText)
+            textLine()
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+producing output that might look something like:
+
+```
+Type commands to navigate the world. Type "exit" to quit.
+
+You find yourself arriving, tired but excited, at the gates of Kotterton. You
+thought you were at the end of a long and meandering adventure, but it turns
+out you are just at the beginning.
+
+You typed: look
+
+Ahead of you, you see two large, wooden gates, locked and barring entry into
+the city. However, there is a small open window inset into one of the stone
+walls next to the gates, with a guard's face looking out of it. There is a
+stick on the grassy floor.
+
+You typed: pick up stick
+
+You grab the stick and put it into your backpack. The guard almost gives you
+a quizzical look but then decides to yawn instead and continues to stare ahead.
+
+You typed: look 
+
+Ahead of you, you see two large, wooden gates, locked and barring entry into
+the city. However, there is a small open window inset into one of the stone
+walls next to the gates, with a guard's face looking out of it.
+
+Command > talk to guard█
+```
+
+In such a program, you can think of it as having an active block only one
+line tall (very efficient!) with an ever-growing history of static text,
+appended to by the `aside` block.
+
 ## Advanced
 
 ### "Extending" Kotter
@@ -626,43 +788,52 @@ Kotter aims to provide all the primitives you need to write dynamic, interactive
 `textLine`, `input`, `offscreen`, `aside`, `onKeyPressed`, etc. 
 
 But we may have missed _your_ use case, or maybe you just want to refactor out some logic to share across `section`s.
-This is totally doable, but it requires discussing the framework in a bit more detail. We'll tackle that in this
-section.
+This is totally doable, but it requires discussing the framework in a bit more detail. We'll tackle that in this part.
 
-For reference, you should also look at the [extend](examples/extend) sample project, which was written to accompany this
-part.
+For reference, you should also look at the [extend](examples/extend) sample project, which was written to demonstrate
+the concepts that will be discussed here.
 
 #### Scopes
 
-Before continuing, it will be important to familiarize with the parts of a Kotter application. Let's start with this
-skeleton code:
+Before continuing, it will be important to familiarize with the breakdown of a Kotter application. The following may
+look a bit complex at first glance but don't worry as the remaining subsections will break it down:
 
 ```
-┌───────── session {
-│ ┌─┬─────    section {
-│ │ │            ...
-│ │ 3a┌───       offscreen {
-│ │ │ 3b            ...
-│ │ │ └───       }
-│ │ └─────    }.onFinished {
-1 2              ...
-│ │ ┌─────    }.run {
-│ │ │            ...
-│ │ 4 ┌───       aside {
-│ │ │ 3c            ...
-│ │ │ └───       }
-│ └─┴─────    }
-└───────── }
+┌───────── | session {
+│ ┌─┬───── |   section {
+│ │ │      |      ...
+│ │ 3a┌─── |      offscreen {
+│ │ │ 3b   |         ...
+│ │ │ └─── |      }
+│ │ └───── |   }.onFinished {
+1 2        |      ...
+│ │ ┌───── |   }.run {
+│ │ │      |      ...
+│ │ 4 ┌─── |      aside {
+│ │ │ 3c   |         ...
+│ │ │ └─── |      }
+│ └─┴───── |   }
+└───────── | }
 ```
 
 **1 - `Session`**
 
+```
+┌─ session {
+│    section {
+│      ...
+│    }.run {
+│      ...
+│    }
+└─ }
+```
+
 The top level of your whole application. `Session` owns a `data: ConcurrentScopedData` field which we'll talk more about
-a little later. However, it's worth understanding that it lives inside a session, and every other way you access `data`
+a little later. However, it's worth understanding that `data` lives inside a session, and every other way you access it
 is really pointing back to this singular one.
 
-`Session` is the scope you need when calling `liveVarOf` or `liveListOf`, or even `section`, so you may find yourself
-creating an extension method on top of the `Session` scope to reference these:
+`Session` is the scope you need when calling `liveVarOf` or `liveListOf`, or even declaring a `section`, so you may find
+yourself creating an extension method on top of the `Session` scope to reference such methods:
 
 ```kotlin
 fun Session.firstSection() {}
@@ -671,39 +842,60 @@ fun Session.firstSection() {}
   section { ... }.run { ... }
 }
 
-fun Session.secondSession() { ... }
-fun Session.thirdSession() { ... }
+fun Session.secondSection() { ... }
+fun Session.thirdSection() { ... }
 
 ... later ...
 
 session {
     firstSection()
-    secondSession()
-    thirdSession()
+    secondSection()
+    thirdSection()
 }
 ```
 
 **2 - `Section`**
 
-Unlike `Session`, it's not very likely you'll add an extension method on top of a `Section`, because a section is really
-broken into two parts - the render logic (which runs on the main thread) and the run logic (which runs on a background
-thread).
+```
+┌─ section {
+│    ...
+│  }.run {
+│    ...
+└─ }
+```
 
-It's worth understanding that a `Section` umbrellas both UI and background blocks, because looking at the code it could
-be easy to think it is just the first part within the `section { ... }` block. However, that first part is actually the
-`RenderScope`, which we will discuss next.
+Unlike `Session`, you shouldn't ever need to add an extension method on top of a `Section`, because a section is mainly
+just a class for managing two sub-parts - the render logic (which runs on the main thread) and the run logic (which runs
+on a background thread).
+
+It is the render and run parts that are particularly interesting and most likely that users will want to extend.
 
 **3 (a, b, c) - `RenderScope`**
+
+```
+3a
+┌─ section {
+│    ...
+└─ }
+
+3b
+┌─ offscreen {
+│    ...
+└─ }
+
+3c
+┌─ aside {
+│    ...
+└─ }
+```
+
 
 This scope represents a single render pass. This is the scope that owns `textLine`, `red`, `green`, `bold`, `underline`,
 and other text rendering methods.
 
-A render scope is associated with a stack of terminal state, which is for example how Kotter knows how to go from red to
-green back to red again in code like: `red { green { ... } }`.
-
 This can be a useful scope for extracting out a common text rendering pattern. For example, let's say you wanted to
-display a bunch of terminal commands, and to highlight them you want to make a particular color, e.g. cyan. Such code
-could look like this:
+display a bunch of terminal commands and their arguments, and you want to highlight the command a particular color,
+e.g. cyan.
 
 ```kotlin
 section {
@@ -731,8 +923,9 @@ section {
 Much better!
 
 On its surface, the concept of a `RenderScope` seems pretty straightforward, but the gotcha is that Kotter offers a few
-separate render blocks. In addition to the main rendering block, there are also `offscreen` and `aside` methods, which
-allow rendering to different targets (these are discussed earlier in the README in case you aren't familiar with them).
+separate areas that accept render blocks. In addition to the main rendering block, there are also `offscreen` and
+`aside` blocks, which allow rendering to different targets (these are discussed earlier in the README in case you aren't
+familiar with them here).
 
 Occasionally, you may want to define an extension method that *only* applies to one of the three blocks (usually the
 main one). In order to narrow down the place your helper method will appear in, you can use `MainRenderScope` (3a),
@@ -741,16 +934,26 @@ main one). In order to narrow down the place your helper method will appear in, 
 For example, the `input()` method doesn't make sense in an `offscreen` or `aside` context (as those aren't interactive).
 Therefore, its definition looks like `fun MainRenderScope.input(...) { ... }`
 
-Finally, `OffscreenRenderScope` and `AsideRenderScope` both inherit from `OneShotRenderScope`, which might be useful if
-for some reason you wanted to define an extension method on top of both of them while excluding the main render scope.
+Finally, `OffscreenRenderScope` and `AsideRenderScope` both inherit from `OneShotRenderScope`, since they are guaranteed
+by design to only ever run a single time, unlike `MainRenderScope` which is potentially dynamic and interactive.
+`OneShotRenderScope` might be useful if for some reason you wanted to define an extension method that excludes the main render scope.
 
 **4 - `RunScope`**
 
-`RunScope` is used for `run` blocks. It's useful for extracting logic that deals with handling user input or running
-long running background tasks. Functions like `onKeyPressed`, `onInputChanged`, `addTimer` etc. are defined here.
+```kotlin
+   section {
+     ...
+┌─ }.run {
+│    ...
+└─ }
+```
 
-For example, here is logic for consuming the output of a command executing within a `run` block, where the output is
-sent to an `aside` block.
+`RunScope` is used for `run` blocks. It's useful for extracting logic that deals with handling user input or running
+long-running background tasks. Functions like `onKeyPressed`, `onInputChanged`, `addTimer` etc. are defined on top of
+this scope.
+
+For example, here is logic for consuming the output of a command being executed within a `run` block, where the output
+is sent to an `aside` block.
 
 ```kotlin
 private fun RunScope.handleConsoleOutput(line: String, isError: Boolean) {
@@ -777,7 +980,7 @@ fun RunScope.exec(vararg command: String): Process {
 }
 
 section {
-    ... render a spinner or something ...
+    textLine("Please wait, cloning the repo...")
 }.run {
   val process = exec("git", "clone", "https://github.com/varabyte/kotter.git")
   ...
@@ -786,9 +989,9 @@ section {
 
 **`SectionScope`**
 
-To close off scope discussion, it's worth mentioning that a `SectionScope` interface exists. It is the base interface to
-both `RenderScope` AND a `RunScope`, and using it can allow you to define the occasional helper method that can be
-called from both of them. 
+To close off all this scope discussion, it's worth mentioning that a `SectionScope` interface exists. It is the base
+interface to both `RenderScope` AND a `RunScope`, and using it can allow you to define the occasional helper method that
+can be called from both of them. 
 
 #### ConcurrentScopedData
 
@@ -799,50 +1002,49 @@ OK, but what is it?
 such keys are associated with a lifecycle (meaning that any data you register into the map will always be released when
 some parent lifecycle ends, unless you remove it yourself manually first).
 
-Kotter itself provides four main lifecycles: `Session.Lifecycle`, `Section.Lifecycle`, `MainRenderScope.Lifecycle`, and
+Kotter itself manages four main lifecycles: `Session.Lifecycle`, `Section.Lifecycle`, `MainRenderScope.Lifecycle`, and
 `Run.Lifecycle` (each associated with the scopes discussed above).
 
 ***Note:** No lifecycles are provided for `offscreen` or `aside` blocks at the moment because you could probably just
-use the `MainRenderScope.Lifecycle` or `Run.Lifecycle` lifecycles for that. Feel free to open up an issue with a
-use-case for more lifecycles if you run into one.*
+use the `MainRenderScope.Lifecycle` or `Run.Lifecycle` lifecycles for those cases. Feel free to open up an issue with a
+use-case requiring additional lifecycles if you run into one.*
 
 Keep in mind that the `MainRenderScope` dies after a *single* render pass. Often you want to use the
 `Section.Lifecycle`, as it survives across multiple runs.
 
-Nothing prevents you from defining your own lifecycle - just be sure to call `ConcurrentScopedData.start` and
-`ConcurrentScopedData.stop` on it. Lifecycles can be defined as subordinate to other lifecycles, so if you create a
-lifecycle that is tied to the `Run` lifecycle for example, then you don't need to explicitly call `stop` yourself.
+Nothing prevents you from defining your own lifecycle - just be sure to call `data.start` and `data.stop` on it.
+Lifecycles can be defined as subordinate to other lifecycles, so if you create a lifecycle that is tied to the `Run`
+lifecycle for example, then you don't need to explicitly call `stop` yourself.
 
-You can review the class for its full list of documented API calls, but the three common ways to add values to it is:
+You can review the `ConcurrentScopedData` class for its full list of documented API calls, but the three common ways to
+add values to it are:
 
-* always updated: `data[key] = value`
-* added if absent: `data.tryPut(key, value) // returns true if added, false otherwise`
-* tied to logic that should always run:<br>
-  `data.putIfAbsent(key, provideInitialValue = { value }) { ... logic using value ... }`
+* always overwrite: `data[key] = value`
+* add if first time: `data.tryPut(key, value) // returns true if added, false otherwise`
+* add if first time but always run some follow-up logic:<br>
+  `data.putIfAbsent(key, provideInitialValue = { value }) { ... logic using value ... }`<br>
+  * This is essentially a shortcut for calling `tryPut` and then getting the value, but doing so in a way that ensures
+    no one else grabs the thread from you in between.
 
-This API allows you to associate state with your function call, often only the first time it is called. This is
-important for rendering, where the method may get called multiple times. For example, `input(...)` can get called
-repeatedly, but state for it is allocated only on the first time it is called within a section.
-
-At this point, all you need it a key. Creating one is easy - just tie it to a lifecycle and the type of data it
-represents. Putting it all together:
+We're almost done here. At this point, all you need is a key. Creating one is easy - just tie it to a lifecycle and the
+type of data it represents. Putting it all together:
 
 ```kotlin
 class MyFeatureState(...)
-
 val MyFeatureKey = Section.Lifecycle.createKey<MyFeatureState>()
 
 fun RenderScope.myFeature() {
   data.putIfAbsent(MyFeatureKey, { MyFeatureState(...) }) {
-    // this is MyFeatureState
-    //  this block gets run every time myFeature is called
+    // "this" is MyFeatureState
+    // This block gets run every time `myFeature` is called, but
+    // `MyFeatureState` is only created the first time
   }
 }
 ```
 
-Kotter was written in such a way that the way it implements features is open to users as well. It could have been easy
-to create a bunch of magical functions baked inside `Section`, `MainRenderScope`, etc., with access to private state,
-but `ConcurrentScopedData` ensured that Kotter would remain much more extensibe and require far fewer special cases.
+To close this section, we just wanted to say that it was very tempting at first to create a bunch of hardcoded functions
+baked inside `Section`, `MainRenderScope`, etc., with access to some private state, but implementing everything through
+`ConcurrentScopedData` plus extension methods ensured that we had the same tools and constraints as any user would.
 
 So go forth, and extend Kotter!
 

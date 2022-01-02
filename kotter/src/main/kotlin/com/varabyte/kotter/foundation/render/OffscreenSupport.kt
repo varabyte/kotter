@@ -5,6 +5,7 @@ import com.varabyte.kotter.runtime.internal.TerminalCommand
 import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
 import com.varabyte.kotter.runtime.internal.text.lineLengths
+import com.varabyte.kotter.runtime.internal.text.toRawText
 import com.varabyte.kotter.runtime.render.OneShotRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
@@ -41,6 +42,8 @@ class OffscreenBuffer(private val parentScope: RenderScope, render: RenderScope.
     fun createRenderer(): CommandRenderer {
         return CommandRenderer(parentScope, commands)
     }
+
+    fun toRawText() = commands.toRawText()
 }
 
 class CommandRenderer internal constructor(
@@ -50,6 +53,8 @@ class CommandRenderer internal constructor(
     private var commandIndex = 0
     private var lastState: SectionState? = null
 
+    fun hasNextRow(): Boolean = (commandIndex < commands.size)
+
     /**
      * Render a single row of commands.
      *
@@ -58,7 +63,7 @@ class CommandRenderer internal constructor(
      * left wall of the border, for example, a row of content, the right wall of the border, etc.
      */
     fun renderNextRow(): Boolean {
-        if (commandIndex == commands.size) {
+        if (!hasNextRow()) {
             return false
         }
 
