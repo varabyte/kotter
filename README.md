@@ -104,7 +104,7 @@ console) is finished (which, for console text, probably won't be very long).
 
 `session { ... }` sets the outer scope for your whole program (e.g. it specifies the lifetime of some data). While we're
 just calling it with default arguments here, you can also pass in parameters that apply to the entire application.
-A Kotter `session` can contain one or more `section`s. 
+A Kotter `session` can contain one or more `section`s.
 
 While the above simple case is a bit verbose for what it's doing, Kotter starts to show its strength when doing
 background work (or other async tasks like waiting for user input) during which time the block may update several times.
@@ -630,7 +630,7 @@ query it and control when it actually renders to the screen.
 
 `offscreen` returns a buffer, which is a read-only view of the content. You can query its raw text or line lengths,
 for example. To render it, you need to call `offscreen.createRenderer` and then use `renderer.renderNextRow` to render
-out each line at a time.  
+out each line at a time.
 
 ```kotlin
 section {
@@ -638,7 +638,7 @@ section {
   // buffer onscreen, but it showcases all the moving parts.
   val buffer = offscreen { ... }
   val renderer = buffer.createRenderer()
-  while (renderer.hasNextRow()) { renderer.renderNextRow() } 
+  while (renderer.hasNextRow()) { renderer.renderNextRow() }
 }
 ```
 
@@ -684,7 +684,7 @@ cleared and rewritten over and over and over again as needed.
 
 In general, a section is active *until* it is finished running, at which point it becomes static history, and the next
 section becomes active. You can almost think about *consuming* an active section, which freezes it after one final
-render, at which point it becomes static. 
+render, at which point it becomes static.
 
 For example, it's a common pattern to get static instructions out of the way first, in its own section, so we don't
 waste time rerendering them over and over in the main block:
@@ -695,7 +695,7 @@ session {
     textLine("Press arrow keys to move")
     textLine("Press R to restart")
     textLine("Press Q to quit")
-    textLine();  
+    textLine();
   }.run()
 
   section {
@@ -769,7 +769,7 @@ You typed: pick up stick
 You grab the stick and put it into your backpack. The guard almost gives you
 a quizzical look but then decides to yawn instead and continues to stare ahead.
 
-You typed: look 
+You typed: look
 
 Ahead of you, you see two large, wooden gates, locked and barring entry into
 the city. However, there is a small open window inset into one of the stone
@@ -787,7 +787,7 @@ appended to by the `aside` block.
 ### "Extending" Kotter
 
 Kotter aims to provide all the primitives you need to write dynamic, interactive console applications, such as
-`textLine`, `input`, `offscreen`, `aside`, `onKeyPressed`, etc. 
+`textLine`, `input`, `offscreen`, `aside`, `onKeyPressed`, etc.
 
 But we may have missed _your_ use case, or maybe you just want to refactor out some logic to share across `section`s.
 This is totally doable, but it requires discussing the framework in a bit more detail. We'll tackle that in this part.
@@ -931,7 +931,7 @@ familiar with them here).
 
 Occasionally, you may want to define an extension method that *only* applies to one of the three blocks (usually the
 main one). In order to narrow down the place your helper method will appear in, you can use `MainRenderScope` (3a),
-`OffscreenRenderScope` (3b), and/or `AsideRenderScope` (3c) as your method receiver. 
+`OffscreenRenderScope` (3b), and/or `AsideRenderScope` (3c) as your method receiver.
 
 For example, the `input()` method doesn't make sense in an `offscreen` or `aside` context (as those aren't interactive).
 Therefore, its definition looks like `fun MainRenderScope.input(...) { ... }`
@@ -993,7 +993,7 @@ section {
 
 To close off all this scope discussion, it's worth mentioning that a `SectionScope` interface exists. It is the base
 interface to both `RenderScope` AND a `RunScope`, and using it can allow you to define the occasional helper method that
-can be called from both of them. 
+can be called from both of them.
 
 #### ConcurrentScopedData
 
