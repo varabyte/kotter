@@ -620,15 +620,17 @@ val spinners = (1..10).map { animOf(SPINNER_TEMPLATE) }
 
 ### Offscreen
 
-Occasionally, when you want to render some marked up text, you'll wish you could measure it, for example padding both
-sides with spaces to center it, or putting the right count of "=" characters above and below it to give the text a sort
-of header effect. But by the time you've rendered something out, then it's too late!
+Occasionally, when you want to render some marked up text, you'll wish you could measure it first, for example allowing
+you to pad both sides of each line with spaces to center everything, or putting the right count of "=" characters above
+and below a block of text to give it a sort of header effect. But by the time you've rendered something out, then it's
+too late!
 
 `offscreen` to the rescue. You can think of `offscreen` as a temporary buffer to render to, after which you can both
 query it and control when it actually renders to the screen.
 
-`offscreen` returns a buffer, which is a read-only view of the content. To render it, you need to call
-`offscreen.createRenderer` and then use `renderer.renderNextRow` to render out each line at a time.  
+`offscreen` returns a buffer, which is a read-only view of the content. You can query its raw text or line lengths,
+for example. To render it, you need to call `offscreen.createRenderer` and then use `renderer.renderNextRow` to render
+out each line at a time.  
 
 ```kotlin
 section {
@@ -644,7 +646,7 @@ section {
 what row to render out next.*
 
 One nice thing about the offscreen buffer is it manages its own local state, and while it originally inherits its parent
-scope's color / text states, any changes you make within the offscreen buffer will be remembered to its end.
+scope's state, any changes you make within the offscreen buffer will be remembered to its end.
 
 This is easier seen than described. The following example:
 
