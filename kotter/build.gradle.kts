@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.varabyte.kotter"
-version = "0.9.5-SNAPSHOT"
+version = "0.9.5"
 
 fun shouldSign() = (findProperty("kotter.sign") as? String).toBoolean()
 fun shouldPublishToGCloud(): Boolean {
