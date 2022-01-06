@@ -580,12 +580,12 @@ errant timer will clobber later.
 
 ### Animations
 
-You can easily create custom animations, by calling `animOf`:
+You can easily create custom animations, by calling `textAnimOf`:
 
 ```kotlin
 var finished = false
-val spinnerAnim = animOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
-val thinkingAnim = animOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+val spinnerAnim = textAnimOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
+val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
 section {
   if (!finished) { text(spinnerAnim) } else { text("✓") }
   text(" Searching for files")
@@ -604,16 +604,16 @@ words, all you have to do is treat your animation instance as if it were a strin
 #### Animation templates
 
 If you have an animation that you want to share in a bunch of places, you can create a template for it and instantiate
-instances from the template. `Anim.Template` takes exactly the same arguments as the `animOf` method.
+instances from the template. `TextAnim.Template` takes exactly the same arguments as the `textAnimOf` method.
 
 This may be useful if you have a single animation that you want to run in many places at the same time but all slightly
 off from one another. For example, if you were processing 10 threads at a time, you may want the spinner for each thread
 to start spinning whenever its thread activates:
 
 ```kotlin
-val SPINNER_TEMPATE = Anim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
+val SPINNER_TEMPATE = TextAnim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
 
-val spinners = (1..10).map { animOf(SPINNER_TEMPLATE) }
+val spinners = (1..10).map { textAnimOf(SPINNER_TEMPLATE) }
 /* ... */
 ```
 
@@ -725,7 +725,7 @@ result to a list. We can, instead, put a spinner in the active section and use t
 ```kotlin
 val fileWalker = FileWalker(".")
 var isFinished by liveVarOf(false)
-val searchingAnim = animOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+val searchingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
 section {
   textLine()
   if (!isFinished) {

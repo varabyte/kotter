@@ -1,4 +1,5 @@
 import com.varabyte.kotter.foundation.anim.Anim
+import com.varabyte.kotter.foundation.anim.TextAnim
 import com.varabyte.kotter.foundation.runUntilSuccess
 import com.varabyte.kotter.foundation.input.Keys
 import com.varabyte.kotter.foundation.input.onKeyPressed

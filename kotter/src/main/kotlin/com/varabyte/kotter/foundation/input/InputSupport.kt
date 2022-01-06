@@ -1,6 +1,7 @@
 package com.varabyte.kotter.foundation.input
 
 import com.varabyte.kotter.foundation.anim.Anim
+import com.varabyte.kotter.foundation.anim.TextAnim
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.MainRenderScope
@@ -10,7 +11,6 @@ import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.terminal.Terminal
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
