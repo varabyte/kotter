@@ -328,7 +328,6 @@ section {
   fileWalker.findFiles("*.txt") { file ->
     fileMatches += file.name
   }
-  /* ... */
 }
 ```
 
@@ -350,8 +349,6 @@ section {
       if (size > 10) { removeAt(0) }
     }
   }
-  /* ... */
-
 }
 ```
 
@@ -369,12 +366,12 @@ event. You could always use a general threading trick for this, such as a `Count
 
 ```kotlin
 val fileDownloader = FileDownloader("...")
-fileDownloader.start()
 section {
   /* ... */
 }.run {
   val finished = CompletableDeffered<Unit>()
   fileDownloader.onFinished += { finished.complete(Unit) }
+  fileDownloader.start()
   finished.await()
 }
 ```
@@ -387,6 +384,7 @@ section {
   /* ... */
 }.run {
   fileDownloader.onFinished += { signal() }
+  fileDownloader.start()
   waitForSignal()
 }
 ```
@@ -403,6 +401,7 @@ section {
   /* ... */
 }.runUntilSignal {
   fileDownloader.onFinished += { signal() }
+  fileDownloader.start()
 }
 ```
 
@@ -634,9 +633,8 @@ out each line at a time.
 
 ```kotlin
 section {
-  // NOTE: This is just example code. As is, it isn't useful in practice,
-  // as it just immediately renders the offscreen buffer onscreen, but it
-  // showcases all the moving parts.
+  // NOTE: This example doesn't really take advantage of the offscreen buffer,
+  // but it does showcase all the moving parts.
   val buffer = offscreen { ... }
   val renderer = buffer.createRenderer()
   while (renderer.hasNextRow()) { renderer.renderNextRow() }
@@ -679,6 +677,20 @@ number of spaces so that the border sides all line up.
 
 ### Aside
 
+You can actually make one-off render requests directly inside a `run` block:
+
+```kotlin
+section {
+    /* ... */
+}.run {
+    aside {
+        textLine("Hello from an aside block")
+    }
+}
+```
+
+which will output text directly before the active section.
+
 In order to understand aside blocks, you should start to think of Kotter output as two parts -- some static history, and
 a dynamic, active area at the bottom. The static history will never change, while the active area will be written and
 cleared and rewritten over and over and over again as needed.
@@ -707,82 +719,45 @@ session {
 
 Occasionally, however, you want to generate static history *while* a block is still active.
 
-For example, imagine an old text adventure game, with a blinking input cursor waiting for you to type in some command,
-with a growing backlog of history text streaming off the top of the screen as you play the game.
-
-To accomplish this, you could put a `section` within a while loop, and then when the user enters a command, immediately
-change the section to render the output of that command before finishing it and then starting up the next `section`.
-
-Or, you could run `aside` inside a `run` block each time a command is entered.
-
-Assume you have a `GameState` class which contains the logic for parsing these commands and updating the current text
-adventure room. Your program could look something like this:
+Let's revisit an example from above, our `FileWalker` demo which searched a list of files and added every matching
+result to a list. We can, instead, put a spinner in the active section and use the `aside` block to output matches:
 
 ```kotlin
-val state = GameState()
-session {
-  section {
-    textLine("Type commands to navigate the world. Type \"exit\" to quit.")
-    textLine()
-    textLine(state.currentText)
-    textLine()
-  }.run()
-
-  var commandCount = 0 // Used as an id in input() so it clears itself each time it gets incremented
-  section {
-    text("Command > "); input(id = commandCount)
-  }.runUntilSignal {
-    onInputEntered {
-      when (input) {
-        "exit" -> signal()
-        else -> {
-          ++commandCount
-          state.handleCommand(input)
-          aside {
-            black(isBright = true) { textLine("You typed: $input") }
-            textLine()
-            textLine(state.currentText)
-            textLine()
-          }
-        }
-      }
-    }
+val fileWalker = FileWalker(".")
+var isFinished by liveVarOf(false)
+val searchingAnim = animOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+section {
+  textLine()
+  if (!isFinished) {
+      textLine("Searching$searchingAnim")
   }
+  else {
+      textLine("Finished searching")
+  }
+}.run {
+  aside {
+    textLine("Matches found so far: ")
+    textLine()
+  }
+
+  fileWalker.findFiles("*.txt") { file ->
+    aside { textLine(" - ${file.name}") }
+  }
+  isFinished = true
 }
 ```
 
-producing output that might look something like:
+which could produce intermediate output like:
 
 ```
-Type commands to navigate the world. Type "exit" to quit.
+Matches found so far:
 
-You find yourself arriving, tired but excited, at the gates of Kotterton. You
-thought you were at the end of a long and meandering adventure, but it turns
-out you are just at the beginning.
+ - a.txt
+ - b.txt
+ - c/d/e.txt
 
-You typed: look
-
-Ahead of you, you see two large, wooden gates, locked and barring entry into
-the city. However, there is a small open window inset into one of the stone
-walls next to the gates, with a guard's face looking out of it. There is a
-stick on the grassy floor.
-
-You typed: pick up stick
-
-You grab the stick and put it into your backpack. The guard almost gives you
-a quizzical look but then decides to yawn instead and continues to stare ahead.
-
-You typed: look
-
-Ahead of you, you see two large, wooden gates, locked and barring entry into
-the city. However, there is a small open window inset into one of the stone
-walls next to the gates, with a guard's face looking out of it.
-
-Command > talk to guard█
+Searching...
 ```
-
-In such a program, you can think of it as having an active block only one line tall (i.e. `Command > ...`, very
-efficient!) with an ever-growing history of static text, appended to by the `aside` block.
 
 ## Advanced
 
@@ -877,7 +852,7 @@ on a background thread).
 It is the render and run parts that are particularly interesting, those being the most likely ones that users will want
 to extend in general. These are discussed next.
 
-**3 (a, b, c) - `RenderScope`**
+**3 - `RenderScope`**
 
 ```
 3a
@@ -896,13 +871,12 @@ to extend in general. These are discussed next.
 └─ }
 ```
 
-
-This scope represents a single render pass. This is the scope that owns `textLine`, `red`, `green`, `bold`, `underline`,
-and other text rendering methods.
+This scope represents a render pass. This is the scope that owns `textLine`, `red`, `green`, `bold`, `underline`, and
+other text rendering methods.
 
 This can be a useful scope for extracting out a common text rendering pattern. For example, let's say you wanted to
 display a bunch of terminal commands and their arguments, and you want to highlight the command a particular color,
-e.g. cyan.
+e.g. cyan:
 
 ```kotlin
 section {
@@ -941,11 +915,6 @@ main one). In order to narrow down the place your helper method will appear in, 
 For example, the `input()` method doesn't make sense in an `offscreen` or `aside` context (as those aren't interactive).
 Therefore, its definition looks like `fun MainRenderScope.input(...) { ... }`
 
-***Note**:, `OffscreenRenderScope` and `AsideRenderScope` both inherit from `OneShotRenderScope`, which is named for
-render passes designed to only ever run a single time, unlike `MainRenderScope` which is potentially dynamic and
-interactive. `OneShotRenderScope` might be useful if for some reason you wanted to define an extension method that
-excludes just the main render scope, although if I'm honest I can't currently think of one.*
-
 **4 - `RunScope`**
 
 ```kotlin
@@ -960,38 +929,17 @@ excludes just the main render scope, although if I'm honest I can't currently th
 long-running background tasks. Functions like `onKeyPressed`, `onInputChanged`, `addTimer` etc. are defined on top of
 this scope.
 
-For example, here is logic for consuming the output of a `Process` being `exec()`ed within a `run` block, where the
-output is sent to an `aside` block:
-
 ```kotlin
-private fun RunScope.handleConsoleOutput(line: String, isError: Boolean) {
-  aside {
-    if (isError) red() else black(isBright = true)
-    textLine(line)
-  }
-}
-
-private fun consumeStream(stream: InputStream, isError: Boolean, onLineRead: (String, Boolean) -> Unit) {
-  val isr = InputStreamReader(stream)
-  val br = BufferedReader(isr)
-  while (true) {
-    val line = br.readLine() ?: break
-    onLineRead(line, isError)
-  }
-}
-
-fun RunScope.exec(vararg command: String): Process {
+fun RunScope.exec(vararg command: String) {
   val process = Runtime.getRuntime().exec(*command)
-  CoroutineScope(Dispatchers.IO).launch { consumeStream(process.inputStream, isError = false, ::handleConsoleOutput) }
-  CoroutineScope(Dispatchers.IO).launch { consumeStream(process.errorStream, isError = true, ::handleConsoleOutput) }
-  return process
+  process.waitFor()
 }
 
 section {
     textLine("Please wait, cloning the repo...")
 }.run {
-  val process = exec("git", "clone", "https://github.com/varabyte/kotter.git")
-  ...
+  exec("git", "clone", "https://github.com/varabyte/kotter.git")
+  /* ... */
 }
 ```
 
@@ -1009,19 +957,21 @@ The one thing that all scopes have in common is they expose access to a session'
 such keys are associated with a `ConcurrentScopedData.Lifecycle` (meaning that any data you register into the map will
 always be released when some parent lifecycle ends, unless you remove it yourself manually first).
 
-Kotter itself manages four main lifecycles: `Session.Lifecycle`, `Section.Lifecycle`, `MainRenderScope.Lifecycle`, and
+Kotter itself manages four lifecycles: `Session.Lifecycle`, `Section.Lifecycle`, `MainRenderScope.Lifecycle`, and
 `Run.Lifecycle` (each associated with the scopes discussed above).
 
 ***Note:** No lifecycles are provided for `offscreen` or `aside` blocks at the moment because you could probably just
 use the `MainRenderScope.Lifecycle` or `Run.Lifecycle` lifecycles for those cases. Feel free to open up an issue with a
 use-case requiring additional lifecycles if you run into one.*
 
-Keep in mind that the `MainRenderScope` dies after a *single* render pass. Often you want to use the
+Keep in mind that the `MainRenderScope` dies after a *single* render pass. Almost always you want to use the
 `Section.Lifecycle`, as it survives across multiple runs.
 
-Nothing prevents you from defining your own lifecycle - just be sure to call `data.start` and `data.stop` on it.
+Nothing prevents you from defining your own lifecycle - just be sure to call `data.start(...)` and `data.stop(...)` with
+it.
+
 Lifecycles can be defined as subordinate to other lifecycles, so if you create a lifecycle that is tied to the `Run`
-lifecycle for example, then you don't need to explicitly call `stop` yourself.
+lifecycle for example, then you don't need to explicitly call `stop` yourself (but you still need to call `start`).
 
 You can review the `ConcurrentScopedData` class for its full list of documented API calls, but the three common ways to
 add values to it are:
@@ -1073,11 +1023,16 @@ wanted to be active at the same time, what would that even mean?
 In practice, I expect this decision won't be an issue for most users. Command line apps are expected to have a main flow
 anyway -- ask the user a question, do some work, then ask another question, etc. It is expected that a user won't ever
 even need to call `section` from more than one thread. It is hoped that the
-`section { ... main thread ... }.run { ... background thread ... }` pattern is powerful enough for most (all?) cases.
+
+```kotlin
+section { ... main thread ... }.run { ... background thread ... }
+```
+
+pattern is powerful enough for most (all?) cases.
 
 ### Virtual Terminal
 
-It's not guaranteed that every user's command line setup supports ANSI codes. For example, debugging this project with
+It's not guaranteed that every user's command line setup supports ANSI. For example, debugging this project with
 IntelliJ as well as running within Gradle are two such environments where functionality isn't available! According to
 many online reports, Windows is also a big offender here.
 
@@ -1095,9 +1050,7 @@ session(terminal = VirtualTerminal.create()) {
 ```
 
 or you can chain multiple factory methods together using the `runUntilSuccess` method, which will try to start each
-terminal type in turn. If you want to mimic the current behavior where you try to run a system terminal first and fall
-back to a virtual terminal later, but perhaps you want to customize the virtual terminal with different parameters,
-you can write code like so:
+terminal type in turn:
 
 ```kotlin
 session(
