@@ -118,10 +118,10 @@ fun main() = session {
             for (x in 0 until WIDTH) {
                 val state = cells[x, y]
                 scopedState {
-                    @Suppress("NON_EXHAUSTIVE_WHEN")
                     when (state) {
                         State.BORN -> green()
                         State.DYING -> red()
+                        else -> {}
                     }
                     text(when (state) {
                         State.DEAD -> ' '
