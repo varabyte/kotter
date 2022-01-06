@@ -1,6 +1,9 @@
+import com.varabyte.kotter.foundation.anim.renderAnimOf
 import com.varabyte.kotter.foundation.anim.textAnimOf
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.text.Color
+import com.varabyte.kotter.foundation.text.color
 import com.varabyte.kotter.foundation.text.green
 import com.varabyte.kotter.foundation.text.p
 import com.varabyte.kotter.foundation.text.text
@@ -9,9 +12,14 @@ import kotlinx.coroutines.delay
 import java.time.Duration
 
 fun main() = session {
+
     var result by liveVarOf<Int?>(null)
     val spinnerAnim = textAnimOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
-    val thinkingAnim = textAnimOf(listOf(".", "..", "..."), Duration.ofMillis(500))
+
+    // Same as: val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+    val thinkingAnim = renderAnimOf(4, Duration.ofMillis(500)) { frameIndex ->
+        text(".".repeat(frameIndex))
+    }
 
     section {
         val stillCalculating = (result == null)
@@ -22,7 +30,7 @@ fun main() = session {
         }
         text(" Calculating")
         if (stillCalculating) {
-            text(thinkingAnim)
+            thinkingAnim(this)
         } else {
             textLine("... Done!")
             p {

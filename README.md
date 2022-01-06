@@ -580,7 +580,9 @@ errant timer will clobber later.
 
 ### Animations
 
-You can easily create custom animations, by calling `textAnimOf`:
+#### Text Animation
+
+You can easily create quick animations by calling `textAnimOf`:
 
 ```kotlin
 var finished = false
@@ -601,7 +603,7 @@ section {
 When you reference an animation in a render for the first time, it kickstarts a timer automatically for you. In other
 words, all you have to do is treat your animation instance as if it were a string, and Kotter takes care of the rest!
 
-#### Animation templates
+#### Text animation templates
 
 If you have an animation that you want to share in a bunch of places, you can create a template for it and instantiate
 instances from the template. `TextAnim.Template` takes exactly the same arguments as the `textAnimOf` method.
@@ -617,6 +619,45 @@ val spinners = (1..10).map { textAnimOf(SPINNER_TEMPLATE) }
 /* ... */
 ```
 
+#### Render animations
+
+If you need a bit more power than text animations, you can use a render animation instead. With them, you provide a
+callback that takes a frame index and gives you access to the current render scope, meaning you can call any of the
+available text rendering methods.
+
+For example, here is an alternate way to express the `"", ".", "..", "..."` ellipsis animation:
+
+```kotlin
+    // Same as: val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+    val thinkingAnim = renderAnimOf(4, Duration.ofMillis(500)) { frameIndex ->
+        text(".".repeat(frameIndex))
+    }
+```
+
+To trigger a render animation, you have to invoke it with a target render scope:
+
+```kotlin
+section {
+  // Before: text(thinkingAnim)
+  thinkingAnim(this)
+}
+```
+
+While the above case would better be handled by a text animation, here's an animation that rotates between all ANSI
+colors:
+
+```kotlin
+session {
+  val colorAnim = renderAnimOf(Color.values().size, Duration.ofMillis(250)) { i ->
+    color(Color.values()[i])
+  }
+  section {
+    colorAnim(this)
+    text("RAINBOW")
+  }
+}
+
+```
 ### Offscreen
 
 Occasionally, when you want to render some marked up text, you'll wish you could measure it first, for example allowing
