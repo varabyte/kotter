@@ -19,7 +19,7 @@ val LOREM_IPSUM = """
 fun main() = session {
     section {
         cyan {
-            bordered(BorderCharacters.CURVED, paddingLeftRight = 1) {
+            bordered(BorderCharacters.CURVED, paddingLeftRight = 1, paddingTopBottom = 1) {
                 yellow {
                     LOREM_IPSUM.forEach { line -> textLine(line) }
                 }

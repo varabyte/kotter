@@ -95,7 +95,7 @@ fun RenderScope.bordered(
 
     for (i in 0 until paddingTopBottom) {
         text(borderCharacters.vert)
-        text(" ".repeat(maxWidth))
+        text(" ".repeat(maxWidthWithPadding))
         textLine(borderCharacters.vert)
     }
 
