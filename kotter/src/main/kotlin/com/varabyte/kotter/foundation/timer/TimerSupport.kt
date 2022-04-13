@@ -82,12 +82,17 @@ internal class TimerManager(private val lock: ReentrantReadWriteLock) {
 }
 
 /**
- * See [Section.RunScope.addTimer].
+ * See [RunScope.addTimer].
  *
  * This version is the same thing but which works directly on the underlying [ConcurrentScopedData] store, making it
  * a useful helper method for other internal methods to use.
  */
-fun ConcurrentScopedData.addTimer(duration: Duration, repeat: Boolean, key: Any? = null, callback: TimerScope.() -> Unit) {
+fun ConcurrentScopedData.addTimer(
+    duration: Duration,
+    repeat: Boolean,
+    key: Any? = null,
+    callback: TimerScope.() -> Unit
+) {
     putIfAbsent(TimerManager.Key, { TimerManager(lock) }, { timers -> timers.dispose() }) {
         addTimer(duration, repeat, key, callback)
     }
@@ -114,6 +119,6 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Durat
  *   the previous timer with this key finished running.
  * @param callback Logic to trigger every time the timer runs.
  */
-fun RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit, ) {
+fun RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit) {
     data.addTimer(duration, repeat, key, callback)
 }
