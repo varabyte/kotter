@@ -97,7 +97,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                                             keyLock.withLock {
                                                 if (System.currentTimeMillis() - lastKeyTime > delayMs) {
                                                     sendEsc = escSeq.length == 1 && escSeq.contains(Ansi.CtrlChars.ESC)
-                                                    escSeq.clear()
+                                                    if (sendEsc) escSeq.clear()
                                                     doneWaiting = true
                                                 }
                                             }
