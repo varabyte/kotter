@@ -254,13 +254,19 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
 
                             Keys.ENTER -> {
                                 var rejected = false
+                                var cleared = false
                                 get(InputEnteredCallbackKey) {
                                     val onInputEnteredScope = OnInputEnteredScope(text)
                                     this.invoke(onInputEnteredScope)
                                     rejected = onInputEnteredScope.rejected
+                                    cleared = onInputEnteredScope.cleared
                                 }
                                 if (!rejected) {
                                     get(SystemInputEnteredCallbackKey) { this.invoke() }
+                                }
+                                if (cleared) {
+                                    proposedText = ""
+                                    proposedIndex = 0
                                 }
                             }
                             else ->
@@ -459,6 +465,8 @@ fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
 class OnInputEnteredScope(val input: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
+    internal var cleared = false
+    fun clearInput() { cleared = true }
 }
 private val InputEnteredCallbackKey = RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
 
