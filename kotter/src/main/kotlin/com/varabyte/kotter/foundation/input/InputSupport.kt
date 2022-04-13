@@ -344,8 +344,7 @@ private val CompleterKey = InputLifecycle.createKey<InputCompleter>()
  * }
  * ```
  *
- * An optional ID can be passed if for the (fairly rare?) case where you might have a conditional switch where each
- * branch calls `input()`:
+ * Occasionally, you may call `input` across multiple cases:
  *
  * ```
  * when (state) {
@@ -358,15 +357,41 @@ private val CompleterKey = InputLifecycle.createKey<InputCompleter>()
  * Usually you would do this in separate sections, but perhaps you want to cycle through questions within the same
  * section for a particular UX feel.
  *
- * Without IDs, any input you typed into the first block would carry over to the second, because we can't tell the
- * difference between calls, but by passing in an ID for each case, we can understand that we're being triggered by a
- * new call.
+ * You can acomplish this two ways. One, pass in an ID for each input call, or call `clearInput` on `onInputEntered`.
+ *
+ * Approach #1, using IDs:
+ * ```
+ * when (state) {
+ *   ASK_NAME -> text("Your name? "); input(id = "name")
+ *   ASK_AGE -> text("Your age? "); input(id = "age")
+ *   ...
+ * }
+ * ```
+ *
+ * Approach #2, using `clearInput`
+ * ```
+ * when (state) {
+ *   ASK_NAME -> text("Your name? "); input()
+ *   ASK_AGE -> text("Your age? "); input()
+ *   ...
+ * }.run {
+ *   onInputEntered {
+ *      if (state == ASK_NAME) {
+ *        name = input
+ *        clearInput()
+ *        state = ASK_AGE
+ *      } else if (state == ASK_AGE) {
+ *        ...
+ *      }
+ *   }
+ * }
+ * ```
  *
  * @param completer Optional logic for suggesting auto-completions based on what the user typed in. See
  *   [Completions] which is a generally useful and common implementation.
  * @param initialText Text which will be used the first time `input()` is called and ignored subsequently.
  * @param id See docs above for more details. The value of this parameter can be anything - this method simply does an
- *   equality check on it with a previous value.
+ *   equality check on it against a previous value.
  */
 fun MainRenderScope.input(completer: InputCompleter? = null, initialText: String = "", id: Any = Unit) {
     data.prepareInput(this)
@@ -466,6 +491,11 @@ class OnInputEnteredScope(val input: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
     internal var cleared = false
+    /**
+     * Make a request to clear the input on the next render pass.
+     *
+     * This can be useful if you intend to re-use the same input field across multiple passes.
+     */
     fun clearInput() { cleared = true }
 }
 private val InputEnteredCallbackKey = RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
