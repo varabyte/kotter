@@ -373,7 +373,12 @@ fun MainRenderScope.input(completer: InputCompleter? = null, initialText: String
             index = initialText.length
         }
 
-        val completion = completer?.complete(text) ?: ""
+        val completion = try {
+            completer?.complete(text)
+        } catch (ex: Exception) {
+            null
+        } ?: ""
+
         // Note: Trailing space as cursor can be put AFTER last character
         val finalText = "$text$completion "
 
