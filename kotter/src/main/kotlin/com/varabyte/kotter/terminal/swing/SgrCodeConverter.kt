@@ -42,7 +42,6 @@ private val IndexedColors by lazy {
         val g = if (gIndex > 0) 55 + gIndex * 40 else 0
         val b = if (bIndex > 0) 55 + bIndex * 40 else 0
 
-        println("$i -> $r $g $b")
         Color(r, g, b)
     }
 
