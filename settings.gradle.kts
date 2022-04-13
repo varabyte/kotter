@@ -16,6 +16,7 @@ include(":examples:picker")
 include(":examples:sliding")
 include(":examples:snake")
 include(":examples:text")
+include(":examples:wordle")
 
 include(":examples:mosaic:counter")
 include(":examples:mosaic:jest")

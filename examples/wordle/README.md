@@ -1,0 +1,1 @@
+Demonstrate setting text effects like colors and styles.
