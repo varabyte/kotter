@@ -39,9 +39,9 @@ Specifically, this library helps with:
 * Creating timers and animations
 * Seamlessly repainting terminal text when values change
 
-## Gradle
+## 🐘 Gradle
 
-### Dependency
+### 🎯 Dependency
 
 The artifact for this project is hosted in our own artifact repository (*), so to include Kotter in your project, modify
 your Gradle build file as follows:
@@ -60,7 +60,7 @@ dependencies {
 
 (* To be hosted in `mavenCentral` eventually)
 
-### Running examples
+### 🚥 Running examples
 
 If you've cloned this repository, examples are located under the [examples](examples) folder. To try one of them, you
 can navigate into it on the command line and run it via Gradle.
@@ -86,9 +86,9 @@ $ ./life
 ***Note:** If your terminal does not support features needed by Kotter, then this still may end up running inside a
 virtual terminal.*
 
-## Usage
+## 📖 Usage
 
-### Basics
+### 👶 Basics
 
 The following is equivalent to `println("Hello, World")`. In this simple case, it's definitely overkill!
 
@@ -110,7 +110,7 @@ While the above simple case is a bit verbose for what it's doing, Kotter starts 
 background work (or other async tasks like waiting for user input) during which time the section block may render
 several times. We'll see many examples throughout this document later.
 
-### Text Effects
+### 🎨 Text Effects
 
 You can call color methods directly, which remain in effect until the next color method is called:
 
@@ -177,7 +177,7 @@ section {
 ***Note:** Italics functionality is not currently exposed, as it is not a standard feature and is inconsistently
 supported across terminals.*
 
-### State and scopedState
+### 🪆 State and scopedState
 
 To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
 `section` block only:
@@ -211,7 +211,7 @@ section {
 
 ***Note:** This is what the scoped text effect methods (like `red { ... }`) are doing for you under the hood, actually.*
 
-### Dynamic sections
+### 🌟 Dynamic sections
 
 The `section` block is designed to be run one _or more_ times. That is, you can write logic inside it which may not get
 executed on the first run but will be on a followup run.
@@ -405,7 +405,7 @@ section {
 }
 ```
 
-### User input
+### ⌨️ User input
 
 #### Typed input
 
@@ -514,7 +514,7 @@ section {
 }
 ```
 
-### Timers
+### ⏳ Timers
 
 Kotter can manage a set of timers for you. Use the `addTimer` method in your `run` block to add some:
 
@@ -578,7 +578,7 @@ actually triggered AFTER the run pass is finished but before the block is torn d
 `onFinishing` will only run after all timers are stopped, so you don't have to worry about setting a value that an
 errant timer will clobber later.
 
-### Animations
+### 🪅 Animations
 
 #### Text Animation
 
@@ -800,9 +800,9 @@ Matches found so far:
 Searching...
 ```
 
-## Advanced
+## 🎓 Advanced
 
-### "Extending" Kotter
+### 🦦 "Extending" Kotter
 
 Kotter aims to provide all the primitives you need to write dynamic, interactive console applications, such as
 `textLine`, `input`, `offscreen`, `aside`, `onKeyPressed`, etc.
@@ -1046,7 +1046,7 @@ baked inside `Section`, `MainRenderScope`, etc., with access to some private sta
 
 So go forth, and extend Kotter!
 
-### Thread Affinity
+### 🧵 Thread Affinity
 
 Setting aside the fact that the `run` block runs in a background thread, sections themselves are rendered sequentially
 on a single thread. Anytime you make a call to run a section, no matter which thread it is called from, a single thread
@@ -1071,7 +1071,7 @@ section { ... main thread ... }.run { ... background thread ... }
 
 pattern is powerful enough for most (all?) cases.
 
-### Virtual Terminal
+### 💻 Virtual Terminal
 
 It's not guaranteed that every user's command line setup supports ANSI. For example, debugging this project with
 IntelliJ as well as running within Gradle are two such environments where functionality isn't available! According to
@@ -1104,7 +1104,7 @@ session(
 }
 ```
 
-### Why Not Compose / Mosaic?
+### 🤷 Why Not Compose / Mosaic?
 
 Kotter's API is inspired by Compose, which astute readers may have already noticed -- it has a core block which gets
 rerun for you automatically as necessary without you having to worry about it, and special state variables which, when
