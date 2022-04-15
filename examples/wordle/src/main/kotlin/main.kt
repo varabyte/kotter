@@ -169,8 +169,8 @@ private fun RenderScope.setColorFor(type: Tile.Type) {
     }
 }
 
-private fun RenderScope.renderRow(row: Row, numTilesWithColor: Int = row.tiles.size) {
-    text("  ")
+private fun RenderScope.renderRow(row: Row, indent: Int = 0, numTilesWithColor: Int = row.tiles.size) {
+    text(" ".repeat(indent))
     row.tiles.take(numTilesWithColor).forEach { tile ->
         scopedState {
             setColorFor(tile.type)
@@ -185,8 +185,8 @@ private fun RenderScope.renderRow(row: Row, numTilesWithColor: Int = row.tiles.s
 }
 
 
-private fun RenderScope.renderBoard(board: Board) {
-    board.rows.forEach { row -> renderRow(row) }
+private fun RenderScope.renderBoard(board: Board, indent: Int = 0) {
+    board.rows.forEach { row -> renderRow(row, indent) }
 }
 
 private fun RenderScope.renderKeyboard(board: Board) {
@@ -289,7 +289,8 @@ fun main() = session {
             // Copy gameState into val so smart cast can work
             when (val gs = gameState) {
                 is GameState.Playing -> {
-                    renderBoard(gs.board)
+                    // Slightly indented so we can highlight the current row with a leading "> "
+                    renderBoard(gs.board, indent = 2)
                     text("> "); input()
                     textLine()
                     renderKeyboard(gs.board)
@@ -300,12 +301,12 @@ fun main() = session {
                     }
                 }
                 is GameState.Revealing -> {
-                    renderBoard(gs.board)
-                    renderRow(gs.row, gs.numTiles)
+                    renderBoard(gs.board, indent = 2)
+                    renderRow(gs.row, indent = 2, gs.numTiles)
                     renderKeyboard(gs.board)
                 }
                 is GameState.EndGame -> {
-                    renderBoard(gs.board)
+                    renderBoard(gs.board, indent = 2)
                     renderKeyboard(gs.board)
                     textLine()
 
