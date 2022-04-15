@@ -215,10 +215,12 @@ private fun RenderScope.renderKeyboard(board: Board) {
 private fun Double.format(digits: Int) = "%.${digits}f".format(this)
 
 private fun RenderScope.renderUserStats(userStats: UserStats) {
-    text("W: "); text(userStats.numWins.toString()); text(" | ")
-    text("L: "); text(userStats.numLosses.toString()); text(" | ")
-    text("AVG GUESSES: ${userStats.winGuessAverage.format(2)}"); text(" | ")
-    text("STREAK: ${userStats.currStreak}")
+    yellow {
+        text("W: "); text(userStats.numWins.toString()); text(" | ")
+        text("L: "); text(userStats.numLosses.toString()); text(" | ")
+        text("AVG GUESSES: ${userStats.winGuessAverage.format(2)}"); text(" | ")
+        text("STREAK: ${userStats.currStreak}")
+    }
     textLine()
 }
 
