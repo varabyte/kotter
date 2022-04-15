@@ -658,7 +658,7 @@ session {
 }
 
 ```
-### Offscreen
+### 📥 Offscreen
 
 Occasionally, when you want to render some marked up text, you'll wish you could measure it first, for example allowing
 you to pad both sides of each line with spaces to center everything, or putting the right count of "=" characters above
@@ -716,7 +716,7 @@ when this functionality went in, we also added the `bordered` method ([link to c
 You can check the implementation yourself to see how it delegates to `offscreen`, padding each row with the right
 number of spaces so that the border sides all line up.
 
-### Aside
+### 📤 Aside
 
 You can actually make one-off render requests directly inside a `run` block:
 
@@ -1071,7 +1071,7 @@ section { ... main thread ... }.run { ... background thread ... }
 
 pattern is powerful enough for most (all?) cases.
 
-### 💻 Virtual Terminal
+### 🖥️  Virtual Terminal
 
 It's not guaranteed that every user's command line setup supports ANSI. For example, debugging this project with
 IntelliJ as well as running within Gradle are two such environments where functionality isn't available! According to
