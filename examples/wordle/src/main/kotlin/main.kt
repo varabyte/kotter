@@ -5,6 +5,8 @@ import com.varabyte.kotter.foundation.runUntilSignal
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
+import com.varabyte.kotter.runtime.Section
+import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.render.RenderScope
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +36,9 @@ private enum class GameMode {
         }
     }
 }
+
+// High contrast controls what tile colors are rendered
+private val HighContrastKey = Section.Lifecycle.createKey<Boolean>()
 
 @Suppress("EqualsOrHashCode") // hashcode override not needed for this example
 private class Tile(val type: Type, letter: Char) {
@@ -146,7 +151,8 @@ private sealed interface GameState {
     class EndGame(val board: Board) : GameState
 }
 
-private fun RenderScope.setColorFor(type: Tile.Type, useHighContrast: Boolean) {
+private fun RenderScope.setColorFor(type: Tile.Type) {
+    val useHighContrast = data.getValue(HighContrastKey)
     if (!useHighContrast) {
         when (type) {
             Tile.Type.ABSENT -> rgb(0x555555, ColorLayer.BG)
@@ -163,11 +169,11 @@ private fun RenderScope.setColorFor(type: Tile.Type, useHighContrast: Boolean) {
     }
 }
 
-private fun RenderScope.renderRow(row: Row, numTilesWithColor: Int = row.tiles.size, useHighContrast: Boolean = false) {
+private fun RenderScope.renderRow(row: Row, numTilesWithColor: Int = row.tiles.size) {
     text("  ")
     row.tiles.take(numTilesWithColor).forEach { tile ->
         scopedState {
-            setColorFor(tile.type, useHighContrast)
+            setColorFor(tile.type)
             text(tile.letter)
         }
     }
@@ -179,11 +185,11 @@ private fun RenderScope.renderRow(row: Row, numTilesWithColor: Int = row.tiles.s
 }
 
 
-private fun RenderScope.renderBoard(board: Board, useHighContrast: Boolean = false) {
-    board.rows.forEach { row -> renderRow(row, useHighContrast = useHighContrast) }
+private fun RenderScope.renderBoard(board: Board) {
+    board.rows.forEach { row -> renderRow(row) }
 }
 
-private fun RenderScope.renderKeyboard(board: Board, useHighContrast: Boolean = false) {
+private fun RenderScope.renderKeyboard(board: Board) {
     textLine()
     val tileTypes = mutableMapOf<Char, Tile.Type>()
     board.rows.forEach { row ->
@@ -198,7 +204,7 @@ private fun RenderScope.renderKeyboard(board: Board, useHighContrast: Boolean = 
     KEYBOARD_LETTERS.forEach { row ->
         row.forEach { letter ->
             scopedState {
-                tileTypes[letter]?.let { setColorFor(it, useHighContrast) }
+                tileTypes[letter]?.let { setColorFor(it) }
                 text(letter)
             }
         }
@@ -237,6 +243,8 @@ fun main() = session {
     val userStats = UserStats()
 
     section {
+        data[HighContrastKey] = useHighContrast
+
         textLine()
         bold { textLine("WORDLE DEMAKE") }
         textLine()
@@ -256,19 +264,19 @@ fun main() = session {
                 textLine()
                 text(" ")
                 scopedState {
-                    setColorFor(Tile.Type.MATCH, useHighContrast)
+                    setColorFor(Tile.Type.MATCH)
                     text(" ")
                 }
                 textLine(" A match. This letter is in the word and in the correct spot.")
                 text(" ")
                 scopedState {
-                    setColorFor(Tile.Type.PRESENT, useHighContrast)
+                    setColorFor(Tile.Type.PRESENT)
                     text(" ")
                 }
                 textLine(" A near hit. This letter is in the word but in a different spot.")
                 text(" ")
                 scopedState {
-                    setColorFor(Tile.Type.ABSENT, useHighContrast)
+                    setColorFor(Tile.Type.ABSENT)
                     text(" ")
                 }
                 textLine(" A miss. This letter is not in the word in any spot.")
@@ -281,10 +289,10 @@ fun main() = session {
             // Copy gameState into val so smart cast can work
             when (val gs = gameState) {
                 is GameState.Playing -> {
-                    renderBoard(gs.board, useHighContrast = useHighContrast)
+                    renderBoard(gs.board)
                     text("> "); input()
                     textLine()
-                    renderKeyboard(gs.board, useHighContrast)
+                    renderKeyboard(gs.board)
                     gs.error?.let { error ->
                         textLine()
                         textLine()
@@ -292,13 +300,13 @@ fun main() = session {
                     }
                 }
                 is GameState.Revealing -> {
-                    renderBoard(gs.board, useHighContrast)
-                    renderRow(gs.row, gs.numTiles, useHighContrast)
-                    renderKeyboard(gs.board, useHighContrast)
+                    renderBoard(gs.board)
+                    renderRow(gs.row, gs.numTiles)
+                    renderKeyboard(gs.board)
                 }
                 is GameState.EndGame -> {
-                    renderBoard(gs.board, useHighContrast)
-                    renderKeyboard(gs.board, useHighContrast)
+                    renderBoard(gs.board)
+                    renderKeyboard(gs.board)
                     textLine()
 
                     val youWon = gs.board.rows.last().tiles.all { it.type == Tile.Type.MATCH }
