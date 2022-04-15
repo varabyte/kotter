@@ -16,7 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.time.Duration
 
-private const val URL_BASE = "https://raw.githubusercontent.com/varabyte/media/main/kotter/data"
+private const val URL_BASE = "https://raw.githubusercontent.com/varabyte/media/main/kotter/data/wordle"
 private const val WORD_LEN = 5
 private const val MAX_GUESSES = 6
 private val KEYBOARD_LETTERS = listOf(
