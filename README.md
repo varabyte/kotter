@@ -124,7 +124,9 @@ section {
 }.run()
 ```
 
-or, if you only want the color effect to live for a limited time, you can use scoped helper versions that handle
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-text-ex-1.png)
+
+If you only want the color effect to live for a limited time, you can use scoped helper versions that handle
 clearing colors for you automatically at the end of their block:
 
 ```kotlin
@@ -141,14 +143,18 @@ section {
 }.run()
 ```
 
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-text-ex-2.png)
+
 If the user's terminal supports truecolor mode, you can specify rgb (or hsv) values directly:
 
 ```kotlin
 section {
   rgb(0xFFFF00) { textLine("Yellow!") }
-  hsv(35, 1.0, 1.0) { textLine("Orange!") }
+  hsv(35, 1.0f, 1.0f) { textLine("Orange!") }
 }.run()
 ```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-text-ex-3.png)
 
 ***Note:** If truecolor is not supported, terminals may attempt to emulate it by falling back to a nearby color, which
 may look decent! However, to be safe, you may want to avoid subtle gradient tricks, as they may come out clumped for
@@ -174,6 +180,8 @@ section {
 }.run()
 ```
 
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-text-ex-4.png)
+
 ***Note:** Italics functionality is not currently exposed, as it is not a standard feature and is inconsistently
 supported across terminals.*
 
@@ -194,6 +202,8 @@ section {
 }.run()
 ```
 
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-scope-ex-1.png)
+
 Within a section, you can also use the `scopedState` method. This creates a new scope within which any state will be
 automatically discarded after it ends.
 
@@ -203,11 +213,13 @@ section {
     red()
     blue(BG)
     underline()
-    text("Underlined red on blue")
+    textLine("Underlined red on blue")
   }
   text("Text without color or decorations")
 }.run()
 ```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-scope-ex-2.png)
 
 ***Note:** This is what the scoped text effect methods (like `red { ... }`) are doing for you under the hood, actually.*
 
@@ -232,6 +244,8 @@ section {
   rerender()
 }
 ```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-calculating.gif)
 
 The `run` callback automatically runs on a background thread for you (as a suspend function, so you can call other
 suspend methods from within it).
@@ -305,6 +319,8 @@ section {
 }
 ```
 
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-progress.gif)
+
 #### LiveList
 
 Similar to `LiveVar`, a `LiveList` is a reactive primitive which, when modified by having elements added to or
@@ -315,7 +331,7 @@ Instead, within a `session`, use the `liveListOf` method:
 val fileWalker = FileWalker(".") // This class doesn't exist but just pretend for this example...
 val fileMatches = liveListOf<String>()
 section {
-  textLine("Matches found so far: ")
+  textLine("Matches found so far:")
   if (fileMatches.isNotEmpty()) {
     for (match in fileMatches) {
       textLine(" - $match")
@@ -330,6 +346,8 @@ section {
   }
 }
 ```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-files.gif)
 
 The `LiveList` class is thread safe, but you can still run into trouble if you access multiple values on the list one
 after the other, as a lock is released between each check. It's always possible that modifying the first property will
@@ -421,8 +439,10 @@ section {
 }.run { /* ... */ }
 ```
 
-Note that the input method automatically adds a cursor for you. This also handles keys like LEFT/RIGHT and HOME/END,
-moving the cursor back and forth between the bounds of the input string.
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-enter-name.gif)
+
+The input method automatically adds a cursor for you. It also handles keys like LEFT/RIGHT and HOME/END, moving the
+cursor back and forth between the bounds of the input string.
 
 You can intercept input as it is typed using the `onInputChanged` event:
 
@@ -652,12 +672,14 @@ session {
     color(Color.values()[i])
   }
   section {
-    colorAnim(this)
+    colorAnim(this) // Side-effect: sets the color for this section
     text("RAINBOW")
   }
 }
-
 ```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-rainbow.gif)
+
 ### 📥 Offscreen
 
 Occasionally, when you want to render some marked up text, you'll wish you could measure it first, for example allowing
@@ -777,7 +799,7 @@ section {
   }
 }.run {
   aside {
-    textLine("Matches found so far: ")
+    textLine("Matches found so far:")
     textLine()
   }
 
