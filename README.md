@@ -823,9 +823,8 @@ Kotter aims to provide all the primitives you need to write dynamic, interactive
 `textLine`, `input`, `offscreen`, `aside`, `onKeyPressed`, etc.
 
 But we may have missed _your_ use case, or maybe you just want to refactor out some logic to share across `section`s.
-This is totally doable, but it requires writing extension methods against the correct receiving classes, and to know
-what those are, we should discuss the framework in a bit more detail than beginners need to know. We'll tackle that in
-this part.
+This is totally doable, but it requires writing extension methods against the correct receiving classes. At this point,
+we need to discuss the framework in a bit more detail than beginners need to know.
 
 For reference, you should also look at the [extend](examples/extend) sample project, which was written to demonstrate
 some of the concepts that will be discussed here.
@@ -833,7 +832,7 @@ some of the concepts that will be discussed here.
 #### Scopes
 
 Before continuing, let's look at the overview of a Kotter application. The following may look a bit complex at first
-glance but don't worry as the remaining subsections will break it down:
+glance, but don't worry as the remaining subsections will break it down:
 
 ```
 ┌───────── | session {
