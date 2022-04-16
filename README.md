@@ -211,7 +211,7 @@ section {
 
 ***Note:** This is what the scoped text effect methods (like `red { ... }`) are doing for you under the hood, actually.*
 
-### 🌟 Dynamic sections
+### 🎬 Rerendering sections
 
 The `section` block is designed to be run one _or more_ times. That is, you can write logic inside it which may not get
 executed on the first run but will be on a followup run.
@@ -578,7 +578,7 @@ actually triggered AFTER the run pass is finished but before the block is torn d
 `onFinishing` will only run after all timers are stopped, so you don't have to worry about setting a value that an
 errant timer will clobber later.
 
-### 🪅 Animations
+### 🎥 Animations
 
 #### Text Animation
 
@@ -802,7 +802,7 @@ Searching...
 
 ## 🎓 Advanced
 
-### 🦦 "Extending" Kotter
+### 🔨 "Extending" Kotter
 
 Kotter aims to provide all the primitives you need to write dynamic, interactive console applications, such as
 `textLine`, `input`, `offscreen`, `aside`, `onKeyPressed`, etc.
