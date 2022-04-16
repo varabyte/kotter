@@ -43,7 +43,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
     tryPut(KeyFlowKey) {
         val keyLock = ReentrantLock()
         val escSeq = StringBuilder()
-        var lastKeyTime: Long = 0
+        var lastKeyTime: Long
         channelFlow {
             terminal.read().collect { byte ->
                 val c = byte.toChar()
