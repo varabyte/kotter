@@ -38,6 +38,19 @@ fun RenderScope.textLine(c: Char) {
     textLine()
 }
 
+private fun RenderScope.addNewlinesIfNecessary(count: Int) {
+    require(count > 0)
+    var numNewlinesToAdd = count
+    val commandsToCheck = renderer.commands.takeLast(count).toMutableList()
+    while (numNewlinesToAdd > 0 && commandsToCheck.isNotEmpty()) {
+        if (commandsToCheck.removeLast() === NEWLINE_COMMAND) {
+            --numNewlinesToAdd
+        } else break
+    }
+
+    repeat(numNewlinesToAdd) { textLine() }
+}
+
 /**
  * Create a "paragraph" for text.
  *
@@ -45,17 +58,9 @@ fun RenderScope.textLine(c: Char) {
  * pattern that it's nice to shorten it.
  */
 fun RenderScope.p(block: RenderScope.() -> Unit) {
-    run {
-        if (renderer.commands.isNotEmpty() && renderer.commands.lastOrNull() !== NEWLINE_COMMAND) {
-            textLine()
-        }
-    }
-    textLine()
+    // Worst case, we're on the end of a previous line; in that case, add two newlines. One to add a newline at the
+    // end of the last line, and another two put a line of space between this paragraph and the previous line.
+    addNewlinesIfNecessary(count = 2)
     block()
-    run {
-        if (renderer.commands.lastOrNull() !== NEWLINE_COMMAND) {
-            textLine()
-        }
-    }
-    textLine()
+    addNewlinesIfNecessary(count = 2)
 }
