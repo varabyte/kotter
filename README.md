@@ -557,8 +557,8 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-blink.gif)
 
-It's possible your block will exit while things are in a bad state due to running timers, so you can use the
-`onFinishing` callback to handle this:
+With timers running, it's possible your run block will exit while things are in a state you didn't intend (e.g. in the
+above example with the blink effect still one). You should use the `onFinishing` callback to handle this case:
 
 ```kotlin
 var blinkOn by liveVarOf(false)
