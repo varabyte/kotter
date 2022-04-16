@@ -297,7 +297,7 @@ section {
 
 And done! Fewer lines and less error pone.
 
-Here's another example, showing how you can use `run` for something like a progress bar:
+Here's another example, showing how you can use `run` and a `LiveVar` to render a progress bar:
 
 ```kotlin
 // Prints something like: [****------]
@@ -471,7 +471,8 @@ section {
 }
 ```
 
-You can also use `onInputEntered`. This will be triggered whenever the user presses the ENTER key.
+To handle when the user presses the _ENTER_ key, use the `onInputEntered` callback. You can use it in conjunction with
+the `onInputChanged` callback we just discussed:
 
 ```kotlin
 var name = ""
@@ -483,8 +484,9 @@ section {
 }
 ```
 
-There's actually a shortcut for cases like the above, since they're pretty common: `runUntilInputEntered`.
-Using it, we can slightly simplify the above example, typing fewer characters for identical behavior:
+Above, we've indicated that we want to close the section when the user presses _ENTER_. Since this is actually a fairly
+common case, Kotter provides `runUntilInputEntered` for your convenience. Using it, we can simplify the above example a
+bit, typing fewer characters for identical behavior and expressing clearer intention:
 
 ```kotlin
 var name = ""
@@ -499,7 +501,7 @@ section {
 #### Keypresses
 
 If you're interested in specific keypresses and not simply input that's been typed in, you can register a listener to
-the `onKeyPressed` event:
+the `onKeyPressed` callback:
 
 ```kotlin
 section {
@@ -520,7 +522,8 @@ section {
 }
 ```
 
-For convenience, there's also a `runUntilKeyPressed` method you can use to help with patterns like the above.
+For convenience, there's also a `runUntilKeyPressed` method you can use to help with patterns like the above. It can be
+nice, for example, to let the user press _Q_ to quit your application:
 
 ```kotlin
 section {
@@ -577,8 +580,8 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-blink.gif)
 
-With timers running, it's possible your run block will exit while things are in a state you didn't intend (e.g. in the
-above example with the blink effect still one). You should use the `onFinishing` callback to handle this case:
+With timers running, it's possible your `run` block will exit while things are in a state you didn't intend (e.g. in the
+above example with the blink effect still on). You should use the `onFinishing` callback to handle this case:
 
 ```kotlin
 var blinkOn by liveVarOf(false)
@@ -586,19 +589,23 @@ section {
   /* ... */
 }.onFinishing {
   blinkOn = false
-}.run {
+}.runUntilKeyPressed(Keys.Q) {
   addTimer(Duration.ofMillis(250), repeat = true) { blinkOn = !blinkOn }
   /* ... */
 }
 ```
 
-***Note:** Unlike other callbacks, `onFinishing` is registered directly against the underlying `section`, because it is
-actually triggered AFTER the run pass is finished but before the block is torn down.*
+***Note:** Unlike all the other callbacks we discussed earlier, `onFinishing` is registered directly against the
+underlying `section` and not inside the `run` block, because it is actually triggered AFTER the run pass is finished but
+before the block is torn down.*
 
 `onFinishing` will only run after all timers are stopped, so you don't have to worry about setting a value that an
 errant timer will clobber later.
 
 ### 🎥 Animations
+
+Animations make a huge difference for how the user experiences your application, so Kotter strives to make it trivial to
+add them into your program.
 
 #### Text Animation
 
@@ -641,30 +648,26 @@ val spinners = (1..10).map { textAnimOf(SPINNER_TEMPLATE) }
 
 #### Render animations
 
-If you need a bit more power than text animations, you can use a render animation instead. With them, you provide a
-callback that takes a frame index and gives you access to the current render scope, meaning you can call any of the
-available text rendering methods.
+If you need a bit more power than text animations, you can use a render animation instead. You create one with a
+callback that is given a frame index and access to the current render scope. You can interpret the frame index however
+you want and use the render scope to call any of Kotter's text rendering methods that you need.
 
-For example, here is an alternate way to express the `"", ".", "..", "..."` ellipsis animation:
-
-```kotlin
-    // Same as: val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
-    val thinkingAnim = renderAnimOf(4, Duration.ofMillis(500)) { frameIndex ->
-        text(".".repeat(frameIndex))
-    }
-```
-
-To trigger a render animation, you have to invoke it with a target render scope:
+Declare a render animation using the `renderAnimOf` method and then invoke the result inside your render block:
 
 ```kotlin
-section {
-  // Before: text(thinkingAnim)
-  thinkingAnim(this)
+session {
+  val exampleAnim = renderAnimOf(numFrames = 5, Duration.ofMillis(250)) { i -> ... }
+  section {
+    // RenderAnims act like a function which take a render scope as their first parameter
+    exampleAnim(this)
+    ...
+  }
 }
 ```
 
-While the above case would better be handled by a text animation, here's an animation that rotates between all ANSI
-colors:
+For example, let's say we want to rotate through a list of colors and apply those to some text. Text animations only
+deal with raw text and don't have access to text effects like colors and styles, so we can't use them here, but we can
+accomplish these easily using a render animation and the `color(Color)` method:
 
 ```kotlin
 session {
