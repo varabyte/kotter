@@ -813,17 +813,7 @@ section {
 }
 ```
 
-which could produce intermediate output like:
-
-```
-Matches found so far:
-
- - a.txt
- - b.txt
- - c/d/e.txt
-
-Searching...
-```
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-aside.gif)
 
 ## 🎓 Advanced
 
