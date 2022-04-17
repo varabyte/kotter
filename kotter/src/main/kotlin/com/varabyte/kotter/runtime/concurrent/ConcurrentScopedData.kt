@@ -198,7 +198,7 @@ class ConcurrentScopedData {
     }
 
     /**
-     * Put an item into the data store if one is not already in place, then return it.
+     * Put an item into the data store if one is not already in place, then return whatever was associated with the key.
      *
      * If you plan to immediately modify the value returned by this method, you should prefer calling [putIfAbsent] over
      * this one, as it will trigger code within the same write lock that inserts the element into this data store,
