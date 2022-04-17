@@ -52,12 +52,14 @@ internal class TimerManager(private val lock: ReentrantReadWriteLock) {
                         Duration.ofMillis(currTime - timer.enqueuedTime)
                     )
                     timer.callback.invoke(scope)
+                    // check we actually are adding and removing timers here, because with sorted sets, it's easy to
+                    // screw up its assumptions (by modifying a value without telling it about the change) and end up
+                    // with the add / remove operations failing
+                    check(timers.remove(timer))
                     if (scope.repeat) {
                         timer.duration = scope.duration
                         timer.updateWakeUpTime()
-                    }
-                    else {
-                        timers.remove(timer)
+                        check(timers.add(timer))
                     }
                 }
             }
