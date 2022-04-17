@@ -133,6 +133,7 @@ fun main() = session {
                 else -> { error("Unexpected state: $state") }
             }
 
+            clearInput()
             state = State.PICKING_COLOR
         }
     }

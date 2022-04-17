@@ -17,16 +17,6 @@ import java.time.Duration
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-/**
- * Lifecycle associated with the `input()` function.
- *
- * Normally this is the same as the section lifecycle, but occasionally the same section can call `input()` multiple
- * times in a row, at which point it should be cleared between each call.
- */
-private object InputLifecycle : ConcurrentScopedData.Lifecycle {
-    override val parent = Section.Lifecycle
-}
-
 // Once created, we keep it alive for the session, because Flow is designed to be collected multiple times, meaning
 // there's no reason for us to keep recreating it. It's pretty likely that if a session uses input in one block, it
 // will use input again in others. (We can always revisit this decision later and scope this to a Section lifecycle
@@ -38,8 +28,6 @@ private val KeyFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
  * cases and smoothing over other inconsistent, historical legacy.
  */
 private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
-    start(InputLifecycle)
-
     tryPut(KeyFlowKey) {
         val keyLock = ReentrantLock()
         val escSeq = StringBuilder()
@@ -125,10 +113,8 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
 
 /** State needed to support the `input()` function */
 private class InputState {
-    object Key : ConcurrentScopedData.Key<InputState> {
-        override val lifecycle = InputLifecycle
-    }
     companion object {
+        val Key = Section.Lifecycle.createKey<InputState>()
         private const val BLINKING_DURATION_MS = 500
     }
 
@@ -169,7 +155,7 @@ private class InputState {
 }
 
 private val OnlyCalledOncePerRenderKey = MainRenderScope.Lifecycle.createKey<Unit>()
-private val UpdateInputJobKey = InputLifecycle.createKey<Job>()
+private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
 
 /**
  * If necessary, instantiate data that the [input] method expects to exist.
@@ -183,27 +169,34 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
 
     val section = scope.section
     prepareKeyFlow(section.session.terminal)
-    var stopTimer = false
-    if (tryPut(InputState.Key, { InputState() }, { stopTimer = true })) {
+    var suspended = false
+    if (tryPut(InputState.Key) { InputState() }) {
+        val state = get(InputState.Key)!!
+        fun startInputTimer() {
+            addTimer(Anim.ONE_FRAME_60FPS, repeat = true, key = state) {
+                if (state.elapse(elapsed)) {
+                    section.requestRerender()
+                }
+                if (suspended) {
+                    repeat = false
+                }
+            }
+        }
+
         section.onRendered {
             if (get(OnlyCalledOncePerRenderKey) == null) {
-                // input() was not called this frame. We can safely clear its resources.
-                stop(InputLifecycle)
-
-                // We don't need this listener anymore
-                removeListener = true
+                // input() was not called this frame, so we can clear the blinker and pause the timer for now
+                suspended = true
+                state.blinkOn = false
+            } else {
+                // input() was called again after a few frames of being dormant
+                if (suspended) {
+                    startInputTimer()
+                    suspended = false
+                }
             }
         }
 
-        val state = get(InputState.Key)!!
-        addTimer(Anim.ONE_FRAME_60FPS, repeat = true) {
-            if (state.elapse(elapsed)) {
-                section.requestRerender()
-            }
-            if (stopTimer) {
-                repeat = false
-            }
-        }
         section.onFinishing {
             if (state.blinkOn) {
                 state.blinkOn = false
@@ -216,6 +209,8 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
                 getValue(KeyFlowKey).collect { key ->
+                    if (suspended) return@collect
+
                     get(InputState.Key) {
                         val prevText = text
                         val prevIndex = index
@@ -325,7 +320,7 @@ open class Completions(private vararg val values: String, private val ignoreCase
     }
 }
 
-private val CompleterKey = InputLifecycle.createKey<InputCompleter>()
+private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
 
 /**
  * A function which, when called, will replace itself dynamically with some input text plus a blinking cursor.
