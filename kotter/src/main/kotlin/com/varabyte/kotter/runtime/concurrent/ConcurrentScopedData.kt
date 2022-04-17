@@ -164,6 +164,13 @@ class ConcurrentScopedData {
         lock.read { this[key]?.let { value -> value.block() } }
     }
 
+    /**
+     * Check if a key currently exists in this data store.
+     */
+    fun <T : Any> contains(key: Key<T>): Boolean {
+        return lock.read { keyValues.contains(key) }
+    }
+
     operator fun <T: Any> set(key: Key<T>, value: T) {
         set(key, value, dispose = {})
     }
@@ -191,8 +198,29 @@ class ConcurrentScopedData {
     }
 
     /**
-     * A convenience version of the other [tryPut] but without a dispose block, making the syntax for this common
-     * case nicer.
+     * Put an item into the data store if one is not already in place, then return it.
+     *
+     * Note that this can return null if the lifecycle associated with the current key is not started yet!
+     */
+    fun <T : Any> putOrGet(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit): T? {
+        var result: T? = null
+        putIfAbsent(key, provideInitialValue, dispose) {
+            result = this
+        }
+        return result
+    }
+
+    /**
+     * A convenience version of the other [putOrGet] but without a dispose block, making the trailing-lambda syntax for
+     * this common case nicer.
+     */
+    fun <T : Any> putOrGet(key: Key<T>, provideInitialValue: () -> T): T? {
+        return putOrGet(key, provideInitialValue, dispose = {})
+    }
+
+    /**
+     * A convenience version of the other [tryPut] but without a dispose block, making the trailing-lambda syntax for
+     * this common case nicer.
      */
     fun <T : Any> tryPut(key: Key<T>, provideInitialValue: () -> T): Boolean {
         return tryPut(key, provideInitialValue, dispose = {})
@@ -201,7 +229,7 @@ class ConcurrentScopedData {
     /**
      * Like [putIfAbsent], but returns a boolean instead of triggering a block.
      *
-     * Returns true if the value was added, false if something already existed with the associated key, or if the
+     * Returns true if the value was added, false if something already existed with the associated key or if the
      * lifecycle associated for the current key hasn't yet been activated with [start].
      */
     fun <T : Any> tryPut(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit): Boolean {

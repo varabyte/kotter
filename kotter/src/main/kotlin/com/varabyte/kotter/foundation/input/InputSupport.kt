@@ -111,33 +111,45 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
     }
 }
 
+
+
 /** State needed to support the `input()` function */
-private class InputState {
+private class InputState(val id: Any, val cursorState: BlinkingCursorState) {
+    internal var isActive = false
+
+    private var _text = ""
+    private var _index = 0
+
+    var text
+        get() = _text
+        set(value) {
+            if (_text != value) {
+                _text = value
+                _index = _text.length
+                if (isActive) cursorState.resetCursor()
+            }
+        }
+
+    var index
+        get() = _index
+        set(value) {
+            val value = value.coerceAtMost(_text.length)
+            if (_index != value) {
+                _index = value
+                if (isActive) cursorState.resetCursor()
+            }
+        }
+}
+
+private class BlinkingCursorState {
     companion object {
-        val Key = Section.Lifecycle.createKey<InputState>()
         private const val BLINKING_DURATION_MS = 500
     }
 
-    var id: Any? = null
-
-    var text = ""
-        set(value) {
-            if (field != value) {
-                field = value
-                resetCursor()
-            }
-        }
-    var index = 0
-        set(value) {
-            if (field != value) {
-                field = value
-                resetCursor()
-            }
-        }
     var blinkOn = true
     var blinkElapsedMs = 0
 
-    private fun resetCursor() {
+    fun resetCursor() {
         blinkOn = true
         blinkElapsedMs = 0
     }
@@ -154,7 +166,10 @@ private class InputState {
     }
 }
 
-private val OnlyCalledOncePerRenderKey = MainRenderScope.Lifecycle.createKey<Unit>()
+private val InputStatesKey = Section.Lifecycle.createKey<MutableMap<Any, InputState>>()
+private val BlinkingCursorStateKey = Section.Lifecycle.createKey<BlinkingCursorState>()
+private val ActiveInputStateKey = Section.Lifecycle.createKey<InputState>()
+private val ActiveInputCalledThisRenderKey = MainRenderScope.Lifecycle.createKey<Unit>()
 private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
 
 /**
@@ -162,56 +177,83 @@ private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
  *
  * Is a no-op after the first time.
  */
-private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
-    if (!tryPut(OnlyCalledOncePerRenderKey) { }) {
-        throw IllegalStateException("Calling `input` more than once in a render pass is not supported")
+private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, initialText: String, isActive: Boolean) {
+    if (isActive) {
+        if (this.contains(ActiveInputCalledThisRenderKey)) {
+            throw IllegalStateException("Having more than one active `input` in a single render pass is not supported")
+        } else {
+            this[ActiveInputCalledThisRenderKey] = Unit
+        }
     }
+
 
     val section = scope.section
     prepareKeyFlow(section.session.terminal)
-    var suspended = false
-    if (tryPut(InputState.Key) { InputState() }) {
-        val state = get(InputState.Key)!!
-        fun startInputTimer() {
-            addTimer(Anim.ONE_FRAME_60FPS, repeat = true, key = state) {
-                if (state.elapse(elapsed)) {
-                    section.requestRerender()
-                }
-                if (suspended) {
-                    repeat = false
-                }
+    val cursorState = putOrGet(BlinkingCursorStateKey) {
+        val cursorState = BlinkingCursorState()
+        // This block represents global state that gets triggered just once for all input blocks in this section, so we
+        // do some quick init side effects as well
+
+        addTimer(Anim.ONE_FRAME_60FPS, repeat = true, key = cursorState) {
+            if (cursorState.elapse(elapsed)) {
+                section.requestRerender()
             }
         }
 
         section.onRendered {
-            if (get(OnlyCalledOncePerRenderKey) == null) {
-                // input() was not called this frame, so we can clear the blinker and pause the timer for now
-                suspended = true
-                state.blinkOn = false
-            } else {
-                // input() was called again after a few frames of being dormant
-                if (suspended) {
-                    startInputTimer()
-                    suspended = false
-                }
+            // If no active inputs were rendered this frame, reset the cursor for the next time one
+            // becomes active.
+            if (!remove(ActiveInputCalledThisRenderKey)) {
+                cursorState.resetCursor()
             }
         }
 
         section.onFinishing {
-            if (state.blinkOn) {
-                state.blinkOn = false
+            // If we are exiting the block but by chance the blinking cursor was on, turn it off!
+            if (cursorState.blinkOn) {
+                cursorState.resetCursor()
                 section.requestRerender()
             }
         }
+
+        cursorState
+    }!!
+
+    putIfAbsent(InputStatesKey, provideInitialValue = { mutableMapOf() }) {
+        val inputStates = this
+        val state = inputStates.computeIfAbsent(id) {
+            val newState = InputState(id, cursorState)
+            newState.text = initialText
+            newState.index = initialText.length
+            newState
+        }
+        if (state.isActive != isActive) {
+            if (isActive) {
+                get(InputActivatedCallbackKey) {
+                    val onInputActivatedScope = OnInputActivatedScope(id, state.text)
+                    this.invoke(onInputActivatedScope)
+                    state.text = onInputActivatedScope.input
+                }
+            } else {
+                get(InputDeactivatedCallbackKey) {
+                    val onInputDeactivatedScope = OnInputDeactivatedScope(id, state.text)
+                    this.invoke(onInputDeactivatedScope)
+                    state.text = onInputDeactivatedScope.input
+                }
+            }
+            state.isActive = isActive
+        }
+        if (isActive) {
+            scope.data[ActiveInputStateKey] = state
+        }
     }
+
     tryPut(
         UpdateInputJobKey,
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
                 getValue(KeyFlowKey).collect { key ->
-                    if (suspended) return@collect
-
-                    get(InputState.Key) {
+                    get(ActiveInputStateKey) {
                         val prevText = text
                         val prevIndex = index
                         var proposedText: String? = null
@@ -251,7 +293,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
                                 var rejected = false
                                 var cleared = false
                                 get(InputEnteredCallbackKey) {
-                                    val onInputEnteredScope = OnInputEnteredScope(text)
+                                    val onInputEnteredScope = OnInputEnteredScope(id, text)
                                     this.invoke(onInputEnteredScope)
                                     rejected = onInputEnteredScope.rejected
                                     cleared = onInputEnteredScope.cleared
@@ -260,8 +302,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
                                     get(SystemInputEnteredCallbackKey) { this.invoke() }
                                 }
                                 if (cleared) {
-                                    proposedText = ""
-                                    proposedIndex = 0
+                                    getValue(InputStatesKey).remove(id)
                                 }
                             }
                             else ->
@@ -272,9 +313,9 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
                         }
 
                         if (proposedText != null) {
-                            get(InputChangedCallbacksKey) {
-                                val onInputChangedScope = OnInputChangedScope(input = proposedText!!, prevInput = text)
-                                forEach { callback -> onInputChangedScope.callback() }
+                            get(InputChangedCallbackKey) {
+                                val onInputChangedScope = OnInputChangedScope(id, input = proposedText!!, prevInput = text)
+                                this.invoke(onInputChangedScope)
 
                                 proposedText = if (!onInputChangedScope.rejected) onInputChangedScope.input else onInputChangedScope.prevInput
                             }
@@ -293,6 +334,9 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope) {
         dispose = { job -> job.cancel() }
     )
 }
+
+/** Fetch the current input value in the run scope, if set */
+fun RunScope.getInput(id: Any = Unit): String? = data[InputStatesKey]?.get(id)?.text
 
 interface InputCompleter {
     /**
@@ -388,39 +432,41 @@ private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
  * @param id See docs above for more details. The value of this parameter can be anything - this method simply does an
  *   equality check on it against a previous value.
  */
-fun MainRenderScope.input(completer: InputCompleter? = null, initialText: String = "", id: Any = Unit) {
-    data.prepareInput(this)
+fun MainRenderScope.input(completer: InputCompleter? = null, initialText: String = "", id: Any = Unit, isActive: Boolean = true) {
+    data.prepareInput(this, id, initialText, isActive)
     completer?.let { data[CompleterKey] = it }
 
-    data.get(InputState.Key) {
-        if (this.id != id) {
-            this.id = id
-            text = initialText
-            index = initialText.length
-        }
+    with(data.getValue(InputStatesKey)[id]!!) {
+        // First, check the hard but common case. If we're the currently active input, render it with current
+        // completions and cursor
+        if (this.isActive) {
+            val completion = try {
+                completer?.complete(text)
+            } catch (ex: Exception) {
+                null
+            } ?: ""
 
-        val completion = try {
-            completer?.complete(text)
-        } catch (ex: Exception) {
-            null
-        } ?: ""
+            // Note: Trailing space as cursor can be put AFTER last character
+            val finalText = "$text$completion "
 
-        // Note: Trailing space as cursor can be put AFTER last character
-        val finalText = "$text$completion "
-
-        scopedState { // Make sure color changes don't leak
-            for (i in finalText.indices) {
-                if (i == text.length && completer != null && completion.isNotEmpty()) {
-                    color(completer.color)
-                }
-                if (i == index && blinkOn) {
-                    invert()
-                }
-                text(finalText[i])
-                if (i == index && blinkOn) {
-                    clearInvert()
+            scopedState { // Make sure color changes don't leak
+                for (i in finalText.indices) {
+                    if (i == text.length && completer != null && completion.isNotEmpty()) {
+                        color(completer.color)
+                    }
+                    if (i == index && cursorState.blinkOn) {
+                        invert()
+                    }
+                    text(finalText[i])
+                    if (i == index && cursorState.blinkOn) {
+                        clearInvert()
+                    }
                 }
             }
+        }
+        // Otherwise, this input is dormant, and acts like normal text
+        else {
+            text(text)
         }
     }
 }
@@ -474,25 +520,47 @@ fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> U
     }
 }
 
-class OnInputChangedScope(var input: String, val prevInput: String) {
+class OnInputActivatedScope(val id: Any, var input: String)
+private val InputActivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputActivatedScope.() -> Unit>()
+
+fun RunScope.onInputActivated(listener: OnInputActivatedScope.() -> Unit) {
+    if (!data.tryPut(InputActivatedCallbackKey) { listener }) {
+        throw IllegalStateException("Currently only one `onInputActivated` callback at a time is supported.")
+    } else {
+        // There may already be an active input when this callback was registered.
+        data.get(ActiveInputStateKey) {
+            val onInputActivatedScope = OnInputActivatedScope(id, text)
+            listener(onInputActivatedScope)
+            text = onInputActivatedScope.input
+        }
+    }
+}
+
+class OnInputDeactivatedScope(val id: Any, var input: String)
+private val InputDeactivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputDeactivatedScope.() -> Unit>()
+
+fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
+    if (!data.tryPut(InputDeactivatedCallbackKey) { listener }) {
+        throw IllegalStateException("Currently only one `onInputDeactivated` callback at a time is supported.")
+    }
+}
+
+class OnInputChangedScope(val id: Any, var input: String, val prevInput: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
 }
-private val InputChangedCallbacksKey = RunScope.Lifecycle.createKey<MutableList<OnInputChangedScope.() -> Unit>>()
+private val InputChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputChangedScope.() -> Unit>()
 
 fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
-    data.putIfAbsent(InputChangedCallbacksKey, provideInitialValue = { mutableListOf() }) { add(listener) }
+    if (!data.tryPut(InputChangedCallbackKey) { listener }) {
+        throw IllegalStateException("Currently only one `onInputChanged` callback at a time is supported.")
+    }
 }
 
-class OnInputEnteredScope(val input: String) {
+class OnInputEnteredScope(val id: Any, val input: String) {
     internal var rejected = false
     fun rejectInput() { rejected = true }
     internal var cleared = false
-    /**
-     * Make a request to clear the input on the next render pass.
-     *
-     * This can be useful if you intend to re-use the same input field across multiple passes.
-     */
     fun clearInput() { cleared = true }
 }
 private val InputEnteredCallbackKey = RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
