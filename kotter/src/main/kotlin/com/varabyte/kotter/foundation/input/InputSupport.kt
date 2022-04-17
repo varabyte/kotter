@@ -169,7 +169,6 @@ private class BlinkingCursorState {
 
 private val InputStatesKey = Section.Lifecycle.createKey<MutableMap<Any, InputState>>()
 private val BlinkingCursorStateKey = Section.Lifecycle.createKey<BlinkingCursorState>()
-private val ActiveInputStateKey = Section.Lifecycle.createKey<InputState>()
 private val ActiveInputCalledThisRenderKey = MainRenderScope.Lifecycle.createKey<Unit>()
 private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
 
@@ -243,9 +242,6 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
             }
             state.isActive = isActive
         }
-        if (isActive) {
-            scope.data[ActiveInputStateKey] = state
-        }
     }
 
     tryPut(
@@ -253,7 +249,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
         provideInitialValue = {
             CoroutineScope(Dispatchers.IO).launch {
                 getValue(KeyFlowKey).collect { key ->
-                    get(ActiveInputStateKey) {
+                    withActiveInput {
                         val prevText = text
                         val prevIndex = index
                         var proposedText: String? = null
@@ -525,12 +521,18 @@ fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> U
 class OnInputActivatedScope(val id: Any, var input: String)
 private val InputActivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputActivatedScope.() -> Unit>()
 
+private fun ConcurrentScopedData.withActiveInput(block: InputState.() -> Unit) {
+    get(InputStatesKey) {
+        values.find { it.isActive }?.block()
+    }
+}
+
 fun RunScope.onInputActivated(listener: OnInputActivatedScope.() -> Unit) {
     if (!data.tryPut(InputActivatedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputActivated` callback at a time is supported.")
     } else {
         // There may already be an active input when this callback was registered.
-        data.get(ActiveInputStateKey) {
+        data.withActiveInput {
             val onInputActivatedScope = OnInputActivatedScope(id, text)
             listener(onInputActivatedScope)
             text = onInputActivatedScope.input
