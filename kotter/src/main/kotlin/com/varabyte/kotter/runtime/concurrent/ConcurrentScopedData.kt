@@ -200,7 +200,11 @@ class ConcurrentScopedData {
     /**
      * Put an item into the data store if one is not already in place, then return it.
      *
-     * Note that this can return null if the lifecycle associated with the current key is not started yet!
+     * If you plan to immediately modify the value returned by this method, you should prefer calling [putIfAbsent] over
+     * this one, as it will trigger code within the same write lock that inserts the element into this data store,
+     * meaning you can be sure that you're the first person to modify its value in that case.
+     *
+     * Note that this method can return null if the lifecycle associated with the current key is not started yet!
      */
     fun <T : Any> putOrGet(key: Key<T>, provideInitialValue: () -> T, dispose: (T) -> Unit): T? {
         var result: T? = null
