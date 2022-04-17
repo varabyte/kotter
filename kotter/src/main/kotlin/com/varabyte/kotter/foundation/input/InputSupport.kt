@@ -133,6 +133,7 @@ private class InputState(val id: Any, val cursorState: BlinkingCursorState) {
     var index
         get() = _index
         set(value) {
+            @Suppress("NAME_SHADOWING")
             val value = value.coerceAtMost(_text.length)
             if (_index != value) {
                 _index = value
@@ -185,7 +186,6 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
             this[ActiveInputCalledThisRenderKey] = Unit
         }
     }
-
 
     val section = scope.section
     prepareKeyFlow(section.session.terminal)
@@ -335,7 +335,9 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
     )
 }
 
-/** Fetch the current input value in the run scope, if set */
+/**
+ * Fetch the current input value in the run scope, if set.
+ */
 fun RunScope.getInput(id: Any = Unit): String? = data[InputStatesKey]?.get(id)?.text
 
 interface InputCompleter {
