@@ -456,6 +456,7 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
     )
 }
 
+/** A handler you can register in a `run` block to intercept keypresses */
 fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
     data.prepareOnKeyPressed(section.session.terminal)
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
@@ -463,6 +464,7 @@ fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
     }
 }
 
+/** A `run` block which runs until one of the specified keys is pressed by the user. */
 fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> Unit = {}) {
     run {
         data.prepareOnKeyPressed(this.section.session.terminal)
