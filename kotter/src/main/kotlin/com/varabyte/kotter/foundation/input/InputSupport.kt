@@ -115,7 +115,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
 
 /** State needed to support the `input()` function */
 private class InputState(val id: Any, val cursorState: BlinkingCursorState) {
-    internal var isActive = false
+    var isActive = false
 
     private var _text = ""
     private var _index = 0
@@ -394,7 +394,7 @@ private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
  * Usually you would do this in separate sections, but perhaps you want to cycle through questions within the same
  * section for a particular UX feel.
  *
- * You can acomplish this two ways. One, pass in an ID for each input call, or call `clearInput` on `onInputEntered`.
+ * You can accomplish this two ways. One, pass in an ID for each input call, or call `clearInput` on `onInputEntered`.
  *
  * Approach #1, using IDs:
  * ```
