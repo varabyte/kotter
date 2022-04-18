@@ -169,7 +169,7 @@ private class BlinkingCursorState {
 
 private val InputStatesKey = Section.Lifecycle.createKey<MutableMap<Any, InputState>>()
 private val BlinkingCursorStateKey = Section.Lifecycle.createKey<BlinkingCursorState>()
-private val ActiveInputCalledThisRenderKey = MainRenderScope.Lifecycle.createKey<Unit>()
+private val InputStatesCalledThisRender = MainRenderScope.Lifecycle.createKey<MutableList<InputState>>()
 private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
 
 /**
@@ -178,14 +178,6 @@ private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
  * Is a no-op after the first time.
  */
 private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, initialText: String, isActive: Boolean) {
-    if (isActive) {
-        if (this.contains(ActiveInputCalledThisRenderKey)) {
-            throw IllegalStateException("Having more than one active `input` in a single render pass is not supported")
-        } else {
-            this[ActiveInputCalledThisRenderKey] = Unit
-        }
-    }
-
     val section = scope.section
     prepareKeyFlow(section.session.terminal)
     val cursorState = putOrGet(BlinkingCursorStateKey) {
@@ -202,7 +194,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
         section.onRendered {
             // If no active inputs were rendered this frame, reset the cursor for the next time one
             // becomes active.
-            if (!remove(ActiveInputCalledThisRenderKey)) {
+            if (!remove(InputStatesCalledThisRender)) {
                 cursorState.resetCursor()
             }
         }
@@ -226,6 +218,18 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
             newState.index = initialText.length
             newState
         }
+
+        putIfAbsent(InputStatesCalledThisRender, provideInitialValue = { mutableListOf() }) {
+            val currRenderInputStates = this
+            if (currRenderInputStates.any { it.id == id }) {
+                throw IllegalArgumentException("Got more than one `input` in a single render pass with ID $id")
+            }
+            if (isActive && currRenderInputStates.any { it.isActive }) {
+                throw IllegalArgumentException("Having more than one active `input` in a single render pass is not supported")
+            }
+            currRenderInputStates.add(state)
+        }
+
         if (state.isActive != isActive) {
             if (isActive) {
                 get(InputActivatedCallbackKey) {
