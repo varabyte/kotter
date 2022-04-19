@@ -3,10 +3,7 @@ package com.varabyte.kotter.foundation.input
 import com.varabyte.kotter.foundation.anim.Anim
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotter.runtime.MainRenderScope
-import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.Session
-import com.varabyte.kotter.runtime.Section
+import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
@@ -363,8 +360,37 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
 
 /**
  * Fetch the current input value in the run scope, if set.
+ *
+ * You should ideally only check input values within [onInputChanged], [onInputEntered] etc. callbacks, but for edge
+ * cases it can still be useful to check these in other scenarios (but treat this method with care!)
  */
-fun RunScope.getInput(id: Any = Unit): String? = data[InputStatesKey]?.get(id)?.text
+fun SectionScope.getInput(id: Any = Unit): String? {
+    var input: String? = null
+    data.get(InputStatesKey) { input = this[id]?.text }
+    return input
+}
+
+/**
+ * Set the input directly from anywhere in the [RunScope].
+ *
+ * This should be extremely rare to do! But perhaps you need to set the text asynchronously
+ * ([onInputEntered] is blocking) or inside on [onKeyPressed] callback, etc.
+ *
+ * However, try using [onInputChanged], [onInputEntered], etc. first. This will result in code that is easier for
+ * readers to follow.
+ */
+fun RunScope.setInput(text: String, index: Int = text.length, id: Any = Unit) {
+    data.get(InputStatesKey) {
+        this[id]?.apply {
+            if (this.text != text || this.index != index) {
+                this.text = text
+                this.index = index
+
+                rerender()
+            }
+        }
+    }
+}
 
 interface InputCompleter {
     /**
