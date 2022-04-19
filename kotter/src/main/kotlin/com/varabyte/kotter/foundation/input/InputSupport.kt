@@ -169,8 +169,29 @@ private class BlinkingCursorState {
 
 private val InputStatesKey = Section.Lifecycle.createKey<MutableMap<Any, InputState>>()
 private val BlinkingCursorStateKey = Section.Lifecycle.createKey<BlinkingCursorState>()
-private val InputStatesCalledThisRender = MainRenderScope.Lifecycle.createKey<MutableList<InputState>>()
+private val InputStatesCalledThisRender = MainRenderScope.Lifecycle.createKey<MutableMap<Any, InputState>>()
 private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
+
+
+private fun ConcurrentScopedData.activate(state: InputState) {
+    if (state.isActive) return
+    get(InputActivatedCallbackKey) {
+        val onInputActivatedScope = OnInputActivatedScope(state.id, state.text)
+        this.invoke(onInputActivatedScope)
+        state.text = onInputActivatedScope.input
+    }
+    state.isActive = true
+}
+
+private fun ConcurrentScopedData.deactivate(state: InputState) {
+    if (!state.isActive) return
+    get(InputDeactivatedCallbackKey) {
+        val onInputDeactivatedScope = OnInputDeactivatedScope(state.id, state.text)
+        this.invoke(onInputDeactivatedScope)
+        state.text = onInputDeactivatedScope.input
+    }
+    state.isActive = false
+}
 
 /**
  * If necessary, instantiate data that the [input] method expects to exist.
@@ -192,9 +213,23 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
         }
 
         section.onRendered {
-            // If no active inputs were rendered this frame, reset the cursor for the next time one
-            // becomes active.
-            if (!remove(InputStatesCalledThisRender)) {
+            // We need to indirectly detect if a previously active input state was not called this frame. This can
+            // happen either if we called OTHER input states this frame OR if we called NO input states this frame.
+            // We can detect both of these cases by querying the "input states called this render" key.
+            val idsRenderedThisFrame = mutableSetOf<Any>()
+            remove(InputStatesCalledThisRender) {
+                idsRenderedThisFrame.addAll(this.keys)
+            }
+            get(InputStatesKey) {
+                val unrenderedActiveInputStates = this.values.filter { it.isActive && !idsRenderedThisFrame.contains(it.id) }
+                if (unrenderedActiveInputStates.isNotEmpty()) {
+                    unrenderedActiveInputStates.forEach { deactivate(it) }
+                }
+            }
+
+            if (idsRenderedThisFrame.isEmpty()) {
+                // A minor touch, but always make sure the cursor starts from scratch anytime a new input method is
+                // called in the future
                 cursorState.resetCursor()
             }
         }
@@ -219,32 +254,23 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
             newState
         }
 
-        putIfAbsent(InputStatesCalledThisRender, provideInitialValue = { mutableListOf() }) {
-            val currRenderInputStates = this
-            if (currRenderInputStates.any { it.id == id }) {
+        putIfAbsent(InputStatesCalledThisRender, provideInitialValue = { mutableMapOf() }) {
+            val renderedInputStates = this
+            if (renderedInputStates.contains(id)) {
                 throw IllegalArgumentException("Got more than one `input` in a single render pass with ID $id")
             }
-            if (isActive && currRenderInputStates.any { it.isActive }) {
+            if (isActive && renderedInputStates.values.any { it.isActive }) {
                 throw IllegalArgumentException("Having more than one active `input` in a single render pass is not supported")
             }
-            currRenderInputStates.add(state)
+            renderedInputStates[id] = state
         }
 
         if (state.isActive != isActive) {
             if (isActive) {
-                get(InputActivatedCallbackKey) {
-                    val onInputActivatedScope = OnInputActivatedScope(id, state.text)
-                    this.invoke(onInputActivatedScope)
-                    state.text = onInputActivatedScope.input
-                }
+                activate(state)
             } else {
-                get(InputDeactivatedCallbackKey) {
-                    val onInputDeactivatedScope = OnInputDeactivatedScope(id, state.text)
-                    this.invoke(onInputDeactivatedScope)
-                    state.text = onInputDeactivatedScope.input
-                }
+                deactivate(state)
             }
-            state.isActive = isActive
         }
     }
 

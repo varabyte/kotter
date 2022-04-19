@@ -186,13 +186,25 @@ class ConcurrentScopedData {
     }
 
     /**
-     * Attempt to remove a key directly, which will trigger its dispose call if present.
-     *
-     * Returns true if the key was removed and disposed, false otherwise.
+     * A simple remove option which returns true if the value was removed or not. If removed, its dispose call would
+     * have been triggered.
      */
     fun <T : Any> remove(key: Key<T>): Boolean {
-        return lock.write {
-            val value = keyValues.remove(key)?.also { it.dispose() }
+        var removed = false
+        remove(key) { removed = true }
+        return removed
+    }
+
+    /**
+     * Attempt to remove a key directly, which will trigger its dispose call if present. If a value was removed, it
+     * will additionally be triggered in the passed in [block]
+     */
+    fun <T : Any> remove(key: Key<T>, block: T.() -> Unit) {
+        lock.write {
+            val value = (keyValues.remove(key) as? Value<T>)?.also {
+                it.wrapped.block()
+                it.dispose()
+            }
             value != null
         }
     }
