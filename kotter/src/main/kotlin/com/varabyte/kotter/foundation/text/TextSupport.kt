@@ -40,7 +40,8 @@ fun RenderScope.textLine(c: Char) {
 
 private fun RenderScope.addNewlinesIfNecessary(count: Int) {
     require(count > 0)
-    var numNewlinesToAdd = count
+    // Don't add too many extra newlines when the `p` block is the first part of a section.
+    var numNewlinesToAdd = count.coerceAtMost(renderer.commands.size)
     val commandsToCheck = renderer.commands.takeLast(count).toMutableList()
     while (numNewlinesToAdd > 0 && commandsToCheck.isNotEmpty()) {
         if (commandsToCheck.removeLast() === NEWLINE_COMMAND) {
