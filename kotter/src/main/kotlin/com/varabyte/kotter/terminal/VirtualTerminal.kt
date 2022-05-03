@@ -10,31 +10,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import java.awt.*
 import java.awt.Cursor.HAND_CURSOR
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionAdapter
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
+import java.awt.event.*
 import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.awt.geom.Point2D
 import java.net.MalformedURLException
-import java.net.URI
 import java.net.URL
+import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
-import javax.swing.BoundedRangeModel
-import javax.swing.JFrame
-import javax.swing.JScrollPane
-import javax.swing.JTextPane
-import javax.swing.SwingUtilities
+import javax.swing.*
 import javax.swing.border.EmptyBorder
-import javax.swing.text.AbstractDocument
-import javax.swing.text.AttributeSet
-import javax.swing.text.Document
-import javax.swing.text.DocumentFilter
-import javax.swing.text.MutableAttributeSet
-import javax.swing.text.SimpleAttributeSet
+import javax.swing.text.*
+import kotlin.io.path.exists
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
 class TerminalSize(val width: Int, val height: Int) {
@@ -76,12 +62,14 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             title: String = "Virtual Terminal",
             terminalSize: TerminalSize = TerminalSize(100, 40),
             fontSize: Int = 16,
+            fontOverride: Path? = null,
             fgColor: AnsiColor = AnsiColor.WHITE,
             bgColor: AnsiColor = AnsiColor.BLACK,
             maxNumLines: Int = 1000,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
-            val pane = SwingTerminalPane(fontSize, fgColor.toSwingColor(), bgColor.toSwingColor(), maxNumLines.coerceAtLeast(terminalSize.height))
+            val font = fontOverride?.takeIf { it.exists() }?.let { Font.createFont(Font.TRUETYPE_FONT, it.toFile()).deriveFont(Font.PLAIN, fontSize.toFloat()) } ?: Font(Font.MONOSPACED, Font.PLAIN, fontSize)
+            val pane = SwingTerminalPane(font, fgColor.toSwingColor(), bgColor.toSwingColor(), maxNumLines.coerceAtLeast(terminalSize.height))
             pane.focusTraversalKeysEnabled = false // Don't handle TAB, we want to send it to the user
             pane.text = buildString {
                 // Set initial text to a block of blank characters so pack will set it to the right size
@@ -257,14 +245,14 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
 
 private fun Document.getText() = getText(0, length)
 
-class SwingTerminalPane(fontSize: Int, fgColor: Color, bgColor: Color, maxNumLines: Int) : JTextPane() {
+class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines: Int) : JTextPane() {
     private val sgrCodeConverter: SgrCodeConverter
 
     init {
         isEditable = false
-        font = Font(Font.MONOSPACED, Font.PLAIN, fontSize)
         foreground = fgColor
         background = bgColor
+        this.font = font
         sgrCodeConverter = SgrCodeConverter(foreground, background)
 
         (styledDocument as AbstractDocument).documentFilter = object : DocumentFilter() {

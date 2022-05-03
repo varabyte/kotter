@@ -117,5 +117,10 @@ fun main() = session {
             }
         }
         textLine("Back to default again")
+
+        p {
+            // This is more to make sure our virtual terminal handles emojis well than anything else, really
+            textLine("Emoji test: \uD83D\uDE00\uD83D\uDC4B\uD83D\uDE80")
+        }
     }.run()
 }
