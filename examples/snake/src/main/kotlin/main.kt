@@ -140,7 +140,8 @@ fun main() = session(
     terminal = listOf(
         { SystemTerminal() },
         { VirtualTerminal.create(terminalSize = TerminalSize(WIDTH, HEIGHT + 15)) }
-    ).runUntilSuccess()
+    ).runUntilSuccess(),
+    clearTerminal = true,
 ){
     section {
         textLine()

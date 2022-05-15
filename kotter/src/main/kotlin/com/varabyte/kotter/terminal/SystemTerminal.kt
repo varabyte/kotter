@@ -88,4 +88,10 @@ class SystemTerminal : Terminal {
         System.setOut(previousOut)
         System.setErr(previousErr)
     }
+
+    override fun clear() {
+        // From https://stackoverflow.com/a/32295974/17966710
+        terminal.writer().print("\u001b[H\u001b[2J")
+        terminal.writer().flush()
+    }
 }

@@ -6,6 +6,7 @@ import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotterx.decorations.bordered
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -93,7 +94,7 @@ private fun RenderScope.centered(text: String, width: Int): String {
     }
 }
 
-fun main() = session {
+fun main() = session(clearTerminal = true) {
     val cells = Cells()
 
     // Instructions never need to change; output them first
@@ -109,32 +110,27 @@ fun main() = session {
     section {
         textLine(if (paused) { centered("* PAUSED *", WIDTH + 2) } else "")
 
-        text("+")
-        text("-".repeat(WIDTH))
-        textLine("+")
-
-        for (y in 0 until HEIGHT) {
-            text("|")
-            for (x in 0 until WIDTH) {
-                val state = cells[x, y]
-                scopedState {
-                    when (state) {
-                        State.BORN -> green()
-                        State.DYING -> red()
-                        else -> {}
+        bordered {
+            for (y in 0 until HEIGHT) {
+                for (x in 0 until WIDTH) {
+                    val state = cells[x, y]
+                    scopedState {
+                        when (state) {
+                            State.BORN -> green()
+                            State.DYING -> red()
+                            else -> {}
+                        }
+                        text(
+                            when (state) {
+                                State.DEAD -> ' '
+                                else -> '*'
+                            }
+                        )
                     }
-                    text(when (state) {
-                        State.DEAD -> ' '
-                        else -> '*'
-                    })
                 }
+                textLine()
             }
-            textLine("|")
         }
-
-        text("+")
-        text("-".repeat(WIDTH))
-        textLine("+")
     }.runUntilKeyPressed(Keys.Q) {
         cells.onChanged = { rerender() }
 

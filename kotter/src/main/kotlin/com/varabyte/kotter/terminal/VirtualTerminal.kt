@@ -240,6 +240,9 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             }
         })
     }
+
+    // No need to do anything; the virtual terminal starts up empty
+    override fun clear() = Unit
 }
 
 

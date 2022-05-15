@@ -134,7 +134,7 @@ private fun Int.isAltPattern(sideLen: Int): Boolean {
 
 private fun createRandomizedBoard() = Board().apply { randomize() }
 
-fun main() = session {
+fun main() = session(clearTerminal = true) {
     var board = createRandomizedBoard()
 
     section {

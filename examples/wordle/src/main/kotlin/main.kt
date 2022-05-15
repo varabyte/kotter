@@ -235,7 +235,7 @@ private fun RenderScope.toOnOff(value: Boolean) {
     text("]")
 }
 
-fun main() = session {
+fun main() = session(clearTerminal = true) {
     val waitingAnim = textAnimOf(listOf("", ".", "..", "..."), frameDuration = Duration.ofMillis(250))
     var gameState by liveVarOf<GameState>(GameState.Downloading)
     var gameMode by liveVarOf(GameMode.NORMAL)

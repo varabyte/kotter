@@ -299,6 +299,8 @@ class VirtualTerminal private constructor(
     override fun close() {
         writeChannel.close()
     }
+    // No need to do anything; the virtual terminal starts up empty
+    override fun clear() = Unit
 }
 
 /**

@@ -9,4 +9,5 @@ interface Terminal : AutoCloseable {
     val width: Int get() = Int.MAX_VALUE
     fun write(text: String)
     fun read(): Flow<Int>
+    fun clear()
 }

@@ -24,9 +24,16 @@ fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
 
 inline val DEFAULT_TERMINAL_FACTORY_METHODS get() = listOf({ SystemTerminal() }, { VirtualTerminal.create() })
 
+/**
+ * @param clearTerminal Set to true if this program should clear the terminal on startup. Defaulted to false since that
+ *   might be surprising behavior for simple utility terminal applications.
+ */
 fun session(
     terminal: Terminal = DEFAULT_TERMINAL_FACTORY_METHODS.runUntilSuccess(),
+    clearTerminal: Boolean = false,
     block: Session.() -> Unit) {
+
+    if (clearTerminal) terminal.clear()
 
     val session = Session(terminal)
     Runtime.getRuntime().addShutdownHook(Thread {

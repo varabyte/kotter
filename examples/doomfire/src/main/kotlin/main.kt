@@ -84,7 +84,7 @@ class DoomFireModel {
     }
 }
 
-fun main() = session {
+fun main() = session(clearTerminal = true) {
     section {
         p {
             textLine("Press SPACE to toggle fire on and off")
