@@ -68,14 +68,17 @@ class MandelbrotModel {
         return true
     }
 
-
-    // See: https://en.wikipedia.org/wiki/Mandelbrot_set#Formal_definition
+    // The Mandelbrot Set calculation works by running an iterative operation (z' = z*z + c) over and over again,
+    // checking to see if it has diverged yet or not. Some numbers never diverge, some diverge eventually, and some
+    // diverge immediately. We record how many iterations we get before things have diverged, as we can use that value
+    // to render our graph with interesting colors.
+    // See also: https://en.wikipedia.org/wiki/Mandelbrot_set#Formal_definition
     // See also: https://matplotlib.org/matplotblog/posts/animated-fractals (code is in python)
     private fun calculateCell(cellX: Int, cellY: Int, x: Double, y: Double): Job {
-        // Probably overkill for our limited terminal resolution. But, Mandelbrot calculations are
-        // totally parallelizable, so if just for the sake of demonstration, let's do it!
-        // Since this a toy example, I did not profile timing, but in production, you totally should.
-        // Use default dispatcher for calculation heavy logic
+        // Probably overkill for our limited terminal resolution. But, Mandelbrot calculations are totally
+        // parallelizable, so if just for the sake of demonstration, let's do it! Since this a toy example, I did not
+        // profile timing, but in production, you totally should.
+        // We use the default dispatcher for calculation heavy logic
         return CoroutineScope(Dispatchers.Default).launch {
             val c = x + y.i
             var z = 0.0 + 0.0.i
