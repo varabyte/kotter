@@ -10,14 +10,14 @@ abstract class Anim(protected val session: Session, protected val numFrames: Int
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
     }
 
-    protected var elapsedMs: Int = 0
     protected var currFrame by session.liveVarOf(0)
         private set
 
-    protected val frameMs = frameDuration.toMillis().toInt()
-    protected val animMs = frameMs * numFrames
+    private var elapsedMs: Int = 0
+    private val frameMs = frameDuration.toMillis().toInt()
+    private val animMs = frameMs * numFrames
 
-    protected fun elapse(duration: Duration) {
+    private fun elapse(duration: Duration) {
         elapsedMs = (elapsedMs + duration.toMillis().toInt()) % animMs
         currFrame = elapsedMs / frameMs
     }
