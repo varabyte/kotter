@@ -331,6 +331,17 @@ fun RenderScope.color(
     }
 }
 
+fun RenderScope.color(
+    color: Color,
+    layer: ColorLayer = ColorLayer.FG,
+    scopedBlock: RenderScope.() -> Unit
+) {
+    scopedState {
+        color(color, layer)
+        scopedBlock()
+    }
+}
+
 fun RenderScope.rgb(
     r: Int,
     g: Int,
@@ -349,8 +360,21 @@ fun RenderScope.rgb(
     layer: ColorLayer = ColorLayer.FG,
     scopedBlock: RenderScope.() -> Unit
 ) {
-    val (r, g, b) = RGB.from(value)
-    rgb(r, g, b, layer, scopedBlock)
+    scopedState {
+        rgb(value, layer)
+        scopedBlock()
+    }
+}
+
+fun RenderScope.rgb(
+    rgb: RGB,
+    layer: ColorLayer = ColorLayer.FG,
+    scopedBlock: RenderScope.() -> Unit
+) {
+    scopedState {
+        rgb(rgb, layer)
+        scopedBlock()
+    }
 }
 
 fun RenderScope.hsv(
@@ -362,6 +386,17 @@ fun RenderScope.hsv(
 ) {
     scopedState {
         hsv(h, s, v, layer)
+        scopedBlock()
+    }
+}
+
+fun RenderScope.hsv(
+    hsv: HSV,
+    layer: ColorLayer = ColorLayer.FG,
+    scopedBlock: RenderScope.() -> Unit
+) {
+    scopedState {
+        hsv(hsv, layer)
         scopedBlock()
     }
 }
