@@ -36,6 +36,14 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                     lastKeyTime = System.currentTimeMillis()
                     when {
                         escSeq.isNotEmpty() -> {
+                            // Normally, we get here if we're continuing an existing esc sequence, but if so some reason
+                            // a previous one was never consumed *and* we are starting a new ESC sequence, just clear
+                            // out anything left over from before. This could happen for example if the user just
+                            // pressed ESC (which puts an ESC in the escSeq queue and waits a while before sending it
+                            // out), but maybe also we end up getting an escape sequence that we didn't know how to
+                            // handle, and without doing this, that old sequence would block us from working ever again.
+                            if (c == Ansi.CtrlChars.ESC) escSeq.clear()
+
                             escSeq.append(c)
                             val code = Ansi.EscSeq.toCode(escSeq)
                             if (code != null) {
