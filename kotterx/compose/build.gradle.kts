@@ -2,11 +2,12 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("org.jetbrains.compose")
     `maven-publish`
     signing
 }
 
-group = "com.varabyte.kotter"
+group = "com.varabyte.kotterx"
 version = "0.9.9-SNAPSHOT"
 
 fun shouldSign() = (findProperty("kotter.sign") as? String).toBoolean()
@@ -38,20 +39,14 @@ object Versions {
     object Kotlin {
         const val Couroutines = "1.6.0"
     }
-    const val Jline = "3.20.0"
 }
 
 dependencies {
     implementation(kotlin("stdlib"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.Kotlin.Couroutines}")
+    implementation(compose.desktop.common)
 
-    // For system terminal implementation
-    implementation("org.jline:jline-terminal:${Versions.Jline}")
-    implementation("org.jline:jline-terminal-jansi:${Versions.Jline}")
-    runtimeOnly(files("libs/jansi-1.18.jar")) // Required for windows support
-
-    // For GuardedBy concurrency annotation
-    implementation("net.jcip:jcip-annotations:1.0")
+    implementation(project(":kotter"))
 }
 
 java {
@@ -73,10 +68,11 @@ publishing {
             }
         }
 
-        create<MavenPublication>("kotter") {
+        create<MavenPublication>("kotterx-compose") {
             from(components["java"])
             pom {
-                description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")
+                description.set("A virtual terminal implemented with Compose for Desktop.")
+                artifactId = "kotterx-compose"
                 url.set("https://github.com/varabyte/kotter")
                 licenses {
                     license {
@@ -93,6 +89,6 @@ if (shouldSign()) {
     signing {
         // Signing requires following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
         // and adding singatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
-        sign(publishing.publications["kotter"])
+        sign(publishing.publications["kotterx-compose"])
     }
 }

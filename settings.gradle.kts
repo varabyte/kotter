@@ -10,6 +10,7 @@ pluginManagement {
 rootProject.name = "kotter"
 
 include(":kotter")
+include(":kotterx:compose")
 
 include(":examples:anim")
 include(":examples:blink")

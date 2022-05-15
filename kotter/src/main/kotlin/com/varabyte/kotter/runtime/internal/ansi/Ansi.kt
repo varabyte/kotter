@@ -11,7 +11,7 @@ import com.varabyte.kotter.runtime.internal.text.readInt
  * https://en.wikipedia.org/wiki/ANSI_escape_code
  * https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
  */
-internal object Ansi {
+object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters
     object CtrlChars {
         const val EOF = '\u0004'

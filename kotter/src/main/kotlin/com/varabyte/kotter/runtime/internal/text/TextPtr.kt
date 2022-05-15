@@ -10,7 +10,7 @@ import kotlin.math.min
  * character to indicate it. That is, for a String of length one, e.g. "a", then textPtr[0] == 'a' and
  * textPtr[1] == '\0'
  */
-internal class TextPtr(val text: CharSequence, charIndex: Int = 0) {
+class TextPtr(val text: CharSequence, charIndex: Int = 0) {
     var charIndex = 0
         set(value) {
             require(value >= 0 && value <= text.length) { "charIndex value is out of bounds. Expected 0 .. ${text.length}, got $value" }
@@ -69,11 +69,11 @@ internal class TextPtr(val text: CharSequence, charIndex: Int = 0) {
     }
 }
 
-internal fun TextPtr.substring(length: Int): String {
+fun TextPtr.substring(length: Int): String {
     return text.substring(charIndex, min(charIndex + length, text.length))
 }
 
-internal fun TextPtr.readInt(): Int? {
+fun TextPtr.readInt(): Int? {
     if (!currChar.isDigit()) return null
 
     var intValue = 0
