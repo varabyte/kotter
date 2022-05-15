@@ -110,8 +110,8 @@ background work (or other async tasks like waiting for user input) during which 
 several times. We'll see many examples throughout this document later.
 
 A Kotter `session` can contain one or more `section`s. Your own app may only ever contain a single `section` and that's
-fine! But if you have multiple `section`s, it will feel to the user like your app has a current, active area, trailing a
-history of text from previous interactions that no longer changes.
+fine! But if you have multiple `section`s, it will feel to the user like your app has a current, active area, following
+a history of text paragraphs from previous interactions that no longer change.
 
 ### 🎨 Text Effects
 
