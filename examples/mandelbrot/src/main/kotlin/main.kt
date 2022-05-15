@@ -1,3 +1,4 @@
+import MandelbrotModel.Companion.MAX_ITERATIONS
 import com.varabyte.kotter.foundation.input.Keys
 import com.varabyte.kotter.foundation.input.onKeyPressed
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
@@ -35,6 +36,9 @@ class Complex(val real: Double, val img: Imaginary) {
 operator fun Double.plus(img: Imaginary) = Complex(this, img)
 
 class MandelbrotModel {
+    companion object {
+        const val MAX_ITERATIONS = 26
+    }
     var isCalculating = false
         private set
     /** Buffer of number of iterations it took before this value diverged */
@@ -64,16 +68,19 @@ class MandelbrotModel {
         return true
     }
 
-    // Probably overkill for our limited terminal resolution. But, Mandelbrot calculations are
-    // totally parallelizable, so if just for the sake of demonstration, let's do it!
-    // Since this a toy example, I did not profile timing, but in production, you totally should.
+
+    // See: https://en.wikipedia.org/wiki/Mandelbrot_set#Formal_definition
+    // See also: https://matplotlib.org/matplotblog/posts/animated-fractals (code is in python)
     private fun calculateCell(cellX: Int, cellY: Int, x: Double, y: Double): Job {
+        // Probably overkill for our limited terminal resolution. But, Mandelbrot calculations are
+        // totally parallelizable, so if just for the sake of demonstration, let's do it!
+        // Since this a toy example, I did not profile timing, but in production, you totally should.
         // Use default dispatcher for calculation heavy logic
         return CoroutineScope(Dispatchers.Default).launch {
             val c = x + y.i
             var z = 0.0 + 0.0.i
 
-            for (i in 0 .. 26) {
+            for (i in 0 .. MAX_ITERATIONS) {
                 iterations[cellX, cellY] = i
                 if (z.abs2() > 4.0) break
                 z = (z * z) + c
@@ -110,9 +117,10 @@ fun main() = session(clearTerminal = true) {
             for (y in 0 until VIEW_HEIGHT) {
                 for (x in 0 until VIEW_WIDTH) {
                     // Lots of richness in early iteration aborts, so choose interesting colors for those crevices.
+                    // TODO: Choose colors more algorithmically and less brute force?
                     val numIterations = mandelbrot.iterations[x, y]
                     val color = when {
-                        numIterations > 25 -> Color.BRIGHT_WHITE
+                        numIterations == MAX_ITERATIONS -> Color.BRIGHT_WHITE
                         numIterations > 20 -> Color.WHITE
                         numIterations > 15 -> Color.BRIGHT_YELLOW
                         numIterations > 12 -> Color.YELLOW
