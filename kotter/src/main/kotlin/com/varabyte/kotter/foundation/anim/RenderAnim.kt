@@ -1,6 +1,5 @@
 package com.varabyte.kotter.foundation.anim
 
-import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.render.RenderScope
 import java.time.Duration
@@ -16,8 +15,7 @@ class RenderAnim internal constructor(session: Session, val template: Template)
     }
 
     operator fun invoke(renderScope: RenderScope) {
-        // This will only add a timer the first time this is called
-        session.data.addTimer(ONE_FRAME_60FPS, repeat = true, key = this) { elapse(duration) }
+        requestAnimate()
         template.handler.invoke(renderScope, currFrame)
     }
 }

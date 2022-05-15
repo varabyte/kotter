@@ -1,6 +1,5 @@
 package com.varabyte.kotter.foundation.anim
 
-import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.Session
 import java.time.Duration
 
@@ -16,12 +15,16 @@ class TextAnim internal constructor(session: Session, val template: Template)
 
     private val currText get() = template.frames[currFrame]
 
+    private var referencedLastFrame = false
+    private var callbackAdded = false
+    private var stopTimer = false
+
     /**
      * We wrap all animation property accesses in this special block which kickstarts the timer for this animation if
      * it hasn't already been done so.
      */
     private fun <R> readProperty(block: () -> R): R {
-        session.data.addTimer(ONE_FRAME_60FPS, repeat = true, key = this) { elapse(duration) }
+        requestAnimate()
         return block()
     }
 
