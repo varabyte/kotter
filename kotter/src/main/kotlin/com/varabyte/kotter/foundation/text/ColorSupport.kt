@@ -199,6 +199,14 @@ fun RenderScope.rgb(value: Int, layer: ColorLayer = ColorLayer.FG) {
     applyCommand(toTruecolorCommand(layer, r, g, b))
 }
 
+fun RenderScope.rgb(color: RGB, layer: ColorLayer = ColorLayer.FG) {
+    rgb(color.r, color.g, color.b, layer)
+}
+
+fun RenderScope.hsv(color: HSV, layer: ColorLayer = ColorLayer.FG) {
+    hsv(color.h, color.s, color.v, layer)
+}
+
 fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG) {
     applyCommand(when(layer) {
         ColorLayer.FG -> FG_CLEAR_COMMAND
