@@ -43,22 +43,28 @@ Specifically, this library helps with:
 
 ### 🎯 Dependency
 
-The artifact for this project is hosted in our own artifact repository (*), so to include Kotter in your project, modify
-your Gradle build file as follows:
-
 ```groovy
+// build.gradle
+
 repositories {
-  /* ... */
-  maven { url 'https://us-central1-maven.pkg.dev/varabyte-repos/public' }
+  mavenCentral()
 }
 
 dependencies {
-  /* ... */
   implementation 'com.varabyte.kotter:kotter:0.9.9'
 }
-```
 
-(* To be hosted in `mavenCentral` eventually)
+// build.gradle.kts
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation("com.varabyte.kotter:kotter:0.9.9")
+}
+
+```
 
 ### 🚥 Running examples
 
