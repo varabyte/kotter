@@ -14,6 +14,13 @@ fun shouldPublishToGCloud(): Boolean {
     return (findProperty("kotter.gcloud.publish") as? String).toBoolean()
             && findProperty("gcloud.artifact.registry.secret") != null
 }
+fun shouldPublishToMavenCentral(): Boolean {
+    // Only publish snapshots to our varabyte repo for now, we may change our mind later
+    return !version.toString().endsWith("SNAPSHOT")
+            && (findProperty("kotter.maven.publish") as? String).toBoolean()
+            && findProperty("ossrhUsername") != null && findProperty("ossrhPassword") != null
+}
+
 
 val VARABYTE_REPO_URL = uri("https://us-central1-maven.pkg.dev/varabyte-repos/public")
 fun MavenArtifactRepository.gcloudAuth() {
@@ -27,11 +34,28 @@ fun MavenArtifactRepository.gcloudAuth() {
     }
 }
 
+val SONATYPE_RELEASE_REPO_URL = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+val SONATYPE_SNAPSHOT_REPO_URL = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+fun MavenArtifactRepository.sonatypeAuth() {
+    url = if (!version.toString().endsWith("SNAPSHOT")) SONATYPE_RELEASE_REPO_URL else SONATYPE_SNAPSHOT_REPO_URL
+    credentials {
+        username = findProperty("ossrhUsername") as String
+        password = findProperty("ossrhPassword") as String
+    }
+    authentication {
+        create<BasicAuthentication>("basic")
+    }
+}
+
 repositories {
     mavenCentral()
-    if (shouldPublishToGCloud()) {
-        maven { gcloudAuth() }
-    }
+    // Do I need these here? Cleanup if these are still commented out ~June/July 2022
+//    if (shouldPublishToGCloud()) {
+//        maven { gcloudAuth() }
+//    }
+//    if (shouldPublishToMavenCentral()) {
+//        maven { sonatypeAuth() }
+//    }
 }
 
 object Versions {
@@ -69,15 +93,42 @@ publishing {
     publications {
         if (shouldPublishToGCloud()) {
             repositories {
-                maven { gcloudAuth() }
+                maven {
+                    name = "GCloudMaven"
+                    gcloudAuth()
+                }
+            }
+        }
+        if (shouldPublishToMavenCentral()) {
+            repositories {
+                maven {
+                    name = "SonatypeMaven"
+                    sonatypeAuth()
+                }
             }
         }
 
         create<MavenPublication>("kotter") {
+            val githubPath = "https://github.com/varabyte/kotter"
             from(components["java"])
             pom {
+                name.set("Kotter")
                 description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")
-                url.set("https://github.com/varabyte/kotter")
+                url.set(githubPath)
+                scm {
+                    url.set(githubPath)
+                    val connectionPath = "scm:git:${githubPath}.git"
+                    connection.set(connectionPath)
+                    developerConnection.set(connectionPath)
+                }
+                developers {
+                    developer {
+                        id.set("bitspittle")
+                        name.set("David Herman")
+                        email.set("bitspittle@gmail.com")
+                    }
+                }
+
                 licenses {
                     license {
                         name.set("The Apache License, Version 2.0")
