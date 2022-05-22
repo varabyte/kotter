@@ -170,9 +170,16 @@ class Section internal constructor(val session: Session, private val render: Mai
             }
 
             session.data.start(MainRenderScope.Lifecycle)
+            // Rendering might crash, and if so, we should still propagate the exception but only after we've cleaned up
+            // our rendering.
+            var deferredException: Exception? = null
             // Make sure run logic doesn't modify values while we're in the middle of rendering
             session.data.lock.write {
-                renderer.render(render)
+                try {
+                    renderer.render(render)
+                } catch (ex: Exception) {
+                    deferredException = ex
+                }
                 onRendered.removeIf {
                     val scope = OnRenderedScope()
                     it.invoke(scope)
@@ -190,6 +197,7 @@ class Section internal constructor(val session: Session, private val render: Mai
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
             // in one pass.
             session.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.commands.toRawText())
+            deferredException?.let { throw it }
         }
     }
     private fun renderOnce() = runBlocking {
