@@ -61,5 +61,4 @@ class LiveVar<T> internal constructor(private val session: Session, private var 
 }
 
 /** Create a [LiveVar] whose scope is tied to this session. */
-@Suppress("FunctionName") // Intentionally made to look like a class constructor
 fun <T> Session.liveVarOf(value: T): LiveVar<T> = LiveVar(this, value)

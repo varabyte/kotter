@@ -99,5 +99,4 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
 }
 
 /** Create a [LiveList] whose scope is tied to this session. */
-@Suppress("FunctionName") // Intentionally made to look like a class constructor
 fun <T> Session.liveListOf(vararg elements: T): LiveList<T> = LiveList<T>(this, *elements)
