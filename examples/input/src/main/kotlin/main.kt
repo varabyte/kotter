@@ -5,13 +5,23 @@ import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.runUntilSignal
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.MainRenderScope
+import java.net.URI
 
 fun main() = session {
     // Scenario #1 - trivial but common case. A section exists to request a single input from the user
     run {
         var wantsToLearn by liveVarOf(false)
         section {
-            text("Would you like to learn "); cyan { text("Kotter") }; textLine("? (Y/n)")
+            text("Would you like to ");
+            cyan {
+                underline()
+                anchor(URI("https://github.com/varabyte/kotter"))
+                text("learn ")
+                bold()
+                text("Kotter")
+                // anchor(URI("https://github.com/varabyte/kotter"), "Kotter") << a simpler usage
+            };
+            textLine("? (Y/n)")
             text("> "); input(Completions("yes", "no"), initialText = "y")
 
             if (wantsToLearn) {

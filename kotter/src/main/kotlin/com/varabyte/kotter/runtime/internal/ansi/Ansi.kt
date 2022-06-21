@@ -20,21 +20,30 @@ object Ansi {
         const val ENTER = '\u000D'
         const val ESC = '\u001B'
         const val DELETE = '\u007F'
+        const val BEL = '\u0007'
     }
 
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Fe_Escape_sequences
     object EscSeq {
         const val CSI = '['
+        const val OSC = ']'
+
         // Hack alert: For a reason I don't understand yet, Windows uses 'O' and not '[' for a handful of its escape
         // sequence characters. 'O' normally represents "function shift" but I'm not finding great documentation about
         // it. For now, it seems to work OK if we just treat 'O' like '[' on Windows sometimes.
         private const val CSI_ALT = 'O'
 
-        fun toCode(sequence: CharSequence): Csi.Code? {
+        fun toCsiCode(sequence: CharSequence): Csi.Code? {
             if (sequence.length < 3) return null
             if (sequence[0] != CtrlChars.ESC || (sequence[1] !in listOf(CSI, CSI_ALT))) return null
             val parts = Csi.Code.parts(TextPtr(sequence, 2)) ?: return null
             return Csi.Code(parts)
+        }
+
+        fun toOscCode(sequence: CharSequence): Osc.Code? {
+            if (sequence.length < 3) return null
+            if (sequence[0] != CtrlChars.ESC || (sequence[1] != OSC)) return null
+            return Osc.Code(TextPtr(sequence, 2))
         }
     }
 
@@ -204,6 +213,51 @@ object Ansi {
                 object LEFT : Code("${Identifiers.CURSOR_LEFT}")
                 object RIGHT : Code("${Identifiers.CURSOR_RIGHT}")
             }
+        }
+    }
+
+    object Osc {
+
+        object ANCHOR : Code('8')
+
+        open class Code(val id: Char, val parts: Parts? = null) {
+            constructor(value: TextPtr) : this(
+                value.currChar, parts(value)
+            )
+
+            companion object {
+                fun parts(text: CharSequence): Parts {
+                    return parts(TextPtr(text))
+                }
+
+                fun parts(textPtr: TextPtr): Parts {
+                    textPtr.increment()
+                    check(textPtr.currChar == ';')
+                    val buff = StringBuilder()
+                    textPtr.incrementUntil {
+                        if (it in listOf(CtrlChars.BEL, CtrlChars.ESC)) return@incrementUntil true
+                        buff.append(it)
+                        false
+                    }
+                    if (textPtr.currChar == CtrlChars.ESC) {
+                        textPtr.increment()
+                        check(textPtr.currChar == '\\') { "Improperly terminated OSC code" }
+                    }
+                    return Parts(buff.toString().split(";"))
+                }
+            }
+
+            data class Parts(val params: List<String>) {
+                override fun toString() = params.joinToString(";")
+            }
+
+            fun toFullEscapeCode(): String = "${CtrlChars.ESC}${EscSeq.OSC}$id;${parts}${CtrlChars.ESC}\\"
+
+            override fun equals(other: Any?): Boolean {
+                return other is Code && other.parts == parts
+            }
+
+            override fun hashCode(): Int = parts.hashCode()
         }
     }
 }

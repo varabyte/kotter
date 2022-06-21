@@ -14,6 +14,7 @@ import java.awt.event.*
 import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.awt.geom.Point2D
 import java.net.MalformedURLException
+import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
@@ -251,6 +252,9 @@ private fun Document.getText() = getText(0, length)
 class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines: Int) : JTextPane() {
     private val sgrCodeConverter: SgrCodeConverter
 
+    private val uris = mutableMapOf<Pair<Int, Int>, URI>()
+    private var currUri: Pair<Int, URI>? = null
+
     init {
         isEditable = false
         foreground = fgColor
@@ -274,16 +278,18 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
         resetMouseListeners()
     }
 
-    private fun getWordUnderPt(pt: Point2D): String {
+    private fun getWordUnderPt(pt: Point2D): Pair<String, URI?> {
         val offset = this.viewToModel2D(pt)
         val textPtr = TextPtr(styledDocument.getText(), offset)
+
+        val uriUnderPt = uris.toList().find { (range, _) -> textPtr.charIndex in range.first..range.second }?.second
 
         textPtr.incrementUntil { it.isWhitespace() }
         val end = textPtr.charIndex
 
         textPtr.decrementUntil { it.isWhitespace() }
         val start = textPtr.charIndex
-        return textPtr.substring(end - start)
+        return textPtr.substring(end - start) to uriUnderPt
     }
 
     private fun resetMouseListeners() {
@@ -294,9 +300,9 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
 
         addMouseMotionListener(object : MouseMotionAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                val wordUnderCursor = getWordUnderPt(e.point)
+                val (wordUnderCursor, uriUnderCursor) = getWordUnderPt(e.point)
                 cursor = try {
-                    URL(wordUnderCursor)
+                    uriUnderCursor ?: URL(wordUnderCursor)
                     Cursor.getPredefinedCursor(HAND_CURSOR)
                 } catch (ignored: MalformedURLException) {
                     Cursor.getDefaultCursor()
@@ -306,9 +312,9 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                val wordUnderCursor = getWordUnderPt(e.point)
+                val (wordUnderCursor, uriUnderCursor) = getWordUnderPt(e.point)
                 try {
-                    Desktop.getDesktop().browse(URL(wordUnderCursor).toURI())
+                    Desktop.getDesktop().browse(uriUnderCursor ?: URL(wordUnderCursor).toURI())
                 }
                 catch (ignored: MalformedURLException) {}
             }
@@ -319,6 +325,7 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
         if (!textPtr.increment()) return false
         return when (textPtr.currChar) {
             Ansi.EscSeq.CSI -> processCsiCode(textPtr, doc, attrs)
+            Ansi.EscSeq.OSC -> processOscCode(textPtr, doc, attrs)
             else -> false
         }
     }
@@ -371,6 +378,27 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
                     modifyAttributes(attrs)
                     true
                 } ?: false
+            }
+            else -> return false
+        }
+    }
+
+    private fun processOscCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
+        if (!textPtr.increment()) return false
+
+        val oscCode = Ansi.Osc.Code(textPtr)
+
+        return when (oscCode.id) {
+            Ansi.Osc.ANCHOR.id -> {
+                val ignored = oscCode.parts?.params?.get(0)
+                val uri = oscCode.parts?.params?.get(1)
+                if (currUri != null) {
+                    uris[currUri!!.first to doc.length] = currUri!!.second
+                }
+                if (!uri.isNullOrEmpty()) {
+                    currUri = doc.length to URI(uri)
+                }
+                true
             }
             else -> return false
         }
