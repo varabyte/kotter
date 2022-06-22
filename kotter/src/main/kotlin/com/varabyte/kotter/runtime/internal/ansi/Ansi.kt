@@ -128,6 +128,7 @@ object Ansi {
             // https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
             object Sgr {
                 object RESET : Code("0${Identifiers.SGR}")
+                object RESET2 : Code("${Identifiers.SGR}")
 
                 object Decorations {
                     object BOLD : Code("1${Identifiers.SGR}")
