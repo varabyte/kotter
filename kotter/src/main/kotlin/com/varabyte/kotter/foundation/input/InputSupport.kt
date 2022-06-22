@@ -45,7 +45,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                             if (c == Ansi.CtrlChars.ESC) escSeq.clear()
 
                             escSeq.append(c)
-                            val code = Ansi.EscSeq.toCode(escSeq)
+                            val code = Ansi.EscSeq.toCsiCode(escSeq)
                             if (code != null) {
                                 escSeq.clear()
                                 when (code) {

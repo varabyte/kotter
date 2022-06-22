@@ -62,7 +62,7 @@ private val IndexedColors by lazy {
 internal class SgrCodeConverter(val defaultForeground: Color, val defaultBackground: Color) {
     fun convert(code: Ansi.Csi.Code): (MutableAttributeSet.() -> Unit)? {
         return when(code) {
-            Ansi.Csi.Codes.Sgr.RESET -> { { removeAttributes(this) } }
+            Ansi.Csi.Codes.Sgr.RESET, Ansi.Csi.Codes.Sgr.RESET2 -> { { removeAttributes(this) } }
 
             Ansi.Csi.Codes.Sgr.Colors.Fg.CLEAR -> { { setInverseAwareForeground(defaultForeground) } }
             Ansi.Csi.Codes.Sgr.Colors.Fg.BLACK -> { { setInverseAwareForeground(AnsiColor.BLACK.toSwingColor()) } }

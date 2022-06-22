@@ -38,6 +38,7 @@ class SectionState internal constructor(internal val parent: SectionState? = nul
         var bolded: TerminalCommand? = parentStyles?.bolded
         var struckThrough: TerminalCommand? = parentStyles?.struckThrough
         var inverted: TerminalCommand? = parentStyles?.inverted
+        var anchor: TerminalCommand? = parentStyles?.anchor
     }
 
     /** Styles which are actively applied, and any text rendered right now would use them. */
@@ -73,6 +74,10 @@ class SectionState internal constructor(internal val parent: SectionState? = nul
         if (deferred.inverted?.text !== applied.inverted?.text) {
             applied.inverted = deferred.inverted
             renderer.appendCommand(applied.inverted ?: CLEAR_INVERT_COMMAND)
+        }
+        if (deferred.anchor?.text !== applied.anchor?.text) {
+            applied.anchor = deferred.anchor
+            renderer.appendCommand(applied.anchor ?: AnchorCommand())
         }
     }
 }
