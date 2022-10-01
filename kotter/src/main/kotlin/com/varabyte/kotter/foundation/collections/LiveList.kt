@@ -23,7 +23,7 @@ import kotlin.concurrent.write
  * }
  * ```
  *
- * This class's value can be queried and modified across different values, so it is designed to be thread safe.
+ * This class's value can be queried and modified across different threads, so it is designed to be thread safe.
  */
 @ThreadSafe
 class LiveList<T> internal constructor(private val session: Session, vararg elements: T) : MutableList<T> {

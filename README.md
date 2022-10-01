@@ -385,6 +385,13 @@ at the same time within your `run` block.
 Note that you don't have to worry about locking within a `section { ... }` block. Data access is already locked for you
 in that context.
 
+#### Other Collections
+
+In addition to `LiveList`, Kotter also provides `LiveMap` and `LiveSet`. There's no need to extensively document these
+classes as much of the earlier `LiveList` section applies here as well.
+
+You can create these classes using `liveMapOf(...)` and `liveSetOf(...)`, respectfully.
+
 #### Signals and waiting
 
 A common pattern is for the `run` block to wait for some sort of signal before finishing, e.g. in response to some
