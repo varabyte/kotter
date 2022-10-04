@@ -76,6 +76,9 @@ dependencies {
 
     // For GuardedBy concurrency annotation
     implementation("net.jcip:jcip-annotations:1.0")
+
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("com.varabyte.truthish:truthish:0.6.3")
 }
 
 java {
