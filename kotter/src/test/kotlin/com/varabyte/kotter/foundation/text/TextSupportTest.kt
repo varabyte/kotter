@@ -17,7 +17,8 @@ class TextSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Line 1",
             "Line 2",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode()
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            ""
         )
     }
 
@@ -29,8 +30,8 @@ class TextSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "Line 1Line 2",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode()
+            "Line 1Line 2" + Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            "", // Newline always added at the end of a section
         )
     }
 }

@@ -7,10 +7,10 @@ import org.junit.Test
 
 class TerminalTests {
     @Test
-    fun `terminal always ends with a newline and reset code`() = testSession { terminal ->
+    fun `terminal always ends with a reset code and newline`() = testSession { terminal ->
         assertThat(terminal.buffer).isEmpty()
         section {}.run()
 
-        assertThat(terminal.buffer).isEqualTo("\n" + Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode())
+        assertThat(terminal.buffer).isEqualTo(Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode() + "\n")
     }
 }

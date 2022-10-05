@@ -23,12 +23,6 @@ class Renderer<R: RenderScope>(val session: Session, private val createScope: (R
 
         createScope(this).render()
 
-        if (_commands.lastOrNull() !== NEWLINE_COMMAND) {
-            _commands.add(NEWLINE_COMMAND)
-        }
-
-        // Make sure we clear all state as we exit this block. This ensures that repaint passes don't carry
-        // state leftover from its end back to the beginning.
         _commands.add(RESET_COMMAND)
     }
 }
