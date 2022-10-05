@@ -43,6 +43,13 @@ class TestTerminal : Terminal {
     }
 }
 
+/**
+ * Convenience method that returns this test terminal's [TestTerminal.buffer] as separate lines.
+ */
+fun TestTerminal.lines(): List<String> {
+    return buffer.split("\n")
+}
+
 class TerminalTests {
     @Test
     fun `terminal always ends with a newline and reset code`() = testSession { terminal ->

@@ -2,6 +2,7 @@ package com.varabyte.kotter.foundation.text
 
 import com.varabyte.kotter.foundation.testSession
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.terminal.lines
 import com.varabyte.truthish.assertThat
 import org.junit.Test
 
@@ -13,7 +14,11 @@ class TextSupportTest {
             textLine("Line 2")
         }.run()
 
-        assertThat(terminal.buffer).isEqualTo("Line 1\nLine 2\n${Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode()}")
+        assertThat(terminal.lines()).containsExactly(
+            "Line 1",
+            "Line 2",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode()
+        )
     }
 
     @Test
@@ -23,7 +28,9 @@ class TextSupportTest {
             text("Line 2")
         }.run()
 
-        // Even though the final command was just `text`, a newline is still inserted at the end.
-        assertThat(terminal.buffer).isEqualTo("Line 1Line 2\n${Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode()}")
+        assertThat(terminal.lines()).containsExactly(
+            "Line 1Line 2",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode()
+        )
     }
 }
