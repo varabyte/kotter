@@ -19,7 +19,7 @@ class TextSupportTest {
             "Line 2",
             Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
             ""
-        )
+        ).inOrder()
     }
 
     @Test
@@ -32,6 +32,6 @@ class TextSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Line 1Line 2" + Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
             "", // Newline always added at the end of a section
-        )
+        ).inOrder()
     }
 }
