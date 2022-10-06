@@ -229,10 +229,10 @@ class Section internal constructor(val session: Session, private val render: Mai
     }
 
     fun run(block: (suspend RunScope.() -> Unit)? = null) {
-        if (consumed.get()) {
+        val prevValue = consumed.getAndSet(true)
+        if (prevValue) {
             throw IllegalStateException("Cannot rerun a section that was previously run")
         }
-        consumed.set(true)
 
         // Note: The data we're adding here will be removed by the `dispose` call below
         if (!session.data.tryPut(ActiveSectionKey) { this }) {
