@@ -102,6 +102,8 @@ object Ansi {
             }
 
             override fun hashCode(): Int = parts.hashCode()
+
+            override fun toString() = toFullEscapeCode()
         }
 
         object Codes {
