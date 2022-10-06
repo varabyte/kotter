@@ -42,6 +42,7 @@ class SectionTests {
         val rendered = ArrayBlockingQueue<Unit>(1)
         section {
             text(count.toString())
+        }.onRendered {
             rendered.add(Unit)
         }.run {
             rendered.take()
@@ -55,6 +56,41 @@ class SectionTests {
             "0${Codes.Sgr.RESET}"
                     + "\r${Codes.Erase.CURSOR_TO_LINE_END}1${Codes.Sgr.RESET}"
                     + "\r${Codes.Erase.CURSOR_TO_LINE_END}2${Codes.Sgr.RESET}",
+            "", // Newline added at the end of the section
+        ).inOrder()
+    }
+
+    @Test
+    fun `multiline sections get repainted in place`() = testSession { terminal ->
+        var count by liveVarOf(1)
+
+        val rendered = ArrayBlockingQueue<Unit>(1)
+        section {
+            textLine("Multiple lines")
+            text("Run #$count")
+        }.onRendered {
+            println("FINISHED RENDERING (count == $count)")
+            rendered.add(Unit)
+        }.run {
+            rendered.take()
+            println("TOOK (count == $count)")
+            count++
+            rendered.take()
+            println("TOOK (count == $count)")
+            count++
+            rendered.take()
+            println("TOOK (count == $count)")
+        }
+
+        assertThat(terminal.lines()).containsExactly(
+            "Multiple lines",
+            "Run #1${Codes.Sgr.RESET}"
+                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}\r${Codes.Erase.CURSOR_TO_LINE_END}"
+                    + "Multiple lines",
+            "Run #2${Codes.Sgr.RESET}"
+                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}\r${Codes.Erase.CURSOR_TO_LINE_END}"
+                    + "Multiple lines",
+            "Run #3${Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
         ).inOrder()
     }
