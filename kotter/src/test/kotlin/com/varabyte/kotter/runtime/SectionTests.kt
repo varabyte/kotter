@@ -4,15 +4,11 @@ import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.testSession
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.lines
 import com.varabyte.truthish.assertThat
-import kotlinx.coroutines.channels.Channel
 import org.junit.Test
 import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.BlockingQueue
-import java.util.concurrent.CountDownLatch
 
 class SectionTests {
     @Test
@@ -69,17 +65,13 @@ class SectionTests {
             textLine("Multiple lines")
             text("Run #$count")
         }.onRendered {
-            println("FINISHED RENDERING (count == $count)")
             rendered.add(Unit)
         }.run {
             rendered.take()
-            println("TOOK (count == $count)")
             count++
             rendered.take()
-            println("TOOK (count == $count)")
             count++
             rendered.take()
-            println("TOOK (count == $count)")
         }
 
         assertThat(terminal.lines()).containsExactly(
