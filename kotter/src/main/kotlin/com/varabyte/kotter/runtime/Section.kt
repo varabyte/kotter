@@ -5,6 +5,7 @@ import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
+import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
 import com.varabyte.kotter.runtime.internal.text.numLines
 import com.varabyte.kotter.runtime.internal.text.toRawText
 import com.varabyte.kotter.runtime.render.RenderScope
@@ -261,7 +262,7 @@ class Section internal constructor(val session: Session, private val render: Mai
 
         session.data.stop(Lifecycle)
 
-        if (renderer.commands.lastOrNull() !== NEWLINE_COMMAND) {
+        if (renderer.commands.asSequence().filter { it is TextCommand }.lastOrNull() !== NEWLINE_COMMAND) {
             session.terminal.write(NEWLINE_COMMAND.text)
         }
     }

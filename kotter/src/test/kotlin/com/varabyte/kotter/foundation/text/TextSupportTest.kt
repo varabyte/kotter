@@ -19,7 +19,6 @@ class TextSupportTest {
             "Line 1",
             "Line 2",
             Codes.Sgr.RESET.toFullEscapeCode(),
-            ""
         ).inOrder()
     }
 
