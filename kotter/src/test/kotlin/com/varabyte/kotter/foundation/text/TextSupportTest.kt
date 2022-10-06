@@ -31,7 +31,60 @@ class TextSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "Line 1Line 2${Codes.Sgr.RESET.toFullEscapeCode()}",
+            "Line 1Line 2${Codes.Sgr.RESET}",
+            "", // Newline always added at the end of a section
+        ).inOrder()
+    }
+
+    @Test
+    fun `simple text effects work`() = testSession { terminal ->
+        section {
+            bold { red { text("Text") } }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            // Note: The order of the codes don't match the declaration above, because internally all states are
+            // collected and applied in a somewhat arbitrary order that is implementation specific.
+            "${Codes.Sgr.Colors.Fg.RED}${Codes.Sgr.Decorations.BOLD}Text${Codes.Sgr.RESET}",
+            "", // Newline always added at the end of a section
+        ).inOrder()
+    }
+
+    @Test
+    fun `color arguments work`() = testSession { terminal ->
+        section {
+            green(ColorLayer.BG) {
+                red(isBright = true) {
+                    text("Text")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            // Note: The order of the codes don't match the declaration above, because internally all states are
+            // collected and applied in a somewhat arbitrary order that is implementation specific.
+            "${Codes.Sgr.Colors.Fg.RED_BRIGHT}${Codes.Sgr.Colors.Bg.GREEN}Text${Codes.Sgr.RESET}",
+            "", // Newline always added at the end of a section
+        ).inOrder()
+    }
+
+    @Test
+    fun `intermediate text effects are discarded`() = testSession { terminal ->
+        section {
+            bold {
+                red {
+                    green {
+                        blue {
+                            clearBold()
+                            text("Text")
+                        }
+                    }
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "${Codes.Sgr.Colors.Fg.BLUE}Text${Codes.Sgr.RESET}",
             "", // Newline always added at the end of a section
         ).inOrder()
     }
