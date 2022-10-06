@@ -2,6 +2,7 @@ package com.varabyte.kotter.foundation.text
 
 import com.varabyte.kotter.foundation.testSession
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.lines
 import com.varabyte.truthish.assertThat
 import org.junit.Test
@@ -17,7 +18,7 @@ class TextSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Line 1",
             "Line 2",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.RESET.toFullEscapeCode(),
             ""
         ).inOrder()
     }
@@ -30,7 +31,7 @@ class TextSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "Line 1Line 2" + Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            "Line 1Line 2${Codes.Sgr.RESET.toFullEscapeCode()}",
             "", // Newline always added at the end of a section
         ).inOrder()
     }
