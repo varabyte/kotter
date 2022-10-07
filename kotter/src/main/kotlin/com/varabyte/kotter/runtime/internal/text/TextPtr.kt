@@ -58,19 +58,38 @@ class TextPtr(val text: CharSequence, charIndex: Int = 0) {
         return movePtr(false) { false }
     }
 
+    /**
+     * Increment the text pointer at least once, and then keep going as long as the condition is met.
+     *
+     * @return true if we incremented at least one character (regardless of the condition's effect).
+     */
     fun incrementWhile(whileCondition: (Char) -> Boolean) = movePtr(true, whileCondition)
+
+    /**
+     * Decrement the text pointer at least once, and then keep going as long as the condition is met.
+     *
+     * @return true if we decremented at least one character (regardless of the condition's effect).
+     */
     fun decrementWhile(whileCondition: (Char) -> Boolean) = movePtr(false, whileCondition)
+
+    /**
+     * Like [incrementWhile] with the condition inverted.
+     */
     fun incrementUntil(whileCondition: (Char) -> Boolean): Boolean {
         return incrementWhile { !whileCondition(it) }
     }
 
+    /**
+     * Like [decrementWhile] with the condition inverted.
+     */
     fun decrementUntil(whileCondition: (Char) -> Boolean): Boolean {
         return decrementWhile { !whileCondition(it) }
     }
 }
 
 fun TextPtr.substring(length: Int): String {
-    return text.substring(charIndex, min(charIndex + length, text.length))
+    val cappedLen = min(length, text.length - charIndex) // In case user passes in Int.MAX_VALUE, this avoids int wrapping
+    return text.substring(charIndex, min(charIndex + cappedLen, text.length))
 }
 
 fun TextPtr.readInt(): Int? {
