@@ -387,7 +387,7 @@ in that context.
 #### Other Collections
 
 In addition to `LiveList`, Kotter also provides `LiveMap` and `LiveSet`. There's no need to extensively document these
-classes as much of the earlier `LiveList` section applies here as well.
+classes here as much of the earlier `LiveList` section applies to them as well.
 
 You can create these classes using `liveMapOf(...)` and `liveSetOf(...)`, respectfully.
 
@@ -425,8 +425,8 @@ section {
 These methods are enough in most cases. Note that if you call `signal` before you reach `waitForSignal`, then
 `waitForSignal` will just pass through without stopping.
 
-There's also a convenience `runUntilSignal` method you can use, within which you don't need to call `waitForSignal` yourself, since
-this case is so common:
+There's also a convenience `runUntilSignal` method you can use, within which you don't need to call `waitForSignal`
+yourself, since this case is so common:
 
 ```kotlin
 val fileDownloader = FileDownloader("...")
@@ -603,7 +603,7 @@ var blinkOn by liveVarOf(false)
 section {
   /* ... */
 }.onFinishing {
-  blinkOn = false
+  blinkOn = false // User might press Q while the blinking state was on
 }.runUntilKeyPressed(Keys.Q) {
   addTimer(Duration.ofMillis(250), repeat = true) { blinkOn = !blinkOn }
   /* ... */
@@ -685,6 +685,8 @@ deal with raw text and don't have access to text effects like colors and styles,
 accomplish these easily using a render animation and the `color(Color)` method:
 
 ```kotlin
+// Note: Color is a Kotter enum with the main colors it supports
+
 session {
   val colorAnim = renderAnimOf(Color.values().size, Duration.ofMillis(250)) { i ->
     color(Color.values()[i])
@@ -880,11 +882,10 @@ glance, but don't worry as the remaining subsections will break it down:
 ```
 
 The top level of your whole application. `Session` owns a `data: ConcurrentScopedData` field which we'll talk more about
-a little later. However, it's worth understanding that `data` lives inside a session, and every other way you access it
-is really pointing back to this singular one.
+a little later. However, it's worth understanding that `data` lives inside a session, and every time you see some place
+exposing a `data` field, it is really pointing back to this singular one.
 
-`Session` is the scope you need when calling `liveVarOf` or `liveListOf`, or even declaring a `section`, so you may find
-yourself creating an extension method on top of the `Session` scope to reference such methods:
+`Session` is the scope you need when you want to call `liveVarOf` or `liveListOf`, or even to declare a `section`:
 
 ```kotlin
 fun Session.firstSection() {}
@@ -1029,18 +1030,40 @@ always be released when some parent lifecycle ends, unless you remove it yoursel
 Kotter itself manages four lifecycles: `Session.Lifecycle`, `Section.Lifecycle`, `MainRenderScope.Lifecycle`, and
 `Run.Lifecycle` (each associated with the scopes discussed above).
 
-***Note:** No lifecycles are provided for `offscreen` or `aside` blocks at the moment because you could probably just
-use the `MainRenderScope.Lifecycle` or `Run.Lifecycle` lifecycles for those cases. Feel free to open up an issue with a
-use-case requiring additional lifecycles if you run into one.*
+***Note:** No lifecycles are provided for `offscreen` or `aside` blocks at the moment. Feel free to open up an issue
+with a use-case requiring additional lifecycles if you run into one.*
 
-Keep in mind that the `MainRenderScope` dies after a *single* render pass. Almost always you want to use the
-`Section.Lifecycle`, as it survives across multiple runs.
+Keep in mind that the `MainRenderScope.Lifecycle` dies after a *single* render pass. Almost always you want to tie data
+to `Section.Lifecycle`, as it survives across multiple runs.
 
 Nothing prevents you from defining your own lifecycle - just be sure to call `data.start(...)` and `data.stop(...)` with
 it.
 
+```kotlin
+  object MyLifecycle : ConcurrentScopedData.Lifecycle
+  private val MySetting = MyLifecycle.createKey<Boolean>()
+
+  try {
+    data.start(MyLifecycle)
+    data[MySetting] = true
+  } finally {
+    data.stop(MyLifecycle)
+  }
+```
+
 Lifecycles can be defined as subordinate to other lifecycles, so if you create a lifecycle that is tied to the `Run`
 lifecycle for example, then you don't need to explicitly call `stop` yourself (but you still need to call `start`).
+
+```kotlin
+  object MyLifecycle : ConcurrentScopedData.Lifecycle {
+    override val parent = Run.Lifecycle
+  }
+
+  section { ... }.run {
+    data.start(MyLifecycle) // Will be stopped when the run block finishes
+  }
+```
+
 
 You can review the `ConcurrentScopedData` class for its full list of documented API calls, but the three common ways to
 add values to it are:
@@ -1051,22 +1074,6 @@ add values to it are:
   `data.putIfAbsent(key, provideInitialValue = { value }) { ... logic using value ... }`<br>
   * This is essentially a shortcut for calling `tryPut` and then getting the value, but doing so in a way that ensures
     no one else grabs the thread from you in between.
-
-We're almost done! At this point, all you need is a key. Creating one is easy - just tie it to a lifecycle and the type
-of data it represents. Putting it all together:
-
-```kotlin
-class MyFeatureState(...)
-val MyFeatureKey = Section.Lifecycle.createKey<MyFeatureState>() // Or some other lifecycle
-
-fun RenderScope.myFeature() { // Or some other scope
-  data.putIfAbsent(MyFeatureKey, { MyFeatureState(...) }) {
-    // "this" is MyFeatureState
-    // This block gets run every time `myFeature` is called, but
-    // `MyFeatureState` is only created the first time
-  }
-}
-```
 
 To close this section, we just wanted to say that it was very tempting at first to create a bunch of hardcoded functions
 baked inside `Section`, `MainRenderScope`, etc., with access to some private state, but implementing everything through
