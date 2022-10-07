@@ -242,14 +242,23 @@ class Section internal constructor(val session: Session, private val render: Mai
 
         session.data.start(RunScope.Lifecycle)
         renderOnce()
+
+        // Running might crash, and if so, we should still propagate the exception but only after we've cleaned up post
+        // run.
+        var deferredException: Exception? = null
+
         if (block != null) {
             val self = this
-            val job = CoroutineScope(Dispatchers.Default).launch {
-                val scope = RunScope(self, this)
-                scope.block()
+            try {
+                runBlocking {
+                    val scope = RunScope(self, this)
+                    scope.block()
+                }
+            } catch (ignored: CancellationException) {
+                // This is expected as it can happen when abort() is called in `run`
+            } catch (ex: Exception) {
+                deferredException = ex
             }
-
-            runBlocking { job.join() }
         }
         session.data.stop(RunScope.Lifecycle)
         onFinishing.forEach { it() }
@@ -261,6 +270,7 @@ class Section internal constructor(val session: Session, private val render: Mai
         allRendersFinishedLatch.await()
 
         session.data.stop(Lifecycle)
+        deferredException?.let { throw it }
 
         if (renderer.commands.asSequence().filter { it is TextCommand }.lastOrNull() !== NEWLINE_COMMAND) {
             session.terminal.write(NEWLINE_COMMAND.text)

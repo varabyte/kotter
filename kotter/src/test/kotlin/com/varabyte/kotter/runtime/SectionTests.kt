@@ -8,8 +8,10 @@ import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.lines
 import com.varabyte.kotter.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
+import com.varabyte.truthish.assertThrows
 import org.junit.Test
 import java.util.concurrent.ArrayBlockingQueue
+import kotlin.coroutines.cancellation.CancellationException
 
 class SectionTests {
     @Test
@@ -18,6 +20,39 @@ class SectionTests {
         section {}.run()
 
         assertThat(terminal.buffer).isEqualTo("${Codes.Sgr.RESET}\n")
+    }
+
+    @Test
+    fun `exceptions in run blocks are thrown`() = testSession { terminal ->
+        assertThrows<RuntimeException> {
+            section {}.run {
+                throw RuntimeException("Exception in run")
+            }
+        }.also {
+            assertThat(it.message).isEqualTo("Exception in run")
+        }
+    }
+
+    @Test
+    fun `cancellations in run blocks are ignored`() = testSession { terminal ->
+        var runWasCalled = false
+        section {}.run {
+            runWasCalled = true
+            throw CancellationException("CancellationException in run")
+        }
+
+        assertThat(runWasCalled).isTrue()
+    }
+
+    @Test
+    fun `exceptions in section blocks are swallowed`() = testSession { terminal ->
+        var sectionWasCalled = false
+        section {
+            sectionWasCalled = true
+            throw RuntimeException("Exception in section")
+        }.run()
+
+        assertThat(sectionWasCalled).isTrue()
     }
 
     @Test

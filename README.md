@@ -256,15 +256,14 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-calculating.gif)
 
-The `run` callback automatically runs on a background thread for you (as a suspend function, so you can call other
-suspend methods from within it).
+The `run` callback runs as a suspend function, so you can call other suspend methods from within it.
 
 Unlike using `run` without a callback (i.e. simply `run()`), here your program will be blocked until the callback has
 finished (or, if it has triggered a rerender, until the last rerender finishes after your callback is done).
 
 #### LiveVar
 
-As you can see above, the `run` callback uses a `rerender` method, which you can call to request another render pass.
+In our example above, the `run` callback calls a `rerender` method, which you can call to request another render pass.
 
 However, remembering to call `rerender` yourself is potentially fragile and could be a source of bugs in the future when
 trying to figure out why your console isn't updating.
@@ -917,8 +916,8 @@ session {
 ```
 
 Unlike `Session`, you shouldn't ever need to add an extension method on top of a `Section`, because a section is mainly
-just a class for managing two sub-parts - the render logic (which runs on the main thread) and the run logic (which runs
-on a background thread).
+just a class for managing two sub-parts - the render logic (which runs on a render thread) and the run logic (which runs
+on the main thread).
 
 It is the render and run parts that are particularly interesting, those being the most likely ones that users will want
 to extend in general. These are discussed next.
@@ -996,9 +995,8 @@ Therefore, its definition looks like `fun MainRenderScope.input(...) { ... }`
 └─ }
 ```
 
-`RunScope` is used for `run` blocks. It's useful for extracting logic that deals with handling user input or running
-long-running background tasks. Functions like `onKeyPressed`, `onInputChanged`, `addTimer` etc. are defined on top of
-this scope.
+`RunScope` is used for `run` blocks. It's useful for extracting logic that deals with handling user input or
+long-running tasks. Functions like `onKeyPressed`, `onInputChanged`, `addTimer` etc. are defined on top of this scope.
 
 ```kotlin
 fun RunScope.exec(vararg command: String) {
@@ -1078,10 +1076,12 @@ So go forth, and extend Kotter!
 
 ### 🧵 Thread Affinity
 
-Setting aside the fact that the `run` block runs in a background thread, sections themselves are rendered sequentially
-on a single thread. Anytime you make a call to run a section, no matter which thread it is called from, a single thread
-ultimately handles it. At the same time, if you attempt to run one section while another is already running, an
-exception is thrown.
+Sections are rendered sequentially on a single thread. Anytime you make a call to run a section, no matter which thread
+it is called from, a single thread ultimately handles it. At the same time, if you attempt to run one section while
+another is already running, an exception is thrown.
+
+The `run` block runs in place on the thread that called it. In this way, progress is prevented until the run logic
+finishes running.
 
 I made this decision so that:
 
@@ -1096,7 +1096,7 @@ anyway -- ask the user a question, do some work, then ask another question, etc.
 even need to call `section` from more than one thread. It is hoped that the
 
 ```kotlin
-section { ... main thread ... }.run { ... background thread ... }
+section { ... render thread ... }.run { ... current thread ... }
 ```
 
 pattern is powerful enough for most (all?) cases.
