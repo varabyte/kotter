@@ -92,6 +92,15 @@ fun TextPtr.substring(length: Int): String {
     return text.substring(charIndex, min(charIndex + cappedLen, text.length))
 }
 
+fun TextPtr.startsWith(value: Char, ignoreCase: Boolean = false): Boolean {
+    return remainingLength > 0 && currChar.equals(value, ignoreCase)
+}
+
+fun TextPtr.startsWith(value: String, ignoreCase: Boolean = false): Boolean {
+    if (remainingLength < value.length) return false
+    return substring(value.length).equals(value, ignoreCase)
+}
+
 fun TextPtr.readInt(): Int? {
     if (!currChar.isDigit()) return null
 

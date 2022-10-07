@@ -6,6 +6,7 @@ import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.lines
+import com.varabyte.kotter.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
 import org.junit.Test
 import java.util.concurrent.ArrayBlockingQueue
@@ -54,6 +55,12 @@ class SectionTests {
                     + "\r${Codes.Erase.CURSOR_TO_LINE_END}2${Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
         ).inOrder()
+
+        // Also, make sure the resolved view looks right
+        assertThat(terminal.resolveRerenders()).containsExactly(
+            "2${Codes.Sgr.RESET}",
+            "", // Newline added at the end of the section
+        ).inOrder()
     }
 
     @Test
@@ -82,6 +89,13 @@ class SectionTests {
             "Run #2${Codes.Sgr.RESET}"
                     + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}\r${Codes.Erase.CURSOR_TO_LINE_END}"
                     + "Multiple lines",
+            "Run #3${Codes.Sgr.RESET}",
+            "", // Newline added at the end of the section
+        ).inOrder()
+
+        // Also, make sure the resolved view looks right
+        assertThat(terminal.resolveRerenders()).containsExactly(
+            "Multiple lines",
             "Run #3${Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
         ).inOrder()

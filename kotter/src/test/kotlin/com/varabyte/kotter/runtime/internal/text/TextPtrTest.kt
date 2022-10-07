@@ -171,6 +171,23 @@ class TextPtrTest {
     }
 
     @Test
+    fun `can check startsWith`() {
+        val textPtr = TextPtr("Debugging")
+
+        assertThat(textPtr.startsWith("Debug")).isTrue()
+        assertThat(textPtr.startsWith("DeBuG")).isFalse()
+        assertThat(textPtr.startsWith("DeBuG", ignoreCase = true)).isTrue()
+        assertThat(textPtr.startsWith('D')).isTrue()
+        assertThat(textPtr.startsWith('d')).isFalse()
+        assertThat(textPtr.startsWith('d', ignoreCase = true)).isTrue()
+        assertThat(textPtr.startsWith("Bedbug")).isFalse()
+
+        textPtr.charIndex += 2
+
+        assertThat(textPtr.startsWith("bug")).isTrue()
+    }
+
+    @Test
     fun `can parse int values`() {
         val text = "Hello123 456 789goodbye"
         val textPtr = TextPtr(text)
