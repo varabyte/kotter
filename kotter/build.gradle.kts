@@ -1,9 +1,11 @@
+import kotlinx.kover.api.KoverTaskExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
     `maven-publish`
     signing
+    id("org.jetbrains.kotlinx.kover") version "0.6.1"
 }
 
 group = "com.varabyte.kotter"
@@ -83,6 +85,14 @@ java {
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+}
+
+kover {
+    filters {
+        classes {
+            excludes += "com.varabyte.kotter.terminal.*"
+        }
+    }
 }
 
 publishing {
