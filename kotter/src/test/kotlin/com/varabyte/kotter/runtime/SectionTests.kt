@@ -167,6 +167,27 @@ class SectionTests {
     }
 
     @Test
+    fun `section is repainted if a LiveVar value changes`() = testSession { terminal ->
+        var value by liveVarOf(0)
+        section {
+            text(value.toString())
+        }.run {
+            value = 42
+        }
+
+        // There's no harm in setting this outside of the section block, but it doesn't cause a rerender at this point.
+        value = 123
+
+        assertThat(terminal.lines()).containsExactly(
+            "0${Codes.Sgr.RESET}"
+                + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
+                + "42${Codes.Sgr.RESET}",
+            "", // Newline added at the end of the section
+        ).inOrder()
+    }
+
+
+    @Test
     fun `runUntilSignal exits after the signal is reached`() = testSession {
         section {}.runUntilSignal {
             signal()
