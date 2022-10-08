@@ -2,6 +2,7 @@ package com.varabyte.kotter.runtime
 
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.render.aside
+import com.varabyte.kotter.foundation.runUntilSignal
 import com.varabyte.kotter.foundation.testSession
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
@@ -160,5 +161,12 @@ class SectionTests {
             "Section text${Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
         ).inOrder()
+    }
+
+    @Test
+    fun `runUntilSignal exits after the signal is reached`() = testSession {
+        section {}.runUntilSignal {
+            signal()
+        }
     }
 }
