@@ -1,5 +1,7 @@
 package com.varabyte.kotter.runtime
 
+import com.varabyte.kotter.foundation.input.Keys
+import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.render.aside
 import com.varabyte.kotter.foundation.runUntilSignal
@@ -9,6 +11,7 @@ import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.lines
 import com.varabyte.kotter.terminal.resolveRerenders
+import com.varabyte.kotter.terminal.typeChar
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import org.junit.Test
@@ -167,6 +170,13 @@ class SectionTests {
     fun `runUntilSignal exits after the signal is reached`() = testSession {
         section {}.runUntilSignal {
             signal()
+        }
+    }
+
+    @Test
+    fun `runUntilKeyPressed exits after the corresponding key is pressed`() = testSession { terminal ->
+        section {}.runUntilKeyPressed(Keys.Q) {
+            terminal.typeChar('q')
         }
     }
 }

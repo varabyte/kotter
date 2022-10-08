@@ -4,7 +4,9 @@ import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.internal.text.startsWith
 import com.varabyte.kotter.runtime.terminal.Terminal
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlin.math.min
 
 /**
@@ -15,8 +17,13 @@ class TestTerminal : Terminal {
         private set
 
     private val _buffer = StringBuffer()
-
     val buffer get() = _buffer.toString()
+
+    private val keysChannel = Channel<Int>()
+
+    suspend fun sendKeys(vararg keys: Int) {
+        keys.forEach { keysChannel.send(it) }
+    }
 
     override fun write(text: String) {
         assertNotClosed()
@@ -25,7 +32,7 @@ class TestTerminal : Terminal {
 
     override fun read(): Flow<Int> {
         assertNotClosed()
-        TODO("Not yet implemented")
+        return keysChannel.consumeAsFlow()
     }
 
     override fun clear() {
@@ -42,6 +49,15 @@ class TestTerminal : Terminal {
         check(!closed) { "Tried to modify this terminal after it was closed" }
     }
 }
+
+/** Convenience function for the common case of only sending a single key. */
+suspend fun TestTerminal.sendKey(key: Int) = sendKeys(key)
+
+/** Convenience function for typing characters (instead of sending their underlying codes) */
+suspend fun TestTerminal.typeChars(chars: Iterable<Char>) = sendKeys(*chars.map { it.code }.toIntArray())
+
+/** Convenience function for the common case of typing a single char. */
+suspend fun TestTerminal.typeChar(char: Char) = sendKey(char.code)
 
 /**
  * Convenience method that returns this test terminal's [TestTerminal.buffer] as separate lines.
