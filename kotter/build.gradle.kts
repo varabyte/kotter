@@ -49,13 +49,6 @@ fun MavenArtifactRepository.sonatypeAuth() {
 
 repositories {
     mavenCentral()
-    // Do I need these here? Cleanup if these are still commented out ~June/July 2022
-//    if (shouldPublishToGCloud()) {
-//        maven { gcloudAuth() }
-//    }
-//    if (shouldPublishToMavenCentral()) {
-//        maven { sonatypeAuth() }
-//    }
 }
 
 object Versions {
