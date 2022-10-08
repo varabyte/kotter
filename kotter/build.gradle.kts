@@ -5,7 +5,7 @@ plugins {
     kotlin("jvm")
     `maven-publish`
     signing
-    id("org.jetbrains.kotlinx.kover") version "0.6.1"
+    id("org.jetbrains.kotlinx.kover")
 }
 
 group = "com.varabyte.kotter"
