@@ -90,7 +90,10 @@ tasks.withType<KotlinCompile>().configureEach {
 kover {
     filters {
         classes {
-            excludes += "com.varabyte.kotter.terminal.*"
+            excludes += listOf(
+                "com.varabyte.kotter.terminal.*", // Virtual terminal implementations are UI, not important to cover
+                "com.varabyte.kotter.foundation.SessionKt*", // Untested session code is related to terminals
+            )
         }
     }
 }
