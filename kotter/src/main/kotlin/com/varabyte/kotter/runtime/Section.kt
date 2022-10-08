@@ -186,7 +186,12 @@ class Section internal constructor(val session: Session, private val render: Mai
 
             val asideTextBuilder = StringBuilder()
             session.data.get(AsideRendersKey) {
-                forEach { renderer -> asideTextBuilder.append(renderer.commands.toRawText()) }
+                if (this.isEmpty()) return@get
+
+                forEach { renderer ->
+                    asideTextBuilder.append(renderer.commands.toRawText())
+                    if (!asideTextBuilder.endsWith('\n')) asideTextBuilder.append('\n')
+                }
                 // Only render asides once. Since we don't erase them, they'll be baked into the history.
                 clear()
             }
@@ -260,7 +265,14 @@ class Section internal constructor(val session: Session, private val render: Mai
                 deferredException = ex
             }
         }
+
+        // It's possible that the `run` block called `aside` after the section already finished. If so, this should
+        // cause one last rerender to occur (since section rendering is responsible for rendering the asides)
+        if (session.data[AsideRendersKey]?.isNotEmpty() == true) {
+            renderOnce()
+        }
         session.data.stop(RunScope.Lifecycle)
+
         onFinishing.forEach { it() }
 
         // Our run block is done, let's just wait until any remaining renders are finished. We can do this by adding

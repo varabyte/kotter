@@ -1,6 +1,7 @@
 package com.varabyte.kotter.runtime
 
 import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.render.aside
 import com.varabyte.kotter.foundation.testSession
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
@@ -132,6 +133,31 @@ class SectionTests {
         assertThat(terminal.resolveRerenders()).containsExactly(
             "Multiple lines",
             "Run #3${Codes.Sgr.RESET}",
+            "", // Newline added at the end of the section
+        ).inOrder()
+    }
+
+    @Test
+    fun `asides always finish running`() = testSession { terminal ->
+        section {
+            textLine()
+            text("Section text")
+        }.run {
+            for (i in 1..5) {
+                aside { text("Aside #$i") }
+            }
+        }
+
+        // Thread timing can result in different intermediate buffer states. However, the final render, after all
+        // rerenders are resolved, will be identical for all cases.
+        assertThat(terminal.resolveRerenders()).containsExactly(
+            "Aside #1${Codes.Sgr.RESET}",
+            "Aside #2${Codes.Sgr.RESET}",
+            "Aside #3${Codes.Sgr.RESET}",
+            "Aside #4${Codes.Sgr.RESET}",
+            "Aside #5${Codes.Sgr.RESET}",
+            "",
+            "Section text${Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
         ).inOrder()
     }
