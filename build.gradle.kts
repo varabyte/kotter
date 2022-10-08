@@ -4,5 +4,5 @@
 plugins {
     kotlin("jvm") version "1.6.10" apply false
     id("org.jetbrains.kotlinx.kover") version "0.6.1" apply false
-    id("org.jetbrains.compose") version "1.1.0" apply false
+    id("org.jetbrains.compose") version "1.1.1" apply false
 }
