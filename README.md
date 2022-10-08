@@ -513,6 +513,49 @@ section {
 }
 ```
 
+#### Input Completions
+
+You can pass in an `InputCompleter` implementation to `input` that can generate suggestions based on the current input.
+The user can press RIGHT at any time to autocomplete any suggested shown to them.
+
+Here's the interface (with some parts elided for simplicity):
+
+```kotlin
+interface InputCompleter {
+    fun complete(input: String): String?
+}
+
+input(object : InputCompleter {
+    override fun complete(input: String): String? { ... }
+})
+```
+
+Perhaps you have a database of names in your program? You can use it to provide suggestions. If your implementation
+returns null, that means no suggestion was found:
+
+```kotlin
+object : InputCompleter {
+  override fun complete(input: String): String? {
+      return names
+          .firstOrNull { it.startsWith(input) }
+          ?.let { it.drop(input.length) }
+    // ^ Don't return the whole word; just the part that comes after the user's input so far.
+  }
+}
+```
+
+Kotter provides a very useful implementation out of the box, called `Completions`, which lets you specify a list of
+values that will be autocompleted as long as the user's input matches one of them.
+
+```
+section {
+  text("Continue? "); input(Completions("yes", "no"))
+}.run()
+```
+
+Order matters! If nothing is typed, the first completion will be suggested. If multiple values match, the one earliest
+in the list will be suggested.
+
 #### Keypresses
 
 If you're interested in specific keypresses and not simply input that's been typed in, you can register a listener to
