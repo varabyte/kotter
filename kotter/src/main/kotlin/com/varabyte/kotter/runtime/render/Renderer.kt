@@ -4,6 +4,7 @@ import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.internal.TerminalCommand
 import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
+import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
 
 /**
  * A class responsible for executing some block of logic which requests render instructions, which ultimately modify an
@@ -24,5 +25,9 @@ class Renderer<R: RenderScope>(val session: Session, private val createScope: (R
         createScope(this).render()
 
         _commands.add(RESET_COMMAND)
+
+        if (commands.asSequence().filter { it is TextCommand }.lastOrNull() !== NEWLINE_COMMAND) {
+            _commands.add(NEWLINE_COMMAND)
+        }
     }
 }

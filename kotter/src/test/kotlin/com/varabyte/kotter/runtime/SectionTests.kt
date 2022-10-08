@@ -91,8 +91,10 @@ class SectionTests {
         }
 
         assertThat(terminal.lines()).containsExactly(
-            "0${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}1${Codes.Sgr.RESET}"
+            "0${Codes.Sgr.RESET}",
+            "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}" // Clear the auto-appended newline
+                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}1${Codes.Sgr.RESET}",
+            "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}" // Clear the auto-appended newline
                     + "\r${Codes.Erase.CURSOR_TO_LINE_END}2${Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
         ).inOrder()
@@ -124,11 +126,15 @@ class SectionTests {
 
         assertThat(terminal.lines()).containsExactly(
             "Multiple lines",
-            "Run #1${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}\r${Codes.Erase.CURSOR_TO_LINE_END}"
+            "Run #1${Codes.Sgr.RESET}",
+            "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}" // Clear the auto-appended newline
+                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}"
+                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
                     + "Multiple lines",
-            "Run #2${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}\r${Codes.Erase.CURSOR_TO_LINE_END}"
+            "Run #2${Codes.Sgr.RESET}",
+            "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}" // Clear the auto-appended newline
+                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}"
+                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
                     + "Multiple lines",
             "Run #3${Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
@@ -149,7 +155,6 @@ class SectionTests {
         section {
             textLine()
             text("Section text")
-
         }.onRendered {
             renderedOnce.countDown()
         }.run {
@@ -186,9 +191,10 @@ class SectionTests {
         value = 123
 
         assertThat(terminal.lines()).containsExactly(
-            "0${Codes.Sgr.RESET}"
-                + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
-                + "42${Codes.Sgr.RESET}",
+            "0${Codes.Sgr.RESET}",
+            "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}" // Clear the auto-appended newline
+                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
+                    + "42${Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
         ).inOrder()
     }

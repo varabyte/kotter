@@ -171,9 +171,6 @@ class Section internal constructor(val session: Session, private val render: Mai
 
                 forEach { renderer ->
                     asideTextBuilder.append(renderer.commands.toRawText())
-                    if (renderer.commands.asSequence().filter { it is TextCommand }.lastOrNull() !== NEWLINE_COMMAND) {
-                        asideTextBuilder.append('\n')
-                    }
                 }
                 // Only render asides once. Since we don't erase them, they'll be baked into the history.
                 clear()
@@ -281,9 +278,5 @@ class Section internal constructor(val session: Session, private val render: Mai
 
         session.data.stop(Lifecycle)
         deferredException?.let { throw it }
-
-        if (renderer.commands.asSequence().filter { it is TextCommand }.lastOrNull() !== NEWLINE_COMMAND) {
-            session.terminal.write(NEWLINE_COMMAND.text)
-        }
-    }
+   }
 }
