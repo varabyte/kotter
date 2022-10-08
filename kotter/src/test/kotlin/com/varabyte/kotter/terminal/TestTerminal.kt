@@ -54,10 +54,7 @@ class TestTerminal : Terminal {
 suspend fun TestTerminal.sendKey(key: Int) = sendKeys(key)
 
 /** Convenience function for typing characters (instead of sending their underlying codes) */
-suspend fun TestTerminal.typeChars(chars: Iterable<Char>) = sendKeys(*chars.map { it.code }.toIntArray())
-
-/** Convenience function for the common case of typing a single char. */
-suspend fun TestTerminal.typeChar(char: Char) = sendKey(char.code)
+suspend fun TestTerminal.type(vararg chars: Char) = sendKeys(*chars.map { it.code }.toIntArray())
 
 /**
  * Convenience method that returns this test terminal's [TestTerminal.buffer] as separate lines.
