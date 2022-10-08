@@ -1,4 +1,4 @@
-![version: 0.9.9](https://img.shields.io/badge/kotter-v0.9.9-blue)
+![version: 1.0.0-rc1](https://img.shields.io/badge/kotter-v1.0.0_rc1-blue)
 ![kotter tests](https://github.com/varabyte/kotter/actions/workflows/gradle-test.yml/badge.svg)
 <a href="https://discord.gg/5NZ2GKV5Cs">
   <img alt="Varabyte Discord" src="https://img.shields.io/discord/886036660767305799.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2" />
@@ -45,26 +45,27 @@ Specifically, this library helps with:
 ### 🎯 Dependency
 
 ```groovy
-// build.gradle
+// build.gradle (groovy)
 
 repositories {
   mavenCentral()
 }
 
 dependencies {
-  implementation 'com.varabyte.kotter:kotter:0.9.9'
+  implementation 'com.varabyte.kotter:kotter:1.0.0-rc1'
 }
+```
 
-// build.gradle.kts
+```kotlin
+// build.gradle.kts (kotlin script)
 
 repositories {
   mavenCentral()
 }
 
 dependencies {
-  implementation("com.varabyte.kotter:kotter:0.9.9")
+  implementation("com.varabyte.kotter:kotter:1.0.0-rc1")
 }
-
 ```
 
 ### 🚥 Running examples
