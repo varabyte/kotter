@@ -24,7 +24,7 @@ class SectionTests {
     }
 
     @Test
-    fun `exceptions in run blocks are thrown`() = testSession { terminal ->
+    fun `exceptions in run blocks are thrown`() = testSession {
         assertThrows<RuntimeException> {
             section {}.run {
                 throw RuntimeException("Exception in run")
@@ -35,7 +35,7 @@ class SectionTests {
     }
 
     @Test
-    fun `cancellations in run blocks are ignored`() = testSession { terminal ->
+    fun `cancellations in run blocks are ignored`() = testSession {
         var runWasCalled = false
         section {}.run {
             runWasCalled = true
@@ -46,7 +46,7 @@ class SectionTests {
     }
 
     @Test
-    fun `exceptions in section blocks are swallowed`() = testSession { terminal ->
+    fun `exceptions in section blocks are swallowed`() = testSession {
         var sectionWasCalled = false
         section {
             sectionWasCalled = true
