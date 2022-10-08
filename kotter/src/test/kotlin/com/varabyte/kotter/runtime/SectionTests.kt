@@ -16,6 +16,7 @@ import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import org.junit.Test
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.CountDownLatch
 import kotlin.coroutines.cancellation.CancellationException
 
 class SectionTests {
@@ -142,11 +143,17 @@ class SectionTests {
     }
 
     @Test
-    fun `asides always finish running`() = testSession { terminal ->
+    fun `any extra asides always flush`() = testSession { terminal ->
+        val renderedOnce = CountDownLatch(1)
+
         section {
             textLine()
             text("Section text")
+
+        }.onRendered {
+            renderedOnce.countDown()
         }.run {
+            renderedOnce.await()
             for (i in 1..5) {
                 aside { text("Aside #$i") }
             }

@@ -19,7 +19,7 @@ import kotlin.concurrent.withLock
 import kotlin.concurrent.write
 
 internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
-internal val AsideRendersKey = RunScope.Lifecycle.createKey<MutableList<Renderer<AsideRenderScope>>>()
+internal val AsideRendersKey = Section.Lifecycle.createKey<MutableList<Renderer<AsideRenderScope>>>()
 
 /**
  * Common interface used for scopes that can appear in both the render and run blocks.
@@ -165,6 +165,20 @@ class Section internal constructor(val session: Session, private val render: Mai
                 }
             }
 
+            val asideTextBuilder = StringBuilder()
+            session.data.get(AsideRendersKey) {
+                if (this.isEmpty()) return@get
+
+                forEach { renderer ->
+                    asideTextBuilder.append(renderer.commands.toRawText())
+                    if (renderer.commands.asSequence().filter { it is TextCommand }.lastOrNull() !== NEWLINE_COMMAND) {
+                        asideTextBuilder.append('\n')
+                    }
+                }
+                // Only render asides once. Since we don't erase them, they'll be baked into the history.
+                clear()
+            }
+
             session.data.start(MainRenderScope.Lifecycle)
             // Rendering might crash, and if so, we should still propagate the exception but only after we've cleaned up
             // our rendering.
@@ -184,17 +198,6 @@ class Section internal constructor(val session: Session, private val render: Mai
             }
             session.data.stop(MainRenderScope.Lifecycle)
 
-            val asideTextBuilder = StringBuilder()
-            session.data.get(AsideRendersKey) {
-                if (this.isEmpty()) return@get
-
-                forEach { renderer ->
-                    asideTextBuilder.append(renderer.commands.toRawText())
-                    if (!asideTextBuilder.endsWith('\n')) asideTextBuilder.append('\n')
-                }
-                // Only render asides once. Since we don't erase them, they'll be baked into the history.
-                clear()
-            }
             // Send the whole set of instructions through "write" at once so the clear and updates are processed
             // in one pass.
             session.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.commands.toRawText())
@@ -266,11 +269,6 @@ class Section internal constructor(val session: Session, private val render: Mai
             }
         }
 
-        // It's possible that the `run` block called `aside` after the section already finished. If so, this should
-        // cause one last rerender to occur (since section rendering is responsible for rendering the asides)
-        if (session.data[AsideRendersKey]?.isNotEmpty() == true) {
-            renderOnce()
-        }
         session.data.stop(RunScope.Lifecycle)
 
         onFinishing.forEach { it() }
