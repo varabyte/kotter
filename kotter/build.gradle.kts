@@ -53,9 +53,9 @@ repositories {
 
 object Versions {
     object Kotlin {
-        const val Couroutines = "1.6.0"
+        const val Couroutines = "1.6.4"
     }
-    const val Jline = "3.20.0"
+    const val Jline = "3.21.0"
 }
 
 dependencies {
