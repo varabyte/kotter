@@ -15,10 +15,6 @@ class TextAnim internal constructor(session: Session, val template: Template)
 
     private val currText get() = template.frames[currFrame]
 
-    private var referencedLastFrame = false
-    private var callbackAdded = false
-    private var stopTimer = false
-
     /**
      * We wrap all animation property accesses in this special block which kickstarts the timer for this animation if
      * it hasn't already been done so.
