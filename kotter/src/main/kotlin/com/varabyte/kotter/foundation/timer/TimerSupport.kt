@@ -1,7 +1,6 @@
 package com.varabyte.kotter.foundation.timer
 
 import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import kotlinx.coroutines.*
 import net.jcip.annotations.GuardedBy
@@ -9,13 +8,13 @@ import java.time.Duration
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.write
 
-internal class TimerManager(private val lock: ReentrantReadWriteLock) {
+internal abstract class TimerManager(private val lock: ReentrantReadWriteLock) {
     object Key : ConcurrentScopedData.Key<TimerManager> {
         override val lifecycle = RunScope.Lifecycle
     }
 
-    private class Timer(var duration: Duration, val repeat: Boolean, val key: Any?, val callback: TimerScope.() -> Unit): Comparable<Timer> {
-        val enqueuedTime = System.currentTimeMillis()
+    protected inner class Timer(var duration: Duration, val repeat: Boolean, val key: Any?, val callback: TimerScope.() -> Unit): Comparable<Timer> {
+        val enqueuedTime = produceCurrentTime()
         var wakeUpTimeRequested = 0L
         var wakeUpTime = 0L
         init { updateWakeUpTime() }
@@ -23,7 +22,7 @@ internal class TimerManager(private val lock: ReentrantReadWriteLock) {
         fun updateWakeUpTime() {
             require(!duration.isZero && !duration.isNegative) { "Invalid timer requested with non-positive duration"}
 
-            wakeUpTimeRequested = System.currentTimeMillis()
+            wakeUpTimeRequested = produceCurrentTime()
             wakeUpTime = wakeUpTimeRequested + duration.toMillis()
         }
         override fun compareTo(other: Timer): Int {
@@ -36,35 +35,7 @@ internal class TimerManager(private val lock: ReentrantReadWriteLock) {
     }
 
     @GuardedBy("lock")
-    private val timers = sortedSetOf<Timer>()
-
-    private val job = CoroutineScope(Dispatchers.IO).launch {
-        while (isActive) {
-            delay(16)
-            lock.write {
-                val currTime = System.currentTimeMillis()
-                val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
-                timersToFire.forEach { timer ->
-                    val scope = TimerScope(
-                        timer.duration,
-                        timer.repeat,
-                        Duration.ofMillis(currTime - timer.wakeUpTimeRequested),
-                        Duration.ofMillis(currTime - timer.enqueuedTime)
-                    )
-                    timer.callback.invoke(scope)
-                    // check we actually are adding and removing timers here, because with sorted sets, it's easy to
-                    // screw up its assumptions (by modifying a value without telling it about the change) and end up
-                    // with the add / remove operations failing
-                    check(timers.remove(timer))
-                    if (scope.repeat) {
-                        timer.duration = scope.duration
-                        timer.updateWakeUpTime()
-                        check(timers.add(timer))
-                    }
-                }
-            }
-        }
-    }
+    protected val timers = sortedSetOf<Timer>()
 
     fun addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit) {
         lock.write {
@@ -74,11 +45,59 @@ internal class TimerManager(private val lock: ReentrantReadWriteLock) {
         }
     }
 
-    fun dispose() {
+    internal fun dispose() {
         lock.write { timers.clear() }
         // Don't wait for this job - we already cleared the timers, so we know it dying is just a formality. If we try
         // to block here waiting for it to end, we'll actually block the main thread itself (which is causing this to
         // get disposed behind the same lock) which would cause a deadlock.
+
+        onDisposed()
+    }
+
+    protected fun triggerTimers() {
+        lock.write {
+            val currTime = produceCurrentTime()
+            val timersToFire = timers.takeWhile { it.wakeUpTime <= currTime }
+            timersToFire.forEach { timer ->
+                val scope = TimerScope(
+                    timer.duration,
+                    timer.repeat,
+                    Duration.ofMillis(currTime - timer.wakeUpTimeRequested),
+                    Duration.ofMillis(currTime - timer.enqueuedTime)
+                )
+                timer.callback.invoke(scope)
+                // check we actually are adding and removing timers here, because with sorted sets, it's easy to
+                // screw up its assumptions (by modifying a value without telling it about the change) and end up
+                // with the add / remove operations failing
+                check(timers.remove(timer))
+                if (scope.repeat) {
+                    timer.duration = scope.duration
+                    timer.updateWakeUpTime()
+                    check(timers.add(timer))
+                }
+            }
+        }
+    }
+
+    protected abstract fun produceCurrentTime(): Long
+
+    protected open fun onDisposed() {}
+}
+
+internal class SystemTimerManager(lock: ReentrantReadWriteLock) : TimerManager(lock) {
+    private val job = CoroutineScope(Dispatchers.IO).launch {
+        while (isActive) {
+            delay(16)
+            triggerTimers()
+        }
+    }
+
+    override fun produceCurrentTime() = System.currentTimeMillis()
+
+    override fun onDisposed() {
+        // Don't wait for this job - we already cleared the timers before this point, so we know it dying is just a
+        // formality. If we try to block here waiting for it to end, we'll actually block the main thread itself (which
+        // is causing this to get disposed behind the same lock) which would cause a deadlock.
         job.cancel()
     }
 }
@@ -95,7 +114,7 @@ fun ConcurrentScopedData.addTimer(
     key: Any? = null,
     callback: TimerScope.() -> Unit
 ) {
-    putIfAbsent(TimerManager.Key, { TimerManager(lock) }, { timers -> timers.dispose() }) {
+    putIfAbsent(TimerManager.Key, { SystemTimerManager(lock) }, { timers -> timers.dispose() }) {
         addTimer(duration, repeat, key, callback)
     }
 }
