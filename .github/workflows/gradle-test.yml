@@ -1,4 +1,5 @@
-name: Run Kotter tests
+name: tests
+# Note: name shows up in a badge. Be careful about renaming.
 
 on:
   push:
