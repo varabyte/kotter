@@ -1,5 +1,5 @@
-import kotlinx.kover.api.KoverTaskExtension
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     kotlin("jvm")
@@ -95,6 +95,43 @@ kover {
                 "com.varabyte.kotter.foundation.SessionKt*", // Untested session code is related to terminals
             )
         }
+    }
+}
+
+tasks.register("printLineCoverage") {
+    group = "verification"
+    dependsOn("koverXmlReport")
+    doLast {
+        val report = file("$buildDir/reports/kover/xml/report.xml")
+
+        val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(report)
+        val rootNode = doc.firstChild
+        var topLevelNode = rootNode.firstChild
+
+        var coveragePercent = 0.0
+
+        try {
+            while (topLevelNode != null) {
+                if (topLevelNode.nodeName == "counter") {
+                    val typeAttr = topLevelNode.attributes.getNamedItem("type")
+                    if (typeAttr.textContent == "LINE") {
+                        val missedAttr = topLevelNode.attributes.getNamedItem("missed")
+                        val coveredAttr = topLevelNode.attributes.getNamedItem("covered")
+
+                        val missed = missedAttr.textContent.toLong()
+                        val covered = coveredAttr.textContent.toLong()
+
+                        coveragePercent = (covered * 100.0) / (missed + covered)
+
+                        break
+                    }
+                }
+                topLevelNode = topLevelNode.nextSibling
+            }
+        } catch (ignored: Exception) {
+        }
+
+        println("%.1f".format(coveragePercent))
     }
 }
 
