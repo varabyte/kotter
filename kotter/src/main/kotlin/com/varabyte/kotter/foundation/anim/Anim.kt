@@ -5,7 +5,7 @@ import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.Session
 import java.time.Duration
 
-abstract class Anim(protected val session: Session, protected val numFrames: Int, frameDuration: Duration) {
+abstract class Anim(protected val session: Session, numFrames: Int, frameDuration: Duration) {
     companion object {
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
     }

@@ -187,6 +187,10 @@ class Section internal constructor(val session: Session, private val render: Mai
                 } catch (ex: Exception) {
                     deferredException = ex
                 }
+                // Send the whole set of instructions through "write" at once so the clear and updates are processed
+                // in one pass.
+                session.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.commands.toRawText())
+
                 onRendered.removeIf {
                     val scope = OnRenderedScope()
                     it.invoke(scope)
@@ -195,9 +199,6 @@ class Section internal constructor(val session: Session, private val render: Mai
             }
             session.data.stop(MainRenderScope.Lifecycle)
 
-            // Send the whole set of instructions through "write" at once so the clear and updates are processed
-            // in one pass.
-            session.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.commands.toRawText())
             deferredException?.let { throw it }
         }
     }
