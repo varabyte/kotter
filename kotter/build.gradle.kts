@@ -98,6 +98,13 @@ kover {
     }
 }
 
+/**
+ * A task which outputs *just* the line coverage value (as a percent) from the Kover report.
+ *
+ * For example, this might output just the text `65.3` for a project that is covering 653 out of 1000 lines.
+ *
+ * This is a useful value to expose for GitHub CI actions, allowing us to create a custom code coverage badge.
+ */
 tasks.register("printLineCoverage") {
     group = "verification"
     dependsOn("koverXmlReport")
@@ -110,25 +117,35 @@ tasks.register("printLineCoverage") {
 
         var coveragePercent = 0.0
 
-        try {
-            while (topLevelNode != null) {
-                if (topLevelNode.nodeName == "counter") {
-                    val typeAttr = topLevelNode.attributes.getNamedItem("type")
-                    if (typeAttr.textContent == "LINE") {
-                        val missedAttr = topLevelNode.attributes.getNamedItem("missed")
-                        val coveredAttr = topLevelNode.attributes.getNamedItem("covered")
+        // The example snippet of XML we want to parse:
+        //
+        // <?xml version="1.0" ?>
+        // <report name="Intellij Coverage Report">
+        //   ...
+        //   <counter type="INSTRUCTION" missed="6591" covered="5058"/>
+        //   <counter type="BRANCH" missed="565" covered="236"/>
+        //   <counter type="LINE" missed="809" covered="700"/>
+        //   <counter type="METHOD" missed="375" covered="386"/>
+        //   <counter type="CLASS" missed="194" covered="156"/>
+        // </report>
+        //
+        // Particularly, we want to extract the "missed" and "covered" LINE values.
+        while (topLevelNode != null) {
+            if (topLevelNode.nodeName == "counter") {
+                val typeAttr = topLevelNode.attributes.getNamedItem("type")
+                if (typeAttr.textContent == "LINE") {
+                    val missedAttr = topLevelNode.attributes.getNamedItem("missed")
+                    val coveredAttr = topLevelNode.attributes.getNamedItem("covered")
 
-                        val missed = missedAttr.textContent.toLong()
-                        val covered = coveredAttr.textContent.toLong()
+                    val missed = missedAttr.textContent.toLong()
+                    val covered = coveredAttr.textContent.toLong()
 
-                        coveragePercent = (covered * 100.0) / (missed + covered)
+                    coveragePercent = (covered * 100.0) / (missed + covered)
 
-                        break
-                    }
+                    break
                 }
-                topLevelNode = topLevelNode.nextSibling
             }
-        } catch (ignored: Exception) {
+            topLevelNode = topLevelNode.nextSibling
         }
 
         println("%.1f".format(coveragePercent))
