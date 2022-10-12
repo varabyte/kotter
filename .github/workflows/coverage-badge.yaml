@@ -20,7 +20,8 @@ jobs:
         run: |
           echo "COVERAGE=$(${{github.workspace}}/gradlew -q :kotter:printLineCoverage)" >> $GITHUB_ENV
 
-      - uses: schneegans/dynamic-badges-action@v1.5.0
+      - name: Update dynamic badge gist
+        uses: schneegans/dynamic-badges-action@v1.5.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
           gistID: 1fab2b6fd23489bdea3f5d1f38e4dcb2
