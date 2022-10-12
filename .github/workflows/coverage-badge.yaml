@@ -17,7 +17,6 @@ jobs:
           distribution: 'adopt'
 
       - name: Generate coverage output
-        id: kotter_cov
         run: |
           echo "COVERAGE=$(${{github.workspace}}/gradlew -q :kotter:printLineCoverage)" >> $GITHUB_ENV
 
