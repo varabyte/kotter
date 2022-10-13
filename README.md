@@ -241,9 +241,9 @@ section {
 The `section` block is designed to be run one _or more_ times. That is, you can write logic inside it which may not get
 executed on the first run but will be on a followup run.
 
-Here, we pass in a callback to the `run` method which updates a value referenced by the `section` block (the `result`
-integer). This example will run the section twice - once when `run` is first called and again when it calls
-`rerender`:
+Here, instead of just calling `run()`, we create a `run` block, having it update a variable that is also referenced by
+the `section` block. This example will render the section twice - once when `run` is first called and again when it
+calls `rerender`:
 
 ```kotlin
 var result: Int? = null
@@ -260,14 +260,14 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-calculating.gif)
 
-The `run` callback runs as a suspend function, so you can call other suspend methods from within it.
+The `run` block runs as a suspend function, so you can call other suspend methods from within it.
 
-Unlike using `run` without a callback (i.e. simply `run()`), here your program will be blocked until the callback has
-finished (or, if it has triggered a rerender, until the last rerender finishes after your callback is done).
+Your program will be blocked until the run block has finished (or, if it has triggered a rerender, until the last
+rerender finishes).
 
 #### LiveVar
 
-In our example above, the `run` callback calls a `rerender` method, which you can call to request another render pass.
+In our example above, the `run` block calls a `rerender` method, which you can call to request another render pass.
 
 However, remembering to call `rerender` yourself is potentially fragile and could be a source of bugs in the future when
 trying to figure out why your console isn't updating.
@@ -490,8 +490,8 @@ section {
 }
 ```
 
-To handle when the user presses the _ENTER_ key, use the `onInputEntered` callback. You can use it in conjunction with
-the `onInputChanged` callback we just discussed:
+To handle when the user presses the _ENTER_ key, use the `onInputEntered` event. You can use it in conjunction with the
+`onInputChanged` event we just discussed:
 
 ```kotlin
 var name = ""
@@ -563,7 +563,7 @@ in the list will be suggested.
 #### Keypresses
 
 If you're interested in specific keypresses and not simply input that's been typed in, you can register a listener to
-the `onKeyPressed` callback:
+the `onKeyPressed` event:
 
 ```kotlin
 section {
@@ -643,7 +643,7 @@ section {
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-blink.gif)
 
 With timers running, it's possible your `run` block will exit while things are in a state you didn't intend (e.g. in the
-above example with the blink effect still on). You should use the `onFinishing` callback to handle this case:
+above example with the blink effect still on). You should use the `onFinishing` event to handle this case:
 
 ```kotlin
 var blinkOn by liveVarOf(false)
@@ -657,9 +657,9 @@ section {
 }
 ```
 
-***Note:** Unlike all the other callbacks we discussed earlier, `onFinishing` is registered directly against the
-underlying `section` and not inside the `run` block, because it is actually triggered AFTER the run pass is finished but
-before the block is torn down.*
+***Note:** Unlike all the other events we discussed earlier, `onFinishing` is registered directly against the underlying
+`section` and not inside the `run` block, because it is actually triggered AFTER the run pass is finished but before the
+block is torn down.*
 
 `onFinishing` will only run after all timers are stopped, so you don't have to worry about setting a value that an
 errant timer will clobber later.
