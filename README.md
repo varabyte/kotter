@@ -929,8 +929,9 @@ glance, but don't worry as the remaining subsections will break it down:
 ```
 
 The top level of your whole application. `Session` owns a `data: ConcurrentScopedData` field which we'll talk more about
-a little later. However, it's worth understanding that `data` lives inside a session, and every time you see some place
-exposing a `data` field, it is really pointing back to this singular one.
+a little later. However, it's worth understanding that `data` lives inside a session, although many scopes additionally
+expose it themselves. Any time you see some Kotter code interacting with a `data` field, it is really pointing back to
+this singular one.
 
 `Session` is the scope you need when you want to call `liveVarOf` or `liveListOf`, or even to declare a `section`:
 
@@ -963,12 +964,10 @@ session {
 └─ }
 ```
 
-Unlike `Session`, you shouldn't ever need to add an extension method on top of a `Section`, because a section is mainly
-just a class for managing two sub-parts - the render logic (which runs on a render thread) and the run logic (which runs
-on the main thread).
+Unlike `Session`, you shouldn't ever need to add an extension method on top of a `Section`. This is because its
+`section { ... }` block and its `run { ... }` block both receive different scope classes as their receiver classes.
 
-It is the render and run parts that are particularly interesting, those being the most likely ones that users will want
-to extend in general. These are discussed next.
+It is those scope classes you usually will want to extend. These are discussed next.
 
 **3 - `RenderScope`**
 
@@ -1130,14 +1129,14 @@ So go forth, and extend Kotter!
 
 ### 🧵 Thread Affinity
 
-Sections are rendered sequentially on a single thread. Anytime you make a call to run a section, no matter which thread
-it is called from, a single thread ultimately handles it. At the same time, if you attempt to run one section while
-another is already running, an exception is thrown.
+Sections are rendered sequentially on a single render thread. Anytime you see a `section { ... }`, no matter which
+thread it is called from, a single thread ultimately handles it. However, if you use two threads to attempt to run one
+section while another is already running, an exception is thrown.
 
 The `run` block runs in place on the thread that called it. In this way, progress is prevented until the run logic
 finishes running.
 
-I made this decision so that:
+I made the decision to lock section rendering down so that:
 
 * I don't have to worry about multiple sections `println`ing at the same time - who likes clobbered text?
 * Kotter handles repainting by moving the terminal cursor around, which would fail horribly if multiple sections tried
@@ -1150,7 +1149,11 @@ anyway -- ask the user a question, do some work, then ask another question, etc.
 even need to call `section` from more than one thread. It is hoped that the
 
 ```kotlin
-section { ... render thread ... }.run { ... current thread ... }
+session {
+  section { ... render thread ... }.run { ... current thread ... }
+  section { ... render thread ... }.run { ... current thread ... }
+  section { ... render thread ... }.run { ... current thread ... }
+}
 ```
 
 pattern is powerful enough for most (all?) cases.
@@ -1159,10 +1162,10 @@ pattern is powerful enough for most (all?) cases.
 
 It's not guaranteed that every user's command line setup supports ANSI. For example, debugging this project with
 IntelliJ as well as running within Gradle are two such environments where functionality isn't available! According to
-many online reports, Windows is also a big offender here.
+many online reports, some legacy terminals on Windows are also an offender here.
 
 Kotter will attempt to detect if your console does not support the features it uses, and if not, it will open up a
-virtual terminal. This fallback gives your application better cross-platform support.
+virtual terminal instead. This fallback gives your application better cross-platform support.
 
 To modify the logic to ALWAYS open the virtual terminal, you can set the `terminal` parameter in `session` like
 this:
@@ -1227,6 +1230,10 @@ that I envisioned Kotter.
   to [Kotter](https://github.com/varabyte/kotter/blob/main/examples/mosaic/robot/src/main/kotlin/main.kt#L27).
 
 #### Mosaic comparison
+
+Mosaic and Kotter programs look very similar, but they are organized slightly differently. Instead of a single code
+block where values, layout, and logic are combined together (with judicious use of `remember` and `LaunchedEffect`), in
+Kotter you tend to have three separate areas for these concepts.
 
 ```kotlin
 // Mosaic
