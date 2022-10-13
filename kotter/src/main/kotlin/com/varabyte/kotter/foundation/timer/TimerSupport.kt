@@ -10,6 +10,8 @@ import kotlin.concurrent.write
 
 internal abstract class TimerManager(private val lock: ReentrantReadWriteLock) {
     object Key : ConcurrentScopedData.Key<TimerManager> {
+        // We definitely want all timers to stop when the run block exits. This way, we can handle some final logic in
+        // `onFinishing` where we know we can modify values without worrying about errant timers clobbering things.
         override val lifecycle = RunScope.Lifecycle
     }
 
