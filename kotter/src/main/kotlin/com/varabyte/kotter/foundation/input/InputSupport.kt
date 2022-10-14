@@ -429,9 +429,21 @@ open class Completions(private vararg val values: String, private val ignoreCase
 private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
 
 /**
+ * Information passed into the `transform` callback in the [input] method.
+ *
+ * The user can check the current character being transformed (via the [ch] property), but the entire [text] and
+ * character's [index] is also provided in case the context helps with the mapping. It's expected in most cases, e.g.
+ * masking a password, none of these values will need to be used. But you can use them if you need to!
+ */
+class TransformScope(val text: String, val index: Int) {
+    val ch: Char = text[index]
+}
+
+/**
  * A function which, when called, will replace itself dynamically with some input text plus a blinking cursor.
  *
- * You can only call `input()` ONCE each render pass - if you call it twice, you'll get a runtime exception.
+ * You can only have one `input()` active at a time for any given render pass - if you call `input()` twice or more in
+ * a section without setting all but one of them as inactive, you'll get a runtime exception.
  *
  * You can use the `onInputChanged` and `onInputEntered` callbacks to query the value as the user types it / commits it.
  *
@@ -445,7 +457,12 @@ private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
  * }
  * ```
  *
- * Occasionally, you may call `input` across multiple cases:
+ * Usually you'll only need to call `input()` once in a whole section, but occasionally there are cases where you will
+ * use more than one.
+ *
+ * There are two main cases:
+ *
+ * 1) Only one input is shown at a time, but the inputs are different.
  *
  * ```
  * when (state) {
@@ -453,52 +470,57 @@ private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
  *   ASK_AGE -> text("Your age? "); input(id = "age")
  *   ...
  * }
- * ```
- *
- * Usually you would do this in separate sections, but perhaps you want to cycle through questions within the same
- * section for a particular UX feel.
- *
- * You can accomplish this two ways. One, pass in an ID for each input call, or call `clearInput` on `onInputEntered`.
- *
- * Approach #1, using IDs:
- * ```
- * when (state) {
- *   ASK_NAME -> text("Your name? "); input(id = "name")
- *   ASK_AGE -> text("Your age? "); input(id = "age")
- *   ...
+ * ...
+ * onKeyPressed {
+ *   Keys.TAB -> state = state.next()
  * }
  * ```
  *
- * Approach #2, using `clearInput`
+ * In this case, you should ensure that each input has a unique ID, so that Kotter realizes that a new input has gotten
+ * focus, and can show its last known value.
+ *
+ * 2) Multiple inputs are shown at the same time.
+ *
  * ```
- * when (state) {
- *   ASK_NAME -> text("Your name? "); input()
- *   ASK_AGE -> text("Your age? "); input()
- *   ...
- * }.run {
- *   onInputEntered {
- *      if (state == ASK_NAME) {
- *        name = input
- *        clearInput()
- *        state = ASK_AGE
- *      } else if (state == ASK_AGE) {
- *        ...
- *      }
- *   }
+ * text("Red value:   "); input(id = "red", isActive = (state == EDIT_RED))
+ * text("Green value: "); input(id = "green", isActive = (state == EDIT_GREEN))
+ * text("Blue value:  "); input(id = "blue", isActive = (state == EDIT_BLUE))
+ * ...
+ * onKeyPressed {
+ *   Keys.TAB -> state = state.next()
  * }
  * ```
+ *
+ * In addition to using unique IDs per input, you should make sure your logic works so that at most only one of them are
+ * active at a time.
  *
  * @param completer Optional logic for suggesting auto-completions based on what the user typed in. See
  *   [Completions] which is a generally useful and common implementation.
  * @param initialText Text which will be used the first time `input()` is called and ignored subsequently.
  * @param id See docs above for more details. The value of this parameter can be anything - this method simply does an
  *   equality check on it against a previous value.
+ * @param transform If set, *visually* transform the text by specifying the target character each letter in the text
+ *   should map to. This doesn't affect the input's actual value, just the value that is rendered on screen. This is
+ *   particularly useful for password inputs.
+ * @param isActive See docs above for more details. If multiple calls to input are made in a single section, at most one
+ *   of them can be active at a time.
  */
-fun MainRenderScope.input(completer: InputCompleter? = null, initialText: String = "", id: Any = Unit, isActive: Boolean = true) {
+fun MainRenderScope.input(
+    completer: InputCompleter? = null,
+    initialText: String = "",
+    id: Any = Unit,
+    transform: TransformScope.() -> Char = { ch },
+    isActive: Boolean = true) {
     data.prepareInput(this, id, initialText, isActive)
     completer?.let { data[CompleterKey] = it }
 
     with(data.getValue(InputStatesKey)[id]!!) {
+        val transformedText = text.mapIndexed { i, _ -> TransformScope(text, i).transform() }.joinToString("")
+
+        // Just asserting that for now this is always a 1:1 transformation. We may change this later but if we do, be
+        // careful that cursor keys still work as expected.
+        check(text.length == transformedText.length)
+
         // First, check the hard but common case. If we're the currently active input, render it with current
         // completions and cursor
         if (this.isActive) {
@@ -508,8 +530,9 @@ fun MainRenderScope.input(completer: InputCompleter? = null, initialText: String
                 null
             } ?: ""
 
+
             // Note: Trailing space as cursor can be put AFTER last character
-            val finalText = "$text$completion "
+            val finalText = "$transformedText$completion "
 
             scopedState { // Make sure color changes don't leak
                 for (i in finalText.indices) {
@@ -528,7 +551,7 @@ fun MainRenderScope.input(completer: InputCompleter? = null, initialText: String
         }
         // Otherwise, this input is dormant, and acts like normal text
         else {
-            text(text)
+            text(transformedText)
         }
     }
 }

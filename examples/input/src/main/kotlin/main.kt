@@ -133,4 +133,82 @@ fun main() = session {
             }
         }
     }
+
+    // Use input's `transform` callback to support masking a password
+    run {
+        fun checkPassword(password: String): List<String> = buildList {
+            val hasUpper = password.any { it.isUpperCase() }
+            val hasLower = password.any { it.isLowerCase()}
+            val hasDigit = password.any { it.isDigit() }
+            val hasSymbol = password.any { !(it.isWhitespace() || it.isLetterOrDigit()) }
+
+            if (password.length < 8) {
+                add("Your password must be at least 8 characters long")
+            }
+
+            if (!(hasUpper && hasLower)) {
+                add("Your password must contain both upper and lowercase letters")
+            }
+
+            if (!hasDigit) {
+                add("Your password must contain at least one digit")
+            }
+
+            if (!hasSymbol) {
+                add("Your password must contain at least one symbol")
+            }
+        }
+
+        var password = ""
+        var passwordErrors by liveVarOf(checkPassword(password))
+        var maskPassword by liveVarOf(true)
+
+        section {
+            black(isBright = true) { textLine("Press TAB to toggle showing / hiding the password") }
+            textLine()
+            text("Create a password: ")
+            input(transform = { if (maskPassword) '*' else ch })
+            textLine()
+
+            textLine()
+            if (passwordErrors.isNotEmpty()) {
+                red {
+                    textLine("Your password has the following errors:")
+                    passwordErrors.forEach { error ->
+                        textLine("* $error")
+                    }
+                }
+            } else {
+                green {
+                    textLine("Valid password! Press ENTER to accept it.")
+                }
+            }
+        }.runUntilSignal {
+            onInputChanged {
+                input = input.filter { !it.isWhitespace() }
+                password = input
+                passwordErrors = checkPassword(password)
+            }
+            onInputEntered {
+                if (passwordErrors.isEmpty()) {
+                    signal()
+                }
+            }
+            onKeyPressed {
+                if (key == Keys.TAB) {
+                    maskPassword = !maskPassword
+                } else if (key == Keys.ESC) {
+                    password = ""
+                    signal()
+                }
+            }
+        }
+
+        if (password.isNotBlank() && maskPassword) {
+            section {
+                textLine()
+                textLine("The password you chose was: $password")
+            }.run()
+        }
+    }
 }
