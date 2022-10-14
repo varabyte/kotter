@@ -85,7 +85,7 @@ fun main() = session {
         // Has to extend "MainRenderScope" and not just "RenderScope" for access to the "input" function
         fun MainRenderScope.colorInput(line: Int, prompt: String) {
             scopedState {
-                if (selectedLine == line) bold();
+                if (selectedLine == line) bold()
                 text("$prompt: ")
                 input(id = line, initialText = colors[line].toString(), isActive = selectedLine == line)
                 textLine()
