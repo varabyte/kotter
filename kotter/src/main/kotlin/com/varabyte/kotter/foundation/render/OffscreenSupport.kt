@@ -18,7 +18,10 @@ import com.varabyte.kotter.runtime.render.Renderer
  */
 class OffscreenRenderScope(renderer: Renderer<OffscreenRenderScope>): OneShotRenderScope(renderer)
 
-class OffscreenBuffer(private val parentScope: RenderScope, render: RenderScope.() -> Unit) {
+/**
+ * @param parentScope The [RenderScope] this buffer is tied to. This parameter is exposed for testing.
+ */
+class OffscreenBuffer(internal val parentScope: RenderScope, render: OffscreenRenderScope.() -> Unit) {
     private val commands = run {
         val offscreenRenderer = Renderer<OffscreenRenderScope>(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
             render(render)
@@ -28,16 +31,13 @@ class OffscreenBuffer(private val parentScope: RenderScope, render: RenderScope.
         // 1) The final newline shouldn't leak into the output. For example,
         // `offscreen { lines.forEach { textLine(it } }` shouldn't create a trailing single empty line.
         // 2) `CommandRenderer` below handles its own state cleanup logic
-        assert(offscreenRenderer.commands.takeLast(2) == listOf(NEWLINE_COMMAND, RESET_COMMAND))
+        // Note: The order of the newline and reset depend on if the final row ended with a newline or not. Either way,
+        // we want to remove both of them!
+        assert(offscreenRenderer.commands.takeLast(2).containsAll(listOf(NEWLINE_COMMAND, RESET_COMMAND)))
         offscreenRenderer.commands.dropLast(2)
     }
 
     val lineLengths = commands.lineLengths
-
-    fun width(row: Int): Int {
-        require(row in lineLengths.indices) { "Row out of bounds. Expected in [0, ${lineLengths.size}), got $row" }
-        return lineLengths[row]
-    }
 
     fun createRenderer(): CommandRenderer {
         return CommandRenderer(parentScope, commands)
@@ -45,6 +45,8 @@ class OffscreenBuffer(private val parentScope: RenderScope, render: RenderScope.
 
     fun toRawText() = commands.toRawText()
 }
+
+val OffscreenBuffer.numLines get() = lineLengths.size
 
 class CommandRenderer internal constructor(
     private val targetScope: RenderScope,
@@ -56,7 +58,10 @@ class CommandRenderer internal constructor(
     fun hasNextRow(): Boolean = (commandIndex < commands.size)
 
     /**
-     * Render a single row of commands.
+     * Render a single row of commands, up to but *excluding* the row's newline.
+     *
+     * Newlines are excluded because it's expected you're using an offscreen buffer to render text within some wrapped
+     * context (like a border or padding spaces).
      *
      * The reason to render a single row instead of all at once is because it's expected that you are wrapping
      * this content with some external output, e.g. an outer border around some inner text. Here, you'd render the
@@ -122,6 +127,6 @@ class CommandRenderer internal constructor(
  * This method is particularly useful for layout purposes, where you can calculate the size of what the render area will
  * be, e.g. to wrap things with a border.
  */
-fun RenderScope.offscreen(render: RenderScope.() -> Unit): OffscreenBuffer {
+fun RenderScope.offscreen(render: OffscreenRenderScope.() -> Unit): OffscreenBuffer {
     return OffscreenBuffer(this, render)
 }

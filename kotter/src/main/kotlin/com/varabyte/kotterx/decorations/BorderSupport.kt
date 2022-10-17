@@ -1,5 +1,6 @@
 package com.varabyte.kotterx.decorations
 
+import com.varabyte.kotter.foundation.render.OffscreenRenderScope
 import com.varabyte.kotter.foundation.render.offscreen
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
@@ -67,7 +68,7 @@ fun RenderScope.bordered(
     borderCharacters: BorderCharacters = BorderCharacters.BOX_THIN,
     paddingLeftRight: Int = 0,
     paddingTopBottom: Int = 0,
-    render: RenderScope.() -> Unit
+    render: OffscreenRenderScope.() -> Unit
 ) {
     val content = offscreen(render)
     val maxWidth = (content.lineLengths.maxOrNull() ?: 0)
