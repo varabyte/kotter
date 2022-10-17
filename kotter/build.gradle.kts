@@ -91,8 +91,11 @@ kover {
     filters {
         classes {
             excludes += listOf(
-                "com.varabyte.kotter.terminal.*", // Virtual terminal implementations are UI, not important to cover
                 "com.varabyte.kotter.foundation.SessionKt*", // Untested session code is related to terminals
+                // ANSI codes are not worth testing exhaustively. If we ever get a report that one of them is broken, we
+                // can add new tests elsewhere to cover them indirectly.
+                "com.varabyte.kotter.runtime.internal.ansi.Ansi*",
+                "com.varabyte.kotter.terminal.*", // Virtual terminal implementations are UI, not important to cover
             )
         }
     }
