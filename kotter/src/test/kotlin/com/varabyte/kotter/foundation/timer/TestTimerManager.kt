@@ -7,7 +7,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 
 // Note: Class needs to be internal because TimerManager is internal
 internal class TestTimerManager(lock: ReentrantReadWriteLock) : TimerManager(lock) {
-    private var currentTime: Long = 0
+    var currentTime: Long = 0
+        private set
     fun fastForward(duration: Duration) {
         if (duration.isNegative || duration.isZero) return
 
@@ -20,6 +21,8 @@ internal class TestTimerManager(lock: ReentrantReadWriteLock) : TimerManager(loc
 
 /** Provides a simpler API to the internal [TestTimerManager] class. */
 class TestTimer internal constructor(private val timerManager: TestTimerManager) {
+    val currentTime get() = timerManager.currentTime
+
     fun fastForward(duration: Duration) {
         timerManager.fastForward(duration)
     }

@@ -147,11 +147,10 @@ private class InputState(val id: Any, val cursorState: BlinkingCursorState) {
         }
 }
 
-private class BlinkingCursorState {
-    companion object {
-        private const val BLINKING_DURATION_MS = 500
-    }
+// Exposed for testing
+internal const val BLINKING_DURATION_MS = 500
 
+private class BlinkingCursorState {
     var blinkOn = true
     var blinkElapsedMs = 0
 
@@ -164,7 +163,7 @@ private class BlinkingCursorState {
     fun elapse(duration: Duration): Boolean {
         val prevBlinkOn = blinkOn
         blinkElapsedMs += duration.toMillis().toInt()
-        while (blinkElapsedMs > BLINKING_DURATION_MS) {
+        while (blinkElapsedMs >= BLINKING_DURATION_MS) {
             blinkElapsedMs -= BLINKING_DURATION_MS
             blinkOn = !blinkOn
         }
@@ -243,6 +242,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
             // If we are exiting the block but by chance the blinking cursor was on, turn it off!
             if (cursorState.blinkOn) {
                 cursorState.resetCursor()
+                cursorState.blinkOn = false
                 section.requestRerender()
             }
         }
@@ -262,10 +262,10 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
         putIfAbsent(InputStatesCalledThisRender, provideInitialValue = { mutableMapOf() }) {
             val renderedInputStates = this
             if (renderedInputStates.contains(id)) {
-                throw IllegalArgumentException("Got more than one `input` in a single render pass with ID $id")
+                throw IllegalStateException("Got more than one `input` in a single render pass with ID $id")
             }
             if (isActive && renderedInputStates.values.any { it.isActive }) {
-                throw IllegalArgumentException("Having more than one active `input` in a single render pass is not supported")
+                throw IllegalStateException("Having more than one active `input` in a single render pass is not supported")
             }
             renderedInputStates[id] = state
         }
@@ -310,6 +310,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                             Keys.DELETE -> {
                                 if (index <= text.lastIndex) {
                                     proposedText = text.removeRange(index, index + 1)
+                                    proposedIndex = index
                                 }
                             }
 
@@ -599,6 +600,7 @@ fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
 fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> Unit = {}) {
     run {
         data.prepareOnKeyPressed(this.section.session.terminal)
+        // We need to abort as even if the user puts a while(true) in their run block, we still want to exit
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) abort() }
         block()
         CompletableDeferred<Unit>().await() // The only way out of this function is by aborting
@@ -631,7 +633,16 @@ class OnInputDeactivatedScope(val id: Any, var input: String)
 private val InputDeactivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputDeactivatedScope.() -> Unit>()
 
 fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
-    if (!data.tryPut(InputDeactivatedCallbackKey) { listener }) {
+    if (!data.tryPut(
+            InputDeactivatedCallbackKey,
+            provideInitialValue = { listener },
+            dispose = {
+                val states = data[InputStatesKey] ?: return@tryPut
+                val activeState = states.values.firstOrNull { it.isActive } ?: return@tryPut
+                data.deactivate(activeState)
+            }
+        )
+    ) {
         throw IllegalStateException("Currently only one `onInputDeactivated` callback at a time is supported.")
     }
 }
@@ -671,6 +682,7 @@ fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
 
 fun Section.runUntilInputEntered(block: suspend RunScope.() -> Unit = {}) {
     run {
+        // We need to abort as even if the user puts a while(true) in their run block, we still want to exit
         data[SystemInputEnteredCallbackKey] = { abort() }
         block()
         CompletableDeferred<Unit>().await() // The only way out of this function is by aborting

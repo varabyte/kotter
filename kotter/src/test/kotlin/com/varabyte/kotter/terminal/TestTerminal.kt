@@ -1,10 +1,12 @@
 package com.varabyte.kotter.terminal
 
+import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.internal.text.startsWith
 import com.varabyte.kotter.runtime.terminal.Terminal
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlin.math.min
@@ -23,6 +25,11 @@ class TestTerminal : Terminal {
 
     suspend fun sendKeys(vararg keys: Int) {
         keys.forEach { keysChannel.send(it) }
+        // Hack alert. If tests run too fast, sometimes sections are killed before input threads have a chance to
+        // communicate to the render threads. There might be a smart way I'm simply missing, but saying, "OK, wait for
+        // the next render after NOW before continuing" is itself tricky and error-prone to get right. Instead, just
+        // wait a bit, which gives the system a chance to run through its events, before asserting its state.
+        delay(16)
     }
 
     override fun write(text: String) {
@@ -53,8 +60,12 @@ class TestTerminal : Terminal {
 /** Convenience function for the common case of only sending a single key. */
 suspend fun TestTerminal.sendKey(key: Int) = sendKeys(key)
 
-/** Convenience function for typing characters (instead of sending their underlying codes) */
+/** Convenience function for the common case of sending an ANSI code. */
+suspend fun TestTerminal.sendCode(code: Ansi.Csi.Code) = type(*code.toFullEscapeCode().toCharArray())
+
+/** Convenience functions for typing characters (instead of sending their underlying codes) */
 suspend fun TestTerminal.type(vararg chars: Char) = sendKeys(*chars.map { it.code }.toIntArray())
+suspend fun TestTerminal.type(text: String) = type(*text.toCharArray())
 
 /**
  * Convenience method that returns this test terminal's [TestTerminal.buffer] as separate lines.
