@@ -24,7 +24,7 @@ class OffscreenSupportTest {
     private fun OffscreenBuffer.lines() = toRawText().split("\n")
 
     @Test
-    fun `offscreen produces lines without newlines`() = testSession { terminal ->
+    fun `offscreen produces lines without newlines`() = testSession {
         lateinit var buffer: OffscreenBuffer
         section {
             buffer = offscreen {
@@ -42,7 +42,7 @@ class OffscreenSupportTest {
     }
 
     @Test
-    fun `offscreen buffer provides access to line lengths`() = testSession { terminal ->
+    fun `offscreen buffer provides access to line lengths`() = testSession {
         lateinit var buffer: OffscreenBuffer
         section {
             buffer = offscreen {
