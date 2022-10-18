@@ -206,11 +206,4 @@ class SectionTest {
             signal()
         }
     }
-
-    @Test
-    fun `runUntilKeyPressed exits after the corresponding key is pressed`() = testSession { terminal ->
-        section {}.runUntilKeyPressed(Keys.Q) {
-            terminal.type('q')
-        }
-    }
 }
