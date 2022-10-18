@@ -36,7 +36,7 @@ fun ConcurrentScopedData.useTestTimer(): TestTimer {
     }
 
     val testTimerManager = TestTimerManager(lock)
-    if (!tryPut(TimerManager.Key) { testTimerManager }) {
+    if (!tryPut(TimerManager.Key, provideInitialValue = { testTimerManager }, dispose = { testTimerManager.dispose() })) {
         error("Attempted to initialize this test with a test timer after a different timer was already created.")
     }
 
