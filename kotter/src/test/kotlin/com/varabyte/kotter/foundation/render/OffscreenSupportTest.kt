@@ -8,7 +8,7 @@ import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.lines
 import com.varabyte.truthish.assertThat
-import org.junit.Test
+import kotlin.test.Test
 
 class OffscreenSupportTest {
     // Normally, you don't want to just render an offscreen buffer directly into a section (in that case, you wouldn't

@@ -6,7 +6,7 @@ import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
-import org.junit.Test
+import kotlin.test.Test
 
 class AsideTest {
     @Test

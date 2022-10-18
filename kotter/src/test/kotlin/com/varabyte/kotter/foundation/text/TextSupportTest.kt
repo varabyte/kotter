@@ -1,11 +1,10 @@
 package com.varabyte.kotter.foundation.text
 
 import com.varabyte.kotter.foundation.testSession
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.lines
 import com.varabyte.truthish.assertThat
-import org.junit.Test
+import kotlin.test.Test
 
 class TextSupportTest {
     @Test

@@ -8,8 +8,8 @@ import com.varabyte.kotter.foundation.timer.useTestTimer
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
-import org.junit.Test
 import java.util.concurrent.ArrayBlockingQueue
+import kotlin.test.Test
 
 class RenderAnimTest {
     @Test

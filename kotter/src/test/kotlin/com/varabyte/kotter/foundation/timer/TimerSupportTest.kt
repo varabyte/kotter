@@ -6,8 +6,8 @@ import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
-import org.junit.Test
 import java.time.Duration
+import kotlin.test.Test
 
 class TimerSupportTest {
     @Test

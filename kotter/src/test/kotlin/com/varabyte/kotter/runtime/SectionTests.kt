@@ -14,10 +14,10 @@ import com.varabyte.kotter.terminal.resolveRerenders
 import com.varabyte.kotter.terminal.type
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
-import org.junit.Test
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CountDownLatch
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.test.Test
 
 class SectionTests {
     @Test
