@@ -4,8 +4,6 @@ import com.varabyte.kotter.foundation.render.AsideRenderScope
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
-import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
 import com.varabyte.kotter.runtime.internal.text.numLines
 import com.varabyte.kotter.runtime.internal.text.toRawText
 import com.varabyte.kotter.runtime.render.RenderScope
@@ -94,6 +92,7 @@ class Section internal constructor(val session: Session, private val render: Mai
         override val parent = Session.Lifecycle
     }
 
+    class OnPreRenderScope(var removeListener: Boolean = false)
     class OnRenderedScope(var removeListener: Boolean = false)
 
     init {
@@ -104,6 +103,13 @@ class Section internal constructor(val session: Session, private val render: Mai
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
     private var renderRequested = false
+
+    /**
+     * A list of callbacks to trigger before every render.
+     *
+     * It is not expected for there ever to be more than one, but this format is consistent with [onRendered].
+     */
+    private var onPreRender = mutableListOf<OnPreRenderScope.() -> Unit>()
 
     /**
      * A list of callbacks to trigger after every render.
@@ -143,6 +149,12 @@ class Section internal constructor(val session: Session, private val render: Mai
 
     private fun renderOnceAsync(): Job {
         return CoroutineScope(session.executor.asCoroutineDispatcher()).launch {
+            onPreRender.removeIf {
+                val scope = OnPreRenderScope()
+                it.invoke(scope)
+                scope.removeListener
+            }
+
             renderLock.withLock { renderRequested = false }
 
             val clearBlockCommand = buildString {
@@ -204,6 +216,25 @@ class Section internal constructor(val session: Session, private val render: Mai
     }
     private fun renderOnce() = runBlocking {
         renderOnceAsync().join()
+    }
+
+
+    /**
+     * Add a callback which will get triggered before the section renders itself.
+     *
+     * This callback will be triggered right when a section is about to start but before it clears the
+     * `rerenderRequested` flag. Therefore, blocking this callback could be a useful way to wait for multiple
+     * `requestRerender` calls to converge before continuing.
+     *
+     * This event is likely not useful in production, but can be useful in tests. Without it, sometimes a section might
+     * rerender once or twice on different test runs, making asserting state tricky.
+     */
+    // Make this fun internal for now, unless someone gives us a good reason why this could be useful in production.
+    internal fun onPreRender(block: OnPreRenderScope.() -> Unit): Section {
+        require(session.data.isActive(Lifecycle))
+        onPreRender.add(block)
+
+        return this
     }
 
     /**
