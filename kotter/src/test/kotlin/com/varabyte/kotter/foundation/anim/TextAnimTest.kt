@@ -56,6 +56,63 @@ class TextAnimTest {
     }
 
     @Test
+    fun `anim timer paused while anim isn't rendered`() = testSession { terminal ->
+        var timer: TestTimer? = null
+        val rendered = ArrayBlockingQueue<Unit>(1)
+
+        val anim = textAnimOf(listOf("1", "2", "3", "4", "5", "6", "7", "8"), Anim.ONE_FRAME_60FPS)
+        var skipAnim = false
+        section {
+            if (timer == null) {
+                // Need to initialize a test timer BEFORE we reference $anim for the first time
+                timer = data.useTestTimer()
+            }
+            if (!skipAnim) {
+                text("> $anim <")
+            }
+        }.onRendered {
+            rendered.add(Unit)
+        }.run {
+            @Suppress("NAME_SHADOWING") val timer = timer!!
+
+            rendered.take()
+            assertThat(terminal.resolveRerenders()).containsExactly(
+                "> 1 <${Codes.Sgr.RESET}",
+                "",
+            ).inOrder()
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
+            assertThat(terminal.resolveRerenders()).containsExactly(
+                "> 2 <${Codes.Sgr.RESET}",
+                "",
+            ).inOrder()
+
+            skipAnim = true
+            // The timer update triggers a new repaint; however, the animation won't get hit this frame, meaning it
+            // will stop its timer.
+            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
+            assertThat(terminal.resolveRerenders()).containsExactly(
+                "${Codes.Sgr.RESET}",
+                "",
+            ).inOrder()
+
+            // Run a few more times, just to prove the point that when the animation restarts, it will be where it last
+            // stopped, instead of at some frame in the future.
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+
+            skipAnim = false
+            rerender(); rendered.take()
+            assertThat(terminal.resolveRerenders()).containsExactly(
+                "> 3 <${Codes.Sgr.RESET}",
+                "",
+            ).inOrder()
+            // ^ We can tell the timer was reset because the animation went back to frame #1 instead of frame #3
+        }
+    }
+
+    @Test
     fun `can instantiate text anims via template`() = testSession { terminal ->
         var timer: TestTimer? = null
         // We have two anims running at the same time; wait for both of them to happen before allowing the section to
