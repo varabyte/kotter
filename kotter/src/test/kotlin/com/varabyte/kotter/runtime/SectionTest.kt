@@ -19,7 +19,7 @@ import java.util.concurrent.CountDownLatch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 
-class SectionTests {
+class SectionTest {
     @Test
     fun `section always ends with a reset code and newline`() = testSession { terminal ->
         assertThat(terminal.buffer).isEmpty()
