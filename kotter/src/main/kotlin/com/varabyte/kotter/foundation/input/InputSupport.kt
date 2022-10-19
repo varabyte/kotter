@@ -435,13 +435,13 @@ open class Completions(private vararg val values: String, private val ignoreCase
 private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
 
 /**
- * Information passed into the `transform` callback in the [input] method.
+ * Information passed into the `renderTransform` callback in the [input] method.
  *
  * The user can check the current character being transformed (via the [ch] property), but the entire [text] and
  * character's [index] is also provided in case the context helps with the mapping. It's expected in most cases, e.g.
  * masking a password, none of these values will need to be used. But you can use them if you need to!
  */
-class TransformScope(val text: String, val index: Int) {
+class ViewMapScope(val text: String, val index: Int) {
     val ch: Char = text[index]
 }
 
@@ -505,7 +505,7 @@ class TransformScope(val text: String, val index: Int) {
  * @param initialText Text which will be used the first time `input()` is called and ignored subsequently.
  * @param id See docs above for more details. The value of this parameter can be anything - this method simply does an
  *   equality check on it against a previous value.
- * @param transform If set, *visually* transform the text by specifying the target character each letter in the text
+ * @param viewMap If set, *visually* transform the text by specifying the target character each letter in the text
  *   should map to. This doesn't affect the input's actual value, just the value that is rendered on screen. This is
  *   particularly useful for password inputs.
  * @param isActive See docs above for more details. If multiple calls to input are made in a single section, at most one
@@ -515,13 +515,14 @@ fun MainRenderScope.input(
     completer: InputCompleter? = null,
     initialText: String = "",
     id: Any = Unit,
-    transform: TransformScope.() -> Char = { ch },
+    viewMap: ViewMapScope.() -> Char = { ch },
     isActive: Boolean = true) {
     data.prepareInput(this, id, initialText, isActive)
     completer?.let { data[CompleterKey] = it }
 
     with(data.getValue(InputStatesKey)[id]!!) {
-        val transformedText = text.mapIndexed { i, _ -> TransformScope(text, i).transform() }.joinToString("")
+        val transformedText =
+            text.mapIndexed { i, _ -> ViewMapScope(text, i).viewMap() }.joinToString("")
 
         // Just asserting that for now this is always a 1:1 transformation. We may change this later but if we do, be
         // careful that cursor keys still work as expected.

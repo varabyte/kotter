@@ -167,7 +167,7 @@ fun main() = session {
             black(isBright = true) { textLine("Press TAB to toggle showing / hiding the password") }
             textLine()
             text("Create a password: ")
-            input(transform = { if (maskPassword) '*' else ch })
+            input(viewMap = { if (maskPassword) '*' else ch })
             textLine()
 
             textLine()

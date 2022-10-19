@@ -15,10 +15,8 @@ import com.varabyte.kotterx.test.terminal.type
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import java.time.Duration
-import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CountDownLatch
 import kotlin.test.Test
-import kotlin.test.fail
 
 class InputSupportTest {
     @Test
@@ -416,11 +414,11 @@ class InputSupportTest {
     }
 
     @Test
-    fun `input can be transformed`() = testSession { terminal ->
+    fun `input rendering can be transformed with viewMap`() = testSession { terminal ->
         lateinit var typed: String
 
         section {
-            input(transform = { '*' })
+            input(viewMap = { '*' })
         }.runUntilInputEntered {
             onInputEntered {
                 typed = input
