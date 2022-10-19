@@ -61,11 +61,11 @@ publishing {
             }
         }
 
-        create<MavenPublication>("kotterx-compose") {
+        create<MavenPublication>("compose-terminal") {
             from(components["java"])
             pom {
                 description.set("A virtual terminal implemented with Compose for Desktop.")
-                artifactId = "kotterx-compose"
+                artifactId = "compose-terminal"
                 url.set("https://github.com/varabyte/kotter")
                 licenses {
                     license {
@@ -82,6 +82,6 @@ if (shouldSign()) {
     signing {
         // Signing requires following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
         // and adding singatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
-        sign(publishing.publications["kotterx-compose"])
+        sign(publishing.publications["compose-terminal"])
     }
 }
