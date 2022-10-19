@@ -106,24 +106,16 @@ class Section internal constructor(val session: Session, private val render: Mai
 
     /**
      * A list of callbacks to trigger before every render.
-     *
-     * It is not expected for there ever to be more than one, but this format is consistent with [onRendered].
      */
     private var onPreRender = mutableListOf<OnPreRenderScope.() -> Unit>()
 
     /**
      * A list of callbacks to trigger after every render.
-     *
-     * It is not expected for a user to add more than one, but internal components might themselves add listeners as
-     * well.
      */
     private var onRendered = mutableListOf<OnRenderedScope.() -> Unit>()
 
     /**
      * A list of callbacks to trigger right before the block exits.
-     *
-     * It is not expected for a user to add more than one, but internal components might themselves add listeners
-     * behind the scenes to clean up their state.
      */
     private var onFinishing = mutableListOf<() -> Unit>()
 
