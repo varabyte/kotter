@@ -8,6 +8,7 @@ import com.varabyte.kotter.foundation.timer.useTestTimer
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotterx.test.foundation.testSession
+import com.varabyte.kotterx.test.runtime.blockUntilRenderWhen
 import com.varabyte.kotterx.test.terminal.resolveRerenders
 import com.varabyte.kotterx.test.terminal.sendCode
 import com.varabyte.kotterx.test.terminal.type
@@ -28,26 +29,27 @@ class InputSupportTest {
     }
 
     @Test
-    fun `can type input`() = testSession { terminal ->
+    fun `can type and enter input`() = testSession { terminal ->
         lateinit var typed: String
 
         section {
             text("> ")
             input()
             text("<")
-        }.onFinishing {
-            // When input initially renders, the cursor is blinking on.
-            // We'll check again after the section exists, when the cursor should be turned off.
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<${Codes.Sgr.RESET}",
-                ""
-            ).inOrder()
         }.runUntilInputEntered {
             onInputEntered {
                 typed = input
             }
 
-            terminal.type('H', 'e', 'l', 'l', 'o', Ansi.CtrlChars.ENTER)
+            terminal.type('H', 'e', 'l', 'l', 'o')
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<${Codes.Sgr.RESET}",
+                    ""
+                )
+            }
+
+            terminal.type(Ansi.CtrlChars.ENTER)
         }
 
         assertThat(typed).isEqualTo("Hello")
@@ -60,7 +62,7 @@ class InputSupportTest {
     }
 
     @Test
-    fun `it is an exception to run two input calls in the same block`() = testSession {
+    fun `it is an exception to run two active input calls in the same block`() = testSession {
         section {
             input()
             assertThrows<IllegalStateException> {
@@ -79,8 +81,6 @@ class InputSupportTest {
     @Test
     fun `cursor blinks off and on`() = testSession { terminal ->
         var timer: TestTimer? = null
-        val renderFinished = ArrayBlockingQueue<Unit>(1)
-        var numRenders = 0
 
         section {
             // Timer must be set before input is called the first time
@@ -91,43 +91,28 @@ class InputSupportTest {
             text("> ")
             input(initialText = "Hello")
             text("<")
-        }.onRendered {
-            val currentTime = timer!!.currentTime
-            when {
-                (currentTime % 1000L) == 0L -> {
-                    assertThat(terminal.resolveRerenders()).containsExactly(
+        }.run {
+            val timer = timer!!
+
+            // Run a few times just to verify that the blinking continues in a cycle
+            for (i in 0 until 3) {
+                blockUntilRenderWhen {
+                    terminal.resolveRerenders() == listOf(
                         "> Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<${Codes.Sgr.RESET}",
                         ""
-                    ).inOrder()
+                    )
                 }
-                (currentTime % 500L) == 0L -> {
-                    assertThat(terminal.resolveRerenders()).containsExactly(
+                timer.fastForward(Duration.ofMillis(BLINKING_DURATION_MS.toLong()))
+
+                blockUntilRenderWhen {
+                    terminal.resolveRerenders() == listOf(
                         "> Hello <${Codes.Sgr.RESET}",
                         ""
-                    ).inOrder()
+                    )
                 }
-                else -> {
-                    fail("Unexpected fake timer time: $currentTime")
-                }
-            }
-
-            numRenders++
-            renderFinished.add(Unit)
-        }.run {
-            renderFinished.take()
-
-            val timer = timer!! // Set in section block
-            // Dev note: We intentionally end on a state where the cursor is not blinking. Otherwise, we'd have to
-            // handle extra logic to test for the additional rerender that happens AFTERWARDS which disables the
-            // blinking cursor. But we already test that in a different unit test, so we sidestep the extra work here.
-            for (i in 0 until 5) {
                 timer.fastForward(Duration.ofMillis(BLINKING_DURATION_MS.toLong()))
-                renderFinished.take()
             }
         }
-
-        // Initial render + 5 rerenders due to timer elapsed / blinking cursor
-        assertThat(numRenders).isEqualTo(6)
     }
 
     @Test
@@ -160,19 +145,18 @@ class InputSupportTest {
     fun `can use arrow keys to navigate input`() = testSession { terminal ->
         section {
             input(initialText = "Hello")
-        }.onFinishing {
-            // When input first renders, the cursor is blinking on.
-            // If we tested this after the section block, the cursor would be gone
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "He${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
-                ""
-            ).inOrder()
-        }.runUntilInputEntered {
+        }.run {
             // At this point, cursor is PAST the o
             terminal.sendCode(Codes.Keys.LEFT) // o
             terminal.sendCode(Codes.Keys.LEFT) // l (second)
             terminal.sendCode(Codes.Keys.LEFT) // l (first)
-            terminal.type(Ansi.CtrlChars.ENTER)
+
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "He${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
+                    ""
+                )
+            }
         }
     }
 
@@ -180,16 +164,16 @@ class InputSupportTest {
     fun `can use home to move to the front of input`() = testSession { terminal ->
         section {
             input(initialText = "Hello")
-        }.onFinishing {
-            // When input first renders, the cursor is blinking on.
-            // If we tested this after the section block, the cursor would be gone
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "${Codes.Sgr.Colors.INVERT}H${Codes.Sgr.Colors.CLEAR_INVERT}ello ${Codes.Sgr.RESET}",
-                ""
-            ).inOrder()
-        }.runUntilInputEntered {
-            terminal.sendCode(Codes.Keys.HOME)
-            terminal.type(Ansi.CtrlChars.ENTER)
+        }.run {
+            // At this point, cursor is PAST the o
+            terminal.sendCode(Codes.Keys.HOME) // h
+
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "${Codes.Sgr.Colors.INVERT}H${Codes.Sgr.Colors.CLEAR_INVERT}ello ${Codes.Sgr.RESET}",
+                    ""
+                )
+            }
         }
     }
 
@@ -197,16 +181,16 @@ class InputSupportTest {
     fun `can use end to move to the end of input`() = testSession { terminal ->
         section {
             input(initialText = "Hello")
-        }.onFinishing {
-            // When input first renders, the cursor is blinking on.
-            // If we tested this after the section block, the cursor would be gone
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}", // CLEAR_INVERT lumped into RESET
-                ""
-            ).inOrder()
-        }.runUntilInputEntered {
+        }.run {
             terminal.sendCode(Codes.Keys.HOME) // We know this puts the cursor at the beginning from the previous test
             terminal.sendCode(Codes.Keys.END)
+
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}", // CLEAR_INVERT lumped into RESET
+                    ""
+                )
+            }
             terminal.type(Ansi.CtrlChars.ENTER)
         }
     }
@@ -236,8 +220,6 @@ class InputSupportTest {
 
     @Test
     fun `delete ignored if input rejected`() = testSession { terminal ->
-        lateinit var typed: String
-
         section {
             input(initialText = "Hello")
         }.onFinishing {
@@ -246,12 +228,9 @@ class InputSupportTest {
                 ""
             ).inOrder()
 
-        }.runUntilInputEntered {
+        }.run {
             onInputChanged {
                 if (input == "Hlo") rejectInput()
-            }
-            onInputEntered {
-                typed = input
             }
 
             // At this point, cursor is PAST the o
@@ -263,9 +242,13 @@ class InputSupportTest {
             terminal.sendCode(Codes.Keys.DELETE) // Would be "Hlo", but rejected
             terminal.sendCode(Codes.Keys.DELETE) // Would be "Hlo", but rejected again
 
-            terminal.type(Ansi.CtrlChars.ENTER)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "H${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
+                    ""
+                )
+            }
         }
-        assertThat(typed).isEqualTo("Hllo")
     }
 
 
@@ -284,8 +267,8 @@ class InputSupportTest {
             terminal.sendCode(Codes.Keys.LEFT) // o
             terminal.sendCode(Codes.Keys.LEFT) // l (second)
             // Both BACKSPACE and DELETE keys are interpreted as BACKSPACE due to different terminal behaviors
-            terminal.type(Ansi.CtrlChars.BACKSPACE)
-            terminal.type(Ansi.CtrlChars.DELETE)
+            terminal.type(Ansi.CtrlChars.BACKSPACE) // delete l (first)
+            terminal.type(Ansi.CtrlChars.DELETE) // delete e
 
             terminal.type(Ansi.CtrlChars.ENTER)
         }
@@ -294,23 +277,12 @@ class InputSupportTest {
 
     @Test
     fun `backspace ignored if input rejected`() = testSession { terminal ->
-        lateinit var typed: String
-
         section {
             input(initialText = "Hello")
-        }.onFinishing {
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "Hel${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}",
-                ""
-            ).inOrder()
-
-        }.runUntilInputEntered {
+        }.run {
             onInputChanged {
                 if (input == "He") rejectInput()
             }
-            onInputEntered {
-                typed = input
-            }
 
             terminal.type(Ansi.CtrlChars.BACKSPACE)
             terminal.type(Ansi.CtrlChars.BACKSPACE)
@@ -318,9 +290,14 @@ class InputSupportTest {
             terminal.type(Ansi.CtrlChars.BACKSPACE)
             terminal.type(Ansi.CtrlChars.BACKSPACE)
             terminal.type(Ansi.CtrlChars.BACKSPACE)
-            terminal.type(Ansi.CtrlChars.ENTER)
+
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "Hel${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}",
+                    ""
+                )
+            }
         }
-        assertThat(typed).isEqualTo("Hel")
     }
 
     @Test
@@ -409,14 +386,15 @@ class InputSupportTest {
     fun `input can show autocompletions`() = testSession { terminal ->
         section {
             input(Completions("Hello"))
-        }.onFinishing {
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "He${Codes.Sgr.Colors.Fg.BLACK_BRIGHT}${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
-                ""
-            ).inOrder()
+        }.run {
+            terminal.type('H', 'e')
 
-        }.runUntilInputEntered {
-            terminal.type('H', 'e', Ansi.CtrlChars.ENTER)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "He${Codes.Sgr.Colors.Fg.BLACK_BRIGHT}${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
+                    ""
+                )
+            }
         }
     }
 
@@ -424,16 +402,17 @@ class InputSupportTest {
     fun `input can be completed by pressing right`() = testSession { terminal ->
         section {
             input(Completions("Hello"))
-        }.runUntilInputEntered {
+        }.run {
             terminal.type('H', 'e')
             terminal.sendCode(Codes.Keys.RIGHT)
-            terminal.type(Ansi.CtrlChars.ENTER)
-        }
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "Hello ${Codes.Sgr.RESET}",
-            ""
-        ).inOrder()
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}",
+                    ""
+                )
+            }
+        }
     }
 
     @Test
@@ -464,13 +443,6 @@ class InputSupportTest {
         section {
             input(id = "first", isActive = !secondIsActive); textLine()
             input(id = "second", isActive = secondIsActive)
-        }.onFinishing {
-            // When input initially renders, the cursor is blinking on.
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "first",
-                "second${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}", // CLEAR_INVERT skipped because RESET handles it
-                ""
-            ).inOrder()
         }.run {
             onKeyPressed {
                 if (key == Keys.DOWN) {
@@ -479,8 +451,33 @@ class InputSupportTest {
             }
 
             terminal.type("first")
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "first${Codes.Sgr.Colors.INVERT} ",
+                    "${Codes.Sgr.Colors.CLEAR_INVERT}${Codes.Sgr.RESET}",
+                    "",
+                )
+                // TODO(#90): Note sure why the CLEAR_INVERT command is ending up on the next line, and why it's not
+                //  getting folded into the RESET like happens with other cases.
+            }
+
             terminal.sendCode(Codes.Keys.DOWN)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "first",
+                    "${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
             terminal.type("second")
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "first",
+                    "second${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}", // CLEAR_INVERT skipped because RESET handles it
+                    ""
+                )
+            }
         }
     }
 }
