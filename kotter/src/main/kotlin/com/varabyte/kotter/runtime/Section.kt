@@ -92,7 +92,6 @@ class Section internal constructor(val session: Session, private val render: Mai
         override val parent = Session.Lifecycle
     }
 
-    class OnPreRenderScope(var removeListener: Boolean = false)
     class OnRenderedScope(var removeListener: Boolean = false)
 
     init {
@@ -103,11 +102,6 @@ class Section internal constructor(val session: Session, private val render: Mai
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
     private var renderRequested = false
-
-    /**
-     * A list of callbacks to trigger before every render.
-     */
-    private var onPreRender = mutableListOf<OnPreRenderScope.() -> Unit>()
 
     /**
      * A list of callbacks to trigger after every render.
@@ -141,12 +135,6 @@ class Section internal constructor(val session: Session, private val render: Mai
 
     private fun renderOnceAsync(): Job {
         return CoroutineScope(session.executor.asCoroutineDispatcher()).launch {
-            onPreRender.removeIf {
-                val scope = OnPreRenderScope()
-                it.invoke(scope)
-                scope.removeListener
-            }
-
             renderLock.withLock { renderRequested = false }
 
             val clearBlockCommand = buildString {
@@ -210,32 +198,13 @@ class Section internal constructor(val session: Session, private val render: Mai
         renderOnceAsync().join()
     }
 
-
-    /**
-     * Add a callback which will get triggered before the section renders itself.
-     *
-     * This callback will be triggered right when a section is about to start but before it clears the
-     * `rerenderRequested` flag. Therefore, blocking this callback could be a useful way to wait for multiple
-     * `requestRerender` calls to converge before continuing.
-     *
-     * This event is likely not useful in production, but can be useful in tests. Without it, sometimes a section might
-     * rerender once or twice on different test runs, making asserting state tricky.
-     */
-    // Make this fun internal for now, unless someone gives us a good reason why this could be useful in production.
-    internal fun onPreRender(block: OnPreRenderScope.() -> Unit): Section {
-        require(session.data.isActive(Lifecycle))
-        onPreRender.add(block)
-
-        return this
-    }
-
     /**
      * Add a callback which will get triggered after this block has just about finished running and is about to shut
      * down.
      *
      * Users shouldn't need this - they can just put a counter variable directly inside a section for example - but
-     * various components that allocate side state could use this to see if they were called one frame and not the
-     * next (at which point, they could clean up their resources).
+     * various calls that allocate side state (like `input()`) could use this to see if they were called one frame and
+     * not the next (at which point, they could clean up their resources). It may also be useful for tests.
      */
     fun onRendered(block: OnRenderedScope.() -> Unit): Section {
         require(session.data.isActive(Lifecycle))

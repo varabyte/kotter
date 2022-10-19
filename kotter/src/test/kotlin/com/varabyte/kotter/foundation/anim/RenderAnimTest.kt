@@ -6,16 +6,14 @@ import com.varabyte.kotter.foundation.timer.TestTimer
 import com.varabyte.kotter.foundation.timer.useTestTimer
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotterx.test.foundation.testSession
+import com.varabyte.kotterx.test.runtime.blockUntilRenderWhen
 import com.varabyte.kotterx.test.terminal.resolveRerenders
-import com.varabyte.truthish.assertThat
-import java.util.concurrent.ArrayBlockingQueue
 import kotlin.test.Test
 
 class RenderAnimTest {
     @Test
     fun `simple render anim loops`() = testSession { terminal ->
         var timer: TestTimer? = null
-        val rendered = ArrayBlockingQueue<Unit>(1)
 
         val anim = renderAnimOf(3, Anim.ONE_FRAME_60FPS) {
             val frameNumber = it + 1
@@ -27,47 +25,45 @@ class RenderAnimTest {
                 timer = data.useTestTimer()
             }
             anim(this)
-        }.onRendered {
-            rendered.add(Unit)
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
 
-            rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 1 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 2 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 3 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 3 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 1 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
         }
     }
 
     @Test
     fun `can instantiate render anims via template`() = testSession { terminal ->
         var timer: TestTimer? = null
-        // We have two anims running at the same time; wait for both of them to happen before allowing the section to
-        // repaint, allowing us to test section state consistently
-        val allowRenderToStart = ArrayBlockingQueue<Unit>(1).also {
-            // Allow the first render to happen without getting blocked
-            it.add(Unit)
-        }
-        val rendered = ArrayBlockingQueue<Unit>(1)
 
         val animTemplate = RenderAnim.Template(3, Anim.ONE_FRAME_60FPS) {
             val frameNumber = it + 1
@@ -88,47 +84,52 @@ class RenderAnimTest {
                 textLine()
                 anim2(this)
             }
-        }.onPreRender {
-            allowRenderToStart.take()
-        }.onRendered {
-            rendered.add(Unit)
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
 
-            rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 1 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
             startRunningAnim2 = true
-            timer.fastForward(Anim.ONE_FRAME_60FPS); allowRenderToStart.add(Unit); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 2 <",
-                "> 1 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <",
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            timer.fastForward(Anim.ONE_FRAME_60FPS); allowRenderToStart.add(Unit); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 3 <",
-                "> 2 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 3 <",
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            timer.fastForward(Anim.ONE_FRAME_60FPS); allowRenderToStart.add(Unit); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 1 <",
-                "> 3 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <",
+                    "> 3 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            timer.fastForward(Anim.ONE_FRAME_60FPS); allowRenderToStart.add(Unit); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 2 <",
-                "> 1 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <",
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
         }
     }
 }
