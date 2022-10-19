@@ -16,6 +16,37 @@ import kotlin.math.min
  * A fake terminal, built for tests, which stores data written to it in memory that can then be queried.
  */
 class TestTerminal : Terminal {
+    companion object {
+        /**
+         * Helper function that generates the final console output for a given, simple Kotter block.
+         *
+         * This is useful for verifying the result of some complex Kotter block like so:
+         *
+         * ```
+         * testSession { terminal ->
+         *   section {
+         *      /* do some crazy stuff with lots of intermediate rewrites that end up just printing "Hello world" */
+         *   }.run()
+         *
+         *   assertThat(terminal.resolveRerenders()).isEqualTo(TestTerminal.consoleOutputFor {
+         *     textLine("Hello world")
+         *   })
+         * }
+         */
+        fun consoleOutputFor(block: MainRenderScope.() -> Unit): List<String> {
+            lateinit var output: List<String>
+            testSession { terminal ->
+                section {
+                    block()
+                }.run()
+
+                output = terminal.resolveRerenders()
+            }
+
+            return output
+        }
+    }
+
     var closed = false
         private set
 
@@ -120,14 +151,5 @@ fun TestTerminal.resolveRerenders(): List<String> {
 }
 
 fun TestTerminal.matches(expected: MainRenderScope.() -> Unit): Boolean {
-    var matches = false
-    val self = this
-    testSession { otherTerminal ->
-        section {
-            this.expected()
-        }.run()
-        matches = self.resolveRerenders() == otherTerminal.resolveRerenders()
-    }
-
-    return matches
+    return this.resolveRerenders() == TestTerminal.consoleOutputFor(expected)
 }
