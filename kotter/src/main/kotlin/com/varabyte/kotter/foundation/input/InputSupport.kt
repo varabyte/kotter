@@ -330,11 +330,11 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                                     rejected = onInputEnteredScope.rejected
                                     cleared = onInputEnteredScope.cleared
                                 }
-                                if (!rejected) {
-                                    get(SystemInputEnteredCallbackKey) { this.invoke() }
-                                }
                                 if (cleared) {
                                     getValue(InputStatesKey).remove(id)
+                                }
+                                if (!rejected) {
+                                    get(SystemInputEnteredCallbackKey) { this.invoke() }
                                 }
                             }
                             else ->

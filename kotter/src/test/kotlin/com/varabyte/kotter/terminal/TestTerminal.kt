@@ -24,12 +24,28 @@ class TestTerminal : Terminal {
     private val keysChannel = Channel<Int>()
 
     suspend fun sendKeys(vararg keys: Int) {
-        keys.forEach { keysChannel.send(it) }
-        // Hack alert. If tests run too fast, sometimes sections are killed before input threads have a chance to
-        // communicate to the render threads. There might be a smart way I'm simply missing, but saying, "OK, wait for
-        // the next render after NOW before continuing" is itself tricky and error-prone to get right. Instead, just
-        // wait a bit, which gives the system a chance to run through its events, before asserting its state.
-        delay(16)
+        keys.forEach {
+            keysChannel.send(it)
+            // Hack alert.
+            //
+            // Sometimes, if we send a bunch of keys all at once, we get occasional events that end up getting processed
+            // faster than the render thread can keep up. This results in input tests occasionally barfing because we're
+            // trying to assert expected state before the expected render has come in.
+            //
+            // For example, if you send a bunch of letters and then ENTER, the ENTER event will trigger a cancel on the
+            // run thread, which in turn triggers to `onFinishing` block immediately. Now, the additional rerender
+            // request for those keys will still come in, but by that time, our test has already failed because we
+            // asserted on the state of a previous frame.
+            //
+            // For another example, we press DOWN, handle that in a `onKeyPressed` block, use that to set a `LiveVar`
+            // value, and then type in more text before finishing our run block. Because of the speed of the keys
+            // coming in, we might end up exiting the run block and triggering `onFinishing` before the final render
+            // request comes in.
+            //
+            // We may come up with a smarter way to do this later, but for now, adding a delay seems to be robust
+            // enough. And remember: Humans can't type instantly! So having a delay between keys isn't that horrible...
+            delay(10)
+        }
     }
 
     override fun write(text: String) {
