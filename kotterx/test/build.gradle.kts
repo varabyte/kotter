@@ -57,6 +57,9 @@ dependencies {
     implementation(compose.desktop.common)
 
     implementation(project(":kotter"))
+
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.truthish)
 }
 
 java {

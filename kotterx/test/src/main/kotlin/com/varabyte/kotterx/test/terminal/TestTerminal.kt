@@ -1,12 +1,13 @@
 package com.varabyte.kotterx.test.terminal
 
+import com.varabyte.kotter.runtime.MainRenderScope
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.internal.text.startsWith
 import com.varabyte.kotter.runtime.terminal.Terminal
+import com.varabyte.kotterx.test.foundation.testSession
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlin.math.min
@@ -118,3 +119,15 @@ fun TestTerminal.resolveRerenders(): List<String> {
     return resolved
 }
 
+fun TestTerminal.matches(expected: MainRenderScope.() -> Unit): Boolean {
+    var matches = false
+    val self = this
+    testSession { otherTerminal ->
+        section {
+            this.expected()
+        }.run()
+        matches = self.resolveRerenders() == otherTerminal.resolveRerenders()
+    }
+
+    return matches
+}
