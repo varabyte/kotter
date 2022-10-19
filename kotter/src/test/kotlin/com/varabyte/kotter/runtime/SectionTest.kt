@@ -1,17 +1,14 @@
 package com.varabyte.kotter.runtime
 
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.render.aside
 import com.varabyte.kotter.foundation.runUntilSignal
-import com.varabyte.kotter.foundation.testSession
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotter.terminal.lines
-import com.varabyte.kotter.terminal.resolveRerenders
-import com.varabyte.kotter.terminal.type
+import com.varabyte.kotterx.test.foundation.testSession
+import com.varabyte.kotterx.test.terminal.lines
+import com.varabyte.kotterx.test.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import java.util.concurrent.ArrayBlockingQueue

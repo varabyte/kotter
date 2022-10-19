@@ -1,4 +1,4 @@
-package com.varabyte.kotter.terminal
+package com.varabyte.kotterx.test.terminal
 
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes

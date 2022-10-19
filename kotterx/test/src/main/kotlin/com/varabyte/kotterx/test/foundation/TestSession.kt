@@ -1,7 +1,8 @@
-package com.varabyte.kotter.foundation
+package com.varabyte.kotterx.test.foundation
 
+import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.runtime.Session
-import com.varabyte.kotter.terminal.TestTerminal
+import com.varabyte.kotterx.test.terminal.TestTerminal
 
 /**
  * Like a [session] block but backed by a [TestTerminal], which is provides as a lambda argument.

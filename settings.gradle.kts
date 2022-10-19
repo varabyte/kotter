@@ -11,6 +11,7 @@ rootProject.name = "kotter"
 
 include(":kotter")
 include(":kotterx:compose")
+include(":kotterx:test")
 
 include(":examples:anim")
 include(":examples:blink")

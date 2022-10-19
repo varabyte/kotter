@@ -1,16 +1,16 @@
 package com.varabyte.kotter.foundation.input
 
 import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.testSession
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.foundation.timer.TestTimer
 import com.varabyte.kotter.foundation.timer.useTestTimer
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotter.terminal.resolveRerenders
-import com.varabyte.kotter.terminal.sendCode
-import com.varabyte.kotter.terminal.type
+import com.varabyte.kotterx.test.foundation.testSession
+import com.varabyte.kotterx.test.terminal.resolveRerenders
+import com.varabyte.kotterx.test.terminal.sendCode
+import com.varabyte.kotterx.test.terminal.type
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import java.time.Duration
