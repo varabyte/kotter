@@ -2,9 +2,12 @@ import Cells.State
 import com.varabyte.kotter.foundation.input.Keys
 import com.varabyte.kotter.foundation.input.onKeyPressed
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.text.green
+import com.varabyte.kotter.foundation.text.red
+import com.varabyte.kotter.foundation.text.text
+import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotterx.decorations.bordered
 import kotlinx.coroutines.delay

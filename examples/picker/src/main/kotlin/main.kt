@@ -5,11 +5,7 @@ import com.varabyte.kotter.foundation.input.onKeyPressed
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.runUntilSignal
 import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.text.HSV
-import com.varabyte.kotter.foundation.text.hsv
-import com.varabyte.kotter.foundation.text.p
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.text.*
 import kotlin.math.roundToInt
 
 const val W = 40

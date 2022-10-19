@@ -1,7 +1,7 @@
 import TestState.*
 import com.varabyte.kotter.foundation.collections.liveListOf
-import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.text.ColorLayer.BG
 import com.varabyte.kotter.foundation.timer.addTimer

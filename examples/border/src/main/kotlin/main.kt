@@ -1,6 +1,5 @@
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.cyan
-import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.foundation.text.yellow
 import com.varabyte.kotterx.decorations.BorderCharacters

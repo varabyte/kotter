@@ -1,11 +1,10 @@
 import com.varabyte.kotter.foundation.anim.Anim
-import com.varabyte.kotter.foundation.anim.TextAnim
-import com.varabyte.kotter.foundation.runUntilSuccess
 import com.varabyte.kotter.foundation.input.Keys
 import com.varabyte.kotter.foundation.input.onKeyPressed
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.runUntilSuccess
+import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.text.ColorLayer.BG
 import com.varabyte.kotter.foundation.timer.addTimer

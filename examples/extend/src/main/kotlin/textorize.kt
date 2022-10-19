@@ -6,7 +6,6 @@ import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.SectionScope
-import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.render.RenderScope
 import java.time.Duration
