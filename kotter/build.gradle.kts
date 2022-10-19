@@ -2,14 +2,14 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
-    kotlin("jvm")
+    alias(libs.plugins.kotlin.jvm)
     `maven-publish`
     signing
-    id("org.jetbrains.kotlinx.kover")
+    alias(libs.plugins.kotlinx.kover)
 }
 
 group = "com.varabyte.kotter"
-version = "1.0.0-rc2"
+version = libs.versions.kotter.get()
 
 fun shouldSign() = (findProperty("kotter.sign") as? String).toBoolean()
 fun shouldPublishToGCloud(): Boolean {
@@ -53,27 +53,19 @@ repositories {
     mavenCentral()
 }
 
-object Versions {
-    object Kotlin {
-        const val Couroutines = "1.6.4"
-    }
-    const val Jline = "3.21.0"
-}
-
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.Kotlin.Couroutines}")
+    implementation(libs.kotlinx.coroutines)
 
     // For system terminal implementation
-    implementation("org.jline:jline-terminal:${Versions.Jline}")
-    implementation("org.jline:jline-terminal-jansi:${Versions.Jline}")
+    implementation(libs.jline.terminal.core)
+    implementation(libs.jline.terminal.jansi)
     runtimeOnly(files("libs/jansi-1.18.jar")) // Required for windows support
 
     // For GuardedBy concurrency annotation
-    implementation("net.jcip:jcip-annotations:1.0")
+    implementation(libs.jcip.annotations)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test")
-    testImplementation("com.varabyte.truthish:truthish:0.6.3")
+    testImplementation(libs.kotlin.test)
+    testImplementation(libs.truthish)
 }
 
 java {

@@ -1,18 +1,18 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.jetbrains.compose)
     `maven-publish`
     signing
 }
 
 group = "com.varabyte.kotterx"
-version = "0.9.10-SNAPSHOT"
+version = libs.versions.kotter.get()
 
 fun shouldSign() = (findProperty("kotter.sign") as? String).toBoolean()
 fun shouldPublishToGCloud(): Boolean {
-    return (findProperty("kotter.gcloud.publish") as? String).toBoolean()
+    return (findProperty("kotterx.compose.gcloud.publish") as? String).toBoolean()
             && findProperty("gcloud.artifact.registry.secret") != null
 }
 
@@ -35,15 +35,8 @@ repositories {
     }
 }
 
-object Versions {
-    object Kotlin {
-        const val Couroutines = "1.6.0"
-    }
-}
-
 dependencies {
-    implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${Versions.Kotlin.Couroutines}")
+    implementation(libs.kotlinx.coroutines)
     implementation(compose.desktop.common)
 
     implementation(project(":kotter"))

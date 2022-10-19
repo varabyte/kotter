@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm")
+    alias(libs.plugins.kotlin.jvm)
     application
 }
 
@@ -11,9 +11,8 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(project(":kotter"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+    implementation(libs.kotlinx.coroutines)
 }
 
 application {

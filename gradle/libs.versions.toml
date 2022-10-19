@@ -1,0 +1,23 @@
+[versions]
+compose = "1.1.1"
+jline = "3.21.0"
+kotlin = "1.6.10"
+kotlinx-coroutines = "1.6.4"
+kotter = "1.0.0-rc2"
+kover = "0.6.1"
+okhttp = "4.9.3"
+truthish = "0.6.3"
+
+[libraries]
+jcip-annotations = { module = "net.jcip:jcip-annotations", version = "1.0" }
+jline-terminal-core = { module = "org.jline:jline-terminal", version.ref = "jline" }
+jline-terminal-jansi = { module = "org.jline:jline-terminal-jansi", version.ref = "jline" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+truthish = { module = "com.varabyte.truthish:truthish", version.ref = "truthish" }
+
+[plugins]
+jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

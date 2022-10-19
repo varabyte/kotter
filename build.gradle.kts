@@ -2,7 +2,7 @@
 // at build about the same plugin being loaded multiple times.
 // See also: https://docs.gradle.org/current/userguide/plugins.html#sec:subprojects_plugins_dsl
 plugins {
-    kotlin("jvm") version "1.6.10" apply false
-    id("org.jetbrains.kotlinx.kover") version "0.6.1" apply false
-    id("org.jetbrains.compose") version "1.1.1" apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlinx.kover) apply false
+    alias(libs.plugins.jetbrains.compose) apply false
 }

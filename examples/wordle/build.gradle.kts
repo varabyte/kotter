@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm")
+    alias(libs.plugins.kotlin.jvm)
     application
 }
 
@@ -11,10 +11,9 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(project(":kotter"))
-    implementation("com.squareup.okhttp3:okhttp:4.9.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1")
+    implementation(libs.okhttp)
+    implementation(libs.kotlinx.coroutines)
 }
 
 application {
