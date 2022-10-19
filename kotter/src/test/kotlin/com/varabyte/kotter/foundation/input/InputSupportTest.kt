@@ -60,7 +60,7 @@ class InputSupportTest {
     }
 
     @Test
-    fun `it is an exception to run two input calls in the same block`() = testSession { terminal ->
+    fun `it is an exception to run two input calls in the same block`() = testSession {
         section {
             input()
             assertThrows<IllegalStateException> {
