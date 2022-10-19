@@ -68,7 +68,7 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
     fun <R> withWriteLock(block: LiveList<T>.() -> R): R = session.data.lock.write { this.block() }
 
     // Immutable functions
-    override val size: Int get() = read { delegateList.size }
+    override val size get() = read { delegateList.size }
     override fun contains(element: T) = read { delegateList.contains(element) }
     override fun containsAll(elements: Collection<T>) = read { delegateList.containsAll(elements) }
     override fun get(index: Int): T = read { delegateList[index] }

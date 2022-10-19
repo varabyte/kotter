@@ -58,7 +58,7 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
     fun <R> withWriteLock(block: LiveMap<K, V>.() -> R): R = session.data.lock.write { this.block() }
 
     // Immutable methods
-    override val size = read { delegateMap.size }
+    override val size get() = read { delegateMap.size }
     override fun isEmpty() = read { delegateMap.isEmpty() }
     override fun containsKey(key: K) = read { delegateMap.containsKey(key) }
     override fun containsValue(value: V) = read { delegateMap.containsValue(value) }

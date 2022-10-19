@@ -67,7 +67,7 @@ class LiveSet<T> internal constructor(private val session: Session, vararg eleme
     fun <R> withWriteLock(block: LiveSet<T>.() -> R): R = session.data.lock.write { this.block() }
 
     // Immutable methods
-    override val size = read { delegateSet.size }
+    override val size get() = read { delegateSet.size }
     override fun isEmpty() = read { delegateSet.isEmpty() }
     override fun containsAll(elements: Collection<T>) = read { delegateSet.containsAll(elements) }
     override fun contains(element: T) = read { delegateSet.contains(element) }
