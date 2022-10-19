@@ -66,7 +66,7 @@ dependencies {
 
     testImplementation(libs.kotlin.test)
     testImplementation(libs.truthish)
-    testImplementation(project(":kotterx:test"))
+    testImplementation(project(":kotterx:kotter-test-support"))
 }
 
 java {
