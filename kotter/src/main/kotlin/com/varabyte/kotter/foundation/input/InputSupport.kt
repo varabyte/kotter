@@ -349,7 +349,12 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                                 val onInputChangedScope = OnInputChangedScope(id, input = proposedText!!, prevInput = text)
                                 this.invoke(onInputChangedScope)
 
-                                proposedText = if (!onInputChangedScope.rejected) onInputChangedScope.input else onInputChangedScope.prevInput
+                                if (!onInputChangedScope.rejected) {
+                                    proposedText = onInputChangedScope.input
+                                } else {
+                                    proposedText = onInputChangedScope.prevInput
+                                    proposedIndex = index
+                                }
                             }
 
                             text = proposedText!!

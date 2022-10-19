@@ -235,6 +235,41 @@ class InputSupportTest {
     }
 
     @Test
+    fun `delete ignored if input rejected`() = testSession { terminal ->
+        lateinit var typed: String
+
+        section {
+            input(initialText = "Hello")
+        }.onFinishing {
+            assertThat(terminal.resolveRerenders()).containsExactly(
+                "H${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
+                ""
+            ).inOrder()
+
+        }.runUntilInputEntered {
+            onInputChanged {
+                if (input == "Hlo") rejectInput()
+            }
+            onInputEntered {
+                typed = input
+            }
+
+            // At this point, cursor is PAST the o
+            terminal.sendCode(Codes.Keys.LEFT) // o
+            terminal.sendCode(Codes.Keys.LEFT) // l (second)
+            terminal.sendCode(Codes.Keys.LEFT) // l (first)
+            terminal.sendCode(Codes.Keys.LEFT) // e (first)
+            terminal.sendCode(Codes.Keys.DELETE) // Hllo
+            terminal.sendCode(Codes.Keys.DELETE) // Would be "Hlo", but rejected
+            terminal.sendCode(Codes.Keys.DELETE) // Would be "Hlo", but rejected again
+
+            terminal.type(Ansi.CtrlChars.ENTER)
+        }
+        assertThat(typed).isEqualTo("Hllo")
+    }
+
+
+    @Test
     fun `can delete input in front of cursor by using the backspace key`() = testSession { terminal ->
         lateinit var typed: String
 
@@ -255,6 +290,37 @@ class InputSupportTest {
             terminal.type(Ansi.CtrlChars.ENTER)
         }
         assertThat(typed).isEqualTo("Hlo")
+    }
+
+    @Test
+    fun `backspace ignored if input rejected`() = testSession { terminal ->
+        lateinit var typed: String
+
+        section {
+            input(initialText = "Hello")
+        }.onFinishing {
+            assertThat(terminal.resolveRerenders()).containsExactly(
+                "Hel${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}",
+                ""
+            ).inOrder()
+
+        }.runUntilInputEntered {
+            onInputChanged {
+                if (input == "He") rejectInput()
+            }
+            onInputEntered {
+                typed = input
+            }
+
+            terminal.type(Ansi.CtrlChars.BACKSPACE)
+            terminal.type(Ansi.CtrlChars.BACKSPACE)
+            terminal.type(Ansi.CtrlChars.BACKSPACE)
+            terminal.type(Ansi.CtrlChars.BACKSPACE)
+            terminal.type(Ansi.CtrlChars.BACKSPACE)
+            terminal.type(Ansi.CtrlChars.BACKSPACE)
+            terminal.type(Ansi.CtrlChars.ENTER)
+        }
+        assertThat(typed).isEqualTo("Hel")
     }
 
     @Test
