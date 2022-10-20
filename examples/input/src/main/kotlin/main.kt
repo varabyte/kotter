@@ -57,7 +57,7 @@ fun main() = session {
             textLine("   $sum")
             textLine()
         }.runUntilSignal {
-            onInputChanged { if (input.toIntOrNull() == null) rejectInput() }
+            onInputChanged { if (input.isNotBlank() && input.toIntOrNull() == null) rejectInput() }
             onInputEntered {
                 numbers.add(input.toIntOrNull() ?: 0)
                 if (input.isEmpty()) { isDone = true; signal() }
