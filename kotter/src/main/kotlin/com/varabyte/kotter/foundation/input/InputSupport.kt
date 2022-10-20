@@ -435,7 +435,7 @@ open class Completions(private vararg val values: String, private val ignoreCase
 private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
 
 /**
- * Information passed into the `renderTransform` callback in the [input] method.
+ * Information passed into the `viewMap` callback in the [input] method.
  *
  * The user can check the current character being transformed (via the [ch] property), but the entire [text] and
  * character's [index] is also provided in case the context helps with the mapping. It's expected in most cases, e.g.
