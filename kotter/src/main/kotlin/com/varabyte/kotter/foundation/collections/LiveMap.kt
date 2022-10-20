@@ -1,6 +1,5 @@
 package com.varabyte.kotter.foundation.collections
 
-import com.varabyte.kotter.foundation.LiveVar
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.runtime.Session
 import net.jcip.annotations.GuardedBy
@@ -69,9 +68,9 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
     // This is a downgrade for what the MutableMap API is supposed to expose, but it's a pain to implement this
     // correctly in a way that ensures we won't do a ton of unecessary rerendering of sections. Most of the time users
     // are using these fields for read only purposes.
-    override val entries = read { delegateMap.toMutableMap().entries }
-    override val keys = read { delegateMap.toMutableMap().keys }
-    override val values = read { delegateMap.toMutableMap().values }
+    override val entries get() = read { delegateMap.toMutableMap().entries }
+    override val keys get() = read { delegateMap.toMutableMap().keys }
+    override val values get() = read { delegateMap.toMutableMap().values }
 
     // Mutable methods
     override fun clear() = write { delegateMap.clear() }
@@ -81,4 +80,5 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
 }
 
 /** Create a [LiveMap] whose scope is tied to this session. */
-fun <K, V> Session.liveMapOf(vararg elements: Pair<K, V>): LiveMap<K, V> = LiveMap<K, V>(this, *elements)
+fun <K, V> Session.liveMapOf(vararg elements: Pair<K, V>): LiveMap<K, V> = LiveMap(this, *elements)
+fun <K, V> Session.liveMapOf(elements: Iterable<Pair<K, V>>) = liveMapOf(*elements.toList().toTypedArray())
