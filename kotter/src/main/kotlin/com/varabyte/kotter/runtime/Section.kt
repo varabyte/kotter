@@ -118,7 +118,10 @@ class Section internal constructor(val session: Session, private val render: Mai
 
     private var consumed = AtomicBoolean(false)
 
+    private val abortLock = ReentrantLock()
+    @GuardedBy("abortLock")
     private var abortRequested = false
+    @GuardedBy("abortLock")
     private var handleAbort: () -> Unit = { abortRequested = true }
 
     /**
@@ -255,19 +258,28 @@ class Section internal constructor(val session: Session, private val render: Mai
             val self = this
             try {
                 runBlocking {
-                    if (!abortRequested) {
-                        val scope = RunScope(self, this)
-                        handleAbort = { scope.abort() }
-                        scope.block()
+
+                    val scope = abortLock.withLock {
+                        if (!abortRequested) {
+                            val scope = RunScope(self, this)
+                            handleAbort = { scope.abort() }
+                            scope
+                        } else {
+                            null
+                        }
                     }
+
+                    scope?.block()
                 }
             } catch (ignored: CancellationException) {
                 // This is expected as it can happen when abort() is called in `run`
             } catch (ex: Exception) {
                 deferredException = ex
             } finally {
-                abortRequested = false
-                handleAbort = { abortRequested = true }
+                abortLock.withLock {
+                    abortRequested = false
+                    handleAbort = { abortRequested = true }
+                }
             }
         }
 
@@ -285,7 +297,11 @@ class Section internal constructor(val session: Session, private val render: Mai
         deferredException?.let { throw it }
     }
 
-    fun abortAsync() = handleAbort()
+    fun abortAsync() {
+        abortLock.withLock {
+            handleAbort()
+        }
+    }
     fun abort() {
         val latch = CountDownLatch(1)
         session.data.lock.write {
