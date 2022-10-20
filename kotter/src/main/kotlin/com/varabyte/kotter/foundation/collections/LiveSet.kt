@@ -35,7 +35,7 @@ class LiveSet<T> internal constructor(private val session: Session, vararg eleme
     private val delegateSet = mutableSetOf(*elements)
 
     private fun <R> read(block: () -> R): R {
-        return session.data.lock.read {
+        return withReadLock {
             // Triggers LiveVar.getValue but not setValue (which, here, aborts early because value is the same)
             modifyCountVar = modifyCountVar
             block()
@@ -43,7 +43,7 @@ class LiveSet<T> internal constructor(private val session: Session, vararg eleme
     }
 
     private fun <R> write(block: () -> R): R {
-        return session.data.lock.write {
+        return withWriteLock {
             // Triggers LiveVar.setValue but not getValue
             modifyCountVar = ++modifyCount
             block()

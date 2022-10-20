@@ -26,7 +26,7 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
     private val delegateMap = mutableMapOf(*elements)
 
     private fun <R> read(block: () -> R): R {
-        return session.data.lock.read {
+        return withReadLock {
             // Triggers LiveVar.getValue but not setValue (which, here, aborts early because value is the same)
             modifyCountVar = modifyCountVar
             block()
@@ -34,7 +34,7 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
     }
 
     private fun <R> write(block: () -> R): R {
-        return session.data.lock.write {
+        return withWriteLock {
             // Triggers LiveVar.setValue but not getValue
             modifyCountVar = ++modifyCount
             block()
