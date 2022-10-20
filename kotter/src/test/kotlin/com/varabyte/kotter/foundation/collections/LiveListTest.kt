@@ -38,7 +38,7 @@ class LiveListTest {
 
     @Test
     fun `live list query methods work`() = testSession { terminal ->
-        val nums = liveListOf(1, 2, 6)
+        val nums = liveListOf(listOf(1, 2, 6))
         section {
             textLine("List: [${nums.joinToString(", ")}]")
             textLine("Size: ${nums.size}")
