@@ -144,45 +144,46 @@ class Section internal constructor(val session: Session, private val render: Mai
 
     private fun renderOnceAsync(): Job {
         return CoroutineScope(session.executor.asCoroutineDispatcher()).launch {
-            renderLock.withLock { renderRequested = false }
-
-            val clearBlockCommand = buildString {
-                if (renderer.commands.isNotEmpty()) {
-
-                    // Note: This logic works when a terminal first starts up, but if the user keeps resizing their
-                    // terminal while our session is running, it seems like the width value we get doesn't update. See
-                    // also: bug #34
-                    val totalNumLines = renderer.commands.numLines(session.terminal.width)
-
-                    // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
-                    // last one down to the beginning (in other words, don't consume the \n of the previous line)
-                    for (i in 0 until totalNumLines) {
-                        append('\r')
-                        append(Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode())
-                        if (i < totalNumLines - 1) {
-                            append(Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
-                        }
-                    }
-                }
-            }
-
-            val asideTextBuilder = StringBuilder()
-            session.data.get(AsideRendersKey) {
-                if (this.isEmpty()) return@get
-
-                forEach { renderer ->
-                    asideTextBuilder.append(renderer.commands.toRawText())
-                }
-                // Only render asides once. Since we don't erase them, they'll be baked into the history.
-                clear()
-            }
-
             session.data.start(MainRenderScope.Lifecycle)
             // Rendering might crash, and if so, we should still propagate the exception but only after we've cleaned up
             // our rendering.
             var deferredException: Exception? = null
             // Make sure run logic doesn't modify values while we're in the middle of rendering
             session.data.lock.write {
+                renderLock.withLock { renderRequested = false }
+
+                val clearBlockCommand = buildString {
+                    if (renderer.commands.isNotEmpty()) {
+
+                        // Note: This logic works when a terminal first starts up, but if the user keeps resizing their
+                        // terminal while our session is running, it seems like the width value we get doesn't update. See
+                        // also: bug #34
+                        val totalNumLines = renderer.commands.numLines(session.terminal.width)
+
+                        // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
+                        // last one down to the beginning (in other words, don't consume the \n of the previous line)
+                        for (i in 0 until totalNumLines) {
+                            append('\r')
+                            append(Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode())
+                            if (i < totalNumLines - 1) {
+                                append(Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
+                            }
+                        }
+                    }
+                }
+
+                val asideTextBuilder = StringBuilder()
+                session.data.get(AsideRendersKey) {
+                    if (this.isEmpty()) return@get
+
+                    forEach { renderer ->
+                        asideTextBuilder.append(renderer.commands.toRawText())
+                    }
+                    // Only render asides once. Since we don't erase them, they'll be baked into the history.
+                    clear()
+                }
+
+
                 try {
                     renderer.render(render)
                 } catch (ex: Exception) {
