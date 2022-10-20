@@ -87,4 +87,5 @@ class LiveSet<T> internal constructor(private val session: Session, vararg eleme
 }
 
 /** Create a [LiveSet] whose scope is tied to this session. */
-fun <T> Session.liveSetOf(vararg elements: T): LiveSet<T> = LiveSet<T>(this, *elements)
+fun <T> Session.liveSetOf(vararg elements: T): LiveSet<T> = LiveSet(this, *elements)
+inline fun <reified T> Session.liveSetOf(elements: Iterable<T>) = liveSetOf(*elements.toList().toTypedArray())

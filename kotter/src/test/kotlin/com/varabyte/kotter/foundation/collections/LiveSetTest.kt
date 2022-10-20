@@ -46,9 +46,7 @@ class LiveSetTest {
             textLine("Contains All: ${nums.containsAll(listOf(1, 3, 2))}")
             textLine("Is empty: ${nums.isEmpty()}")
         }.run {
-            nums.withWriteLock {
-                nums.addAll(listOf(1, 2, 3))
-            }
+            nums.addAll(listOf(1, 2, 3))
         }
 
         assertThat(terminal.lines()).containsExactly(
@@ -71,7 +69,7 @@ class LiveSetTest {
 
     @Test
     fun `live set iterator method works`() = testSession { terminal ->
-        val nums = liveSetOf(1, 2, 3, 4, 5, 6)
+        val nums = liveSetOf(listOf(1, 2, 3, 4, 5, 6))
         section {
             text("Iterator: ")
             with (nums.iterator()) {
