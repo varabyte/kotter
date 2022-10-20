@@ -1,5 +1,7 @@
 package com.varabyte.kotter.runtime
 
+import com.varabyte.kotter.foundation.input.input
+import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.render.aside
 import com.varabyte.kotter.foundation.runUntilSignal
@@ -11,10 +13,12 @@ import com.varabyte.kotterx.test.terminal.lines
 import com.varabyte.kotterx.test.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
+import kotlinx.coroutines.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.CountDownLatch
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
+import kotlin.test.fail
 
 class SectionTest {
     @Test
@@ -202,5 +206,71 @@ class SectionTest {
         section {}.runUntilSignal {
             signal()
         }
+    }
+
+    @Test
+    fun `can trigger abort while a run block is blocked in runUntilInputEntered`() = testSession {
+        val session = this
+        val runStarted = CountDownLatch(1)
+        val sectionAborted = CountDownLatch(1)
+
+        CoroutineScope(Dispatchers.Default).launch {
+            section {
+                input()
+            }.runUntilInputEntered {
+                runStarted.countDown()
+            }
+
+            sectionAborted.countDown()
+        }
+
+        runStarted.await()
+
+        session.activeSection!!.abort()
+        sectionAborted.await()
+    }
+
+    @Test
+    fun `can trigger abort while a run block is blocked in runUntilSignal`() = testSession {
+        val session = this
+        val runStarted = CountDownLatch(1)
+        val sectionAborted = CountDownLatch(1)
+
+        CoroutineScope(Dispatchers.Default).launch {
+            section {
+                input()
+            }.runUntilSignal {
+                // Note this is waiting for input to be entered but no code ever presses ENTER
+                runStarted.countDown()
+            }
+
+            sectionAborted.countDown()
+        }
+
+        runStarted.await()
+
+        session.activeSection!!.abort()
+        sectionAborted.await()
+    }
+
+    @Test
+    fun `can trigger abort before the run block starts`() = testSession {
+        val session = this
+        val sectionAborted = CountDownLatch(1)
+
+        CoroutineScope(Dispatchers.Default).launch {
+            section {
+                // This initial section render is triggered by the run call but the run block itself hasn't
+                // started yet. Because an abort is requested, it won't even run.
+                session.activeSection!!.abortAsync()
+                input()
+            }.runUntilInputEntered {
+                fail("This shouldn't run since an abort was requested")
+            }
+
+            sectionAborted.countDown()
+        }
+
+        sectionAborted.await()
     }
 }

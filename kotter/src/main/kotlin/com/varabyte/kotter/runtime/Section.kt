@@ -60,7 +60,10 @@ class RunScope(
 
     private val waitLatch = CountDownLatch(1)
     /** Forcefully exit this runscope early, even if it's still in progress */
-    internal fun abort() { scope.cancel() }
+    internal fun abort() {
+        signal() // In case abort is run inside a `runUntilSignal` block
+        scope.cancel()
+    }
     fun rerender() = section.requestRerender()
     fun waitForSignal() = waitLatch.await()
     fun signal() = waitLatch.countDown()
@@ -114,6 +117,9 @@ class Section internal constructor(val session: Session, private val render: Mai
     private var onFinishing = mutableListOf<() -> Unit>()
 
     private var consumed = AtomicBoolean(false)
+
+    private var abortRequested = false
+    private var handleAbort: () -> Unit = { abortRequested = true }
 
     /**
      * Let the block know we want to rerender an additional frame.
@@ -249,13 +255,19 @@ class Section internal constructor(val session: Session, private val render: Mai
             val self = this
             try {
                 runBlocking {
-                    val scope = RunScope(self, this)
-                    scope.block()
+                    if (!abortRequested) {
+                        val scope = RunScope(self, this)
+                        handleAbort = { scope.abort() }
+                        scope.block()
+                    }
                 }
             } catch (ignored: CancellationException) {
                 // This is expected as it can happen when abort() is called in `run`
             } catch (ex: Exception) {
                 deferredException = ex
+            } finally {
+                abortRequested = false
+                handleAbort = { abortRequested = true }
             }
         }
 
@@ -271,5 +283,24 @@ class Section internal constructor(val session: Session, private val render: Mai
 
         session.data.stop(Lifecycle)
         deferredException?.let { throw it }
-   }
+    }
+
+    fun abortAsync() = handleAbort()
+    fun abort() {
+        val latch = CountDownLatch(1)
+        session.data.lock.write {
+            if (session.data.isActive(RunScope.Lifecycle)) {
+                session.data.onLifecycleDeactivated {
+                    if (lifecycle === RunScope.Lifecycle) {
+                        removeListener = true
+                        latch.countDown()
+                    }
+                }
+                abortAsync()
+            } else {
+                latch.countDown()
+            }
+        }
+        latch.await()
+    }
 }

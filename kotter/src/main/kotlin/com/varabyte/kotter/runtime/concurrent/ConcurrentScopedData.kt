@@ -67,6 +67,8 @@ class ConcurrentScopedData {
         val lifecycle: Lifecycle
     }
 
+    class LifecycleListenerScope(val lifecycle: Lifecycle, var removeListener: Boolean = false)
+
     /**
      * A value entry inside the key/value store.
      *
@@ -88,6 +90,20 @@ class ConcurrentScopedData {
     private val activeLifecycles = mutableSetOf<Lifecycle>()
     @GuardedBy("lock")
     private val keyValues = mutableMapOf<Key<out Any>, Value<out Any>>()
+
+    @GuardedBy("lock")
+    private val onLifecycleDeactivated = mutableListOf<LifecycleListenerScope.() -> Unit>()
+
+    /**
+     * Add a listener that will be triggered when a lifecycle goes from active -> inactive state.
+     *
+     * See also [LifecycleListenerScope] which contains information about which lifecycle was deactivated.
+     */
+    fun onLifecycleDeactivated(listener: LifecycleListenerScope.() -> Unit) {
+        lock.write {
+            onLifecycleDeactivated.add(listener)
+        }
+    }
 
     /**
      * Start a lifecycle (if not already active).
@@ -118,6 +134,11 @@ class ConcurrentScopedData {
             }
 
             activeLifecycles.filter { it.parent === lifecycle }.forEach { stop(it) }
+            onLifecycleDeactivated.removeIf { event ->
+                val scope = LifecycleListenerScope(lifecycle)
+                scope.event()
+                scope.removeListener
+            }
         }
     }
 
