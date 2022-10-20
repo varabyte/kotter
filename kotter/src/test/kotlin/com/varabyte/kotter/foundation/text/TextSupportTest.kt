@@ -86,4 +86,37 @@ class TextSupportTest {
             "", // Newline always added at the end of a section
         ).inOrder()
     }
+
+    @Test
+    fun `paragraph adds space around contents if necessary`() = testSession { terminal ->
+        section {
+            p {
+                textLine("First paragraph")
+            }
+
+            p {
+                textLine("Middle paragraph A")
+            }
+
+            p {
+                text("Middle paragraph B")
+            }
+
+            p {
+                text("Last paragraph")
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "First paragraph", // No space above the first paragraph
+            "",
+            "Middle paragraph A", // No extra space added above when one paragraph follows a newline
+            "",
+            "Middle paragraph B",
+            "",
+            "Last paragraph",
+            "",
+            "${Codes.Sgr.RESET}",
+        ).inOrder()
+    }
 }
