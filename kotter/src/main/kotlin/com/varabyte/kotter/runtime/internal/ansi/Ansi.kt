@@ -49,11 +49,10 @@ object Ansi {
             }
 
             init {
-                @Suppress("LeakingThis") // We aren't using "this" in a dangerous way
                 identifierObjects[code] = this
             }
 
-            final override fun toString() = code.toString()
+            override fun toString() = code.toString()
         }
 
         object Identifiers {
