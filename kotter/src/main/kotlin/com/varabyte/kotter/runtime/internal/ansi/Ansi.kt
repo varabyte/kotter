@@ -30,7 +30,7 @@ object Ansi {
         // it. For now, it seems to work OK if we just treat 'O' like '[' on Windows sometimes.
         private const val CSI_ALT = 'O'
 
-        fun toCode(sequence: CharSequence): Csi.Code? {
+        internal fun toCsiCode(sequence: CharSequence): Csi.Code? {
             if (sequence.length < 3) return null
             if (sequence[0] != CtrlChars.ESC || (sequence[1] !in listOf(CSI, CSI_ALT))) return null
             val parts = Csi.Code.parts(TextPtr(sequence, 2)) ?: return null
