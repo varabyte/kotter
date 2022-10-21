@@ -122,5 +122,12 @@ fun main() = session {
             // This is more to make sure our virtual terminal handles emojis well than anything else, really
             textLine("Emoji test: \uD83D\uDE00\uD83D\uDC4B\uD83D\uDE80")
         }
+
+        // Test links
+        p {
+            text("Thank you for taking the time to ")
+            link("https://github.com/varabyte/kotter", "learn Kotter")
+            textLine("!")
+        }
     }.run()
 }

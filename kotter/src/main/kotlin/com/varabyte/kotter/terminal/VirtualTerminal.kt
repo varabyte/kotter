@@ -12,9 +12,8 @@ import java.awt.*
 import java.awt.Cursor.HAND_CURSOR
 import java.awt.event.*
 import java.awt.event.WindowEvent.WINDOW_CLOSING
-import java.awt.geom.Point2D
-import java.net.MalformedURLException
-import java.net.URL
+import java.net.URI
+import java.net.URISyntaxException
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import javax.swing.*
@@ -65,11 +64,18 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             fontOverride: Path? = null,
             fgColor: AnsiColor = AnsiColor.WHITE,
             bgColor: AnsiColor = AnsiColor.BLACK,
+            linkColor: AnsiColor = AnsiColor.CYAN,
             maxNumLines: Int = 1000,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
             val font = fontOverride?.takeIf { it.exists() }?.let { Font.createFont(Font.TRUETYPE_FONT, it.toFile()).deriveFont(Font.PLAIN, fontSize.toFloat()) } ?: Font(Font.MONOSPACED, Font.PLAIN, fontSize)
-            val pane = SwingTerminalPane(font, fgColor.toSwingColor(), bgColor.toSwingColor(), maxNumLines.coerceAtLeast(terminalSize.height))
+            val pane = SwingTerminalPane(
+                font,
+                fgColor.toSwingColor(),
+                bgColor.toSwingColor(),
+                linkColor.toSwingColor(),
+                maxNumLines.coerceAtLeast(terminalSize.height)
+            )
             pane.focusTraversalKeysEnabled = false // Don't handle TAB, we want to send it to the user
             pane.text = buildString {
                 // Set initial text to a block of blank characters so pack will set it to the right size
@@ -106,6 +112,9 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
                         }
                     })
                 }
+
+                // No tooltip delay looks way better when hovering over URLs
+                ToolTipManager.sharedInstance().initialDelay = 0
 
                 framePacked.countDown()
                 frame.isVisible = true
@@ -248,8 +257,59 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
 
 private fun Document.getText() = getText(0, length)
 
-class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines: Int) : JTextPane() {
+class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, linkColor: Color, maxNumLines: Int) : JTextPane() {
+    private class UriState(private val linkColor: Color, private val bgColor: Color) {
+        private var currUri: Pair<Int, URI>? = null
+        private var prevFgColor: Color? = null
+        private var prevBgColor: Color? = null
+        private var prevIsUnderlined: Boolean = false
+        private val uris = mutableMapOf<Pair<Int, Int>, URI>()
+
+        fun startDefiningUri(offset: Int, uri: URI, attrs: MutableAttributeSet) {
+            check(currUri == null) { "Attempt to define a new URI without closing an old one." }
+            currUri = offset to uri
+
+            prevFgColor = StyleConstants.getForeground(attrs)
+            prevBgColor = StyleConstants.getBackground(attrs)
+            prevIsUnderlined = StyleConstants.isUnderline(attrs)
+
+            StyleConstants.setForeground(attrs, linkColor)
+            StyleConstants.setBackground(attrs, bgColor)
+            StyleConstants.setUnderline(attrs, true)
+        }
+
+        fun finishDefiningUri(offset: Int, attrs: MutableAttributeSet) {
+            val currUri = currUri
+            check(currUri != null) { "Attempt to finish a ULI that was never started" }
+            check(currUri.first < offset) { "Invalid offset when closing URI" }
+            uris[currUri.first to offset] = currUri.second
+
+            StyleConstants.setForeground(attrs, prevFgColor)
+            StyleConstants.setBackground(attrs, prevBgColor)
+            StyleConstants.setUnderline(attrs, prevIsUnderlined)
+
+            this.currUri = null
+            prevFgColor = null
+            prevBgColor = null
+            prevIsUnderlined = false
+        }
+
+        fun findUriAt(offset: Int): URI? {
+            assertValidState()
+            uris.forEach { (offsets, uri) ->
+                val (start, end) = offsets
+                if (offset in start..end) return uri
+            }
+            return null
+        }
+
+        fun assertValidState() {
+            check(currUri == null) { "A URI being defined was never finished." }
+        }
+    }
+
     private val sgrCodeConverter: SgrCodeConverter
+    private val uriState = UriState(linkColor, bgColor)
 
     init {
         isEditable = false
@@ -274,8 +334,7 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
         resetMouseListeners()
     }
 
-    private fun getWordUnderPt(pt: Point2D): String {
-        val offset = this.viewToModel2D(pt)
+    private fun getWordAtOffset(offset: Int): String {
         val textPtr = TextPtr(styledDocument.getText(), offset)
 
         textPtr.incrementUntil { it.isWhitespace() }
@@ -286,19 +345,44 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
         return textPtr.substring(end - start)
     }
 
+    private fun getUriAtOffset(offset: Int): URI? {
+        return uriState.findUriAt(offset) ?: run {
+            val wordAtOffset = getWordAtOffset(offset)
+            try {
+                URI(wordAtOffset)
+            } catch (ignored: URISyntaxException) {
+                null
+            }
+        }
+    }
+
+    override fun getToolTipText(event: MouseEvent): String? {
+        val offset = viewToModel2D(event.point)
+        val uriUnderCursor = getUriAtOffset(offset)
+        if (uriUnderCursor != null) {
+            val word = getWordAtOffset(offset)
+            val uriAsString = uriUnderCursor.toString()
+            if (uriAsString != word) {
+                return uriAsString
+            }
+        }
+
+        return null
+    }
+
     private fun resetMouseListeners() {
         // The existing mouse handlers set the cursor behind our back which mess with the repainting of the area
         // Let's just disable them for now.
         mouseListeners.toList().forEach { removeMouseListener(it) }
         mouseMotionListeners.toList().forEach { removeMouseMotionListener(it) }
+        ToolTipManager.sharedInstance().registerComponent(this@SwingTerminalPane)
 
         addMouseMotionListener(object : MouseMotionAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                val wordUnderCursor = getWordUnderPt(e.point)
-                cursor = try {
-                    URL(wordUnderCursor)
+                val uriUnderCursor = getUriAtOffset(this@SwingTerminalPane.viewToModel2D(e.point))
+                cursor = if (uriUnderCursor != null) {
                     Cursor.getPredefinedCursor(HAND_CURSOR)
-                } catch (ignored: MalformedURLException) {
+                } else {
                     Cursor.getDefaultCursor()
                 }
             }
@@ -306,11 +390,9 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                val wordUnderCursor = getWordUnderPt(e.point)
-                try {
-                    Desktop.getDesktop().browse(URL(wordUnderCursor).toURI())
+                getUriAtOffset(this@SwingTerminalPane.viewToModel2D(e.point))?.let { uriUnderCursor ->
+                    Desktop.getDesktop().browse(uriUnderCursor)
                 }
-                catch (ignored: MalformedURLException) {}
             }
         })
     }
@@ -319,6 +401,7 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
         if (!textPtr.increment()) return false
         return when (textPtr.currChar) {
             Ansi.EscSeq.CSI -> processCsiCode(textPtr, doc, attrs)
+            Ansi.EscSeq.OSC -> processOscCode(textPtr, doc, attrs)
             else -> false
         }
     }
@@ -376,6 +459,29 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
         }
     }
 
+    private fun processOscCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
+        if (!textPtr.increment()) return false
+
+        val oscParts = Ansi.Osc.Code.parts(textPtr) ?: return false
+        val oscCode = Ansi.Osc.Code(oscParts)
+
+        val identifier = Ansi.Osc.Identifier.fromCode(oscCode) ?: return false
+        return when (identifier) {
+            Ansi.Osc.Identifiers.ANCHOR -> {
+                // Anchor spec is `;(anchor-params);(uri)` if starting a URI block or `;;` if finishing one
+                val uriPart = oscCode.parts.params[1].takeIf { it.isNotBlank() }
+                if (uriPart != null) {
+                    uriState.startDefiningUri(doc.length, URI(uriPart), attrs)
+                } else {
+                    uriState.finishDefiningUri(doc.length, attrs)
+                }
+
+                true
+            }
+            else -> false
+        }
+    }
+
     fun processAnsiText(text: String) {
         require(SwingUtilities.isEventDispatchThread())
         if (text.isEmpty()) return
@@ -422,6 +528,8 @@ class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, maxNumLines:
             }
         } while (textPtr.increment())
         flush()
+
+        uriState.assertValidState()
 
         // Hack alert: I'm not sure why, but calling updateUI is the only consistent way I've been able to get the text
         // pane to refresh its text contents without stuttering. However, this sometimes affects the caret position? So

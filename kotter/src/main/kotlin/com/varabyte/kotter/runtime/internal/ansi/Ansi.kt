@@ -2,6 +2,9 @@ package com.varabyte.kotter.runtime.internal.ansi
 
 import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.internal.text.readInt
+import com.varabyte.kotter.runtime.internal.text.readUntil
+import com.varabyte.kotter.runtime.internal.text.substring
+import java.net.URI
 
 /**
  * A collection of common ANSI codes and other related constants which power the features of
@@ -25,6 +28,7 @@ object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Fe_Escape_sequences
     object EscSeq {
         const val CSI = '['
+        const val OSC = ']'
         // Hack alert: For a reason I don't understand yet, Windows uses 'O' and not '[' for a handful of its escape
         // sequence characters. 'O' normally represents "function shift" but I'm not finding great documentation about
         // it. For now, it seems to work OK if we just treat 'O' like '[' on Windows sometimes.
@@ -209,6 +213,84 @@ object Ansi {
                 val LEFT = Code("${Identifiers.CURSOR_LEFT}")
                 val RIGHT = Code("${Identifiers.CURSOR_RIGHT}")
             }
+        }
+    }
+
+    // https://en.wikipedia.org/wiki/ANSI_escape_code#OSC_(Operating_System_Command)_sequences
+    object Osc {
+        /** The single numeric identifier for an OSC code, e.g. 8 in ESC]8;;" */
+        class Identifier(val code: Int) {
+            companion object {
+                private val identifierObjects = mutableMapOf<Int, Identifier>()
+                fun fromCode(code: Int): Identifier? = identifierObjects[code]
+                fun fromCode(code: Code): Identifier? = fromCode(code.parts.numericCode)
+            }
+
+            init {
+                identifierObjects[code] = this
+            }
+
+            override fun toString() = code.toString()
+        }
+
+        object Identifiers {
+            val ANCHOR = Identifier(8)
+        }
+
+        /** The code for this OSC command, e.g. the "8;(params);(uri)ESC\" part of "ESC]8;(params);(uri)ESC\" */
+        class Code(val parts: Parts) {
+            constructor(value: String): this(
+                parts(value) ?: throw IllegalArgumentException("Invalid OSC code: $value")
+            )
+
+            companion object {
+                fun parts(text: CharSequence): Parts? {
+                    return parts(TextPtr(text))
+                }
+
+                fun parts(textPtr: TextPtr): Parts? {
+                    val numericCode = textPtr.readInt() ?: return null
+                    val oscText = TextPtr(textPtr.readUntil { textPtr.substring(2) == "${CtrlChars.ESC}\\" })
+                    val params = buildList {
+                        while (oscText.currChar == ';') {
+                            oscText.increment()
+                            add(oscText.readUntil { currChar == ';' })
+                        }
+                    }
+
+                    // Consume the trailing part of the OSC code, if present
+                    if (textPtr.substring(2) == "${CtrlChars.ESC}\\") {
+                        textPtr.increment()
+                        // We leave the textPtr on the last part of the code, e.g. the \, as it's expected the caller
+                        // will increment one more time on their end to move to the next part
+                    }
+
+                    return Parts(numericCode, params)
+                }
+            }
+
+            data class Parts(val numericCode: Int, val params: List<String>) {
+                override fun toString() = buildString {
+                    append(numericCode); append(';')
+                    append(params.joinToString(";"))
+                }
+            }
+
+            fun toFullEscapeCode(): String = "${CtrlChars.ESC}${EscSeq.OSC}${parts}${CtrlChars.ESC}\\"
+            override fun equals(other: Any?): Boolean {
+                return other is Code && other.parts == parts
+            }
+
+            override fun hashCode(): Int = parts.hashCode()
+
+            override fun toString() = toFullEscapeCode()
+        }
+
+        object Codes {
+            fun openLink(uri: URI, params: Map<String, String> = emptyMap()) =
+                Code("${Identifiers.ANCHOR};${params.map { (k, v) -> "$k=$v" }.joinToString(":")};${uri}")
+
+            val CLOSE_LINK = Code("${Identifiers.ANCHOR};;")
         }
     }
 }

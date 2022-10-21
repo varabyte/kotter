@@ -113,3 +113,21 @@ fun TextPtr.readInt(): Int? {
     }
     return intValue
 }
+
+/**
+ * Read the current string up until we reach a point where the condition is no longer true.
+ *
+ * The character that the text pointer will be on when the condition fails will NOT be included, so for example:
+ *
+ * ```
+ * TextPtr("Hello;World").readUntil { currChar == ';' }
+ * ```
+ *
+ * will return "Hello", not "Hello;"
+ */
+fun TextPtr.readUntil(condition: TextPtr.() -> Boolean) = buildString {
+    while (!condition() && currChar != Char.MIN_VALUE) {
+        append(currChar)
+        increment()
+    }
+}

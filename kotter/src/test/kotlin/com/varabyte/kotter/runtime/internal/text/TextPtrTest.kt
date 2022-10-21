@@ -209,4 +209,18 @@ class TextPtrTest {
         textPtr.charIndex = text.length
         assertThat(textPtr.readInt()).isNull()
     }
+
+    @Test
+    fun `can pull text out using read until`() {
+        val textPtr = TextPtr(";Hello;Goodbye")
+
+        assertThat(textPtr.readUntil { currChar == ';' }).isEqualTo("")
+        textPtr.increment()
+
+        assertThat(textPtr.readUntil { currChar == ';' }).isEqualTo("Hello")
+        assertThat(textPtr.currChar).isEqualTo(';')
+        textPtr.increment()
+        // readUntil will terminate if it gets to the end of the string
+        assertThat(textPtr.readUntil { currChar == ';' }).isEqualTo("Goodbye")
+    }
 }
