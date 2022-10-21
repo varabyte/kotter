@@ -198,6 +198,21 @@ section {
 ***Note:** Italics functionality is not currently exposed, as it is not a standard feature and is inconsistently
 supported across terminals.*
 
+You can also define links:
+
+```kotlin
+section {
+  text("Would you like to ")
+  link("https://github.com/varabyte/kotter", "learn Kotter")
+  textLine("?")
+}
+```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-text-ex-5.png)
+
+although keep in mind that this feature is not guaranteed to work on every terminal. In that case, it will simply render
+as normal text.
+
 ### 🪆 State and scopedState
 
 To reduce the chance of introducing unexpected bugs later, state changes (like colors) will be localized to the current
