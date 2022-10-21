@@ -220,12 +220,6 @@ class InputSupportTest {
     fun `delete ignored if input rejected`() = testSession { terminal ->
         section {
             input(initialText = "Hello")
-        }.onFinishing {
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "H${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
-                ""
-            ).inOrder()
-
         }.run {
             onInputChanged {
                 if (input == "Hlo") rejectInput()
@@ -248,7 +242,6 @@ class InputSupportTest {
             }
         }
     }
-
 
     @Test
     fun `can delete input in front of cursor by using the backspace key`() = testSession { terminal ->
