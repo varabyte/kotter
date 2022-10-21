@@ -98,7 +98,7 @@ publishing {
             pom {
                 artifactId = "kotter-test-support"
                 name.set("Kotter test support")
-                description.set("Helper classes for writing tests on code using Kotter.")
+                description.set("Helper classes for writing tests for code using Kotter.")
                 url.set(githubPath)
                 scm {
                     url.set(githubPath)
