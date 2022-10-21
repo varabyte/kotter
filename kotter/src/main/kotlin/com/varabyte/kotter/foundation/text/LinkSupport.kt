@@ -11,12 +11,18 @@ import java.net.URI
  * NOTE: It is not guaranteed that this feature is supported in every terminal, so you may not want to use it if it's
  * really important for the user to be able to click on the URL. If the feature isn't supported, [displayText] will
  * be rendered as plain text.
+ *
+ * @param uri The URI to visit when this text is clicked on.
+ * @param displayText The user readable text to show which is backed by the [uri] when clicked. If not set, it will
+ *   default to the value of the [uri]. It doesn't seem like it would be common to leave it out, since otherwise you can
+ *   just print the URL out using the [text] method; however, some terminals add special link decorations that you may
+ *   want to show up to call attention to the link.
  */
-fun RenderScope.link(uri: URI, displayText: CharSequence) {
+fun RenderScope.link(uri: URI, displayText: CharSequence = uri.toString()) {
     link(uri) { text(displayText) }
 }
 
-fun RenderScope.link(uri: CharSequence, displayText: CharSequence) {
+fun RenderScope.link(uri: CharSequence, displayText: CharSequence = uri) {
     link(URI(uri.toString()), displayText)
 }
 

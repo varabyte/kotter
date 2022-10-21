@@ -16,11 +16,13 @@ class LinkSupportTest {
         section {
             text("Hello there, you should "); link("https://example1.com", "click here"); textLine()
             text("You can define "); link("https://example2.com", "multiple links"); textLine("!")
+            text("If display text not set, the uri is used: "); link("https://example3.com"); textLine()
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
             "Hello there, you should ${Ansi.Osc.Codes.openLink(URI("https://example1.com")).toFullEscapeCode()}click here${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}",
             "You can define ${Ansi.Osc.Codes.openLink(URI("https://example2.com")).toFullEscapeCode()}multiple links${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}!",
+            "If display text not set, the uri is used: ${Ansi.Osc.Codes.openLink(URI("https://example3.com")).toFullEscapeCode()}https://example3.com${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}",
             "${Ansi.Csi.Codes.Sgr.RESET}"
         ).inOrder()
     }
