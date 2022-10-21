@@ -70,7 +70,7 @@ object Ansi {
         }
 
         /** The full code for this command, e.g. the "31;1m" part of "ESC[31;1m" */
-        open class Code(val parts: Parts) {
+        class Code(val parts: Parts) {
             constructor(value: String): this(
                 parts(value) ?: throw IllegalArgumentException("Invalid CSI code: $value")
             )
@@ -93,7 +93,11 @@ object Ansi {
             }
 
             data class Parts(val numericCode: Int?, val optionalCodes: List<Int>?, val identifier: Char) {
-                override fun toString() = "${if (numericCode != null) "$numericCode" else ""}${if (optionalCodes != null) ";${optionalCodes.joinToString(";")}" else ""}$identifier"
+                override fun toString() = buildString {
+                    if (numericCode != null) append(numericCode.toString())
+                    if (optionalCodes != null) append(optionalCodes.joinToString(";"))
+                    append(identifier)
+                }
             }
 
             fun toFullEscapeCode(): String = "${CtrlChars.ESC}${EscSeq.CSI}${parts}"
@@ -108,33 +112,33 @@ object Ansi {
 
         object Codes {
             object Cursor {
-                object MOVE_TO_PREV_LINE : Code("1${Identifiers.CURSOR_PREV_LINE}")
-                object MOVE_TO_LINE_START : Code("${Identifiers.CURSOR_POSITION}")
+                val MOVE_TO_PREV_LINE = Code("1${Identifiers.CURSOR_PREV_LINE}")
+                val MOVE_TO_LINE_START = Code("${Identifiers.CURSOR_POSITION}")
                 // Some terminals use "0 F" to mean to go the end of the current line??
-                object MOVE_TO_LINE_END : Code("${Identifiers.CURSOR_PREV_LINE}")
+                val MOVE_TO_LINE_END = Code("${Identifiers.CURSOR_PREV_LINE}")
             }
 
             object Erase {
-                object CURSOR_TO_LINE_END : Code("0${Identifiers.ERASE_LINE}")
+                val CURSOR_TO_LINE_END = Code("0${Identifiers.ERASE_LINE}")
             }
 
             // https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
             object Sgr {
-                object RESET : Code("0${Identifiers.SGR}")
+                val RESET = Code("0${Identifiers.SGR}")
 
                 object Decorations {
-                    object BOLD : Code("1${Identifiers.SGR}")
-                    object UNDERLINE : Code("4${Identifiers.SGR}")
-                    object STRIKETHROUGH : Code("9${Identifiers.SGR}")
+                    val BOLD = Code("1${Identifiers.SGR}")
+                    val UNDERLINE = Code("4${Identifiers.SGR}")
+                    val STRIKETHROUGH = Code("9${Identifiers.SGR}")
 
-                    object CLEAR_BOLD : Code("22${Identifiers.SGR}")
-                    object CLEAR_UNDERLINE : Code("24${Identifiers.SGR}")
-                    object CLEAR_STRIKETHROUGH : Code("29${Identifiers.SGR}")
+                    val CLEAR_BOLD = Code("22${Identifiers.SGR}")
+                    val CLEAR_UNDERLINE = Code("24${Identifiers.SGR}")
+                    val CLEAR_STRIKETHROUGH = Code("29${Identifiers.SGR}")
                 }
 
                 object Colors {
-                    object INVERT : Code("7${Identifiers.SGR}")
-                    object CLEAR_INVERT : Code("27${Identifiers.SGR}")
+                    val INVERT = Code("7${Identifiers.SGR}")
+                    val CLEAR_INVERT = Code("27${Identifiers.SGR}")
 
                     const val FG_NUMERIC = 38
                     const val BG_NUMERIC = 48
@@ -142,50 +146,50 @@ object Ansi {
                     const val TRUECOLOR_SUBCODE = 2
 
                     object Fg {
-                        object BLACK : Code("30${Identifiers.SGR}")
-                        object RED : Code("31${Identifiers.SGR}")
-                        object GREEN : Code("32${Identifiers.SGR}")
-                        object YELLOW : Code("33${Identifiers.SGR}")
-                        object BLUE : Code("34${Identifiers.SGR}")
-                        object MAGENTA : Code("35${Identifiers.SGR}")
-                        object CYAN : Code("36${Identifiers.SGR}")
-                        object WHITE : Code("37${Identifiers.SGR}")
+                        val BLACK = Code("30${Identifiers.SGR}")
+                        val RED = Code("31${Identifiers.SGR}")
+                        val GREEN = Code("32${Identifiers.SGR}")
+                        val YELLOW = Code("33${Identifiers.SGR}")
+                        val BLUE = Code("34${Identifiers.SGR}")
+                        val MAGENTA = Code("35${Identifiers.SGR}")
+                        val CYAN = Code("36${Identifiers.SGR}")
+                        val WHITE = Code("37${Identifiers.SGR}")
 
-                        object BLACK_BRIGHT : Code("90${Identifiers.SGR}")
-                        object RED_BRIGHT : Code("91${Identifiers.SGR}")
-                        object GREEN_BRIGHT : Code("92${Identifiers.SGR}")
-                        object YELLOW_BRIGHT : Code("93${Identifiers.SGR}")
-                        object BLUE_BRIGHT : Code("94${Identifiers.SGR}")
-                        object MAGENTA_BRIGHT : Code("95${Identifiers.SGR}")
-                        object CYAN_BRIGHT : Code("96${Identifiers.SGR}")
-                        object WHITE_BRIGHT : Code("97${Identifiers.SGR}")
+                        val BLACK_BRIGHT = Code("90${Identifiers.SGR}")
+                        val RED_BRIGHT = Code("91${Identifiers.SGR}")
+                        val GREEN_BRIGHT = Code("92${Identifiers.SGR}")
+                        val YELLOW_BRIGHT = Code("93${Identifiers.SGR}")
+                        val BLUE_BRIGHT = Code("94${Identifiers.SGR}")
+                        val MAGENTA_BRIGHT = Code("95${Identifiers.SGR}")
+                        val CYAN_BRIGHT = Code("96${Identifiers.SGR}")
+                        val WHITE_BRIGHT = Code("97${Identifiers.SGR}")
 
-                        object CLEAR : Code("39${Identifiers.SGR}")
+                        val CLEAR = Code("39${Identifiers.SGR}")
 
                         fun lookup(index: Int) = Code("$FG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
                         fun truecolor(r: Int, g: Int, b: Int) = Code("$FG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
                     }
 
                     object Bg {
-                        object BLACK : Code("40${Identifiers.SGR}")
-                        object RED : Code("41${Identifiers.SGR}")
-                        object GREEN : Code("42${Identifiers.SGR}")
-                        object YELLOW : Code("43${Identifiers.SGR}")
-                        object BLUE : Code("44${Identifiers.SGR}")
-                        object MAGENTA : Code("45${Identifiers.SGR}")
-                        object CYAN : Code("46${Identifiers.SGR}")
-                        object WHITE : Code("47${Identifiers.SGR}")
+                        val BLACK = Code("40${Identifiers.SGR}")
+                        val RED = Code("41${Identifiers.SGR}")
+                        val GREEN = Code("42${Identifiers.SGR}")
+                        val YELLOW = Code("43${Identifiers.SGR}")
+                        val BLUE = Code("44${Identifiers.SGR}")
+                        val MAGENTA = Code("45${Identifiers.SGR}")
+                        val CYAN = Code("46${Identifiers.SGR}")
+                        val WHITE = Code("47${Identifiers.SGR}")
 
-                        object BLACK_BRIGHT : Code("100${Identifiers.SGR}")
-                        object RED_BRIGHT : Code("101${Identifiers.SGR}")
-                        object GREEN_BRIGHT : Code("102${Identifiers.SGR}")
-                        object YELLOW_BRIGHT : Code("103${Identifiers.SGR}")
-                        object BLUE_BRIGHT : Code("104${Identifiers.SGR}")
-                        object MAGENTA_BRIGHT : Code("105${Identifiers.SGR}")
-                        object CYAN_BRIGHT : Code("106${Identifiers.SGR}")
-                        object WHITE_BRIGHT : Code("107${Identifiers.SGR}")
+                        val BLACK_BRIGHT = Code("100${Identifiers.SGR}")
+                        val RED_BRIGHT = Code("101${Identifiers.SGR}")
+                        val GREEN_BRIGHT = Code("102${Identifiers.SGR}")
+                        val YELLOW_BRIGHT = Code("103${Identifiers.SGR}")
+                        val BLUE_BRIGHT = Code("104${Identifiers.SGR}")
+                        val MAGENTA_BRIGHT = Code("105${Identifiers.SGR}")
+                        val CYAN_BRIGHT = Code("106${Identifiers.SGR}")
+                        val WHITE_BRIGHT = Code("107${Identifiers.SGR}")
 
-                        object CLEAR : Code("49${Identifiers.SGR}")
+                        val CLEAR = Code("49${Identifiers.SGR}")
 
                         fun lookup(index: Int) = Code("$BG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
                         fun truecolor(r: Int, g: Int, b: Int) = Code("$BG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
@@ -194,17 +198,17 @@ object Ansi {
             }
 
             object Keys {
-                object HOME : Code("1${Identifiers.KEYCODE}")
-                object INSERT : Code("2${Identifiers.KEYCODE}")
-                object DELETE : Code("3${Identifiers.KEYCODE}")
-                object END : Code("4${Identifiers.KEYCODE}")
-                object PG_UP : Code("5${Identifiers.KEYCODE}")
-                object PG_DOWN : Code("6${Identifiers.KEYCODE}")
+                val HOME = Code("1${Identifiers.KEYCODE}")
+                val INSERT = Code("2${Identifiers.KEYCODE}")
+                val DELETE = Code("3${Identifiers.KEYCODE}")
+                val END = Code("4${Identifiers.KEYCODE}")
+                val PG_UP = Code("5${Identifiers.KEYCODE}")
+                val PG_DOWN = Code("6${Identifiers.KEYCODE}")
 
-                object UP : Code("${Identifiers.CURSOR_UP}")
-                object DOWN : Code("${Identifiers.CURSOR_DOWN}")
-                object LEFT : Code("${Identifiers.CURSOR_LEFT}")
-                object RIGHT : Code("${Identifiers.CURSOR_RIGHT}")
+                val UP = Code("${Identifiers.CURSOR_UP}")
+                val DOWN = Code("${Identifiers.CURSOR_DOWN}")
+                val LEFT = Code("${Identifiers.CURSOR_LEFT}")
+                val RIGHT = Code("${Identifiers.CURSOR_RIGHT}")
             }
         }
     }
