@@ -1,7 +1,7 @@
 [versions]
-compose = "1.1.1"
+compose = "1.2.0"
 jline = "3.21.0"
-kotlin = "1.6.10"
+kotlin = "1.7.10"
 kotlinx-coroutines = "1.6.4"
 kotter = "1.0.0-rc3"
 kover = "0.6.1"
