@@ -54,7 +54,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'com.varabyte.kotter:kotter:1.0.0-rc1'
+  implementation 'com.varabyte.kotter:kotter:1.0.0-rc3'
 }
 ```
 
@@ -66,7 +66,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.varabyte.kotter:kotter:1.0.0-rc1")
+  implementation("com.varabyte.kotter:kotter:1.0.0-rc3")
 }
 ```
 
