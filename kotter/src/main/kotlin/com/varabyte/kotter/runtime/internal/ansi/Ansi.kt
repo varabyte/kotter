@@ -98,7 +98,7 @@ object Ansi {
             data class Parts(val numericCode: Int?, val optionalCodes: List<Int>?, val identifier: Char) {
                 override fun toString() = buildString {
                     if (numericCode != null) append(numericCode.toString())
-                    if (optionalCodes != null) append(optionalCodes.joinToString(";"))
+                    if (optionalCodes != null) { append(';'); append(optionalCodes.joinToString(";")) }
                     append(identifier)
                 }
             }
