@@ -41,7 +41,7 @@ object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#CSI_(Control_Sequence_Introducer)_sequences
     object Csi {
         /** The single byte identifier at the end of a code, e.g. 'm' in "ESC[31;1m" */
-        abstract class Identifier(val code: Char) {
+        class Identifier(val code: Char) {
             companion object {
                 private val identifierObjects = mutableMapOf<Char, Identifier>()
                 fun fromCode(code: Char): Identifier? = identifierObjects[code]
@@ -57,16 +57,16 @@ object Ansi {
         }
 
         object Identifiers {
-            object CURSOR_UP : Identifier('A')
-            object CURSOR_DOWN : Identifier('B')
-            object CURSOR_RIGHT : Identifier('C')
-            object CURSOR_LEFT : Identifier('D')
-            object CURSOR_PREV_LINE : Identifier('F')
-            object CURSOR_POSITION : Identifier('H')
+            val CURSOR_UP = Identifier('A')
+            val CURSOR_DOWN = Identifier('B')
+            val CURSOR_RIGHT = Identifier('C')
+            val CURSOR_LEFT = Identifier('D')
+            val CURSOR_PREV_LINE = Identifier('F')
+            val CURSOR_POSITION = Identifier('H')
 
-            object ERASE_LINE : Identifier('K')
-            object SGR : Identifier('m')
-            object KEYCODE : Identifier('~')
+            val ERASE_LINE = Identifier('K')
+            val SGR = Identifier('m')
+            val KEYCODE = Identifier('~')
         }
 
         /** The full code for this command, e.g. the "31;1m" part of "ESC[31;1m" */
