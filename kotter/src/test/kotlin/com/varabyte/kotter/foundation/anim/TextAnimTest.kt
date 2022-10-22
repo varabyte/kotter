@@ -105,8 +105,7 @@ class TextAnimTest {
             timer.fastForward(Anim.ONE_FRAME_60FPS)
             timer.fastForward(Anim.ONE_FRAME_60FPS)
 
-            skipAnim = false
-            rerender()
+            skipAnim = false; rerender()
             blockUntilRenderWhen {
                 terminal.resolveRerenders() == listOf(
                     "> 3 <${Codes.Sgr.RESET}",
@@ -114,6 +113,59 @@ class TextAnimTest {
                 )
             }
             // ^ We can tell the timer was reset because the animation went back to frame #3 instead of frame #6
+        }
+    }
+
+    @Test
+    fun `can pause anim`() = testSession { terminal ->
+        var timer: TestTimer? = null
+
+        val anim = textAnimOf(listOf("1", "2", "3", "4", "5", "6", "7", "8"), Anim.ONE_FRAME_60FPS)
+        section {
+            if (timer == null) {
+                // Need to initialize a test timer BEFORE we reference $anim for the first time
+                timer = data.useTestTimer()
+            }
+            text("> $anim <")
+        }.run {
+            @Suppress("NAME_SHADOWING") val timer = timer!!
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            anim.paused = true
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+
+            anim.paused = false
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 3 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+        // ^ We can tell the timer was reset because the animation went back to frame #1 instead of frame #3
         }
     }
 

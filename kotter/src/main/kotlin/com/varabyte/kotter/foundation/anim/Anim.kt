@@ -10,6 +10,13 @@ abstract class Anim(protected val session: Session, numFrames: Int, frameDuratio
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
     }
 
+    /**
+     * Whether this animation is paused or not.
+     *
+     * If paused, the animation timer will continue to fire but no longer elapse the animation.
+     */
+    var paused by session.liveVarOf(false)
+
     protected var currFrame by session.liveVarOf(0)
         private set
 
@@ -56,7 +63,9 @@ abstract class Anim(protected val session: Session, numFrames: Int, frameDuratio
                     repeat = false
                     stopTimer = false // Reset for next time this animation starts
                 } else {
-                    elapse(duration)
+                    if (!paused) {
+                        elapse(duration)
+                    }
                 }
             }
         }
