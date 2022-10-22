@@ -212,6 +212,74 @@ class TextAnimTest {
     }
 
     @Test
+    fun `can set anim frame directly`() = testSession { terminal ->
+        var timer: TestTimer? = null
+
+        val anim = textAnimOf(listOf("1", "2", "3", "4", "5", "6", "7", "8"), Anim.ONE_FRAME_60FPS)
+        section {
+            if (timer == null) {
+                // Need to initialize a test timer BEFORE we reference $anim for the first time
+                timer = data.useTestTimer()
+            }
+            text("> $anim <")
+        }.run {
+            @Suppress("NAME_SHADOWING") val timer = timer!!
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 5 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            anim.currFrame = 1
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            // Curr frame can be set even if the animation is paused
+            anim.paused = true
+            anim.currFrame = 6
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 7 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            // Curr frame request must be in bounds
+            assertThrows<IllegalArgumentException> {
+                anim.currFrame = -1
+            }
+            assertThrows<IllegalArgumentException> {
+                anim.currFrame = 9999
+            }
+            assertThat(anim.currFrame).isEqualTo(6)
+        }
+    }
+
+    @Test
     fun `can instantiate text anims via template`() = testSession { terminal ->
         var timer: TestTimer? = null
 

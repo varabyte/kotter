@@ -5,7 +5,7 @@ import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.Session
 import java.time.Duration
 
-abstract class Anim(protected val session: Session, numFrames: Int, frameDuration: Duration) {
+abstract class Anim(protected val session: Session, val numFrames: Int, frameDuration: Duration) {
     companion object {
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
     }
@@ -17,18 +17,47 @@ abstract class Anim(protected val session: Session, numFrames: Int, frameDuratio
      */
     var paused by session.liveVarOf(false)
 
-    protected var currFrame by session.liveVarOf(0)
-        private set
+    private var _currFrame by session.liveVarOf(0)
 
+    /**
+     * Manually set the current frame (0-indexed) that this animation should display.
+     *
+     * It's not expected users will need to use this ever, but it can be nice to have a way to reset an animation back
+     * to its first frame at the very least, i.e. by calling `anim.currFrame = 0`
+     *
+     * This property will throw an exception if the value passed in is out of bounds.
+     */
+    var currFrame: Int
+        get() = _currFrame
+        set(value) {
+            if (_currFrame == value) return
+
+            // Note: Another option is to allow people to specify out of bound values and just wrap it ourselves.
+            // We may do that later, especially if we get feedback from users asking for it, but for now, since I'm not
+            // sure, we'll choose to fail fast. It's easier to go from strict to loose rather than the other way around.
+            require(value in 0 until numFrames) {
+                "Animation frame out of bounds. Tried to set $value but should be between 0 and ${numFrames - 1}."
+            }
+
+            _currFrame = value
+            elapsedMs = 0
+        }
+
+    // This counter will go up as time passes but get consumed to move frames forward. In other words, it always means
+    // "how many frames to move forward from now", as opposed to being a global counter running since the anim started.
     private var elapsedMs: Int = 0
     private val frameMs = frameDuration.toMillis().toInt()
-    private val animMs = frameMs * numFrames
 
     private fun elapse(duration: Duration) {
-        elapsedMs = (elapsedMs + duration.toMillis().toInt()) % animMs
-        currFrame = elapsedMs / frameMs
-    }
+        elapsedMs += duration.toMillis().toInt()
+        var numFramesToProgress = 0
+        while (elapsedMs >= frameMs) {
+            numFramesToProgress++
+            elapsedMs -= frameMs
+        }
 
+        _currFrame = (_currFrame + numFramesToProgress) % numFrames
+    }
 
     private var animRequestedThisFrame = false
     private var listeningForRenderCallback = false
