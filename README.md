@@ -282,7 +282,15 @@ rerender finishes).
 
 #### LiveVar
 
-In our example above, the `run` block calls a `rerender` method, which you can call to request another render pass.
+In our example above, the `run` block calls a `rerender` method, which you can call to request another render pass:
+
+```kotlin
+/* ... */
+run {
+  result = doNetworkFetchAndExpensiveCalculation()
+  rerender()
+}
+```
 
 However, remembering to call `rerender` yourself is potentially fragile and could be a source of bugs in the future when
 trying to figure out why your console isn't updating.
@@ -352,7 +360,7 @@ section {
 
 Similar to `LiveVar`, a `LiveList` is a reactive primitive which, when modified by having elements added to or
 removed from it, causes a rerender to happen automatically. You don't need to use the `by` keyword with `LiveList`.
-Instead, within a `session`, use the `liveListOf` method:
+Instead, within a `session`, just assign a variable to the result of the `liveListOf` method:
 
 ```kotlin
 val fileWalker = FileWalker(".") // This class doesn't exist but just pretend for this example...
@@ -386,7 +394,7 @@ To handle this, you can use the `LiveList#withWriteLock` method:
 val fileWalker = FileWalker(".")
 val last10Matches = liveListOf<String>()
 section {
-  ...
+  /* ... */
 }.run {
   fileWalker.findFiles("*.txt") { file ->
     last10Matches.withWriteLock {
@@ -406,7 +414,8 @@ in that context.
 #### Other Collections
 
 In addition to `LiveList`, Kotter also provides `LiveMap` and `LiveSet`. There's no need to extensively document these
-classes here as much of the earlier `LiveList` section applies to them as well.
+classes here as much of the earlier `LiveList` section applies to them as well. It's just the data structure that is
+different.
 
 You can create these classes using `liveMapOf(...)` and `liveSetOf(...)`, respectfully.
 
@@ -467,7 +476,7 @@ section at that location:
 
 ```kotlin
 section {
-  // `input` is a method that appends the user's input typed so far in this
+  // `input` is a method that appends the user's input typed so far in place where it is called.
   // Once your section references it, the block is automatically rerendered when its value changes.
   text("Please enter your name: "); input()
 }.run { /* ... */ }
@@ -500,6 +509,7 @@ section {
   onInputChanged {
     if (input.any { !it.isLetter() }) { rejectInput() }
     // Would also work: input = input.filter { it.isLetter() }
+    // although oftren `rejectInput()` specifies your intention more clearly
   }
   /* ... */
 }
@@ -545,7 +555,7 @@ interface InputCompleter {
 }
 
 input(object : InputCompleter {
-    override fun complete(input: String): String? { ... }
+    override fun complete(input: String): String? { /* ... */ }
 })
 ```
 
@@ -665,7 +675,7 @@ var blinkOn by liveVarOf(false)
 section {
   /* ... */
 }.onFinishing {
-  blinkOn = false // User might press Q while the blinking state was on
+  blinkOn = false // Because user might press Q while the blinking state was on
 }.runUntilKeyPressed(Keys.Q) {
   addTimer(Duration.ofMillis(250), repeat = true) { blinkOn = !blinkOn }
   /* ... */
@@ -733,11 +743,11 @@ Declare a render animation using the `renderAnimOf` method and then invoke the r
 
 ```kotlin
 session {
-  val exampleAnim = renderAnimOf(numFrames = 5, Duration.ofMillis(250)) { i -> ... }
+  val exampleAnim = renderAnimOf(numFrames = 5, Duration.ofMillis(250)) { i -> /* ... */ }
   section {
-    // RenderAnims act like a function which take a render scope as their first parameter
+    // Call your render animation passing in the section block (i.e. `this`) as a parameter
     exampleAnim(this)
-    ...
+    /* ... */
   }
 }
 ```
@@ -756,7 +766,7 @@ session {
   section {
     colorAnim(this) // Side-effect: sets the color for this section
     text("RAINBOW")
-  }
+  }.runUntilSignal { /* ... */ }
 }
 ```
 
@@ -779,8 +789,8 @@ out each line at a time.
 ```kotlin
 section {
   // NOTE: This example doesn't really take advantage of the offscreen buffer,
-  // but it does showcase all the moving parts.
-  val buffer = offscreen { ... }
+  // but it does showcase all of its moving parts.
+  val buffer = offscreen { /* ... */ }
   val renderer = buffer.createRenderer()
   while (renderer.hasNextRow()) { renderer.renderNextRow() }
 }
@@ -815,10 +825,13 @@ will render:
 
 ![Offscreen local state example](https://github.com/varabyte/media/raw/main/kotter/images/offscreen-local-state.png)
 
-The driving motivation for adding offscreen buffers was to be able to easily add borders around any block of text, so
-when this functionality went in, we also added the `bordered` method ([link to code](https://github.com/varabyte/kotter/blob/main/kotter/src/main/kotlin/com/varabyte/kotterx/decorations/BorderSupport.kt)).
-You can check the implementation yourself to see how it delegates to `offscreen`, padding each row with the right
-number of spaces so that the border sides all line up.
+The driving motivation for adding offscreen buffers was to be able to easily add borders around any block of text, where
+the border might be a different color than its contents. So when this functionality went in, we also added the
+`bordered` method ([link to example](https://github.com/varabyte/kotter/tree/main/examples/border)).
+
+If you want to implement your own utility method that uses `offscreen` under the hood, you can check
+[bordered's implementation](https://github.com/varabyte/kotter/blob/main/kotter/src/main/kotlin/com/varabyte/kotterx/decorations/BorderSupport.kt)
+yourself to see how it delegates to `offscreen`, padding each row with the right number of spaces so that the border sides all line up.
 
 ### 📤 Aside
 
@@ -849,16 +862,17 @@ time rerendering them over and over in the main block:
 
 ```kotlin
 session {
+  // The following instructions are static, just render them immediately
   section {
     textLine("Press arrow keys to move")
     textLine("Press R to restart")
     textLine("Press Q to quit")
-    textLine();
+    textLine()
   }.run()
 
   section {
-    ... constantly rerendered lines ...
-  }.runUntilKeyPressed(Keys.Q) { ... }
+    /* ... constantly rerendered lines ... */
+  }.runUntilKeyPressed(Keys.Q) { /* ... */ }
 }
 ```
 
@@ -951,21 +965,21 @@ this singular one.
 `Session` is the scope you need when you want to call `liveVarOf` or `liveListOf`, or even to declare a `section`:
 
 ```kotlin
-fun Session.firstSection() {}
+fun Session.firstSection() {
   var name by liveVarOf("")
   var age by liveVarOf(18)
-  section { ... }.run { ... }
+  section { /* ... */ }.run { /* ... */ }
 }
 
-fun Session.secondSection() { ... }
-fun Session.thirdSection() { ... }
+fun Session.secondSection() { /* ... */ }
+fun Session.thirdSection() { /* ... */ }
 
-... later ...
+// Later ...
 
 session {
-    firstSection()
-    secondSection()
-    thirdSection()
+  firstSection()
+  secondSection()
+  thirdSection()
 }
 ```
 
@@ -1049,7 +1063,7 @@ Therefore, its definition looks like `fun MainRenderScope.input(...) { ... }`
 
 **4 - `RunScope`**
 
-```kotlin
+```
    section {
      ...
 ┌─ }.run {
@@ -1120,7 +1134,7 @@ lifecycle for example, then you don't need to explicitly call `stop` yourself (b
     override val parent = Run.Lifecycle
   }
 
-  section { ... }.run {
+  section { /* ... */ }.run {
     data.start(MyLifecycle) // Will be stopped when the run block finishes
   }
 ```
@@ -1165,13 +1179,13 @@ even need to call `section` from more than one thread. It is hoped that the
 
 ```kotlin
 session {
-  section { ... render thread ... }.run { ... current thread ... }
-  section { ... render thread ... }.run { ... current thread ... }
-  section { ... render thread ... }.run { ... current thread ... }
+  section { /* ... render thread ... */ }.run { /* ... current thread ... */ }
+  section { /* ... render thread ... */ }.run { /* ... current thread ... */ }
+  section { /* ... render thread ... */ }.run { /* ... current thread ... */ }
 }
 ```
 
-pattern is powerful enough for most (all?) cases.
+pattern (just calling `section`s one after another on a single thread) is powerful enough for most (all?) cases.
 
 ### 🖥️  Virtual Terminal
 
