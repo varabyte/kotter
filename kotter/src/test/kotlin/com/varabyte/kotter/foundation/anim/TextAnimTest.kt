@@ -8,15 +8,12 @@ import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotterx.test.foundation.testSession
 import com.varabyte.kotterx.test.runtime.blockUntilRenderWhen
 import com.varabyte.kotterx.test.terminal.resolveRerenders
-import com.varabyte.truthish.assertThat
-import java.util.concurrent.ArrayBlockingQueue
 import kotlin.test.Test
 
 class TextAnimTest {
     @Test
     fun `simple text anim loops`() = testSession { terminal ->
         var timer: TestTimer? = null
-        val rendered = ArrayBlockingQueue<Unit>(1)
 
         val anim = textAnimOf(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS)
         section {
@@ -25,41 +22,44 @@ class TextAnimTest {
                 timer = data.useTestTimer()
             }
             text("> $anim <")
-        }.onRendered {
-            rendered.add(Unit)
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 1 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 2 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 3 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 3 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
-
-            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 1 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
         }
     }
 
     @Test
     fun `anim timer paused while anim isn't rendered`() = testSession { terminal ->
         var timer: TestTimer? = null
-        val rendered = ArrayBlockingQueue<Unit>(1)
 
         val anim = textAnimOf(listOf("1", "2", "3", "4", "5", "6", "7", "8"), Anim.ONE_FRAME_60FPS)
         var skipAnim = false
@@ -71,31 +71,33 @@ class TextAnimTest {
             if (!skipAnim) {
                 text("> $anim <")
             }
-        }.onRendered {
-            rendered.add(Unit)
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
-            rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 1 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
-
-            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 2 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
             skipAnim = true
             // The timer update triggers a new repaint; however, the animation won't get hit this frame, meaning it
-            // will stop its timer.
-            timer.fastForward(Anim.ONE_FRAME_60FPS); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
+            // will pause its timer behind the scenes.
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
 
             // Run a few more times, just to prove the point that when the animation restarts, it will be where it last
             // stopped, instead of at some frame in the future.
@@ -104,12 +106,14 @@ class TextAnimTest {
             timer.fastForward(Anim.ONE_FRAME_60FPS)
 
             skipAnim = false
-            rerender(); rendered.take()
-            assertThat(terminal.resolveRerenders()).containsExactly(
-                "> 3 <${Codes.Sgr.RESET}",
-                "",
-            ).inOrder()
-            // ^ We can tell the timer was reset because the animation went back to frame #1 instead of frame #3
+            rerender()
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 3 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+            // ^ We can tell the timer was reset because the animation went back to frame #3 instead of frame #6
         }
     }
 
