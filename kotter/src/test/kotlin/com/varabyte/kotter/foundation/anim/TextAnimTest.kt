@@ -8,6 +8,8 @@ import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotterx.test.foundation.testSession
 import com.varabyte.kotterx.test.runtime.blockUntilRenderWhen
 import com.varabyte.kotterx.test.terminal.resolveRerenders
+import com.varabyte.truthish.assertThat
+import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
 
 class TextAnimTest {
@@ -54,6 +56,46 @@ class TextAnimTest {
                     "",
                 )
             }
+        }
+    }
+
+    @Test
+    fun `can query text anim state`() = testSession { terminal ->
+        var timer: TestTimer? = null
+
+        val anim = textAnimOf(listOf("1234", "56", "789"), Anim.ONE_FRAME_60FPS)
+        section {
+            if (timer == null) {
+                // Need to initialize a test timer BEFORE we reference $anim for the first time
+                timer = data.useTestTimer()
+            }
+            text("> $anim <")
+        }.run {
+            @Suppress("NAME_SHADOWING") val timer = timer!!
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1234 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            assertThat(anim.length).isEqualTo(4)
+            assertThat(anim[1]).isEqualTo('2')
+            assertThat(anim.subSequence(0, anim.length - 1)).isEqualTo("123")
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 789 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            assertThat(anim.length).isEqualTo(3)
+            assertThat(anim[1]).isEqualTo('8')
+            assertThat(anim.subSequence(0, anim.length - 1)).isEqualTo("78")
         }
     }
 
