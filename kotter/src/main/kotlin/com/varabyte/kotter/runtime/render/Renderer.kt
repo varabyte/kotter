@@ -9,6 +9,9 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
 /**
  * A class responsible for executing some block of logic which requests render instructions, ultimately converting them
  * into a list of commands that can be handled by Kotter.
+ *
+ * @property session The parent session this renderer is tied to. This class makes no use of it, but some places that work
+ *   with a renderer make use of it.
  */
 class Renderer<R: RenderScope>(val session: Session, private val createScope: (Renderer<R>) -> R) {
     private val _commands = mutableListOf<TerminalCommand>()
