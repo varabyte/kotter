@@ -1,11 +1,33 @@
 package com.varabyte.kotter.foundation.anim
 
+import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotter.runtime.render.RenderScope
 import java.time.Duration
 
+/**
+ * An [Anim] that renders some text, which gets updated on each new frame.
+ *
+ * To reference a text animation, just convert it to a string inside a [Section].
+ *
+ * Using one looks like this:
+ *
+ * ```
+ * session {
+ *   val waitingAnim = textAnimOf(listOf("", ".", "..", "..."), frameDuration = Duration.ofMillis(250))
+ *   section {
+ *     text("Thinking$waitingAnim")
+ *   }.runUntilSignal { /* ... */ }
+ * }
+ * ```
+ */
 class TextAnim internal constructor(session: Session, val template: Template)
     : CharSequence, Anim(session, template.frames.size, template.frameDuration) {
 
+    /**
+     * A template for a text animation, useful if you want to define an animation once but instantiate several copies of
+     * it throughout your program.
+     */
     class Template(val frames: List<String>, val frameDuration: Duration) {
         init {
             require(!frameDuration.isNegative && !frameDuration.isZero) { "Invalid animation created with non-positive frame length" }

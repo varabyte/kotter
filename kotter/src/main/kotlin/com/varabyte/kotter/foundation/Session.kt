@@ -8,6 +8,18 @@ import com.varabyte.kotter.terminal.VirtualTerminal
 /**
  * Run through a list of [Terminal] factory methods, attempting to create them in order until the first one succeeds,
  * or, if they all fail, throws an error.
+ *
+ * This is a useful utility method for those who want to construct a [Session] with their own custom list of
+ * terminals.
+ *
+ * ```
+ * session(
+ *   terminal = listOf(
+ *     { FirstTerminal() },
+ *     { SecondTerminal() },
+ *   ).runUntilSuccess()
+ * )
+ * ```
  */
 fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
     val creationErrors = mutableListOf<Exception>()
@@ -23,6 +35,19 @@ fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
 }
 
 /**
+ * Create a Kotter session.
+ *
+ * This method takes in a block which will be scoped to the lifetime of the current session. It is a place you can
+ * create `section`s.
+ *
+ * ```
+ * session {
+ *   /* Kotter logic lives here */
+ * }
+ * ```
+ *
+ * When the session exists, all data associated with it will be released.
+ *
  * @param clearTerminal Set to true if this program should clear the terminal on startup. Defaulted to false since that
  *   might be surprising behavior for simple utility terminal applications.
  */

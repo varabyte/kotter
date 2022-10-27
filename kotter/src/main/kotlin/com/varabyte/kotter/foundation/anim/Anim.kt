@@ -5,6 +5,13 @@ import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.Session
 import java.time.Duration
 
+/**
+ * Base class for animation types.
+ *
+ * Handles logic around managing the current frame and running an animation timer.
+ *
+ * Users won't directly instantiate this class. Check out its inheritors instead.
+ */
 abstract class Anim(protected val session: Session, val numFrames: Int, frameDuration: Duration) {
     companion object {
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
