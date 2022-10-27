@@ -53,5 +53,6 @@ class TextAnim internal constructor(session: Session, val template: Template)
 }
 
 fun Session.textAnimOf(template: TextAnim.Template) = TextAnim(this, template)
+/** Instantiate a [TextAnim] tied to the current [Session]. */
 fun Session.textAnimOf(frames: List<String>, frameDuration: Duration) =
     TextAnim(this, TextAnim.Template(frames, frameDuration))

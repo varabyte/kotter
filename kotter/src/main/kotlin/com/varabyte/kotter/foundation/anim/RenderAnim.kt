@@ -46,7 +46,7 @@ class RenderAnim internal constructor(session: Session, val template: Template)
     }
 }
 
-/** Instantiate a [RenderAnim] tied to the current [Session]. */
 fun Session.renderAnimOf(template: RenderAnim.Template) = RenderAnim(this, template)
+/** Instantiate a [RenderAnim] tied to the current [Session]. */
 fun Session.renderAnimOf(numFrames: Int, frameDuration: Duration, handler: RenderScope.(Int) -> Unit) =
     RenderAnim(this, RenderAnim.Template(numFrames, frameDuration, handler))
