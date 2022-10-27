@@ -192,22 +192,22 @@ class TextPtrTest {
         val text = "Hello123 456 789goodbye"
         val textPtr = TextPtr(text)
 
-        assertThat(textPtr.readInt()).isNull()
+        assertThat(textPtr.tryReadInt()).isNull()
 
         textPtr.charIndex = text.indexOf("1")
-        assertThat(textPtr.readInt()).isEqualTo(123)
+        assertThat(textPtr.tryReadInt()).isEqualTo(123)
 
         textPtr.charIndex = text.indexOf("2")
-        assertThat(textPtr.readInt()).isEqualTo(23)
+        assertThat(textPtr.tryReadInt()).isEqualTo(23)
 
         textPtr.charIndex = text.indexOf("4")
-        assertThat(textPtr.readInt()).isEqualTo(456)
+        assertThat(textPtr.tryReadInt()).isEqualTo(456)
 
         textPtr.charIndex = text.indexOf("7")
-        assertThat(textPtr.readInt()).isEqualTo(789)
+        assertThat(textPtr.tryReadInt()).isEqualTo(789)
 
         textPtr.charIndex = text.length
-        assertThat(textPtr.readInt()).isNull()
+        assertThat(textPtr.tryReadInt()).isNull()
     }
 
     @Test

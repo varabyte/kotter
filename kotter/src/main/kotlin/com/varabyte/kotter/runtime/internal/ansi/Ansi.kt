@@ -1,7 +1,7 @@
 package com.varabyte.kotter.runtime.internal.ansi
 
 import com.varabyte.kotter.runtime.internal.text.TextPtr
-import com.varabyte.kotter.runtime.internal.text.readInt
+import com.varabyte.kotter.runtime.internal.text.tryReadInt
 import com.varabyte.kotter.runtime.internal.text.readUntil
 import com.varabyte.kotter.runtime.internal.text.substring
 import java.net.URI
@@ -84,11 +84,11 @@ object Ansi {
                 }
 
                 fun parts(textPtr: TextPtr): Parts? {
-                    val numericCode = textPtr.readInt()
+                    val numericCode = textPtr.tryReadInt()
                     val optionalCodes = mutableListOf<Int>()
                     while (textPtr.currChar == ';') {
                         textPtr.increment()
-                        optionalCodes.add(textPtr.readInt() ?: break)
+                        optionalCodes.add(textPtr.tryReadInt() ?: break)
                     }
                     val identifier = textPtr.currChar.takeIf { !it.isISOControl() } ?: return null
                     return Parts(numericCode, optionalCodes.takeIf { it.isNotEmpty() }, identifier)
@@ -249,7 +249,7 @@ object Ansi {
                 }
 
                 fun parts(textPtr: TextPtr): Parts? {
-                    val numericCode = textPtr.readInt() ?: return null
+                    val numericCode = textPtr.tryReadInt() ?: return null
                     val oscText = TextPtr(textPtr.readUntil { textPtr.substring(2) == "${CtrlChars.ESC}\\" })
                     val params = buildList {
                         while (oscText.currChar == ';') {
