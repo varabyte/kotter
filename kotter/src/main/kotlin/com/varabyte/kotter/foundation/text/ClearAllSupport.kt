@@ -3,7 +3,9 @@ package com.varabyte.kotter.foundation.text
 import com.varabyte.kotter.runtime.render.RenderScope
 
 /**
- * Clear all actively set properties for the current scope.
+ * Clear all actively set text effects.
+ *
+ * For example:
  *
  * ```
  * underline()
@@ -11,6 +13,7 @@ import com.varabyte.kotter.runtime.render.RenderScope
  * scopedState {
  *    green()
  *    bold()
+ *    textLine("Green, bolded, and underlined")
  *    clearAll()
  *    textLine("Undecorated text")
  * }
