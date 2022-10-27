@@ -11,9 +11,12 @@ import java.time.Duration
  * Handles logic around managing the current frame and running an animation timer.
  *
  * Users won't directly instantiate this class. Check out its inheritors instead.
+ *
+ * @property numFrames How many frames this animation has.
  */
-abstract class Anim(protected val session: Session, val numFrames: Int, frameDuration: Duration) {
+abstract class Anim protected constructor(protected val session: Session, val numFrames: Int, frameDuration: Duration) {
     companion object {
+        /** A useful duration which represents the duration of a single frame for an animation running 60fps */
         val ONE_FRAME_60FPS = Duration.ofMillis(16)
     }
 
