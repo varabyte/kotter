@@ -1,7 +1,6 @@
-package com.varabyte.kotter.terminal.swing
+package com.varabyte.kotter.terminal.virtual
 
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.terminal.toSwingColor
 import java.awt.Color
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.StyleConstants

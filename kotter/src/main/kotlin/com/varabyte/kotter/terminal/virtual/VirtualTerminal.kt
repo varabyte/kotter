@@ -1,10 +1,9 @@
-package com.varabyte.kotter.terminal
+package com.varabyte.kotter.terminal.virtual
 
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.internal.text.substring
 import com.varabyte.kotter.runtime.terminal.Terminal
-import com.varabyte.kotter.terminal.swing.SgrCodeConverter
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -22,6 +21,12 @@ import javax.swing.text.*
 import kotlin.io.path.exists
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
+/**
+ * The size of the virtual terminal text area, where [width] and [height] represent the number of characters that can
+ * fit within it.
+ *
+ * In other words, 80x32 means 80 characters wide by 32 lines tall, as opposed to 80 pixels by 32 pixels.
+ */
 class TerminalSize(val width: Int, val height: Int) {
     init {
         require(width >= 1 && height >= 1) { "TerminalSize values must both be positive. Got: $width, $height"}

@@ -2,8 +2,8 @@ package com.varabyte.kotter.foundation
 
 import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.terminal.Terminal
-import com.varabyte.kotter.terminal.SystemTerminal
-import com.varabyte.kotter.terminal.VirtualTerminal
+import com.varabyte.kotter.terminal.system.SystemTerminal
+import com.varabyte.kotter.terminal.virtual.VirtualTerminal
 
 /**
  * Run through a list of [Terminal] factory methods, attempting to create them in order until the first one succeeds,

@@ -1,4 +1,4 @@
-package com.varabyte.kotter.terminal
+package com.varabyte.kotter.terminal.system
 
 import com.varabyte.kotter.runtime.terminal.Terminal
 import kotlinx.coroutines.currentCoroutineContext

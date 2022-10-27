@@ -9,9 +9,9 @@ import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.text.ColorLayer.BG
 import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.render.RenderScope
-import com.varabyte.kotter.terminal.SystemTerminal
-import com.varabyte.kotter.terminal.TerminalSize
-import com.varabyte.kotter.terminal.VirtualTerminal
+import com.varabyte.kotter.terminal.system.SystemTerminal
+import com.varabyte.kotter.terminal.virtual.TerminalSize
+import com.varabyte.kotter.terminal.virtual.VirtualTerminal
 import kotlin.random.Random
 
 private const val WIDTH = 60
