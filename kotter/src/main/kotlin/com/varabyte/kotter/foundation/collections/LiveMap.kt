@@ -12,7 +12,7 @@ import kotlin.concurrent.write
  *
  * In other words, modifying the map will cause the active section to rerender automatically.
  *
- * This class's value can be queried and modified across different threads, so it is designed to be thread safe.
+ * This class is thread safe and expected to be accessed across different threads.
  */
 @ThreadSafe
 class LiveMap<K, V> internal constructor(private val session: Session, vararg elements: Pair<K, V>) : MutableMap<K, V> {

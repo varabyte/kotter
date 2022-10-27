@@ -22,7 +22,7 @@ import kotlin.concurrent.write
  * }
  * ```
  *
- * This class's value can be queried and modified across different threads, so it is designed to be thread safe.
+ * This class is thread safe and expected to be accessed across different threads.
  */
 @ThreadSafe
 class LiveSet<T> internal constructor(private val session: Session, vararg elements: T) : MutableSet<T> {

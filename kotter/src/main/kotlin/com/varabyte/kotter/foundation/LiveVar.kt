@@ -13,26 +13,23 @@ import kotlin.reflect.KProperty
  * A special variable which can be used to auto-rerender a target [Section] without needing to call
  * [RunScope.rerender] yourself.
  *
- * The way it works is, when this variable is fetched, it is checked if this has happened while we're in an active
- * block:
- *
  * ```
  * var count by liveVarOf(0)
- * section { <-- active section
- *    for (i in 0 until count) { // <-- getValue happens here, gets associated with active block
+ * section {
+ *    for (i in 0 until count) { // <-- LiveVar read happens here
  *      text("*")
  *    }
  * }.runUntilFinished {
  *   while (count < 5) {
  *     delay(1000)
- *     ++count // <-- setValue happens here, causes active block to rerun
+ *     ++count // <-- LiveVar write happens here; rerender is triggered
  *   }
  * }
  *
- * count = 123 // Setting count out of a section is technically fine; nothing is triggered
+ * count = 123 // Setting LiveVar out of a section is harmless; no rerender is triggered
  * ```
  *
- * This class's value can be queried and set across different values, so it is designed to be thread safe.
+ * This class is thread safe and expected to be accessed across different threads.
  */
 @ThreadSafe
 class LiveVar<T> internal constructor(private val session: Session, private var value: T) {
