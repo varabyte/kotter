@@ -19,5 +19,6 @@ truthish = { module = "com.varabyte.truthish:truthish", version.ref = "truthish"
 
 [plugins]
 jetbrains-compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

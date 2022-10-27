@@ -6,6 +6,7 @@ plugins {
     `maven-publish`
     signing
     alias(libs.plugins.kotlinx.kover)
+    alias(libs.plugins.jetbrains.dokka)
 }
 
 group = "com.varabyte.kotter"
