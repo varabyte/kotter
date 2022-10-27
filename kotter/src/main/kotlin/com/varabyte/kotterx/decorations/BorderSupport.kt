@@ -6,6 +6,11 @@ import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.render.RenderScope
 
+/**
+ * Characters which collectively describe the look and feel of some ASCII border.
+ *
+ * A few borders are defined out of the box, such as [ASCII], [CURVED], and others.
+ */
 class BorderCharacters(
     val topLeft: Char,
     val topRight: Char,
@@ -63,6 +68,11 @@ class BorderCharacters(
 
 /**
  * Automatically render a border around some inner content.
+ *
+ * @param borderCharacters The characters used to render the border.
+ * @param paddingLeftRight If set, adds some additional padding at the start and end of every line.
+ * @param paddingTopBottom If set, adds some newlinse before and after the entire block of text.
+ * @param render The render block that generates content (e.g. via `textLine`) which will be wrapped within a border.
  */
 fun RenderScope.bordered(
     borderCharacters: BorderCharacters = BorderCharacters.BOX_THIN,
