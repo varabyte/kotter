@@ -7,7 +7,7 @@ import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.render.RenderScope
 
 /**
- * Characters which collectively describe the look and feel of some ASCII border.
+ * Characters which collectively describe the look and feel of some border built out of text.
  *
  * A few borders are defined out of the box, such as [ASCII], [CURVED], and others.
  */
