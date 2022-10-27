@@ -10,7 +10,16 @@ import kotlin.concurrent.write
 /**
  * Like [LiveList], but for maps.
  *
- * In other words, modifying the map will cause the active section to rerender automatically.
+ * In other words, adding or removing to the map will cause the active section to rerender automatically.
+ *
+ * ```
+ * val num2Names = liveMapOf(1 to "one", 2 to "two", 3 to "three")
+ * section {
+ *     num2Names.forEach { (num, name) -> textLine("$num is spelled \"$name\"") }
+ * }.run {
+ *     num2Names.putAll(mapOf(4 to "four", 5 to "five", 6 to "six"))
+ * }
+ * ```
  *
  * This class is thread safe and expected to be accessed across different threads.
  */
