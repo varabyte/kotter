@@ -17,7 +17,7 @@ import java.time.Duration
  *   val waitingAnim = textAnimOf(listOf("", ".", "..", "..."), frameDuration = Duration.ofMillis(250))
  *   section {
  *     text("Thinking$waitingAnim")
- *   }.runUntilSignal { /* ... */ }
+ *   }.runUntilSignal { ... }
  * }
  * ```
  */

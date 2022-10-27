@@ -20,7 +20,7 @@ import java.time.Duration
  *   section {
  *     colorAnim(this) // Side-effect: sets the color for this section
  *     text("RAINBOW")
- *   }.runUntilSignal { /* ... */ }
+ *   }.runUntilSignal { ... }
  * }
  * ```
  *
