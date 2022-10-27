@@ -249,7 +249,7 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-scope-ex-2.png)
 
-***Note:** This is what the scoped text effect methods (like `red { ... }`) are doing for you under the hood, actually.*
+***Note:** Scoped text effect methods (like `red { ... }`) work by calling `scopedState` for you under the hood.*
 
 ### 🎬 Rerendering sections
 
@@ -316,8 +316,8 @@ session {
 }
 ```
 
-***Note:** The `liveVarOf` method is actually scoped to the `session` block. For many remaining examples, we'll elide
-the `session` boilerplate, but that doesn't mean you can omit it in your own program!*
+***Note:** The `liveVarOf` method is provided by the `session` block. For many remaining examples, we'll elide the
+`session` boilerplate, but that doesn't mean you can omit it in your own program!*
 
 Let's apply `liveVarOf` to our earlier example in order to remove the `rerender` call:
 
@@ -359,8 +359,10 @@ section {
 #### LiveList
 
 Similar to `LiveVar`, a `LiveList` is a reactive primitive which, when modified by having elements added to or
-removed from it, causes a rerender to happen automatically. You don't need to use the `by` keyword with `LiveList`.
-Instead, within a `session`, just assign a variable to the result of the `liveListOf` method:
+removed from it, causes a rerender to happen automatically.
+
+You don't need to use the `by` keyword with `LiveList`. Instead, within a `session`, just assign a variable to the
+result of the `liveListOf` method:
 
 ```kotlin
 val fileWalker = FileWalker(".") // This class doesn't exist but just pretend for this example...
@@ -405,8 +407,8 @@ section {
 }
 ```
 
-The general rule of thumb is: use `withWriteLock` if you want to access or modify more than one property from the list
-at the same time within your `run` block.
+The general rule of thumb is: use `withWriteLock` if you want to modify more than one property from the list at the same
+time within your `run` block.
 
 Note that you don't have to worry about locking within a `section { ... }` block. Data access is already locked for you
 in that context.
@@ -476,8 +478,8 @@ section at that location:
 
 ```kotlin
 section {
-  // `input` is a method that appends the user's input typed so far in place where it is called.
-  // Once your section references it, the block is automatically rerendered when its value changes.
+  // `input` is a method that inserts any user input typed so far in place where it is called.
+  // Your section block will automatically rerender when its value changes.
   text("Please enter your name: "); input()
 }.run { /* ... */ }
 ```
