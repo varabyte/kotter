@@ -1,5 +1,6 @@
 package com.varabyte.kotter.runtime
 
+import com.varabyte.kotter.foundation.LiveVar
 import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.render.AsideRenderScope
@@ -43,10 +44,12 @@ interface SectionScope {
 /**
  * A scope associated with the [run] function.
  *
- * While the lifecycle is probably *almost* the same as its section's lifecycle, it is a little shorter, and
+ * While its [Lifecycle] is probably *almost* the same as its section's lifecycle, it is a little shorter, and
  * this matters because some data may need to be cleaned up after running but before the block is actually finished.
+ *
+ * @property section The [Section] this run block is attached to.
  */
-class RunScope(
+class RunScope internal constructor(
     val section: Section,
     private val scope: CoroutineScope,
 ): SectionScope {
@@ -67,8 +70,41 @@ class RunScope(
         signal() // In case abort is run inside a `runUntilSignal` block
         scope.cancel()
     }
+
+    /**
+     * Request an additional rerender pass against the underlying section.
+     *
+     * This method is provided for maximum flexibility, but prefer using a [LiveVar] (or similar auto-rerendering
+     * technique) whenever possible.
+     */
     fun rerender() = section.requestRerender()
+
+    /**
+     * Block this method from continuing until [signal] is called.
+     *
+     * If [signal] is called before this method is, then it won't block at all.
+     *
+     * Note: You may wish to use [runUntilSignal] instead, to avoid needing to call this method yourself.
+     */
     fun waitForSignal() = waitLatch.await()
+
+    /**
+     * Fire a signal so that [waitForSignal] is allowed to continue.
+     *
+     * A common pattern here is to handle waiting for some event to occur before continuing:
+     *
+     * ```
+     * val downloader = ...
+     * section { ... }.run {
+     *    downloader.onDownloaded { file ->
+     *       ... do something with the downloaded file and then ...
+     *       signal()
+     *    }
+     *
+     *    waitForSignal() // Block here or else the run block would exit immediately
+     * }
+     * ```
+     */
     fun signal() = waitLatch.countDown()
 }
 
@@ -86,9 +122,11 @@ class MainRenderScope(renderer: Renderer<MainRenderScope>): RenderScope(renderer
 
 /**
  * The class which represents the state of a `section` block and its registered event handlers (e.g. [run] and
- * [onFinishing])
+ * [onFinishing]).
  *
  * A user cannot instantiate this directly. Instead, use [Session.section].
+ *
+ * @property session The parent session this section was created by.
  */
 class Section internal constructor(val session: Session, private val render: MainRenderScope.() -> Unit) {
     /**
