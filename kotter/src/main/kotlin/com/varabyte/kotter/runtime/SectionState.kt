@@ -23,7 +23,7 @@ import com.varabyte.kotter.runtime.render.Renderer
  * As Kotter is hierarchical in nature, we accomplish this by maintaining a stack of states (where the top of the
  * stack is discarded when a section scope is closed).
  */
-class SectionState internal constructor(internal val parent: SectionState? = null) {
+internal class SectionState internal constructor(internal val parent: SectionState? = null) {
     /**
      * A collection of relevent ANSI styles.
      *
