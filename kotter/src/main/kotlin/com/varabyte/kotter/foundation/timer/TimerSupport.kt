@@ -124,13 +124,13 @@ fun ConcurrentScopedData.addTimer(
 /**
  * Values which can be read or modified inside a timer callback (that is, for a timer that was just triggered).
  *
- * @param duration The duration of the timer. This can be modified if you want a repeating timer to have a shorter
+ * @property duration The duration of the timer. This can be modified if you want a repeating timer to have a shorter
  *   followup duration.
- * @param repeat Whether the current timer is repeating or not. It can be modified, so it is most commonly useful to
+ * @property repeat Whether the current timer is repeating or not. It can be modified, so it is most commonly useful to
  *   set this to false if you have a repeating timer that you want to stop at this point.
- * @param elapsed Time actually elapsed since this timer was last fired. This *should* be close to [duration] but it
+ * @property elapsed Time actually elapsed since this timer was last fired. This *should* be close to [duration] but it
  *   could possibly lag behind it (since timers don't always fire exactly on time).
- * @param totalElapsed Total time elapsed since the timer was first enqueued. If the timer is repeating, this value
+ * @property totalElapsed Total time elapsed since the timer was first enqueued. If the timer is repeating, this value
  *   will accumulate over all the runs.
  */
 class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Duration, val totalElapsed: Duration)

@@ -578,7 +578,7 @@ fun MainRenderScope.input(
 /**
  * Fields accessible within a callback triggered by [onKeyPressed].
  *
- * @param key The key that was pressed. See also: [Keys]
+ * @property key The key that was pressed. See also: [Keys]
  */
 class OnKeyPressedScope(val key: Key)
 
@@ -634,8 +634,8 @@ fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> U
 /**
  * Fields accessible within a callback triggered by [onInputActivated].
  *
- * @param id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
- * @param input The current text value of the input.
+ * @property id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @property input The current text value of the input.
  */
 class OnInputActivatedScope(val id: Any, var input: String)
 private val InputActivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputActivatedScope.() -> Unit>()
@@ -665,8 +665,8 @@ fun RunScope.onInputActivated(listener: OnInputActivatedScope.() -> Unit) {
 /**
  * Fields accessible within a callback triggered by [onInputDeactivated].
  *
- * @param id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
- * @param input The current text value of the input.
+ * @property id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @property input The current text value of the input.
  */
 class OnInputDeactivatedScope(val id: Any, var input: String)
 private val InputDeactivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputDeactivatedScope.() -> Unit>()
@@ -692,10 +692,10 @@ fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
 /**
  * Fields and methods accessible within a callback triggered by [onInputChanged].
  *
- * @param id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
- * @param input The text value of the input entered by the user. This value can be modified, which will effect the
+ * @property id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @property input The text value of the input entered by the user. This value can be modified, which will affect the
  *   final input rendered.
- * @param prevInput The previous (last good) state of the input.
+ * @property prevInput The previous (last good) state of the input.
  */
 class OnInputChangedScope(val id: Any, var input: String, val prevInput: String) {
     internal var rejected = false
@@ -721,8 +721,8 @@ fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
 /**
  * Fields and methods accessible within a callback triggered by [onInputEntered].
  *
- * @param id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
- * @param input The text value of the input entered by the user. At this point, the value is readonly. See also:
+ * @property id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @property input The text value of the input entered by the user. At this point, the value is readonly. See also:
  *   [onInputChanged], a callback that lets you modify this value as it is being typed.
  */
 class OnInputEnteredScope(val id: Any, val input: String) {

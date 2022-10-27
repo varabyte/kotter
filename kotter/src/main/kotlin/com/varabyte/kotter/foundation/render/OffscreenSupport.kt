@@ -26,7 +26,7 @@ class OffscreenRenderScope(renderer: Renderer<OffscreenRenderScope>): OneShotRen
  * This class itself is inert, but you can use [createRenderer] to create a class that can apply its commands to the
  * current render scope.
  *
- * @param parentScope The [RenderScope] this buffer is tied to. This parameter is exposed for testing.
+ * @property parentScope The [RenderScope] this buffer is tied to. This parameter is exposed for testing.
  */
 class OffscreenBuffer(internal val parentScope: RenderScope, render: OffscreenRenderScope.() -> Unit) {
     private val commands = run {

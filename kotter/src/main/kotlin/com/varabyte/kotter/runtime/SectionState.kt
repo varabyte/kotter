@@ -29,7 +29,7 @@ import com.varabyte.kotter.runtime.render.Renderer
 class SectionState internal constructor(internal val parent: SectionState? = null) {
     /** A collection of relevent ANSI styles.
      *
-     * @param parentStyles If provided, it means this style should fall back to its parent's value when unset.
+     * @property parentStyles If provided, it means this style should fall back to its parent's value when unset.
      */
     internal class Styles(val parentStyles: Styles? = null) {
         var fgColor: TerminalCommand? = parentStyles?.fgColor

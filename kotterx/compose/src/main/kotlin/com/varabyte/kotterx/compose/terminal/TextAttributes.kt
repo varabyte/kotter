@@ -16,9 +16,9 @@ internal interface TextAttributes {
 }
 
 /**
- * @param _fg The backing field for [fg] (and [bg], if [isInverted] is true). Basically, a raw value which ignores
+ * @property _fg The backing field for [fg] (and [bg], if [isInverted] is true). Basically, a raw value which ignores
  *   inversion logic.
- * @param _bg The backing field for [bg] (and [fg], if [isInverted] is true). Basically, a raw value which ignores
+ * @property _bg The backing field for [bg] (and [fg], if [isInverted] is true). Basically, a raw value which ignores
  *   inversion logic.
  */
 internal data class MutableTextAttributes(
