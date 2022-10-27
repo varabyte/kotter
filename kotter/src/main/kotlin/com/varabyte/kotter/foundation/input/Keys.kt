@@ -1,9 +1,20 @@
 package com.varabyte.kotter.foundation.input
 
+import com.varabyte.kotter.runtime.RunScope
+
+/**
+ * Base class for all keypresses.
+ *
+ * See also: [Keys]
+ * See also: [RunScope.onKeyPressed].
+ */
 interface Key
 
 /**
  * Marks a key as in the control key range (nothing to do specifically with the Ctrl key on the keyboard)
+ *
+ * For example, [Keys.ENTER], [Keys.BACKSPACE], and [Keys.UP] are control keys. These are keys that cause some action
+ * to happen without resulting in some printable value.
  *
  * See also [Character.isISOControl]
  */
@@ -18,7 +29,7 @@ data class CharKey(val code: Char) : Key
 
 // TODO(Bug #22): Add some way to check if two keys are the same (perhaps given a keyboard layout?)
 //  e.g. 'a' and 'A' are the same underlying key
-
+/** A collection of all keypresses supported by Kotter. */
 object Keys {
     object ESC : IsoControlKey
     object ENTER : IsoControlKey

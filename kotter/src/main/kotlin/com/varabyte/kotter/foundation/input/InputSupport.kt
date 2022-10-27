@@ -406,6 +406,10 @@ fun RunScope.setInput(text: String, index: Int = text.length, id: Any = Unit) {
     }
 }
 
+/**
+ * Interface for a class that can provide suggested auto-completions (for an [input] call) given some initial text
+ * input.
+ */
 interface InputCompleter {
     /**
      * Given some [input], return a suffix that should complete it, or null if the string does not have a matching
@@ -435,21 +439,29 @@ open class Completions(private vararg val values: String, private val ignoreCase
 private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
 
 /**
- * Information passed into the `viewMap` callback in the [input] method.
+ * Information passed into the `viewMap` callback in the [input][com.varabyte.kotter.foundation.input.input] method.
  *
- * The user can check the current character being transformed (via the [ch] property), but the entire [text] and
- * character's [index] is also provided in case the context helps with the mapping. It's expected in most cases, e.g.
- * masking a password, none of these values will need to be used. But you can use them if you need to!
+ * The user can check the current character being transformed (via the [ch] property), but the entire [input] so far and
+ * the character's [index] into it are also provided in case the context helps with the mapping. It's expected in most
+ * cases, e.g. masking a password, none of these values will need to be used. But you can use them if you need to!
+ *
+ * For an example, to visually render all input text as uppercase, you could write:
+ *
+ * ```
+ * input(viewMap = { ch.uppercaseChar() })
+ * ```
  */
-class ViewMapScope(val text: String, val index: Int) {
-    val ch: Char = text[index]
+class ViewMapScope(val input: String, val index: Int) {
+    /**
+     * The current source character being mapped.
+     *
+     * This is a convenience property identical to `text[index]`.
+     */
+    val ch: Char = input[index]
 }
 
 /**
- * A function which, when called, will replace itself dynamically with some input text plus a blinking cursor.
- *
- * You can only have one `input()` active at a time for any given render pass - if you call `input()` twice or more in
- * a section without setting all but one of them as inactive, you'll get a runtime exception.
+ * A function which, when called, will replace itself dynamically with text input by the user, plus a blinking cursor.
  *
  * You can use the `onInputChanged` and `onInputEntered` callbacks to query the value as the user types it / commits it.
  *
@@ -468,7 +480,7 @@ class ViewMapScope(val text: String, val index: Int) {
  *
  * There are two main cases:
  *
- * 1) Only one input is shown at a time, but the inputs are different.
+ * **1 - Only one input is shown at a time, but the inputs are different.**
  *
  * ```
  * when (state) {
@@ -485,8 +497,7 @@ class ViewMapScope(val text: String, val index: Int) {
  * In this case, you should ensure that each input has a unique ID, so that Kotter realizes that a new input has gotten
  * focus, and can show its last known value.
  *
- * 2) Multiple inputs are shown at the same time.
- *
+ * **2 - Multiple inputs are shown at the same time.**
  * ```
  * text("Red value:   "); input(id = "red", isActive = (state == EDIT_RED))
  * text("Green value: "); input(id = "green", isActive = (state == EDIT_GREEN))
@@ -498,7 +509,8 @@ class ViewMapScope(val text: String, val index: Int) {
  * ```
  *
  * In addition to using unique IDs per input, you should make sure your logic works so that at most only one of them are
- * active at a time.
+ * active at a time. If you call `input()` twice or more in a section without setting all but one of them as inactive,
+ * you'll get a runtime exception.
  *
  * @param completer Optional logic for suggesting auto-completions based on what the user typed in. See
  *   [Completions] which is a generally useful and common implementation.
@@ -507,7 +519,7 @@ class ViewMapScope(val text: String, val index: Int) {
  *   equality check on it against a previous value.
  * @param viewMap If set, *visually* transform the text by specifying the target character each letter in the text
  *   should map to. This doesn't affect the input's actual value, just the value that is rendered on screen. This is
- *   particularly useful for password inputs.
+ *   particularly useful for password inputs, which would look like `viewMap = { '*' }`.
  * @param isActive See docs above for more details. If multiple calls to input are made in a single section, at most one
  *   of them can be active at a time.
  */
@@ -563,6 +575,11 @@ fun MainRenderScope.input(
     }
 }
 
+/**
+ * Fields accessible within a callback triggered by [onKeyPressed].
+ *
+ * @param key The key that was pressed. See also: [Keys]
+ */
 class OnKeyPressedScope(val key: Key)
 
 private val KeyPressedJobKey = RunScope.Lifecycle.createKey<Job>()
@@ -613,6 +630,13 @@ fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> U
     }
 }
 
+
+/**
+ * Fields accessible within a callback triggered by [onInputActivated].
+ *
+ * @param id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @param input The current text value of the input.
+ */
 class OnInputActivatedScope(val id: Any, var input: String)
 private val InputActivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputActivatedScope.() -> Unit>()
 
@@ -622,6 +646,9 @@ private fun ConcurrentScopedData.withActiveInput(block: InputState.() -> Unit) {
     }
 }
 
+/**
+ * Sets a callback in a `run` block which will get triggered any time an [input] area gains focus.
+ */
 fun RunScope.onInputActivated(listener: OnInputActivatedScope.() -> Unit) {
     if (!data.tryPut(InputActivatedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputActivated` callback at a time is supported.")
@@ -635,9 +662,18 @@ fun RunScope.onInputActivated(listener: OnInputActivatedScope.() -> Unit) {
     }
 }
 
+/**
+ * Fields accessible within a callback triggered by [onInputDeactivated].
+ *
+ * @param id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @param input The current text value of the input.
+ */
 class OnInputDeactivatedScope(val id: Any, var input: String)
 private val InputDeactivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputDeactivatedScope.() -> Unit>()
 
+/**
+ * Sets a callback in a `run` block which will get triggered any time an [input] area loses focus.
+ */
 fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
     if (!data.tryPut(
             InputDeactivatedCallbackKey,
@@ -653,22 +689,50 @@ fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
     }
 }
 
+/**
+ * Fields and methods accessible within a callback triggered by [onInputChanged].
+ *
+ * @param id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @param input The text value of the input entered by the user. This value can be modified, which will effect the
+ *   final input rendered.
+ * @param prevInput The previous (last good) state of the input.
+ */
 class OnInputChangedScope(val id: Any, var input: String, val prevInput: String) {
     internal var rejected = false
+    /** Indicate that the current [input] change isn't valid and the last state should be restored. */
     fun rejectInput() { rejected = true }
 }
 private val InputChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputChangedScope.() -> Unit>()
 
+/**
+ * Sets a callback in a `run` block which will get triggered any time the user changes their [input].
+ *
+ * The user's input will be provided via the [OnInputChangedScope.input] property. This value can be intercepted and
+ * edited at this point.
+ *
+ * You can call [OnInputEnteredScope.rejectInput] to communicate to Kotter that the last change should be rejected.
+ */
 fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
     if (!data.tryPut(InputChangedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputChanged` callback at a time is supported.")
     }
 }
 
+/**
+ * Fields and methods accessible within a callback triggered by [onInputEntered].
+ *
+ * @param id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @param input The text value of the input entered by the user. At this point, the value is readonly. See also:
+ *   [onInputChanged], a callback that lets you modify this value as it is being typed.
+ */
 class OnInputEnteredScope(val id: Any, val input: String) {
     internal var rejected = false
+    /** Indicate that the current [input] isn't valid and shouldn't be accepted as is. */
     fun rejectInput() { rejected = true }
     internal var cleared = false
+    /**
+     * Call to reset the input back to blank, which can be useful if you are re-using the same [input] multiple times.
+     */
     fun clearInput() { cleared = true }
 }
 private val InputEnteredCallbackKey = RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
@@ -680,12 +744,23 @@ private object SystemInputEnteredCallbackKey : ConcurrentScopedData.Key<() -> Un
     override val lifecycle = RunScope.Lifecycle
 }
 
+/**
+ * Sets a callback in a `run` block which will get triggered any time the user presses the ENTER key an [input] area
+ * that has focus.
+ *
+ * The user's input will be provided via the [OnInputEnteredScope.input] property. This is a good time to update any
+ * local variables you have that depend on the user's input, and possibly end the current section.
+ *
+ * You can call [OnInputEnteredScope.rejectInput] to communicate to Kotter that the input still needs to change before
+ * it can be accepted.
+ */
 fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
     if (!data.tryPut(InputEnteredCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputEntered` callback at a time is supported.")
     }
 }
 
+/** A `run` block which runs until the user pressed ENTER on some currently active [input]. */
 fun Section.runUntilInputEntered(block: suspend RunScope.() -> Unit = {}) {
     run {
         // We need to abort as even if the user puts a while(true) in their run block, we still want to exit
