@@ -377,6 +377,11 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
  *
  * You should ideally only check input values within [onInputChanged], [onInputEntered] etc. callbacks, but for edge
  * cases it can still be useful to check these in other scenarios (but treat this method with care!)
+ *
+ * See also: [input]
+ *
+ * @param id If set, find the input with the matching ID. This can be useful if you have multiple input blocks defined
+ *   at the same time.
  */
 fun SectionScope.getInput(id: Any = Unit): String? {
     var input: String? = null
