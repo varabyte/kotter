@@ -9,13 +9,14 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
- * A thread-safe package of key/value pairs.
+ * A thread-safe collection of key/value pairs, where each key is tied to a [Lifecycle].
  *
- * You should register data using a predefined [Key] object. When registering values, an optional dispose block can be
- * specified at the same time, which will automatically be triggered when the block is done running.
+ * You register values against a typed [Key] object. When registering them, an optional dispose block can be specified
+ * as well, which will automatically be triggered whenever the key is removed (either manually or because its lifecycle
+ * ended).
  *
- * This data will be tied to a [Lifecycle]. You must call [start] with a lifecycle first before keys tied to that
- * lifecycle can be added. Afterwards, call [stop] to remove all keys with the matching lifecycle and deactivate it.
+ * You must call [start] with a [Lifecycle] first before keys tied to it can be added. Afterwards, call [stop] to remove
+ * all keys with the matching lifecycle.
  *
  * Note: Although the class is designed to be thread safe, some calls (which are noted with warnings) can expose values
  * to you which are no longer covered by the lock. Those should only be used to fetch immutable or thread-safe values.
@@ -24,8 +25,8 @@ import kotlin.concurrent.write
 @Suppress("UNCHECKED_CAST")
 class ConcurrentScopedData {
     /**
-     * A marker interface for an object that represents a class's lifecycle. For example, you might declare something
-     * like so:
+     * A marker interface for an object that represents a some lifetime. For example, you might declare a lifecycle tied
+     * to its owning class like so:
      *
      * ```
      * class Application {
@@ -36,37 +37,63 @@ class ConcurrentScopedData {
      * and then, if you ever create a new key for some unique data you want to add, you can write:
      *
      * ```
-     * object CredentialsKey : ConcurrentScopedData.Key<String> {
-     *   override val lifecycle = Application.Lifecycle
-     * }
-     *
+     * val CredentialsKey = Application.Lifecycle.createKey<String>()
+     * assertTrue(data.isActive(Application.Lifecycle)) // Must be true before adding data
      * data[CredentialsKey] = UUID.randomUUID().toString()
      * ```
      *
-     * For convenience, you can also create keys with the following shorthand syntax:
-     * ```
-     * val CredentialsKey = Application.Lifecycle.createKey<String>()
-     * ```
-     *
-     * Finally, you can associate one lifecycle as a child of another, so that if the parent lifecycle is stopped,
-     * this one will get stopped as well too:
+     * You can associate one lifecycle as the child of another, so that if the parent lifecycle is stopped, this child
+     * lifecycle will get stopped as well too:
      *
      * ```
-     * // You can either stop this dialog's lifecycle directly, or it will get stopped when the overall UI is stopped.
+     * class Ui {
+     *   object Lifecycle : ConcurrentScopedData.Lifecycle
+     * }
+     *
      * class Dialog {
      *   object Lifecycle : ConcurrentScopedData.Lifecycle {
      *     override val parent = Ui.Lifecycle
      *   }
      * }
+     *
+     * data.start(Ui.Lifecycle)
+     * data.start(Dialog.Lifecycle)
+     * data[SomeDialogKey] = 12345
+     * data.stop(Ui.Lifecycle) // Removes all UI keys and dialog keys, too!
      * ```
+     *
+     * See also: [start], [stop], [isActive]
      */
     interface Lifecycle {
         val parent: Lifecycle? get() = null
     }
+
+    /**
+     * A tag for typed data tied to a [Lifecycle]
+     *
+     * You are encouraged to use [Lifecycle.createKey] as it's easier to type, but you can manually create a key and use
+     * it like so:
+     *
+     * ```
+     * object DemoKey : ConcurrentScopedData.Key<Int> {
+     *   override val lifecycle = SomeLifecycle
+     * }
+     *
+     * ... later ...
+     * data.start(SomeLifecycle)
+     * data[DemoKey] = 123
+     * ```
+     */
     interface Key<T> {
         val lifecycle: Lifecycle
     }
 
+    /**
+     * Fields provided to the [onLifecycleDeactivated] callback.
+     *
+     * @property lifecycle The lifecycle that got deactivated.
+     * @property removeListener Set it to true to remove this callback after it got triggered.
+     */
     class LifecycleListenerScope(val lifecycle: Lifecycle, var removeListener: Boolean = false)
 
     /**
@@ -82,8 +109,11 @@ class ConcurrentScopedData {
     }
 
     /**
-     * The lock used by this data, which however is exposed so that it can be shared by other threaded logic, in order
-     * to eliminate possible deadlocks caused by multiple locks being held at the same time.
+     * The lock used by this data.
+     *
+     * It is exposed so that other code can *carefully* tie some of their own logic to the same lock - for example,
+     * waiting until they can be sure that they have write access to this data before running some preemptive logic to
+     * generate some value that they want to put into it.
      */
     val lock = ReentrantReadWriteLock()
     @GuardedBy("lock")
@@ -95,7 +125,7 @@ class ConcurrentScopedData {
     private val onLifecycleDeactivated = mutableListOf<LifecycleListenerScope.() -> Unit>()
 
     /**
-     * Add a listener that will be triggered when a lifecycle goes from active -> inactive state.
+     * Add a listener that will be triggered whenever a lifecycle goes from active -> inactive state.
      *
      * See also [LifecycleListenerScope] which contains information about which lifecycle was deactivated.
      */
@@ -143,7 +173,7 @@ class ConcurrentScopedData {
     }
 
     /**
-     * Dispose and remove ALL keys in this data store.
+     * Stop all lifecycles, thereby disposing and removing all keys as a side effect.
      *
      * Of course, [stop] should be preferred, but this can be useful if handling an unrecoverable exception, for
      * example, or if we're shutting down the whole session.
@@ -155,6 +185,7 @@ class ConcurrentScopedData {
         }
     }
 
+    /** Returns true if the target lifecycle has been started (and not yet stopped). */
     fun isActive(lifecycle: Lifecycle) = lock.read { activeLifecycles.contains(lifecycle) }
 
     /**
@@ -248,7 +279,7 @@ class ConcurrentScopedData {
     }
 
     /**
-     * A convenience version of the other [putOrGet] but without a dispose block, making the trailing-lambda syntax for
+     * A convenience version of the other [putOrGet] call but without a dispose block, making the trailing-lambda syntax for
      * this common case nicer.
      */
     fun <T : Any> putOrGet(key: Key<T>, provideInitialValue: () -> T): T? {
@@ -256,7 +287,7 @@ class ConcurrentScopedData {
     }
 
     /**
-     * A convenience version of the other [tryPut] but without a dispose block, making the trailing-lambda syntax for
+     * A convenience version of the other [tryPut] call but without a dispose block, making the trailing-lambda syntax for
      * this common case nicer.
      */
     fun <T : Any> tryPut(key: Key<T>, provideInitialValue: () -> T): Boolean {
