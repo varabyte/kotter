@@ -12,6 +12,8 @@ import kotlin.concurrent.write
  *
  * In other words, adding or removing to the set will cause the active section to rerender automatically.
  *
+ * For example:
+ *
  * ```
  * val ids = liveSetOf<String>()
  *

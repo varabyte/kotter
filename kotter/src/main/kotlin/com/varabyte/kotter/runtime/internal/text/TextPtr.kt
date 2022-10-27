@@ -126,7 +126,7 @@ class TextPtr(val text: CharSequence, charIndex: Int = 0) {
  * assertEquals(textPtr.substring(3), "Wor")
  * ```
  *
- * If [length] is too long for the remaining string, then the rest of the string will be returned.
+ * If [length] is too long for the remaining string, then the rest of the string will be returned:
  *
  * ```
  * val textPtr = TextPtr("Hello World")

@@ -13,6 +13,8 @@ import kotlin.reflect.KProperty
  * A special variable which can be used to auto-rerender a target [Section] without needing to call
  * [RunScope.rerender] yourself.
  *
+ * For example:
+ *
  * ```
  * var count by liveVarOf(0)
  * section {

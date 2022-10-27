@@ -21,7 +21,7 @@ class BorderCharacters(
 ) {
     companion object {
         /**
-         * Border using basic ASCII characters guaranteed to be present in every environment
+         * Border using basic ASCII characters guaranteed to be present in every environment.
          *
          * ```
          * +-+

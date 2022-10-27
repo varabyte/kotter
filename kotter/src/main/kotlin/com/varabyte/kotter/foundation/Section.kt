@@ -9,16 +9,16 @@ import com.varabyte.kotter.runtime.Section
  * This is a convenience function for shortening the common pattern:
  *
  * ```
- * section { /* ... */ }.run {
+ * section { ... }.run {
  *   onSomeEvent { signal() }
  *   waitForSignal()
  * }
  * ```
  *
- * into just
+ * into just:
  *
  * ```
- * section { /* ... */ }.runUntilSignal {
+ * section { ... }.runUntilSignal {
  *   onSomeEvent { signal() }
  * }
  * ```

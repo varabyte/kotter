@@ -13,6 +13,8 @@ import kotlin.concurrent.write
  *
  * In other words, adding or removing to the list will cause the active section to rerender automatically.
  *
+ * For example:
+ *
  * ```
  * val ids = liveListOf<String>()
  *

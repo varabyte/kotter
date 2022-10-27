@@ -10,7 +10,7 @@ import com.varabyte.kotter.terminal.virtual.VirtualTerminal
  * or, if they all fail, throws an error.
  *
  * This is a useful utility method for those who want to construct a [Session] with their own custom list of
- * terminals.
+ * terminals. For example:
  *
  * ```
  * session(

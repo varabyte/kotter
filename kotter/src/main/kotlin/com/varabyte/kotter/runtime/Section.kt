@@ -26,6 +26,8 @@ internal val AsideRendersKey = Section.Lifecycle.createKey<MutableList<Renderer<
 /**
  * Common interface used for scopes that can appear in both the render and run blocks.
  *
+ * For example:
+ *
  * ```
  * section {
  *   ... # A

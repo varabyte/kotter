@@ -55,6 +55,8 @@ class Session internal constructor(internal val terminal: Terminal) {
      *
      * A `section` block owns a bunch of rendering instructions, followed by a `run` block which executes them.
      *
+     * For example:
+     *
      * ```
      * session {
      *   section { ... render instructions ...}.run()

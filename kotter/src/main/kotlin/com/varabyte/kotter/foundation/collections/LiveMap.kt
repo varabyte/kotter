@@ -12,6 +12,8 @@ import kotlin.concurrent.write
  *
  * In other words, adding or removing to the map will cause the active section to rerender automatically.
  *
+ * For example:
+ *
  * ```
  * val num2Names = liveMapOf(1 to "one", 2 to "two", 3 to "three")
  * section {

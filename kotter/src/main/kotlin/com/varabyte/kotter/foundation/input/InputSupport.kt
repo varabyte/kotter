@@ -468,7 +468,7 @@ class ViewMapScope(val input: String, val index: Int) {
 /**
  * A function which, when called, will replace itself dynamically with text input by the user, plus a blinking cursor.
  *
- * You can use the `onInputChanged` and `onInputEntered` callbacks to query the value as the user types it / commits it.
+ * You can use the `onInputChanged` and `onInputEntered` callbacks to query the value as the user types it / commits it:
  *
  * ```
  * section {
