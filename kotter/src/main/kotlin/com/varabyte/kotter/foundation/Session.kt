@@ -38,7 +38,7 @@ fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
  * Create a Kotter session.
  *
  * This method takes in a block which will be scoped to the lifetime of the current session. It is a place you can
- * create `section`s and also declare `liveVarOf` calls.
+ * create `section`s and also declare `liveVarOf` calls:
  *
  * ```
  * session {

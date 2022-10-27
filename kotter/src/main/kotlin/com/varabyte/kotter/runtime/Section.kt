@@ -1,6 +1,9 @@
 package com.varabyte.kotter.runtime
 
+import com.varabyte.kotter.foundation.input.runUntilInputEntered
+import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.render.AsideRenderScope
+import com.varabyte.kotter.foundation.runUntilSignal
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
@@ -84,6 +87,8 @@ class MainRenderScope(renderer: Renderer<MainRenderScope>): RenderScope(renderer
 /**
  * The class which represents the state of a `section` block and its registered event handlers (e.g. [run] and
  * [onFinishing])
+ *
+ * A user cannot instantiate this directly. Instead, use [Session.section].
  */
 class Section internal constructor(val session: Session, private val render: MainRenderScope.() -> Unit) {
     /**
@@ -237,6 +242,24 @@ class Section internal constructor(val session: Session, private val render: Mai
         return this
     }
 
+    /**
+     * Run a section block, applying its commands, thereby rendering them.
+     *
+     * A run block blocks the calling thread, only returning control back once it has finished. This is in contrast to
+     * the section render block, which runs in parallel on its own thread. It is expected that in most cases, the run
+     * block logic will update values that trigger section rerenders.
+     *
+     * A run block may run for an arbitrarily long time (e.g. blocking until the user presses 'q' to quit), and while it
+     * runs, it keeps the current section it is attached to active.
+     *
+     * Without calling this method, the contents of a [Section] block are inert and useless. In fact, it is considered
+     * an error to create a section with no run block. If you forget to do so, the owning [Session] will notify you
+     * about your mistake as early as it can. (When it happens, it is invariably user error).
+     *
+     * While you can always call this method directly, there are multiple convenience `run` variations that delegate to
+     * this call under the hood, which may be more appropriate choices based on the purpose of your section,such as
+     * [runUntilSignal], [runUntilInputEntered], and [runUntilKeyPressed].
+     */
     fun run(block: (suspend RunScope.() -> Unit)? = null) {
         val prevValue = consumed.getAndSet(true)
         if (prevValue) {

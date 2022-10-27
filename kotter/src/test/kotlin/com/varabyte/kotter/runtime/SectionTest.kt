@@ -30,6 +30,34 @@ class SectionTest {
     }
 
     @Test
+    fun `if a section does not get run, the session will throw an exception`() {
+        assertThrows<IllegalStateException> {
+            testSession {
+                section {} // Whoops, forgot to add ".run()"! I hope I get warned about my mistake....
+            }
+        }
+
+        assertThrows<IllegalStateException> {
+            testSession {
+                section {} // Whoops, forgot to add ".run()"! I hope I get warned about my mistake....
+                section {}.run()
+            }
+        }
+    }
+
+    @Test
+    fun `a section can be run only once`() = testSession {
+        val s = section {
+            textLine("Please don't try this at home")
+        }
+
+        s.run() // This first run consumes the section
+        assertThrows<IllegalStateException> {
+            s.run()
+        }
+    }
+
+    @Test
     fun `exceptions in run blocks are thrown`() = testSession {
         assertThrows<RuntimeException> {
             section {}.run {
