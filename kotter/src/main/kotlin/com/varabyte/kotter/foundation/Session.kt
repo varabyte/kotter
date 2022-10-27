@@ -22,16 +22,15 @@ fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
     }.firstOrNull() ?: error("No terminals could successfully be created. Encountered exceptions:\n\t{${creationErrors.joinToString("\n\t")}")
 }
 
-inline val DEFAULT_TERMINAL_FACTORY_METHODS get() = listOf({ SystemTerminal() }, { VirtualTerminal.create() })
-
 /**
  * @param clearTerminal Set to true if this program should clear the terminal on startup. Defaulted to false since that
  *   might be surprising behavior for simple utility terminal applications.
  */
 fun session(
-    terminal: Terminal = DEFAULT_TERMINAL_FACTORY_METHODS.runUntilSuccess(),
+    terminal: Terminal = listOf({ SystemTerminal() }, { VirtualTerminal.create() }).runUntilSuccess(),
     clearTerminal: Boolean = false,
-    block: Session.() -> Unit) {
+    block: Session.() -> Unit
+) {
 
     if (clearTerminal) terminal.clear()
 
