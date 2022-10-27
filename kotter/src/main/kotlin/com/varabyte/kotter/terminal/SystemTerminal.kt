@@ -12,7 +12,7 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 /**
- * A class which interacts directly with the underlying system terminal, e.g. println
+ * A class which interacts directly with the underlying system terminal.
  */
 class SystemTerminal : Terminal {
     private var previousCursorSetting: InfoCmp.Capability

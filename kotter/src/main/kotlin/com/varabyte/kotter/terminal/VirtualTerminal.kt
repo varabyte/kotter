@@ -48,13 +48,31 @@ private val ANSI_TO_SWING_COLORS = mapOf(
 )
 fun AnsiColor.toSwingColor(): Color = ANSI_TO_SWING_COLORS.getValue(this)
 
+/**
+ * A [Terminal] implementation backed by Swing.
+ *
+ * This allows us to provide a cross-platform UI window that can always run a Kotter program, which can be especially
+ * useful backup if, for some reason, a normal ANSI-featured terminal cannot be created.
+ *
+ * An instance cannot be created manually. See [VirtualTerminal.create] instead.
+ */
 class VirtualTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
     companion object {
         /**
+         * Factory method for constructing a [VirtualTerminal].
+         *
+         * @param title The text to use for the terminal window's title bar.
          * @param terminalSize Number of characters, so 80x32 will be expanded to fit 80 characters horizontally and
          *   32 lines vertically (before scrolling is needed)
-         * @param maxNumLines The number of text lines to keep before truncating oldest ones. Will be clamped to at
-         *   least [TerminalSize.height]. Set to [Int.MAX_VALUE] if you don't want truncation to happen.
+         * @param fontSize The size to use for the font used by this virtual terminal.
+         * @param fontOverride A path to a font file resource (e.g. ttf) for an alternate text look and feel.
+         * @param fgColor The color to use for the font text.
+         * @param bgColor The color to use for the virtual terminal background color.
+         * @param linkColor The color to use for links.
+         * @param maxNumLines The number of text lines to keep before truncating oldest ones. This can be useful to
+         *   ensure that this program won't eventually run out of memory if you keep appending text in a loop forever.
+         *   This value Will be clamped to at least [TerminalSize.height]. Set to [Int.MAX_VALUE] if you don't want
+         *   truncation to happen.
          * @param handleInterrupt If true, handle CTRL-C by closing the window.
          */
         fun create(
@@ -257,7 +275,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
 
 private fun Document.getText() = getText(0, length)
 
-class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, linkColor: Color, maxNumLines: Int) : JTextPane() {
+private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, linkColor: Color, maxNumLines: Int) : JTextPane() {
     private class UriState(private val linkColor: Color, private val bgColor: Color) {
         private var currUri: Pair<Int, URI>? = null
         private var prevFgColor: Color? = null
