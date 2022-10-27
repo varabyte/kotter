@@ -7,8 +7,8 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
 import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
 
 /**
- * A class responsible for executing some block of logic which requests render instructions, which ultimately modify an
- * internal [TerminalCommand] list.
+ * A class responsible for executing some block of logic which requests render instructions, ultimately converting them
+ * into a list of commands that can be handled by Kotter.
  */
 class Renderer<R: RenderScope>(val session: Session, private val createScope: (Renderer<R>) -> R) {
     private val _commands = mutableListOf<TerminalCommand>()
