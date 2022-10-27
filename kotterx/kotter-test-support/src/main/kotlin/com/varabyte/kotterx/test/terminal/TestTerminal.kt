@@ -1,10 +1,10 @@
 package com.varabyte.kotterx.test.terminal
 
-import com.varabyte.kotter.runtime.MainRenderScope
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.internal.text.startsWith
+import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.terminal.Terminal
 import com.varabyte.kotterx.test.foundation.testSession
 import kotlinx.coroutines.channels.Channel
@@ -33,7 +33,7 @@ class TestTerminal : Terminal {
          *   })
          * }
          */
-        fun consoleOutputFor(block: MainRenderScope.() -> Unit): List<String> {
+        fun consoleOutputFor(block: RenderScope.() -> Unit): List<String> {
             lateinit var output: List<String>
             testSession { terminal ->
                 section {
@@ -150,6 +150,21 @@ fun TestTerminal.resolveRerenders(): List<String> {
     return resolved
 }
 
-fun TestTerminal.matches(expected: MainRenderScope.() -> Unit): Boolean {
+/**
+ * A way to assert that the current terminal's output matches that of another render block.
+ *
+ * This can be useful if the current terminal went through a bunch of complex rerenders and events, where you want to
+ * now assert that is has settled onto some final state. For example:
+ *
+ * ```
+ * testSession { terminal ->
+ *   section { ... do some crazy stuff here ... }.run { ... more crazy stuff ... }
+ *
+ *   assertTrue(terminal.matches {
+ *     green { textLine("Expected text!") }
+ *   })
+ * }
+ */
+fun TestTerminal.matches(expected: RenderScope.() -> Unit): Boolean {
     return this.resolveRerenders() == TestTerminal.consoleOutputFor(expected)
 }
