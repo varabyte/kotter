@@ -19,6 +19,13 @@ import com.varabyte.kotter.runtime.render.Renderer
 class OffscreenRenderScope(renderer: Renderer<OffscreenRenderScope>): OneShotRenderScope(renderer)
 
 /**
+ * An internal buffer that stores commands without actively rendering them.
+ *
+ * As a user, you won't create one yourself, but you'll use [offscreen] to do so.
+ *
+ * This class itself is inert, but you can use [createRenderer] to create a class that can apply its commands to the
+ * current render scope.
+ *
  * @param parentScope The [RenderScope] this buffer is tied to. This parameter is exposed for testing.
  */
 class OffscreenBuffer(internal val parentScope: RenderScope, render: OffscreenRenderScope.() -> Unit) {
@@ -37,18 +44,32 @@ class OffscreenBuffer(internal val parentScope: RenderScope, render: OffscreenRe
         offscreenRenderer.commands.dropLast(2)
     }
 
+    /**
+     * A property which provides access to the lengths of each line in the buffer.
+     *
+     * This can be used if you need to calculate padding, for example, or centering a text block.
+     */
     val lineLengths = commands.lineLengths
 
-    fun createRenderer(): CommandRenderer {
-        return CommandRenderer(parentScope, commands)
+    /**
+     * Create an [OffscreenCommandRenderer] which can apply this buffer's commands into the current render scope.
+     *
+     * While most cases will only ever require a single renderer, you can create multiple renderers at the same time,
+     * as each maintains its own state.
+     */
+    fun createRenderer(): OffscreenCommandRenderer {
+        return OffscreenCommandRenderer(parentScope, commands)
     }
 
-    fun toRawText() = commands.toRawText()
+    internal fun toRawText() = commands.toRawText()
 }
 
 val OffscreenBuffer.numLines get() = lineLengths.size
 
-class CommandRenderer internal constructor(
+/**
+ * A renderer tied to an [OffscreenBuffer] which allows the user to render one row of text at a time.
+ */
+class OffscreenCommandRenderer internal constructor(
     private val targetScope: RenderScope,
     private val commands: List<TerminalCommand>
 ) {
