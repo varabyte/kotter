@@ -38,15 +38,17 @@ fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
  * Create a Kotter session.
  *
  * This method takes in a block which will be scoped to the lifetime of the current session. It is a place you can
- * create `section`s.
+ * create `section`s and also declare `liveVarOf` calls.
  *
  * ```
  * session {
- *   /* Kotter logic lives here */
+ *   var counter by liveVarOf(0)
+ *   section { ... }
  * }
  * ```
  *
- * When the session exists, all data associated with it will be released.
+ * When the session exists, all data associated with it will be released. If Kotter runs within a virtual terminal, then
+ * the lifetime of the virtual terminal is that of the session.
  *
  * @param clearTerminal Set to true if this program should clear the terminal on startup. Defaulted to false since that
  *   might be surprising behavior for simple utility terminal applications.

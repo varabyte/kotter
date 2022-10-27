@@ -1,10 +1,20 @@
 package com.varabyte.kotter.runtime
 
+import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.terminal.Terminal
 import java.util.concurrent.Executors
 
+/**
+ * A Kotter session.
+ *
+ * This class represents the lifetime of a Kotter application.
+ *
+ * When a session exists, all data associated with it will be released.
+ *
+ * You cannot create an instance manually. Instead, use [session].
+ */
 class Session internal constructor(internal val terminal: Terminal) {
     /**
      * A long-lived lifecycle that sticks around for the length of the entire session.
@@ -40,6 +50,17 @@ class Session internal constructor(internal val terminal: Terminal) {
         }
     }
 
+    /**
+     * Create a Kotter section.
+     *
+     * A `section` block owns a bunch of rendering instructions, followed by a `run` block which executes them.
+     *
+     * ```
+     * session {
+     *   section { ... render instructions ...}.run()
+     * }
+     * ```
+     */
     fun section(render: MainRenderScope.() -> Unit): Section {
         assertNoActiveSections()
         return Section(this, render)
