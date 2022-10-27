@@ -5,9 +5,6 @@ import com.varabyte.kotter.runtime.render.RenderScope
 /**
  * Clear all actively set properties for the current scope.
  *
- * While most ANSI developers are used to the RESET ALL command, this only resets the current scope, which means if
- * you do the following:
- *
  * ```
  * underline()
  * red()
@@ -15,11 +12,10 @@ import com.varabyte.kotter.runtime.render.RenderScope
  *    green()
  *    bold()
  *    clearAll()
- *    textLine("Example text")
+ *    textLine("Undecorated text")
  * }
+ * textLine("Underlined and red")
  * ```
- *
- * then "Example text" will be underlined and red.
  */
 fun RenderScope.clearAll() {
     clearColors()

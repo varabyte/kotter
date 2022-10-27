@@ -145,8 +145,8 @@ object Ansi {
 
                     const val FG_NUMERIC = 38
                     const val BG_NUMERIC = 48
-                    const val LOOKUP_SUBCODE = 5
-                    const val TRUECOLOR_SUBCODE = 2
+                    const val LOOKUP_SUBCODE = 5 // See also: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+                    const val TRUECOLOR_SUBCODE = 2 // See also: https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
 
                     object Fg {
                         val BLACK = Code("30${Identifiers.SGR}")

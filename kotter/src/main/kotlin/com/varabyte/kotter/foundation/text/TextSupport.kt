@@ -5,10 +5,16 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.internal.ansi.commands.CharSequenceCommand
 import com.varabyte.kotter.runtime.render.RenderScope
 
+/**
+ * Append a newline to the current section.
+ */
 fun RenderScope.textLine() {
     applyCommand(NEWLINE_COMMAND)
 }
 
+/**
+ * Append some text to the current section.
+ */
 fun RenderScope.text(text: CharSequence) {
     val lines = text.split('\n')
     lines.forEachIndexed { i, line ->
@@ -19,6 +25,9 @@ fun RenderScope.text(text: CharSequence) {
     }
 }
 
+/**
+ * Append a character to the current section.
+ */
 fun RenderScope.text(c: Char) {
     if (c != '\n') {
         applyCommand(CharCommand(c))
@@ -28,16 +37,28 @@ fun RenderScope.text(c: Char) {
     }
 }
 
+/**
+ * Append some text to the current section, followed by a newline.
+ */
 fun RenderScope.textLine(text: CharSequence) {
     text(text)
     textLine()
 }
 
+/**
+ * Append a character to the current section, followed by a newline.
+ */
 fun RenderScope.textLine(c: Char) {
     text(c)
     textLine()
 }
 
+/**
+ * Add [count] newlines *unless* we are already trailing previously added newlines.
+ *
+ * For example, if we previously added 2 newlines, and then we called `addNewlinesIfNecessary(3)`, only one newline
+ * would actually get appended.
+ */
 private fun RenderScope.addNewlinesIfNecessary(count: Int) {
     require(count > 0)
     // Don't add too many extra newlines when the `p` block is the first part of a section.

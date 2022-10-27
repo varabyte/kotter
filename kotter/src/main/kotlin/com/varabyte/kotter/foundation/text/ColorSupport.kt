@@ -5,11 +5,19 @@ import com.varabyte.kotter.runtime.render.RenderScope
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+/**
+ * Terminal text layers whose colors can be independently modified.
+ */
 enum class ColorLayer {
     FG,
     BG
 }
 
+/**
+ * A list of standard ANSI colors.
+ *
+ * See also: https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
+ */
 enum class Color {
     BLACK,
     RED,
@@ -29,6 +37,7 @@ enum class Color {
     BRIGHT_WHITE;
 }
 
+/** Simple data class representing RGB values for some 24-bit color */
 data class RGB(val r: Int, val g: Int, val b: Int) {
     constructor(r: Float, g: Float, b: Float)
             : this((r * 255).roundToInt(), (g * 255).roundToInt(), (b * 255).roundToInt())
@@ -38,6 +47,11 @@ data class RGB(val r: Int, val g: Int, val b: Int) {
     }
 
     companion object {
+        /**
+         * Convert a 24-bit hex value into an [RGB] instance.
+         *
+         * For example, `from(0xFF00FF)` will create `RGB(255, 0, 255)`.
+         */
         fun from(value: Int) = RGB(
             value.and(0xFF0000).shr(16),
             value.and(0x00FF00).shr(8),
@@ -46,6 +60,7 @@ data class RGB(val r: Int, val g: Int, val b: Int) {
     }
 }
 
+/** Simple data class representing HSV values. */
 data class HSV(val h: Int, val s: Float, val v: Float) {
     init {
         require(h in (0 .. 360) && s in (0.0 .. 1.0) && v in (0.0 .. 1.0)) {
@@ -53,6 +68,9 @@ data class HSV(val h: Int, val s: Float, val v: Float) {
         }
     }
 
+    /**
+     * Convert this HSV value to RGB.
+     */
     // See also: https://en.wikipedia.org/wiki/HSL_and_HSV#HSV_to_RGB
     fun toRgb(): RGB {
         if (s == 0.0f) {
@@ -128,38 +146,91 @@ private fun toTruecolorCommand(layer: ColorLayer, r: Int, g: Int, b: Int) = when
     ColorLayer.BG -> bgTruecolorCommand(r, g, b)
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored black.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.black(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toBlackCommand(layer, isBright))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored red.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.red(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toRedCommand(layer, isBright))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored green.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.green(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toGreenCommand(layer, isBright))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored yellow.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.yellow(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toYellowCommand(layer, isBright))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored blue.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.blue(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toBlueCommand(layer, isBright))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored magenta.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.magenta(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toMagentaCommand(layer, isBright))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored cyan.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.cyan(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toCyanCommand(layer, isBright))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored white.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.white(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
     applyCommand(toWhiteCommand(layer, isBright))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored with the specified [Color] value.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.color(color: Color, layer: ColorLayer = ColorLayer.FG) {
     applyCommand(when (color) {
         Color.BLACK -> toBlackCommand(layer, false)
@@ -181,19 +252,42 @@ fun RenderScope.color(color: Color, layer: ColorLayer = ColorLayer.FG) {
     })
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored by the color associated with the ANSI
+ * [color index][index].
+ *
+ * See also: See also: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.color(index: Int, layer: ColorLayer = ColorLayer.FG) {
     applyCommand(toLookupCommand(layer, index))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored by the input RGB value.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.rgb(r: Int, g: Int, b: Int, layer: ColorLayer = ColorLayer.FG) {
     applyCommand(toTruecolorCommand(layer, r, g, b))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored by the input HSV value.
+ */
 fun RenderScope.hsv(h: Int, s: Float, v: Float, layer: ColorLayer = ColorLayer.FG) {
     val rgb = HSV(h, s, v).toRgb()
     applyCommand(toTruecolorCommand(layer, rgb.r, rgb.g, rgb.b))
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored by the RGB hex value.
+ *
+ * For example, `rgb(0xFF00FF)` will be set the color to magenta.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.rgb(value: Int, layer: ColorLayer = ColorLayer.FG) {
     val (r, g, b) = RGB.from(value)
     applyCommand(toTruecolorCommand(layer, r, g, b))
@@ -207,6 +301,9 @@ fun RenderScope.hsv(color: HSV, layer: ColorLayer = ColorLayer.FG) {
     hsv(color.h, color.s, color.v, layer)
 }
 
+/**
+ * Clears any color set earlier in this scope on a particular [ColorLayer].
+ */
 fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG) {
     applyCommand(when(layer) {
         ColorLayer.FG -> FG_CLEAR_COMMAND
@@ -214,19 +311,37 @@ fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG) {
     })
 }
 
+/**
+ * Clears any colors set earlier in this scope.
+ */
 fun RenderScope.clearColors() {
     applyCommand(FG_CLEAR_COMMAND)
     applyCommand(BG_CLEAR_COMMAND)
 }
 
+/**
+ * Marks the current scope as inverted, so that any text after this point will be rendered with its background and
+ * foreground color layers switched.
+ *
+ * Note that calling invert twice in a row does *not* undo the original invert. Instead, call [clearInvert].
+ */
 fun RenderScope.invert() {
     applyCommand(INVERT_COMMAND)
 }
 
+/**
+ * Clears a previous call to [invert].
+ */
 fun RenderScope.clearInvert() {
     applyCommand(CLEAR_INVERT_COMMAND)
 }
 
+/**
+ * Create a new scope within which any text will be colored black.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.black(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -238,6 +353,12 @@ fun RenderScope.black(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored red.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.red(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -249,6 +370,12 @@ fun RenderScope.red(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored green.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.green(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -260,6 +387,12 @@ fun RenderScope.green(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored yellow.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.yellow(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -271,6 +404,12 @@ fun RenderScope.yellow(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored blue.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.blue(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -282,6 +421,12 @@ fun RenderScope.blue(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored cyan.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.cyan(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -293,6 +438,12 @@ fun RenderScope.cyan(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored magenta.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.magenta(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -304,6 +455,12 @@ fun RenderScope.magenta(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored white.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ * @param isBright If true, use a brighter variation of this color.
+ */
 fun RenderScope.white(
     layer: ColorLayer = ColorLayer.FG,
     isBright: Boolean = false,
@@ -315,10 +472,13 @@ fun RenderScope.white(
     }
 }
 
+
 /**
- * Use an index to lookup an 8-bit color.
+ * Create a new scope within which any text will be colored using a color associated with the ANSI [color index][index].
  *
  * See also: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+ *
+ * @param layer A color can be applied either to the text color or the background color.
  */
 fun RenderScope.color(
     index: Int,
@@ -331,6 +491,11 @@ fun RenderScope.color(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored with the specified [Color] value.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.color(
     color: Color,
     layer: ColorLayer = ColorLayer.FG,
@@ -342,6 +507,11 @@ fun RenderScope.color(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored by the input RGB value.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.rgb(
     r: Int,
     g: Int,
@@ -355,6 +525,13 @@ fun RenderScope.rgb(
     }
 }
 
+/**
+ * Marks the current scope so that any text after this point will be colored by the input hex value.
+ *
+ * For example, `rgb(0xFF00FF)` will be set the color to magenta.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.rgb(
     value: Int,
     layer: ColorLayer = ColorLayer.FG,
@@ -377,6 +554,11 @@ fun RenderScope.rgb(
     }
 }
 
+/**
+ * Create a new scope within which any text will be colored by the input HSV value.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.hsv(
     h: Int,
     s: Float,
@@ -401,6 +583,13 @@ fun RenderScope.hsv(
     }
 }
 
+/**
+ * Create a new scope within which any color set earlier on a particular [ColorLayer] will be cleared.
+ *
+ * The color will be restored after the current scope exits.
+ *
+ * @param layer A color can be applied either to the text color or the background color.
+ */
 fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG, scopedBlock: RenderScope.() -> Unit) {
     scopedState {
         clearColor(layer)
@@ -408,6 +597,11 @@ fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG, scopedBlock: Rende
     }
 }
 
+/**
+ * Create a new scope within which any colors set earlier will be cleared.
+ *
+ * Those colors will be restored after the current scope exits.
+ */
 fun RenderScope.clearColors(scopedBlock: RenderScope.() -> Unit) {
     scopedState {
         clearColors()
@@ -415,6 +609,9 @@ fun RenderScope.clearColors(scopedBlock: RenderScope.() -> Unit) {
     }
 }
 
+/**
+ * Create a new scope within which any text will be rendered with its background and foreground color layers switched.
+ */
 fun RenderScope.invert(scopedBlock: RenderScope.() -> Unit) {
     scopedState {
         invert()
