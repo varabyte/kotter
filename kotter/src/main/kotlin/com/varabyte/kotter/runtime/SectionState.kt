@@ -5,29 +5,27 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.*
 import com.varabyte.kotter.runtime.render.Renderer
 
 /**
- * Keep track of all state related commands which should be reapplied to the current block if the ansi terminal resets
- * itself.
+ * Keep track of all text states applied so far against the current section.
  *
- * Unfortunately, when you need to reset a single value (say, foreground color), the ANSI standard doesn't provide a
- * scalpel - instead, it provides a nuke (clear EVERYTHING). Since Kotter embraces a hierarchical, nested API, e.g.
+ * For example:
  *
  * ```
- * white(BG) {
- *   red {
- *     underline {
+ * white(BG) {                                // record white BG
+ *   red {                                    // record red FG
+ *     underline {                            // record underline
  *       text("Red underlined text on white")
- *     }
+ *     }                                      // clear underline
  *     text("Red text on white")
- *   }
- * }
+ *   }                                        // clear read FG
+ * }                                          // clear white BG
  * ```
  *
- * In order to support resetting just a subset of text styles, we need to maintain a copy of the state ourselves. In
- * order to, say, remove a foreground color setting, what we're really doing is nuking everything and building the whole
- * state back up again.
+ * As Kotter is hierarchical in nature, we accomplish this by maintaining a stack of states (where the top of the
+ * stack is discarded when a section scope is closed).
  */
 class SectionState internal constructor(internal val parent: SectionState? = null) {
-    /** A collection of relevent ANSI styles.
+    /**
+     * A collection of relevent ANSI styles.
      *
      * @property parentStyles If provided, it means this style should fall back to its parent's value when unset.
      */
@@ -49,7 +47,12 @@ class SectionState internal constructor(internal val parent: SectionState? = nul
      */
     internal val deferred: Styles = Styles(parent?.deferred)
 
-    fun applyTo(renderer: Renderer<*>) {
+    /**
+     * Apply the current state into the target renderer.
+     *
+     * Any text rendered after will be using the styles maintained by this class instance.
+     */
+    internal fun applyTo(renderer: Renderer<*>) {
         if (deferred.fgColor?.text !== applied.fgColor?.text) {
             applied.fgColor = deferred.fgColor
             renderer.appendCommand(applied.fgColor ?: FG_CLEAR_COMMAND)
