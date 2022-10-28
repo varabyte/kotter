@@ -51,10 +51,7 @@ interface SectionScope {
  *
  * @property section The [Section] this run block is attached to.
  */
-class RunScope internal constructor(
-    val section: Section,
-    private val scope: CoroutineScope,
-): SectionScope {
+class RunScope(val section: Section, private val scope: CoroutineScope): SectionScope {
     object Lifecycle : ConcurrentScopedData.Lifecycle {
         override val parent = Section.Lifecycle
     }
