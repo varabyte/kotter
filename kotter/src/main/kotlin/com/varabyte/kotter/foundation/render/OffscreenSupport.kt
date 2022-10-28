@@ -69,6 +69,7 @@ class OffscreenBuffer internal constructor(
     internal fun toRawText() = commands.toRawText()
 }
 
+/** How many lines of text were generated within this offscreen buffer. */
 val OffscreenBuffer.numLines get() = lineLengths.size
 
 /**
