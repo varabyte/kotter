@@ -624,7 +624,21 @@ fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
     }
 }
 
-/** A `run` block which runs until one of the specified keys is pressed by the user. */
+/**
+ * A `run` block which runs until one of the specified keys is pressed by the user.
+ *
+ * As a minimal example:
+ *
+ * ```
+ * section {
+ *   textLine("Press Q to quit.")
+ *   ...
+ * }.runUntilKeyPressed(Keys.Q) {
+ *   ...
+ * }
+ * ```
+ */
+
 fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> Unit = {}) {
     run {
         data.prepareOnKeyPressed(this.section.session.terminal)
@@ -765,7 +779,20 @@ fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
     }
 }
 
-/** A `run` block which runs until the user pressed ENTER on some currently active [input]. */
+/**
+ * A `run` block which runs until the user has pressed ENTER on some currently active [input].
+ *
+ * As a minimal example:
+ *
+ * ```
+ * var name: String = ""
+ * section {
+ *   text("Enter your name: "); input()
+ * }.runUntilInputEntered {
+ *   onInputEntered { name = input }
+ * }
+ * ```
+ */
 fun Section.runUntilInputEntered(block: suspend RunScope.() -> Unit = {}) {
     run {
         // We need to abort as even if the user puts a while(true) in their run block, we still want to exit
