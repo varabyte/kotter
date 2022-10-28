@@ -9,6 +9,8 @@ import com.varabyte.kotter.runtime.internal.text.toRawText
 import com.varabyte.kotter.runtime.render.OneShotRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
+import com.varabyte.kotterx.text.justified
+import com.varabyte.kotterx.decorations.bordered
 
 /**
  * A [RenderScope] used for the [offscreen] method.
@@ -113,7 +115,6 @@ class OffscreenCommandRenderer internal constructor(
     }
 }
 
-
 /**
  * An offscreen block lets you create a temporary internal section that doesn't render until you're ready for it to.
  *
@@ -128,8 +129,26 @@ class OffscreenCommandRenderer internal constructor(
  * }
  * ```
  *
- * Note that the initial state for the offscreen buffer uses the parent state, so that this would render green the
- * first time and blue the second:
+ * While the above code is useless as-is (it's identical to rendering directly to the current render scope), you can
+ * query an offscreen buffer in order to do more useful things.
+ *
+ * For example, here we right-align a block of text:
+ *
+ * ```
+ * val buffer = offscreen { ... }
+ * val maxWidth = buffer.lineLengths.maxOrNull() ?: 0
+ * val renderer = buffer.createRenderer()
+ * content.lineLengths.forEach { lineLength ->
+ *   repeat(maxWidth - lineLength) { text(' ') }
+ *   renderer.renderNextRow()
+ *   textLine()
+ * }
+ * ```
+ *
+ * *Note: Instead of doing that yourself, you may use the [justified] helper method instead.*
+ *
+ * The initial state for the offscreen buffer inherits the parent state, so that this would render green the first time
+ * and blue the second:
  *
  * ```
  * val buffer = offscreen { textLine("Inherits color from parent") }
@@ -145,8 +164,28 @@ class OffscreenCommandRenderer internal constructor(
  * }
  * ```
  *
- * This method is particularly useful for layout purposes, where you can calculate the size of what the render area will
- * be, e.g. to wrap things with a border.
+ * Despite initially inheriting the text effect state from the parent scope, you can also modify effects *inside* an
+ * offscreen render block, which would then remember that for that point on without affecting the parent state:
+ *
+ * ```
+ * val buffer = offscreen {
+ *   textLine("Red (from parent)")
+ *   blue()
+ *   textLine("Blue")
+ *   textLine("Blue again")
+ * }
+ *
+ * red()
+ * val renderer = buffer.createRenderer()
+ * while (renderer.hasNextRow()) {
+ *   text("Red "); renderer.renderNextRow(); textLine( "Red")
+ * }
+ * ```
+ *
+ * This lets you do whatever you want within an offscreen render block without worrying about it leaking into the
+ * parent scope.
+ *
+ * See also: [justified], [bordered].
  */
 fun RenderScope.offscreen(render: OffscreenRenderScope.() -> Unit): OffscreenBuffer {
     return OffscreenBuffer(this, render)
