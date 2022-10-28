@@ -17,11 +17,11 @@ import com.varabyte.kotter.terminal.virtual.VirtualTerminal
  *   terminal = listOf(
  *     { FirstTerminal() },
  *     { SecondTerminal() },
- *   ).runUntilSuccess()
+ *   ).firstSuccess()
  * )
  * ```
  */
-fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
+fun Iterable<() -> Terminal>.firstSuccess(): Terminal {
     val creationErrors = mutableListOf<Exception>()
     return this.asSequence().mapNotNull { createTerminal ->
         try {
@@ -54,7 +54,7 @@ fun Iterable<() -> Terminal>.runUntilSuccess(): Terminal {
  *   might be surprising behavior for simple utility terminal applications.
  */
 fun session(
-    terminal: Terminal = listOf({ SystemTerminal() }, { VirtualTerminal.create() }).runUntilSuccess(),
+    terminal: Terminal = listOf({ SystemTerminal() }, { VirtualTerminal.create() }).firstSuccess(),
     clearTerminal: Boolean = false,
     block: Session.() -> Unit
 ) {

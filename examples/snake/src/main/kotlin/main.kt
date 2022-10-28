@@ -1,9 +1,9 @@
 import com.varabyte.kotter.foundation.anim.Anim
+import com.varabyte.kotter.foundation.firstSuccess
 import com.varabyte.kotter.foundation.input.Keys
 import com.varabyte.kotter.foundation.input.onKeyPressed
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.runUntilSuccess
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.text.ColorLayer.BG
@@ -139,7 +139,7 @@ fun main() = session(
     terminal = listOf(
         { SystemTerminal() },
         { VirtualTerminal.create(terminalSize = TerminalSize(WIDTH, HEIGHT + 15)) }
-    ).runUntilSuccess(),
+    ).firstSuccess(),
     clearTerminal = true,
 ){
     section {
