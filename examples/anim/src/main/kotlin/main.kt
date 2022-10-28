@@ -1,4 +1,5 @@
 import com.varabyte.kotter.foundation.anim.renderAnimOf
+import com.varabyte.kotter.foundation.anim.text
 import com.varabyte.kotter.foundation.anim.textAnimOf
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.session
