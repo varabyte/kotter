@@ -30,8 +30,8 @@ class RenderAnim internal constructor(session: Session, val template: Template)
     : Anim(session, template.numFrames, template.frameDuration) {
 
     /**
-     * A template for a text animation, useful if you want to define an animation once but instantiate several copies of
-     * it throughout your program.
+     * A template for a render animation, useful if you want to define an animation once but instantiate several copies
+     * of it throughout your program.
      */
     class Template(val numFrames: Int, val frameDuration: Duration, val handler: RenderScope.(Int) -> Unit) {
         init {
