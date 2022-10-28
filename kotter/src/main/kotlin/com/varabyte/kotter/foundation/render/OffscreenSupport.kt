@@ -25,8 +25,8 @@ class OffscreenRenderScope(renderer: Renderer<OffscreenRenderScope>): OneShotRen
  *
  * As a user, you won't create one yourself, but you'll use [offscreen] to do so.
  *
- * This class itself is inert, but you can use [createRenderer] to create a class that can apply its commands to the
- * current render scope.
+ * This class itself is inert, but you can use [createRenderer] to create another class that can apply its commands to
+ * the current render scope.
  *
  * @property parentScope The [RenderScope] this buffer is tied to. This parameter is exposed for testing.
  */
@@ -168,8 +168,8 @@ class OffscreenCommandRenderer internal constructor(
  * }
  * ```
  *
- * Despite initially inheriting the text effect state from the parent scope, you can also modify effects *inside* an
- * offscreen render block, which would then remember that for that point on without affecting the parent state:
+ * Despite initially inheriting the text effect state from the parent scope, you can also modify text effects *inside*
+ * an offscreen render block, which would then remember that for that point on without affecting the parent state:
  *
  * ```
  * val buffer = offscreen {
@@ -189,7 +189,7 @@ class OffscreenCommandRenderer internal constructor(
  * This lets you do whatever you want within an offscreen render block without worrying about it leaking into the
  * parent scope.
  *
- * See also: [justified], [bordered].
+ * See also: [justified], [bordered]
  */
 fun RenderScope.offscreen(render: OffscreenRenderScope.() -> Unit): OffscreenBuffer {
     return OffscreenBuffer(this, render)

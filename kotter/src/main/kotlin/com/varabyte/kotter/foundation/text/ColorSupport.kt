@@ -256,7 +256,7 @@ fun RenderScope.color(color: Color, layer: ColorLayer = ColorLayer.FG) {
  * Marks the current scope so that any text after this point will be colored by the color associated with the ANSI
  * [color index][index].
  *
- * See also: See also: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+ * See also: https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
  *
  * @param layer A color can be applied either to the text itself or its background.
  */

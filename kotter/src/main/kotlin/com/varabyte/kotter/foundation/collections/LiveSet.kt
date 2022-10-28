@@ -1,5 +1,6 @@
 package com.varabyte.kotter.foundation.collections
 
+import com.varabyte.kotter.foundation.LiveVar
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.runtime.Session
 import net.jcip.annotations.GuardedBy
@@ -8,7 +9,7 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
- * Like [LiveList], but for sets.
+ * Like [LiveVar], but for sets.
  *
  * In other words, adding or removing to the set will cause the active section to rerender automatically.
  *

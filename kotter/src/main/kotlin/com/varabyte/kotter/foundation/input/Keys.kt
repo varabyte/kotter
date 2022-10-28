@@ -5,8 +5,7 @@ import com.varabyte.kotter.runtime.RunScope
 /**
  * Base class for all keypresses.
  *
- * See also: [Keys]
- * See also: [RunScope.onKeyPressed].
+ * See also: [Keys], [RunScope.onKeyPressed]
  */
 interface Key
 

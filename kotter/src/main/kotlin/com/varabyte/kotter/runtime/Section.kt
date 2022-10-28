@@ -30,13 +30,13 @@ internal val AsideRendersKey = Section.Lifecycle.createKey<MutableList<Renderer<
  *
  * ```
  * section {
- *   ... # A
+ *   ... // A
  * }.run {
- *   ... # B
+ *   ... // B
  * }
  *
- * A is a RenderScope and ALSO a SectionScope
- * B is a RunScope and ALSO a SectionScope
+ * // A is a RenderScope and ALSO a SectionScope
+ * // B is a RunScope and ALSO a SectionScope
  * ```
  */
 interface SectionScope {
@@ -64,6 +64,7 @@ class RunScope(val section: Section, private val scope: CoroutineScope): Section
     override val data = section.session.data
 
     private val waitLatch = CountDownLatch(1)
+
     /** Forcefully exit this run scope early, even if it's still in progress */
     internal fun abort() {
         signal() // In case abort is run inside a `runUntilSignal` block
@@ -358,11 +359,27 @@ class Section internal constructor(val session: Session, private val render: Mai
         deferredException?.let { throw it }
     }
 
+    /**
+     * Like [abort] but does not block the calling thread.
+     */
     fun abortAsync() {
         abortLock.withLock {
             handleAbort()
         }
     }
+
+    /**
+     * Attempt to cancel this run block.
+     *
+     * This call will block until the section associated with the run block is torn down.
+     *
+     * This offers a way to forcefully shut down a section that is blocking on one thread when you have access to that
+     * section instance (either directly or through [Session.activeSection]) from a different thread.
+     *
+     * Note: A user should almost never need to use this in production. This method was written for testing purposes,
+     * where a library using Kotter on the backend wanted to send it user input and then shut things down before
+     * verifying the most recent state of the terminal.
+     */
     fun abort() {
         val latch = CountDownLatch(1)
         session.data.lock.write {

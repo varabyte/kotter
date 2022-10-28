@@ -11,8 +11,8 @@ import java.net.URI
  * Kotter.
  *
  * See also:
- * https://en.wikipedia.org/wiki/ANSI_escape_code
- * https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
+ * * https://en.wikipedia.org/wiki/ANSI_escape_code
+ * * https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html
  */
 object Ansi {
     // https://en.wikipedia.org/wiki/ANSI_escape_code#Control_characters

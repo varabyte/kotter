@@ -42,7 +42,7 @@ class AsideRenderScope(renderer: Renderer<AsideRenderScope>): OneShotRenderScope
  *   input()
  * }.runUntilSignal {
  *   onInputEntered {
- *     val result = gameEngine.handle(input)
+ *     val result = gameEngine.handle(input); clearInput()
  *     aside { textLine(result) }
  *     if (gameEngine.shouldQuit) {
  *       signal()

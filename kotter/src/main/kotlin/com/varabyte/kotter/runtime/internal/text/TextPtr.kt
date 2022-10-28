@@ -120,8 +120,7 @@ class TextPtr(val text: CharSequence, charIndex: Int = 0) {
  * For example:
  *
  * ```
- * val textPtr = TextPtr("Hello World")
- * textPtr.charIndex = 6
+ * val textPtr = TextPtr("Hello World", charIndex = 6)
  * assertEquals(textPtr.currChar, 'W')
  * assertEquals(textPtr.substring(3), "Wor")
  * ```
@@ -129,8 +128,7 @@ class TextPtr(val text: CharSequence, charIndex: Int = 0) {
  * If [length] is too long for the remaining string, then the rest of the string will be returned:
  *
  * ```
- * val textPtr = TextPtr("Hello World")
- * textPtr.charIndex = 6
+ * val textPtr = TextPtr("Hello World", charIndex = 6)
  * assertEquals(textPtr.substring(99999), "World")
  * ```
  */
@@ -141,6 +139,13 @@ fun TextPtr.substring(length: Int): String {
 
 /**
  * Checks if the current text begins with the target character.
+ *
+ * For example:
+ *
+ * ```
+ * val textPtr = TextPtr("Hello World", charIndex = 6)
+ * assertTrue(textPtr.startsWith('W'))
+ * ```
  */
 fun TextPtr.startsWith(value: Char, ignoreCase: Boolean = false): Boolean {
     return remainingLength > 0 && currChar.equals(value, ignoreCase)
@@ -148,6 +153,13 @@ fun TextPtr.startsWith(value: Char, ignoreCase: Boolean = false): Boolean {
 
 /**
  * Checks if the current text begins with the target string.
+ *
+ * For example:
+ *
+ * ```
+ * val textPtr = TextPtr("Hello World", charIndex = 6)
+ * assertTrue(textPtr.startsWith("Wor"))
+ * ```
  */
 fun TextPtr.startsWith(value: String, ignoreCase: Boolean = false): Boolean {
     if (remainingLength < value.length) return false
@@ -161,7 +173,8 @@ fun TextPtr.startsWith(value: String, ignoreCase: Boolean = false): Boolean {
  * Whitespace is not required to separate integer from subsequent text. So for example:
  *
  * ```
- * TextPtr("123abc").tryReadInt()
+ * val textPtr = TextPtr("123abc")
+ * textPtr.tryReadInt()
  * ```
  *
  * will return `123` with the text pointer pointing at "abc".
@@ -188,7 +201,7 @@ fun TextPtr.tryReadInt(): Int? {
  * TextPtr("Hello;World").readUntil { currChar == ';' }
  * ```
  *
- * will return "Hello", not "Hello;"
+ * will return `"Hello"`, not `"Hello;"`
  */
 fun TextPtr.readUntil(condition: TextPtr.() -> Boolean) = buildString {
     while (!condition() && currChar != Char.MIN_VALUE) {

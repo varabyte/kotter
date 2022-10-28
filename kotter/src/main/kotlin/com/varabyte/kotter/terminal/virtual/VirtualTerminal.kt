@@ -51,7 +51,8 @@ private val ANSI_TO_SWING_COLORS = mapOf(
     AnsiColor.BRIGHT_CYAN to Color.CYAN,
     AnsiColor.BRIGHT_WHITE to Color.WHITE,
 )
-fun AnsiColor.toSwingColor(): Color = ANSI_TO_SWING_COLORS.getValue(this)
+
+internal fun AnsiColor.toSwingColor(): Color = ANSI_TO_SWING_COLORS.getValue(this)
 
 /**
  * A [Terminal] implementation backed by Swing.

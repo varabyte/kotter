@@ -10,7 +10,7 @@ import java.util.concurrent.Executors
  *
  * This class represents the lifetime of a Kotter application.
  *
- * When a session exists, all data associated with it will be released.
+ * When a session exits, all data associated with it will be released.
  *
  * You cannot create an instance manually. Instead, use [session].
  */

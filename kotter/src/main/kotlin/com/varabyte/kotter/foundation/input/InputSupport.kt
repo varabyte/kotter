@@ -373,12 +373,12 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
 }
 
 /**
- * Fetch the current input value from anywhere within a [RunScope.run] block, if one is set.
+ * Fetch the current value of some [input] call from anywhere within a [RunScope.run] block, if one is set.
  *
  * You should ideally only check input values within [onInputChanged], [onInputEntered] etc. callbacks, but for edge
  * cases it may be useful to fetch input outside of those cases.
  *
- * See also: [input]
+ * See also: [input], [setInput]
  *
  * @param id If set, find the input with the matching ID. This can be useful if you have multiple input blocks defined
  *   at the same time.
@@ -390,13 +390,20 @@ fun SectionScope.getInput(id: Any = Unit): String? {
 }
 
 /**
- * Set the input directly from anywhere in a [RunScope.run] block.
+ * Set the value for some [input] call directly from anywhere in a [RunScope.run] block.
  *
  * This should be extremely rare to do! But perhaps you need to set the text asynchronously
- * ([onInputEntered] is blocking) or inside on [onKeyPressed] callback, etc.
+ * (e.g. [onInputEntered] is blocking) or inside on [onKeyPressed] callback, etc.
  *
  * However, try using [onInputChanged], [onInputEntered], etc. first. This will result in code that is easier for
  * readers to follow.
+ *
+ * See also: [input], [getInput]
+ *
+ * @param text The text to replace the current input with
+ * @param index If specified, the index of the cursor position; otherwise, it will be placed after the end of the text.
+ * @param id If set, find the input with the matching ID. This can be useful if you have multiple input blocks defined
+ *   at the same time.
  */
 fun RunScope.setInput(text: String, index: Int = text.length, id: Any = Unit) {
     data.get(InputStatesKey) {
@@ -412,15 +419,14 @@ fun RunScope.setInput(text: String, index: Int = text.length, id: Any = Unit) {
 }
 
 /**
- * Interface for a class that can provide suggested auto-completions (for an [input] call) given some initial text
- * input.
+ * Interface for a class that can provide suggested auto-completions for an [input] call, given some initial text.
  */
 interface InputCompleter {
     /**
      * Given some [input], return a suffix that should complete it, or null if the string does not have a matching
      * completion.
      *
-     * For example, for "y", you might return "es"
+     * For example, for `"y"`, you might return `"es"`
      */
     fun complete(input: String): String?
 
@@ -428,9 +434,17 @@ interface InputCompleter {
 }
 
 /**
- * A default [InputCompleter] that provides completions given a list of values.
+ * A default [InputCompleter] that provides completions given a list of possible values.
  *
- * If there are multiple matches, e.g. "Colorado" and "Connecticut" for "co", the item earlier in the list will be
+ * For example:
+ *
+ * ```
+ * input(Completions("yes", "no"))
+ * ```
+ *
+ * will suggest `"yes"` for `""`, `"y"`, and `"ye"`, while suggesting `"no"` for `"n"`.
+ *
+ * If there are multiple matches, e.g. `"Colorado"` and `"Connecticut"` for `"co"`, the item earlier in the list will be
  * suggested as the completion.
  */
 open class Completions(private vararg val values: String, private val ignoreCase: Boolean = true) : InputCompleter {
@@ -447,13 +461,20 @@ private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
  * Information passed into the `viewMap` callback in the [input][com.varabyte.kotter.foundation.input.input] method.
  *
  * The user can check the current character being transformed (via the [ch] property), but the entire [input] so far and
- * the character's [index] into it are also provided in case the context helps with the mapping. It's expected in most
- * cases, e.g. masking a password, none of these values will need to be used. But you can use them if you need to!
+ * the character's [index] into it are also provided in case the context helps with the mapping. It's expected that none
+ * of these values will be needed in many cases, e.g. masking a password, but you can refer to them if you need to!
  *
- * For an example, to visually render all input text as uppercase, you could write:
+ * For an example, to visually render all input text as uppercase (while the underlying input will be whatever case the
+ * user typed in), you could call:
  *
  * ```
  * input(viewMap = { ch.uppercaseChar() })
+ * ```
+ *
+ * or for masking a password, simply:
+ *
+ * ```
+ * input(viewMap = { '*' })
  * ```
  */
 class ViewMapScope(val input: String, val index: Int) {
@@ -471,11 +492,12 @@ class ViewMapScope(val input: String, val index: Int) {
  * You can use the `onInputChanged` and `onInputEntered` callbacks to query the value as the user types it / commits it:
  *
  * ```
+ * var name = ""
  * section {
  *   text("Enter your name: "); input()
- * }.run {
+ * }.runUntilInputEntered {
  *   onInputEntered {
- *     // here, "input" is what the user typed in
+ *     name = input // here, "input" is what the user typed in
  *   }
  * }
  * ```
@@ -781,7 +803,7 @@ private val InputChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputChange
  * The user's input will be provided via the [OnInputChangedScope.input] property. This value can be intercepted and
  * edited at this point.
  *
- * You can also call [OnInputEnteredScope.rejectInput] to indicate that the last change should be rejected.
+ * You can also call [OnInputChangedScope.rejectInput] to indicate that the last change should be rejected.
  *
  * For example:
  *
@@ -840,7 +862,7 @@ private object SystemInputEnteredCallbackKey : ConcurrentScopedData.Key<() -> Un
  * ```
  * var name = ""
  * section {
- *   text("First name: "); input()
+ *   text("Name: "); input()
  * }.runUntilInputEntered {
  *   onInputEntered {
  *     name = input
@@ -865,7 +887,7 @@ fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
  * ```
  * var name: String = ""
  * section {
- *   text("Enter your name: "); input()
+ *   text("Name: "); input()
  * }.runUntilInputEntered {
  *   onInputEntered { name = input }
  * }

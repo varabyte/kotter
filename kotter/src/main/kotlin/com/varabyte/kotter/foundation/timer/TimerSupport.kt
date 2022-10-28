@@ -108,7 +108,8 @@ internal class SystemTimerManager(lock: ReentrantReadWriteLock) : TimerManager(l
  * See [RunScope.addTimer].
  *
  * This version is the same thing but which works directly on the underlying [ConcurrentScopedData] store, making it
- * a useful helper method for other internal methods to use.
+ * a useful helper method for occasionally extension methods which don't have access to the [RunScope] (e.g. animations
+ * inside a `section` block).
  */
 fun ConcurrentScopedData.addTimer(
     duration: Duration,
@@ -141,10 +142,13 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Durat
  * For example, to create a timer that repeats every half second:
  *
  * ```
- * section { ... }.run {
+ * section {
+ *   ...
+ * }.runUntilSignal {
  *   addTimer(Duration.ofMillis(500), repeat = true) {
  *     ... handle timer fired here ...
  *   }
+ *   ...
  * }
  * ```
  *

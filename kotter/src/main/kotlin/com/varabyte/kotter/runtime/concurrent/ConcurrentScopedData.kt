@@ -9,7 +9,7 @@ import kotlin.concurrent.read
 import kotlin.concurrent.write
 
 /**
- * A thread-safe collection of key/value pairs, where each key is tied to a [Lifecycle].
+ * A thread-safe collection of key/value pairs, where additionally each key is typed and tied to a [Lifecycle].
  *
  * You register values against a typed [Key] object. When registering them, an optional dispose block can be specified
  * as well, which will automatically be triggered whenever the key is removed (either manually or because its lifecycle
@@ -18,6 +18,21 @@ import kotlin.concurrent.write
  * You must call [start] with a [Lifecycle] first before keys tied to it can be added. Afterwards, call [stop] to remove
  * all keys with the matching lifecycle.
  *
+ * For example:
+ *
+ * ```
+ * // Globals somewhere
+ * object MyLifecycle : ConcurrentScopedData.Lifecycle
+ * val MyKey = MyLifecycle.createKey<Boolean>()
+ *
+ * // Later...
+ * data = ConcurrentScopedData()
+ * data.start(MyLifecycle)
+ * data[MyKey] = true
+ * ...
+ * data.stop(MyLifecycle) // MyKey is removed
+ * ```
+ *
  * Note: Although the class is designed to be thread safe, some calls (which are noted with warnings) can expose values
  * to you which are no longer covered by the lock. Those should only be used to fetch immutable or thread-safe values.
  */
@@ -25,8 +40,9 @@ import kotlin.concurrent.write
 @Suppress("UNCHECKED_CAST")
 class ConcurrentScopedData {
     /**
-     * A marker interface for an object that represents a some lifetime. For example, you might declare a lifecycle tied
-     * to its owning class like so:
+     * A marker interface for an object that represents a some lifetime.
+     *
+     * For example, you might declare a lifecycle tied to its owning class like so:
      *
      * ```
      * class Application {
