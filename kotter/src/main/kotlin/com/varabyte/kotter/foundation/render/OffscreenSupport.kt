@@ -30,7 +30,10 @@ class OffscreenRenderScope(renderer: Renderer<OffscreenRenderScope>): OneShotRen
  *
  * @property parentScope The [RenderScope] this buffer is tied to. This parameter is exposed for testing.
  */
-class OffscreenBuffer(internal val parentScope: RenderScope, render: OffscreenRenderScope.() -> Unit) {
+class OffscreenBuffer internal constructor(
+    internal val parentScope: RenderScope,
+    render: OffscreenRenderScope.() -> Unit
+) {
     private val commands = run {
         val offscreenRenderer = Renderer<OffscreenRenderScope>(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
             render(render)
