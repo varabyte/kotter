@@ -23,7 +23,7 @@ import com.varabyte.kotter.runtime.render.Renderer
  * As Kotter is hierarchical in nature, we accomplish this by maintaining a stack of states (where the top of the
  * stack is discarded when a section scope is closed).
  */
-internal class SectionState internal constructor(internal val parent: SectionState? = null) {
+internal class SectionState(val parent: SectionState? = null) {
     /**
      * A collection of relevent ANSI styles.
      *
@@ -39,20 +39,20 @@ internal class SectionState internal constructor(internal val parent: SectionSta
     }
 
     /** Styles which are actively applied, and any text rendered right now would use them. */
-    internal val applied: Styles = parent?.applied ?: Styles()
+    val applied: Styles = parent?.applied ?: Styles()
     /**
      * The current style based on commands received so far in the current state scope.
      *
      * They are worth being deferred in case they change before new text is ultimately received.
      */
-    internal val deferred: Styles = Styles(parent?.deferred)
+    val deferred: Styles = Styles(parent?.deferred)
 
     /**
      * Apply the current state into the target renderer.
      *
      * Any text rendered after will be using the styles maintained by this class instance.
      */
-    internal fun applyTo(renderer: Renderer<*>) {
+    fun applyTo(renderer: Renderer<*>) {
         if (deferred.fgColor?.text !== applied.fgColor?.text) {
             applied.fgColor = deferred.fgColor
             renderer.appendCommand(applied.fgColor ?: FG_CLEAR_COMMAND)
