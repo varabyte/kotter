@@ -128,8 +128,8 @@ class OffscreenCommandRenderer internal constructor(
  * }
  * ```
  *
- * Note that the initial state for the offscreen buffer uses the parent state, so that this would render blue the
- * first time and green the second:
+ * Note that the initial state for the offscreen buffer uses the parent state, so that this would render green the
+ * first time and blue the second:
  *
  * ```
  * val buffer = offscreen { textLine("Inherits color from parent") }
