@@ -373,10 +373,10 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
 }
 
 /**
- * Fetch the current input value in the run scope, if set.
+ * Fetch the current input value from anywhere within a [RunScope.run] block, if one is set.
  *
  * You should ideally only check input values within [onInputChanged], [onInputEntered] etc. callbacks, but for edge
- * cases it can still be useful to check these in other scenarios (but treat this method with care!)
+ * cases it may be useful to fetch input outside of those cases.
  *
  * See also: [input]
  *
@@ -390,7 +390,7 @@ fun SectionScope.getInput(id: Any = Unit): String? {
 }
 
 /**
- * Set the input directly from anywhere in the [RunScope].
+ * Set the input directly from anywhere in a [RunScope.run] block.
  *
  * This should be extremely rare to do! But perhaps you need to set the text asynchronously
  * ([onInputEntered] is blocking) or inside on [onKeyPressed] callback, etc.
@@ -466,7 +466,7 @@ class ViewMapScope(val input: String, val index: Int) {
 }
 
 /**
- * A function which, when called, will replace itself dynamically with text input by the user, plus a blinking cursor.
+ * A function which, when called, will replace itself dynamically with text typed by the user, plus a blinking cursor.
  *
  * You can use the `onInputChanged` and `onInputEntered` callbacks to query the value as the user types it / commits it:
  *
@@ -480,8 +480,7 @@ class ViewMapScope(val input: String, val index: Int) {
  * }
  * ```
  *
- * Usually you'll only need to call `input()` once in a whole section, but occasionally there are cases where you will
- * use more than one.
+ * Usually you'll only need to call `input()` once in a whole section, but occasionally you may use more than one.
  *
  * There are two main cases:
  *
@@ -616,7 +615,22 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
     )
 }
 
-/** A handler you can register in a `run` block to intercept keypresses */
+/**
+ * A handler you can register in a [RunScope.run] block to intercept keypresses.
+ *
+ * For example:
+ *
+ * ```
+ * section { ... }.run {
+ *   onKeyPressed {
+ *     when (key) {
+ *       Keys.SPACE -> ...
+ *       Keys.ESC -> ...
+ *     }
+ *   }
+ * }
+ * ```
+ */
 fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
     data.prepareOnKeyPressed(section.session.terminal)
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
@@ -666,7 +680,26 @@ private fun ConcurrentScopedData.withActiveInput(block: InputState.() -> Unit) {
 }
 
 /**
- * Sets a callback in a `run` block which will get triggered any time an [input] area gains focus.
+ * A callback you can register in a [RunScope.run] block that will get triggered any time an [input] gains focus.
+ *
+ * For example:
+ *
+ * ```
+ * section {
+ *   when (state) {
+ *     ASK_NAME -> text("Your name? "); input(id = "name")
+ *     ASK_AGE -> text("Your age? "); input(id = "age")
+ *     ...
+ *   }
+ * }.run {
+ *   onInputActivated {
+ *     when (id) {
+ *       "name" -> ...
+ *       "age" - > ...
+ *     }
+ *   }
+ * }
+ * ```
  */
 fun RunScope.onInputActivated(listener: OnInputActivatedScope.() -> Unit) {
     if (!data.tryPut(InputActivatedCallbackKey) { listener }) {
@@ -691,7 +724,26 @@ class OnInputDeactivatedScope(val id: Any, var input: String)
 private val InputDeactivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputDeactivatedScope.() -> Unit>()
 
 /**
- * Sets a callback in a `run` block which will get triggered any time an [input] area loses focus.
+ * A callback you can register in a [RunScope.run] block that will get triggered any time an [input] loses focus.
+ *
+ * For example:
+ *
+ * ```
+ * section {
+ *   when (state) {
+ *     ASK_NAME -> text("Your name? "); input(id = "name")
+ *     ASK_AGE -> text("Your age? "); input(id = "age")
+ *     ...
+ *   }
+ * }.run {
+ *   onInputDeactivated {
+ *     when (id) {
+ *       "name" -> ...
+ *       "age" - > ...
+ *     }
+ *   }
+ * }
+ * ```
  */
 fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
     if (!data.tryPut(
@@ -724,12 +776,24 @@ class OnInputChangedScope(val id: Any, var input: String, val prevInput: String)
 private val InputChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputChangedScope.() -> Unit>()
 
 /**
- * Sets a callback in a `run` block which will get triggered any time the user changes their [input].
+ * A callback you can register in a [RunScope.run] block that will get triggered any time the changes their [input].
  *
  * The user's input will be provided via the [OnInputChangedScope.input] property. This value can be intercepted and
  * edited at this point.
  *
- * You can call [OnInputEnteredScope.rejectInput] to communicate to Kotter that the last change should be rejected.
+ * You can also call [OnInputEnteredScope.rejectInput] to indicate that the last change should be rejected.
+ *
+ * For example:
+ *
+ * ```
+ * section {
+ *   text("First name: "); input()
+ * }.run {
+ *   onInputChanged {
+ *     if (input.any { !it.isLetter }) rejectInput()
+ *   }
+ * }
+ * ```
  */
 fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
     if (!data.tryPut(InputChangedCallbackKey) { listener }) {
@@ -764,14 +828,28 @@ private object SystemInputEnteredCallbackKey : ConcurrentScopedData.Key<() -> Un
 }
 
 /**
- * Sets a callback in a `run` block which will get triggered any time the user presses the ENTER key an [input] area
- * that has focus.
+ * A callback you can register in a [RunScope.run] block which will get triggered any time the user presses the ENTER
+ * key an [input] area that has focus.
  *
  * The user's input will be provided via the [OnInputEnteredScope.input] property. This is a good time to update any
  * local variables you have that depend on the user's input, and possibly end the current section.
  *
- * You can call [OnInputEnteredScope.rejectInput] to communicate to Kotter that the input still needs to change before
- * it can be accepted.
+ * Here's a common pattern, combined with [runUntilInputEntered] to handle exiting the block when the input has been
+ * accepted:
+ *
+ * ```
+ * var name = ""
+ * section {
+ *   text("First name: "); input()
+ * }.runUntilInputEntered {
+ *   onInputEntered {
+ *     name = input
+ *   }
+ * }
+ * ```
+ *
+ * You can call [OnInputEnteredScope.rejectInput] to indicate that the input still needs to change before it can be
+ * accepted.
  */
 fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
     if (!data.tryPut(InputEnteredCallbackKey) { listener }) {

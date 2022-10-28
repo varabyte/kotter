@@ -138,6 +138,16 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Durat
 /**
  * Add a timer that will be fired as long as the current section is still running.
  *
+ * For example, to create a timer that repeats every half second:
+ *
+ * ```
+ * section { ... }.run {
+ *   addTimer(Duration.ofMillis(500), repeat = true) {
+ *     ... handle timer fired here ...
+ *   }
+ * }
+ * ```
+ *
  * @param duration The amount of time after which this timer's callback will fire. This value can optionally be updated
  *   on later calls by settings [TimerScope.duration] inside your callback.
  * @param repeat If true, repeat this timer indefinitely. You can set [TimerScope.repeat] to false inside your callback
