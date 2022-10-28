@@ -350,7 +350,7 @@ class ConcurrentScopedData {
  */
 fun <T> Lifecycle.createKey(): Key<T> {
     val self = this
-    return object : ConcurrentScopedData.Key<T> {
+    return object : Key<T> {
         override val lifecycle = self
     }
 }
