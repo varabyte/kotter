@@ -1,7 +1,10 @@
 package com.varabyte.kotter.foundation.anim
 
+import com.varabyte.kotter.foundation.text.text
+import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotter.runtime.render.RenderScope
 import java.time.Duration
 
 /**
@@ -21,7 +24,7 @@ import java.time.Duration
  * ```
  */
 class TextAnim internal constructor(session: Session, private val template: Template)
-    : CharSequence, Anim(session, template.frames.size, template.frameDuration) {
+    : Anim(session, template.frames.size, template.frameDuration) {
 
     /**
      * A template for a text animation, useful if you want to define an animation once but instantiate several copies of
@@ -45,13 +48,25 @@ class TextAnim internal constructor(session: Session, private val template: Temp
         return block()
     }
 
+    /** The current frame of text. */
     override fun toString() = readProperty { currText }
-    override val length get() = readProperty { currText.length }
-    override fun get(index: Int) = readProperty { currText[index] }
-    override fun subSequence(startIndex: Int, endIndex: Int) = readProperty { currText.subSequence(startIndex, endIndex) }
 }
 
 fun Session.textAnimOf(template: TextAnim.Template) = TextAnim(this, template)
 /** Instantiate a [TextAnim] tied to the current [Session]. */
 fun Session.textAnimOf(frames: List<String>, frameDuration: Duration) =
     TextAnim(this, TextAnim.Template(frames, frameDuration))
+
+/**
+ * Append the current frame of text animation to the current section.
+ */
+fun RenderScope.text(anim: TextAnim) {
+    text(anim.toString())
+}
+
+/**
+ * Append the current frame of text animation to the current section, followed by a newline.
+ */
+fun RenderScope.textLine(anim: TextAnim) {
+    textLine(anim.toString())
+}

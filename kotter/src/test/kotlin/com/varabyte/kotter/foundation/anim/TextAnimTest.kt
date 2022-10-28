@@ -60,46 +60,6 @@ class TextAnimTest {
     }
 
     @Test
-    fun `can query text anim state`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
-        val anim = textAnimOf(listOf("1234", "56", "789"), Anim.ONE_FRAME_60FPS)
-        section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
-            text("> $anim <")
-        }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1234 <${Codes.Sgr.RESET}",
-                    "",
-                )
-            }
-
-            assertThat(anim.length).isEqualTo(4)
-            assertThat(anim[1]).isEqualTo('2')
-            assertThat(anim.subSequence(0, anim.length - 1)).isEqualTo("123")
-
-            timer.fastForward(Anim.ONE_FRAME_60FPS)
-            timer.fastForward(Anim.ONE_FRAME_60FPS)
-
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 789 <${Codes.Sgr.RESET}",
-                    "",
-                )
-            }
-
-            assertThat(anim.length).isEqualTo(3)
-            assertThat(anim[1]).isEqualTo('8')
-            assertThat(anim.subSequence(0, anim.length - 1)).isEqualTo("78")
-        }
-    }
-
-    @Test
     fun `anim timer paused while anim isn't rendered`() = testSession { terminal ->
         var timer: TestTimer? = null
 
@@ -402,6 +362,39 @@ class TextAnimTest {
                 )
             }
 
+        }
+    }
+
+    @Test
+    fun `can use extension text methods for appending the animation directly`() = testSession { terminal ->
+        var timer: TestTimer? = null
+
+        val anim1 = textAnimOf(listOf("1", "2"), Anim.ONE_FRAME_60FPS)
+        val anim2 = textAnimOf(listOf("a", "b"), Anim.ONE_FRAME_60FPS)
+        section {
+            if (timer == null) {
+                // Need to initialize a test timer BEFORE we reference $anim for the first time
+                timer = data.useTestTimer()
+            }
+
+            text("> "); text(anim1); text(':'); text(anim2); text(" <")
+        }.run {
+            @Suppress("NAME_SHADOWING") val timer = timer!!
+
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1:a <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2:b <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
         }
     }
 }
