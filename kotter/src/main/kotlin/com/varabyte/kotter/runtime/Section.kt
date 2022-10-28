@@ -5,6 +5,7 @@ import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.render.AsideRenderScope
 import com.varabyte.kotter.foundation.runUntilSignal
+import com.varabyte.kotter.runtime.RunScope.Lifecycle
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
@@ -63,7 +64,7 @@ class RunScope(val section: Section, private val scope: CoroutineScope): Section
      */
     override val data = section.session.data
 
-    private val waitLatch = CountDownLatch(1)
+    private val waitLatch = CompletableDeferred<Unit>()
 
     /** Forcefully exit this run scope early, even if it's still in progress */
     internal fun abort() {
@@ -86,7 +87,7 @@ class RunScope(val section: Section, private val scope: CoroutineScope): Section
      *
      * Note: You may wish to use [runUntilSignal] instead, to avoid needing to call this method yourself.
      */
-    fun waitForSignal() = waitLatch.await()
+    suspend fun waitForSignal() = waitLatch.await()
 
     /**
      * Fire a signal so that [waitForSignal] is allowed to continue.
@@ -105,7 +106,7 @@ class RunScope(val section: Section, private val scope: CoroutineScope): Section
      * }
      * ```
      */
-    fun signal() = waitLatch.countDown()
+    fun signal() = waitLatch.complete(Unit)
 }
 
 /**
