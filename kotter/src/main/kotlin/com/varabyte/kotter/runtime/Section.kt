@@ -385,7 +385,9 @@ class Section internal constructor(val session: Session, private val render: Mai
         session.data.lock.write {
             if (session.data.isActive(RunScope.Lifecycle)) {
                 session.data.onLifecycleDeactivated {
-                    if (lifecycle === RunScope.Lifecycle) {
+                    // Wait for the section to tear down, which is guaranteed to happen shortly after the run block
+                    // finishes.
+                    if (lifecycle === Section.Lifecycle) {
                         removeListener = true
                         latch.countDown()
                     }
