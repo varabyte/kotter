@@ -11,14 +11,14 @@ import com.varabyte.kotter.runtime.RunScope
 interface Key
 
 /**
- * Marks a key as in the control key range (nothing to do specifically with the Ctrl key on the keyboard)
+ * Marks a key as one that triggers behavior (as opposed to being a simple typable value).
  *
- * For example, [Keys.ENTER], [Keys.BACKSPACE], and [Keys.UP] are control keys. These are keys that cause some action
- * to happen without resulting in some printable value.
+ * This has nothing to do specifically with the Ctrl key on the keyboard. For example, [Keys.ENTER], [Keys.BACKSPACE],
+ * and [Keys.UP] are control keys.
  *
  * See also [Character.isISOControl]
  */
-interface IsoControlKey : Key
+class IsoControlKey : Key
 
 /**
  * Class for every key with a typeable value, e.g. 'a', '~', '7'
@@ -31,26 +31,26 @@ data class CharKey(val code: Char) : Key
 //  e.g. 'a' and 'A' are the same underlying key
 /** A collection of all keypresses supported by Kotter. */
 object Keys {
-    object ESC : IsoControlKey
-    object ENTER : IsoControlKey
+    val ESC = IsoControlKey()
+    val ENTER = IsoControlKey()
 
-    object BACKSPACE : IsoControlKey
-    object DELETE : IsoControlKey
+    val BACKSPACE = IsoControlKey()
+    val DELETE = IsoControlKey()
 
-    object EOF: IsoControlKey
+    val EOF = IsoControlKey()
 
-    object UP : IsoControlKey
-    object DOWN : IsoControlKey
-    object LEFT : IsoControlKey
-    object RIGHT : IsoControlKey
+    val UP = IsoControlKey()
+    val DOWN = IsoControlKey()
+    val LEFT = IsoControlKey()
+    val RIGHT = IsoControlKey()
 
-    object HOME : IsoControlKey
-    object END : IsoControlKey
-    object INSERT : IsoControlKey
-    object PAGE_UP : IsoControlKey
-    object PAGE_DOWN : IsoControlKey
+    val HOME = IsoControlKey()
+    val END = IsoControlKey()
+    val INSERT = IsoControlKey()
+    val PAGE_UP = IsoControlKey()
+    val PAGE_DOWN = IsoControlKey()
 
-    object TAB : IsoControlKey
+    val TAB = IsoControlKey()
 
     val A = CharKey('a')
     val B = CharKey('b')
