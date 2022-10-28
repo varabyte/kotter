@@ -4,7 +4,7 @@ import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.Section
 
 /**
- * Create a [Section.run] block that blocks until [RunScope.signal] is called.
+ * Create a [Section.run] block that won't finish running until [RunScope.signal] is called.
  *
  * This is a convenience function for shortening the common pattern:
  *
