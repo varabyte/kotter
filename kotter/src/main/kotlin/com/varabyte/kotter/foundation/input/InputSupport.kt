@@ -376,7 +376,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
  * Fetch the current value of some [input] call from anywhere within a [RunScope.run] block, if one is set.
  *
  * You should ideally only check input values within [onInputChanged], [onInputEntered] etc. callbacks, but for edge
- * cases it may be useful to fetch input outside of those cases.
+ * cases it may be useful to fetch input outside of those events.
  *
  * See also: [input], [setInput]
  *
