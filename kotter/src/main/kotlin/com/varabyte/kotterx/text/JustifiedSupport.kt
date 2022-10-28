@@ -14,9 +14,9 @@ enum class Justification {
 }
 
 /**
- * Adding spacing around lines to support justification across a block of text.
+ * Adds spacing around lines to support justification across a block of text.
  *
- * @param justification The justification to apply to the inner text.
+ * @param justification The [Justification] to apply to the inner text.
  * @param padRight If true, append spaces at the end of the text to fill out any remaining calculated space. You
  *   probably want to do this if you're decorating the text somehow, e.g. calling `text` right after each line. You can
  *   otherwise disable this feature if not, and shave a few blank spaces off of your output text.
