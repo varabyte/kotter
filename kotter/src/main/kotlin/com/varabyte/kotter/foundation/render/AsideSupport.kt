@@ -23,7 +23,7 @@ class AsideRenderScope(renderer: Renderer<AsideRenderScope>): OneShotRenderScope
  * ```
  * section {
  *   textLine("Main render text")
- * }.runUntilSignal {
+ * }.run {
  *   aside { textLine("Aside text") }
  * }
  * ```
