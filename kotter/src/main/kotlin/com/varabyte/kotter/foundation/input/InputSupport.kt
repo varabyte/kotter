@@ -514,7 +514,8 @@ class ViewMapScope(val input: String, val index: Int) {
  * ```
  *
  * In addition to using unique IDs per input, you should make sure your logic works so that at most only one of them is
- * active at a time. If you call `input()` twice with both being active, you'll get a runtime exception.
+ * active at a time. If you call `input()` twice in a single section with both being active, it'll throw a runtime
+ * exception.
  *
  * @param completer Optional logic for suggesting auto-completions based on what the user typed in. See
  *   [Completions] which is a generally useful and common implementation.

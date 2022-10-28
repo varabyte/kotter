@@ -7,10 +7,10 @@ import java.time.Duration
 /**
  * An [Anim] that triggers a render callback every frame.
  *
- * The animation callback is scoped to a [RenderScope] and can use any of the methods provided by it, such as `color`,
- * `textLine`, etc.
+ * The animation callback is scoped to a [RenderScope] and can therefore use any of the methods provided by it, such as
+ * `color`, `textLine`, etc.
  *
- * Using one looks like this:
+ * You trigger a render animation by calling it with a render scope as its parameter. Using one looks like this:
  *
  * ```
  * session {
