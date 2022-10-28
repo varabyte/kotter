@@ -71,7 +71,7 @@ class BorderCharacters(
  *
  * @param borderCharacters The characters used to render the border.
  * @param paddingLeftRight If set, adds some additional padding at the start and end of every line.
- * @param paddingTopBottom If set, adds some newlinse before and after the entire block of text.
+ * @param paddingTopBottom If set, adds some newlines before and after the entire block of text.
  * @param render The render block that generates content (e.g. via `textLine`) which will be wrapped within a border.
  */
 fun RenderScope.bordered(

@@ -11,7 +11,7 @@ import com.varabyte.kotter.runtime.RunScope
 interface Key
 
 /**
- * Marks a key as one that triggers behavior (as opposed to being a simple typable value).
+ * Marks a key as one that triggers behavior (as opposed to being a simple typeable value).
  *
  * This has nothing to do specifically with the Ctrl key on the keyboard. For example, [Keys.ENTER], [Keys.BACKSPACE],
  * and [Keys.UP] are control keys.

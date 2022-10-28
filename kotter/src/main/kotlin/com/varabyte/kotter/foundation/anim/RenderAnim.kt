@@ -26,7 +26,7 @@ import java.time.Duration
  *
  * If all you're doing is rendering text, consider using [TextAnim] instead.
  */
-class RenderAnim internal constructor(session: Session, val template: Template)
+class RenderAnim internal constructor(session: Session, private val template: Template)
     : Anim(session, template.numFrames, template.frameDuration) {
 
     /**

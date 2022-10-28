@@ -9,10 +9,6 @@ internal interface TextAttributes {
     val isUnderlined: Boolean
     val isStruckThrough: Boolean
     val isInverted: Boolean
-
-    companion object {
-        val Empty: TextAttributes = MutableTextAttributes()
-    }
 }
 
 /**

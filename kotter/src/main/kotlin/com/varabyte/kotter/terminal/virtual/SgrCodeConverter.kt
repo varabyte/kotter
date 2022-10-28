@@ -58,7 +58,7 @@ private val IndexedColors by lazy {
 /**
  * Convert ANSI SGR codes to instructions that Swing can understand.
  */
-internal class SgrCodeConverter(val defaultForeground: Color, val defaultBackground: Color) {
+internal class SgrCodeConverter(private val defaultForeground: Color, private val defaultBackground: Color) {
     fun convert(code: Ansi.Csi.Code): (MutableAttributeSet.() -> Unit)? {
         return when(code) {
             Ansi.Csi.Codes.Sgr.RESET -> { { removeAttributes(this) } }

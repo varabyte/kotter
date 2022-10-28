@@ -249,7 +249,7 @@ class ConcurrentScopedData {
 
     /**
      * Attempt to remove a key directly, which will trigger its dispose call if present. If a value was removed, it
-     * will additionally be triggered in the passed in [block]
+     * will additionally be triggered in the passed-in [block].
      */
     fun <T : Any> remove(key: Key<T>, block: T.() -> Unit) {
         lock.write {
@@ -329,9 +329,8 @@ class ConcurrentScopedData {
         return lock.read {
             if (isActive(key.lifecycle)) {
                 lock.write {
-                    // Add manually instead of using computeIfAbsent, as `provideInitialValue()` may itself
-                    // register additional keys, which is legal but we don't want it to cause a
-                    // ConcurrentModificationException
+                    // Add manually instead of using computeIfAbsent, as `provideInitialValue()` may itself register
+                    // additional keys, which is legal, but we don't want it to cause a ConcurrentModificationException
                     if (!keyValues.containsKey(key)) {
                         keyValues[key] = Value(provideInitialValue(), dispose)
                     }

@@ -15,6 +15,7 @@ import com.varabyte.kotterx.test.terminal.type
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import java.time.Duration
+import java.util.*
 import java.util.concurrent.CountDownLatch
 import kotlin.test.Test
 
@@ -299,7 +300,7 @@ class InputSupportTest {
             input()
         }.runUntilInputEntered {
             onInputChanged {
-                input = input.toLowerCase()
+                input = input.lowercase(Locale.getDefault())
             }
             onInputEntered {
                 typed = input

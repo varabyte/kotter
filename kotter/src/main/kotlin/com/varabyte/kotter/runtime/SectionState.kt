@@ -25,7 +25,7 @@ import com.varabyte.kotter.runtime.render.Renderer
  */
 internal class SectionState(val parent: SectionState? = null) {
     /**
-     * A collection of relevent ANSI styles.
+     * A collection of relevant ANSI styles.
      *
      * @property parentStyles If provided, it means this style should fall back to its parent's value when unset.
      */

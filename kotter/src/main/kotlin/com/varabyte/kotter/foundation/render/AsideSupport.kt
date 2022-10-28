@@ -25,7 +25,7 @@ class AsideRenderScope(renderer: Renderer<AsideRenderScope>): OneShotRenderScope
 fun RunScope.aside(render: AsideRenderScope.() -> Unit) {
     val session = section.session
 
-    val asideRenderer = Renderer<AsideRenderScope>(session) { AsideRenderScope(it) }.apply { render(render) }
+    val asideRenderer = Renderer(session) { AsideRenderScope(it) }.apply { render(render) }
     session.data.putIfAbsent(AsideRendersKey, { mutableListOf() }) {
         add(asideRenderer)
         section.requestRerender()

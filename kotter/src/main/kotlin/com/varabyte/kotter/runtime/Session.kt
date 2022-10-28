@@ -2,7 +2,6 @@ package com.varabyte.kotter.runtime
 
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
-import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.terminal.Terminal
 import java.util.concurrent.Executors
 

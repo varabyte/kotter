@@ -64,7 +64,7 @@ class RunScope(val section: Section, private val scope: CoroutineScope): Section
     override val data = section.session.data
 
     private val waitLatch = CountDownLatch(1)
-    /** Forcefully exit this runscope early, even if it's still in progress */
+    /** Forcefully exit this run scope early, even if it's still in progress */
     internal fun abort() {
         signal() // In case abort is run inside a `runUntilSignal` block
         scope.cancel()
@@ -143,7 +143,7 @@ class Section internal constructor(val session: Session, private val render: Mai
         session.data.start(Lifecycle)
     }
 
-    internal val renderer = Renderer<MainRenderScope>(session) { MainRenderScope(it) }
+    internal val renderer = Renderer(session) { MainRenderScope(it) }
     private val renderLock = ReentrantLock()
     @GuardedBy("renderLock")
     private var renderRequested = false

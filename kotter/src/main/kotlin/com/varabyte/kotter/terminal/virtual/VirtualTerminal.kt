@@ -74,7 +74,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
          * @param fgColor The color to use for the font text.
          * @param bgColor The color to use for the virtual terminal background color.
          * @param linkColor The color to use for links.
-         * @param maxNumLines The number of text lines to keep before truncating oldest ones. This can be useful to
+         * @param maxNumLines The number of text lines to keep before truncating the oldest ones. This can be useful to
          *   ensure that this program won't eventually run out of memory if you keep appending text in a loop forever.
          *   This value Will be clamped to at least [TerminalSize.height]. Set to [Int.MAX_VALUE] if you don't want
          *   truncation to happen.

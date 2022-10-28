@@ -6,11 +6,12 @@ import com.varabyte.kotter.foundation.runUntilSignal
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.Session
+import java.util.*
 
 fun Enum<*>.toDisplayName(capitalized: Boolean = false): String {
     // e.g. HOT_DOG to "Hot Dog"
     return name.split("_").joinToString(" ") { s ->
-        s.lowercase().let { if (capitalized) it.capitalize() else it }
+        s.lowercase().let { if (capitalized) it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } else it }
     }
 }
 

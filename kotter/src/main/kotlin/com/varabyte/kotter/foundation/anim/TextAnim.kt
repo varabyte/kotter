@@ -2,7 +2,6 @@ package com.varabyte.kotter.foundation.anim
 
 import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.Session
-import com.varabyte.kotter.runtime.render.RenderScope
 import java.time.Duration
 
 /**
@@ -21,7 +20,7 @@ import java.time.Duration
  * }
  * ```
  */
-class TextAnim internal constructor(session: Session, val template: Template)
+class TextAnim internal constructor(session: Session, private val template: Template)
     : CharSequence, Anim(session, template.frames.size, template.frameDuration) {
 
     /**

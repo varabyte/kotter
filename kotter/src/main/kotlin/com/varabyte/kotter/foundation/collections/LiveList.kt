@@ -101,5 +101,5 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
 }
 
 /** Create a [LiveList] whose scope is tied to this session. */
-fun <T> Session.liveListOf(vararg elements: T): LiveList<T> = LiveList<T>(this, *elements)
+fun <T> Session.liveListOf(vararg elements: T): LiveList<T> = LiveList(this, *elements)
 inline fun <reified T> Session.liveListOf(elements: Iterable<T>) = liveListOf(*elements.toList().toTypedArray())

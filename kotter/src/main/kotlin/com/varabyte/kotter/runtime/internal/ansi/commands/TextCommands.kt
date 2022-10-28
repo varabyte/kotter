@@ -35,7 +35,7 @@ internal val NEWLINE_COMMAND = object : TextCommand("\n") {
         // `blue(BG) { textLine("Hello") }; textLine("World")`
         // Above, a user would expect for the world "Hello" to be backgrounded by blue and for "World" to show up in
         // normal colors on the next line, but instead "Hello" is blue (good) and "World" would look correct (good) but
-        // the whole line trailing AFTER "World" would be blue (really bad)
+        // the whole line trailing AFTER "World" would be blue (really bad).
         //
         // The way we fix this here is by detecting when a background color is set and resetting state BEFORE the
         // newline. When text is encountered again, any deferred state will be reapplied.

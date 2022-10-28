@@ -15,7 +15,6 @@ private const val VIEW_HEIGHT = 17
 private const val MAX_X = VIEW_WIDTH - 1
 private const val MAX_Y = VIEW_HEIGHT - 1
 
-@Suppress("unused")
 enum class FireColor(val ansiColor: Color) {
     WHITE_BRIGHT(Color.BRIGHT_WHITE),
     WHITE(Color.WHITE),
