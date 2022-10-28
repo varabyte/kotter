@@ -31,16 +31,16 @@ fun RenderScope.justified(
     val maxWidth = (content.lineLengths.maxOrNull() ?: 0)
 
     val renderer = content.createRenderer()
-    for (i in content.lineLengths.indices) {
+    content.lineLengths.forEach { lineLength ->
         val (leftPad, rightPad) = when (justification) {
-            Justification.LEFT -> 0 to maxWidth - content.lineLengths[i]
+            Justification.LEFT -> 0 to maxWidth - lineLength
             Justification.CENTER -> {
-                val spaceToDivideIntoTwo = maxWidth - content.lineLengths[i]
+                val spaceToDivideIntoTwo = maxWidth - lineLength
                 val firstHalf = spaceToDivideIntoTwo / 2
                 val secondHalf = spaceToDivideIntoTwo - firstHalf
                 (firstHalf to secondHalf)
             }
-            else -> maxWidth - content.lineLengths[i] to 0
+            else -> maxWidth - lineLength to 0
         }
         repeat(leftPad) { text(" ") }
         renderer.renderNextRow()
