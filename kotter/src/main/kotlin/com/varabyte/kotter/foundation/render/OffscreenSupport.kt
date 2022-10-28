@@ -35,7 +35,7 @@ class OffscreenBuffer internal constructor(
     render: OffscreenRenderScope.() -> Unit
 ) {
     private val commands = run {
-        val offscreenRenderer = Renderer<OffscreenRenderScope>(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
+        val offscreenRenderer = Renderer(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
             render(render)
         }
         // The renderer normally makes sure that a command block ends with a trailing newline and a state reset, but we
