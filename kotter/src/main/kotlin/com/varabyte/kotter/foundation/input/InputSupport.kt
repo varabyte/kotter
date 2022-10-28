@@ -123,25 +123,25 @@ private class InputState(val id: Any, val cursorState: BlinkingCursorState) {
     var isActive = false
 
     private var _text = ""
-    private var _index = 0
+    private var _cursorIndex = 0
 
     var text
         get() = _text
         set(value) {
             if (_text != value) {
                 _text = value
-                _index = _text.length
+                _cursorIndex = _text.length
                 if (isActive) cursorState.resetCursor()
             }
         }
 
-    var index
-        get() = _index
+    var cursorIndex
+        get() = _cursorIndex
         set(value) {
             @Suppress("NAME_SHADOWING")
             val value = value.coerceAtMost(_text.length)
-            if (_index != value) {
-                _index = value
+            if (_cursorIndex != value) {
+                _cursorIndex = value
                 if (isActive) cursorState.resetCursor()
             }
         }
@@ -255,7 +255,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
         val state = inputStates.computeIfAbsent(id) {
             val newState = InputState(id, cursorState)
             newState.text = initialText
-            newState.index = initialText.length
+            newState.cursorIndex = initialText.length
             newState
         }
 
@@ -286,38 +286,38 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                 getValue(KeyFlowKey).collect { key ->
                     withActiveInput {
                         val prevText = text
-                        val prevIndex = index
+                        val prevCursorIndex = cursorIndex
                         var proposedText: String? = null
-                        var proposedIndex: Int? = null
+                        var proposedCursorIndex: Int? = null
                         when (key) {
-                            Keys.LEFT -> index = (index - 1).coerceAtLeast(0)
+                            Keys.LEFT -> cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
                             Keys.RIGHT -> {
-                                if (index < text.length) {
-                                    index++
+                                if (cursorIndex < text.length) {
+                                    cursorIndex++
                                 }
                                 else {
                                     get(CompleterKey) {
                                         complete(text)?.let { completion ->
                                             val finalText = text + completion
                                             proposedText = finalText
-                                            proposedIndex = finalText.length
+                                            proposedCursorIndex = finalText.length
                                         }
                                     }
                                 }
                             }
-                            Keys.HOME -> index = 0
-                            Keys.END -> index = text.length
+                            Keys.HOME -> cursorIndex = 0
+                            Keys.END -> cursorIndex = text.length
                             Keys.DELETE -> {
-                                if (index <= text.lastIndex) {
-                                    proposedText = text.removeRange(index, index + 1)
-                                    proposedIndex = index
+                                if (cursorIndex <= text.lastIndex) {
+                                    proposedText = text.removeRange(cursorIndex, cursorIndex + 1)
+                                    proposedCursorIndex = cursorIndex
                                 }
                             }
 
                             Keys.BACKSPACE -> {
-                                if (index > 0) {
-                                    proposedText = text.removeRange(index - 1, index)
-                                    proposedIndex = index - 1
+                                if (cursorIndex > 0) {
+                                    proposedText = text.removeRange(cursorIndex - 1, cursorIndex)
+                                    proposedCursorIndex = cursorIndex - 1
                                 }
                             }
 
@@ -339,8 +339,8 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                             }
                             else ->
                                 if (key is CharKey) {
-                                    proposedText = "${text.take(index)}${key.code}${text.takeLast(text.length - index)}"
-                                    proposedIndex = index + 1
+                                    proposedText = "${text.take(cursorIndex)}${key.code}${text.takeLast(text.length - cursorIndex)}"
+                                    proposedCursorIndex = cursorIndex + 1
                                 }
                         }
 
@@ -353,15 +353,15 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                                     proposedText = onInputChangedScope.input
                                 } else {
                                     proposedText = onInputChangedScope.prevInput
-                                    proposedIndex = index
+                                    proposedCursorIndex = cursorIndex
                                 }
                             }
 
                             text = proposedText!!
-                            index = (proposedIndex ?: index).coerceIn(0, text.length)
+                            cursorIndex = (proposedCursorIndex ?: cursorIndex).coerceIn(0, text.length)
                         }
 
-                        if (text != prevText || index != prevIndex) {
+                        if (text != prevText || cursorIndex != prevCursorIndex) {
                             section.requestRerender()
                         }
                     }
@@ -401,16 +401,17 @@ fun SectionScope.getInput(id: Any = Unit): String? {
  * See also: [input], [getInput]
  *
  * @param text The text to replace the current input with
- * @param index If specified, the index of the cursor position; otherwise, it will be placed after the end of the text.
+ * @param cursorIndex If specified, the index of the cursor position; otherwise, it will be placed after the end of the
+ *   text.
  * @param id If set, find the input with the matching ID. This can be useful if you have multiple input blocks defined
  *   at the same time.
  */
-fun RunScope.setInput(text: String, index: Int = text.length, id: Any = Unit) {
+fun RunScope.setInput(text: String, cursorIndex: Int = text.length, id: Any = Unit) {
     data.get(InputStatesKey) {
         this[id]?.apply {
-            if (this.text != text || this.index != index) {
+            if (this.text != text || this.cursorIndex != cursorIndex) {
                 this.text = text
-                this.index = index
+                this.cursorIndex = cursorIndex
 
                 rerender()
             }
@@ -584,11 +585,11 @@ fun MainRenderScope.input(
                     if (i == text.length && completer != null && completion.isNotEmpty()) {
                         color(completer.color)
                     }
-                    if (i == index && cursorState.blinkOn) {
+                    if (i == cursorIndex && cursorState.blinkOn) {
                         invert()
                     }
                     text(finalText[i])
-                    if (i == index && cursorState.blinkOn) {
+                    if (i == cursorIndex && cursorState.blinkOn) {
                         clearInvert()
                     }
                 }
