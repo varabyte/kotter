@@ -162,12 +162,6 @@ class Section internal constructor(val session: Session, private val render: Mai
 
     private var consumed = AtomicBoolean(false)
 
-    private val abortLock = ReentrantLock()
-    @GuardedBy("abortLock")
-    private var abortRequested = false
-    @GuardedBy("abortLock")
-    private var handleAbort: () -> Unit = { abortRequested = true }
-
     /**
      * Let the block know we want to rerender an additional frame.
      *
@@ -321,28 +315,13 @@ class Section internal constructor(val session: Session, private val render: Mai
             val self = this
             try {
                 runBlocking {
-
-                    val scope = abortLock.withLock {
-                        if (!abortRequested) {
-                            val scope = RunScope(self, this)
-                            handleAbort = { scope.abort() }
-                            scope
-                        } else {
-                            null
-                        }
-                    }
-
-                    scope?.block()
+                    val scope = RunScope(self, this)
+                    scope.block()
                 }
             } catch (ignored: CancellationException) {
                 // This is expected as it can happen when abort() is called in `run`
             } catch (ex: Exception) {
                 deferredException = ex
-            } finally {
-                abortLock.withLock {
-                    abortRequested = false
-                    handleAbort = { abortRequested = true }
-                }
             }
         }
 
