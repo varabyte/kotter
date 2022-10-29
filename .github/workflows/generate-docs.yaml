@@ -2,8 +2,9 @@ name: Generate and publish Kotter docs to GitHub pages
 # Thanks to: https://medium.com/@danieljimgarcia/publishing-static-sites-to-github-pages-using-github-actions-8040f57dfeaf
 
 on:
-  push:
-    branches: [ main ]
+  release:
+    types:
+      - published
 
 jobs:
   build:
