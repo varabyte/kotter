@@ -138,7 +138,7 @@ abstract class Anim protected constructor(
                     repeat = false
                     stopTimer = false // Reset for next time this animation starts
                 } else {
-                    if (!paused) {
+                    if (isRunning) {
                         elapse(elapsed)
                     }
                 }
