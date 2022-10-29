@@ -427,7 +427,7 @@ interface InputCompleter {
      * Given some [input], return a suffix that should complete it, or null if the string does not have a matching
      * completion.
      *
-     * For example, for `"y"`, you might return `"es"`
+     * For example, for `"y"`, you might return `"es"`.
      */
     fun complete(input: String): String?
 
@@ -477,12 +477,15 @@ private val CompleterKey = Section.Lifecycle.createKey<InputCompleter>()
  * ```
  * input(viewMap = { '*' })
  * ```
+ *
+ * @property input The backing text associated with the [input][com.varabyte.kotter.foundation.input.input] call.
+ * @property index The index of the current character in the string being mapped.
  */
 class ViewMapScope(val input: String, val index: Int) {
     /**
      * The current source character being mapped.
      *
-     * This is a convenience property identical to `text[index]`.
+     * This is a convenience property identical to `input[index]`.
      */
     val ch: Char = input[index]
 }
