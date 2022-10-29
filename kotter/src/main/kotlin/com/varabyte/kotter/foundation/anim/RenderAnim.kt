@@ -40,6 +40,7 @@ class RenderAnim internal constructor(session: Session, private val template: Te
         }
     }
 
+    /** Apply the current frame of this render animation onto the target [renderScope]. */
     operator fun invoke(renderScope: RenderScope) {
         requestAnimate()
         template.handler.invoke(renderScope, currFrame)

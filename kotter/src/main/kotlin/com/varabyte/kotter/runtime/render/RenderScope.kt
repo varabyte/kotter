@@ -29,23 +29,20 @@ abstract class RenderScope(internal val renderer: Renderer<*>): SectionScope {
     /**
      * Data store for this session.
      *
-     * It is exposed directly and publicly here so methods extending the RunScope can use it.
+     * It is exposed directly and publicly here so methods extending this [RenderScope] can use it.
      */
     override val data = renderer.session.data
 
     /**
      * The current section this block is being rendered into.
      *
-     * It is an error to call this outside of a running section, which shouldn't happen in practice in case you keep a
-     * reference to a stale render scope and call this between sections.
+     * It is an error to call this outside of a running section, which shouldn't happen in practice unless you go out of
+     * your way to keep a reference to a stale render scope after a section has ended.
      */
     val section get() = renderer.session.activeSection!!
 
     /**
-     * Run the [scopedBlock] within a fresh, new [SectionState] context, which gets removed afterwards.
-     *
-     * This is useful if the scoped block is going to set one (or more) styles that are reflected in the
-     * [SectionState] class and which should only apply to that block.
+     * Run the [scopedBlock] within a new context within which any state changes will be cleared after it exits.
      */
     fun scopedState(scopedBlock: RenderScope.() -> Unit) {
         pushState()

@@ -82,17 +82,18 @@ class OffscreenCommandRenderer internal constructor(
     private var commandIndex = 0
     private var lastState: SectionState? = null
 
+    /** Returns true if there is at least one more row of text to render. */
     fun hasNextRow(): Boolean = (commandIndex < commands.size)
 
     /**
      * Render a single row of commands, up to but *excluding* the row's newline.
      *
-     * Newlines are excluded because it's expected you're using an offscreen buffer to render text within some wrapped
-     * context (like a border or padding spaces).
-     *
      * The reason to render a single row instead of all at once is because it's expected that you are wrapping
      * this content with some external output, e.g. an outer border around some inner text. Here, you'd render the
      * left wall of the border, for example, a row of content, the right wall of the border, etc.
+     *
+     * Newlines are excluded for the same reason -- because it's expected the caller might add some trailing decoration
+     * after the row text and will be handling the newline itself anyway.
      */
     fun renderNextRow(): Boolean {
         if (!hasNextRow()) {

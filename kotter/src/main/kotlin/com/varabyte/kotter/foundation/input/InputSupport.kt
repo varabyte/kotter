@@ -721,6 +721,9 @@ private fun ConcurrentScopedData.withActiveInput(block: InputState.() -> Unit) {
  *       "age" - > ...
  *     }
  *   }
+ *   onKeyPressed {
+ *     Keys.TAB -> state = state.next()
+ *   }
  * }
  * ```
  */
@@ -764,6 +767,9 @@ private val InputDeactivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputDe
  *       "name" -> ...
  *       "age" - > ...
  *     }
+ *   }
+ *   onKeyPressed {
+ *     Keys.TAB -> state = state.next()
  *   }
  * }
  * ```

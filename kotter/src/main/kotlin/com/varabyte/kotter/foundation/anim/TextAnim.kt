@@ -48,7 +48,7 @@ class TextAnim internal constructor(session: Session, private val template: Temp
         return block()
     }
 
-    /** The current frame of text. */
+    /** Returns the current frame of text. */
     override fun toString() = readProperty { currText }
 }
 

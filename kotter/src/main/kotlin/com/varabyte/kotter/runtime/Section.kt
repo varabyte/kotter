@@ -60,7 +60,7 @@ class RunScope(val section: Section, private val scope: CoroutineScope): Section
     /**
      * Data store for this session.
      *
-     * It is exposed directly and publicly here so methods extending the RunScope can use it.
+     * It is exposed directly and publicly here so methods extending this [RunScope] can use it.
      */
     override val data = section.session.data
 
