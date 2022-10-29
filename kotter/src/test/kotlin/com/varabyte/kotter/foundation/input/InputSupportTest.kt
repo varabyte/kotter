@@ -472,4 +472,50 @@ class InputSupportTest {
             }
         }
     }
+
+    @Test
+    fun `can set and get input directly (even though you shoudln't usually)`() = testSession { terminal ->
+
+        section {
+            text("1>"); input(id = "first", isActive = true); textLine("<")
+            text("2>"); input(id = "second", isActive = false); textLine("<")
+        }.run {
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "1>${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<",
+                    "2><",
+                    "${Codes.Sgr.RESET}",
+                )
+            }
+
+            assertThat(getInput(id = "first")).isEqualTo("")
+            assertThat(getInput(id = "second")).isEqualTo("")
+
+            setInput("456", id = "second")
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "1>${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<",
+                    "2>456<",
+                    "${Codes.Sgr.RESET}",
+                )
+            }
+
+            assertThat(getInput(id = "first")).isEqualTo("")
+            assertThat(getInput(id = "second")).isEqualTo("456")
+
+            setInput("123", cursorIndex = 1, id = "first")
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "1>1${Codes.Sgr.Colors.INVERT}2${Codes.Sgr.Colors.CLEAR_INVERT}3 <",
+                    "2>456<",
+                    "${Codes.Sgr.RESET}",
+                )
+            }
+
+            assertThat(getInput(id = "first")).isEqualTo("123")
+            assertThat(getInput(id = "second")).isEqualTo("456")
+
+            assertThat(getInput(id = "none")).isNull()
+        }
+    }
 }
