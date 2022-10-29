@@ -373,7 +373,7 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
         return uriState.findUriAt(offset) ?: run {
             val wordAtOffset = getWordAtOffset(offset)
             try {
-                URI(wordAtOffset)
+                wordAtOffset.takeIf { it.isNotBlank() }?.let { URI(it) }
             } catch (ignored: URISyntaxException) {
                 null
             }
