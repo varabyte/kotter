@@ -1,0 +1,1 @@
+A splash screen effect, showing off a combination of animation and timer tricks.

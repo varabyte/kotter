@@ -28,6 +28,7 @@ include(":examples:mandelbrot")
 include(":examples:picker")
 include(":examples:sliding")
 include(":examples:snake")
+include(":examples:splash")
 include(":examples:text")
 include(":examples:wordle")
 
