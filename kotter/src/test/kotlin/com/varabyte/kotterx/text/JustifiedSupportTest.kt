@@ -139,4 +139,122 @@ class JustifiedSupportTest {
             Codes.Sgr.RESET.toFullEscapeCode(),
         ).inOrder()
     }
+
+    @Test
+    fun `minWidth can be set to affect the final result`() = testSession { terminal ->
+        run { // Test left justified with minWidth > max line length
+            terminal.clear()
+
+            section {
+                justified(Justification.LEFT, minWidth = 5) {
+                    textLine("1")
+                    textLine("12")
+                    textLine("123")
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "1    ",
+                "12   ",
+                "123  ",
+                Codes.Sgr.RESET.toFullEscapeCode(),
+            ).inOrder()
+        }
+
+        run { // Test left justified with minWidth < max line length
+            terminal.clear()
+
+            section {
+                justified(Justification.LEFT, minWidth = 2) {
+                    textLine("1")
+                    textLine("12")
+                    textLine("123")
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "1  ",
+                "12 ",
+                "123",
+                Codes.Sgr.RESET.toFullEscapeCode(),
+            ).inOrder()
+        }
+
+        run { // Test center justified with minWidth > max line length
+            terminal.clear()
+
+            section {
+                justified(Justification.CENTER, minWidth = 5) {
+                    textLine("1")
+                    textLine("12")
+                    textLine("123")
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "  1  ",
+                " 12  ",
+                " 123 ",
+                Codes.Sgr.RESET.toFullEscapeCode(),
+            ).inOrder()
+        }
+
+        run { // Test center justified with minWidth < max line length
+            terminal.clear()
+
+            section {
+                justified(Justification.CENTER, minWidth = 2) {
+                    textLine("1")
+                    textLine("12")
+                    textLine("123")
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                " 1 ",
+                "12 ",
+                "123",
+                Codes.Sgr.RESET.toFullEscapeCode(),
+            ).inOrder()
+        }
+
+        run { // Test right justified with minWidth > max line length
+            terminal.clear()
+
+            section {
+                justified(Justification.RIGHT, minWidth = 5) {
+                    textLine("1")
+                    textLine("12")
+                    textLine("123")
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "    1",
+                "   12",
+                "  123",
+                Codes.Sgr.RESET.toFullEscapeCode(),
+            ).inOrder()
+        }
+
+        run { // Test right justified with minWidth < max line length
+            terminal.clear()
+
+            section {
+                justified(Justification.RIGHT, minWidth = 2) {
+                    textLine("1")
+                    textLine("12")
+                    textLine("123")
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "  1",
+                " 12",
+                "123",
+                Codes.Sgr.RESET.toFullEscapeCode(),
+            ).inOrder()
+        }
+    }
+
 }
