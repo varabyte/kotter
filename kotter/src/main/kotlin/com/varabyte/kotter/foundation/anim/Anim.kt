@@ -14,10 +14,37 @@ import java.time.Duration
  *
  * @property numFrames How many frames this animation has.
  */
-abstract class Anim protected constructor(protected val session: Session, val numFrames: Int, frameDuration: Duration) {
+abstract class Anim protected constructor(
+    protected val session: Session,
+    val numFrames: Int,
+    frameDuration: Duration,
+    private val looping: Boolean,
+) {
     companion object {
         /** A useful duration which represents the duration of a single frame for an animation running 60fps */
         val ONE_FRAME_60FPS: Duration = Duration.ofMillis(16)
+
+        /**
+         * A relatively short duration for used by animation timers, chosen to run fast enough to have higher resolution
+         * when elapsing frames.
+         */
+        private val ANIM_TIMER_DURATION: Duration = Duration.ofMillis(8)
+    }
+
+    /**
+     * The total duration of this animation if all frames are played once.
+     */
+    val totalDuration: Duration get() = Duration.ofMillis((frameMs * numFrames).toLong())
+
+    /**
+     * Returns whether this animation is currently active or not.
+     *
+     * An animation is considered not running if it is paused OR if it is a non-looping animation that has hit the last
+     * frame.
+     */
+    val isRunning: Boolean get() {
+        return !paused
+                && (looping || (currFrame < lastFrame))
     }
 
     /**
@@ -28,6 +55,11 @@ abstract class Anim protected constructor(protected val session: Session, val nu
     var paused by session.liveVarOf(false)
 
     private var _currFrame by session.liveVarOf(0)
+
+    /**
+     * The last frame (0 -indexed) in this animation.
+     */
+    val lastFrame = numFrames - 1
 
     /**
      * Manually set the current frame (0-indexed) that this animation should display.
@@ -45,8 +77,8 @@ abstract class Anim protected constructor(protected val session: Session, val nu
             // Note: Another option is to allow people to specify out of bound values and just wrap it ourselves.
             // We may do that later, especially if we get feedback from users asking for it, but for now, since I'm not
             // sure, we'll choose to fail fast. It's easier to go from strict to loose rather than the other way around.
-            require(value in 0 until numFrames) {
-                "Animation frame out of bounds. Tried to set $value but should be between 0 and ${numFrames - 1}."
+            require(value in 0 .. lastFrame) {
+                "Animation frame out of bounds. Tried to set $value but should be between 0 and $lastFrame."
             }
 
             _currFrame = value
@@ -66,7 +98,11 @@ abstract class Anim protected constructor(protected val session: Session, val nu
             elapsedMs -= frameMs
         }
 
-        _currFrame = (_currFrame + numFramesToProgress) % numFrames
+        _currFrame = if (looping) {
+            (_currFrame + numFramesToProgress) % numFrames
+        } else {
+            (_currFrame + numFramesToProgress).coerceAtMost(lastFrame)
+        }
     }
 
     private var animRequestedThisFrame = false
@@ -84,7 +120,7 @@ abstract class Anim protected constructor(protected val session: Session, val nu
         val activeSection = session.activeSection ?: return
 
         animRequestedThisFrame = true
-        if (!listeningForRenderCallback) {
+        if (!listeningForRenderCallback && isRunning) {
             listeningForRenderCallback = true
             activeSection.onRendered {
                 if (!animRequestedThisFrame) {
@@ -97,13 +133,13 @@ abstract class Anim protected constructor(protected val session: Session, val nu
 
             // Set key to this animation, just to show our intention / ensure that we'll only ever start one timer per
             // animation instance ever, even though due to the logic of this block, it shouldn't be necessary.
-            session.data.addTimer(ONE_FRAME_60FPS, repeat = true, key = this) {
+            session.data.addTimer(ANIM_TIMER_DURATION, repeat = true, key = this) {
                 if (stopTimer) {
                     repeat = false
                     stopTimer = false // Reset for next time this animation starts
                 } else {
                     if (!paused) {
-                        elapse(duration)
+                        elapse(elapsed)
                     }
                 }
             }

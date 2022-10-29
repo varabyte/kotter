@@ -27,13 +27,18 @@ import java.time.Duration
  * If all you're doing is rendering text, consider using [TextAnim] instead.
  */
 class RenderAnim internal constructor(session: Session, private val template: Template)
-    : Anim(session, template.numFrames, template.frameDuration) {
+    : Anim(session, template.numFrames, template.frameDuration, template.looping) {
 
     /**
      * A template for a render animation, useful if you want to define an animation once but instantiate several copies
      * of it throughout your program.
      */
-    class Template(val numFrames: Int, val frameDuration: Duration, val handler: RenderScope.(Int) -> Unit) {
+    class Template(
+        val numFrames: Int,
+        val frameDuration: Duration,
+        val looping: Boolean = true,
+        val handler: RenderScope.(Int) -> Unit
+    ) {
         init {
             require(!frameDuration.isNegative && !frameDuration.isZero) { "Invalid animation created with non-positive frame length" }
             require(numFrames > 0) { "Invalid animation created with no frames" }
@@ -48,6 +53,12 @@ class RenderAnim internal constructor(session: Session, private val template: Te
 }
 
 fun Session.renderAnimOf(template: RenderAnim.Template) = RenderAnim(this, template)
-/** Instantiate a [RenderAnim] tied to the current [Session]. */
-fun Session.renderAnimOf(numFrames: Int, frameDuration: Duration, handler: RenderScope.(Int) -> Unit) =
-    RenderAnim(this, RenderAnim.Template(numFrames, frameDuration, handler))
+/**
+ * Instantiate a [RenderAnim] tied to the current [Session].
+ *
+ * @param numFrames The number of frames in this animation. This value must be greater than 0.
+ * @param frameDuration The length of each frame.
+ * @param looping If true, this animation will play forever in a loop. Otherwise, it will stop when it reaches the end.
+ */
+fun Session.renderAnimOf(numFrames: Int, frameDuration: Duration, looping: Boolean = true, handler: RenderScope.(Int) -> Unit) =
+    RenderAnim(this, RenderAnim.Template(numFrames, frameDuration, looping, handler))

@@ -18,6 +18,9 @@ class TextAnimTest {
         var timer: TestTimer? = null
 
         val anim = textAnimOf(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS)
+        assertThat(anim.totalDuration).isEqualTo(Anim.ONE_FRAME_60FPS.multipliedBy(3L))
+        assertThat(anim.isRunning).isTrue()
+
         section {
             if (timer == null) {
                 // Need to initialize a test timer BEFORE we reference $anim for the first time
@@ -53,6 +56,63 @@ class TextAnimTest {
             blockUntilRenderWhen {
                 terminal.resolveRerenders() == listOf(
                     "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `can create non-looping text anim`() = testSession { terminal ->
+        var timer: TestTimer? = null
+
+        val anim = textAnimOf(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS, looping = false)
+        section {
+            if (timer == null) {
+                // Need to initialize a test timer BEFORE we reference $anim for the first time
+                timer = data.useTestTimer()
+            }
+            text("> $anim <")
+        }.run {
+            @Suppress("NAME_SHADOWING") val timer = timer!!
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 3 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+            assertThat(anim.isRunning).isFalse()
+
+            // Set the animation back to an earlier frame and it will start running again
+            anim.currFrame = 0
+            assertThat(anim.isRunning).isTrue()
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 1 <${Codes.Sgr.RESET}",
+                    "",
+                )
+            }
+
+            timer.fastForward(Anim.ONE_FRAME_60FPS)
+            blockUntilRenderWhen {
+                terminal.resolveRerenders() == listOf(
+                    "> 2 <${Codes.Sgr.RESET}",
                     "",
                 )
             }

@@ -24,13 +24,13 @@ import java.time.Duration
  * ```
  */
 class TextAnim internal constructor(session: Session, private val template: Template)
-    : Anim(session, template.frames.size, template.frameDuration) {
+    : Anim(session, template.frames.size, template.frameDuration, template.looping) {
 
     /**
      * A template for a text animation, useful if you want to define an animation once but instantiate several copies of
      * it throughout your program.
      */
-    class Template(val frames: List<String>, val frameDuration: Duration) {
+    class Template(val frames: List<String>, val frameDuration: Duration, val looping: Boolean = true) {
         init {
             require(!frameDuration.isNegative && !frameDuration.isZero) { "Invalid animation created with non-positive frame length" }
             require(frames.isNotEmpty()) { "Invalid animation created with no frames" }
@@ -53,9 +53,15 @@ class TextAnim internal constructor(session: Session, private val template: Temp
 }
 
 fun Session.textAnimOf(template: TextAnim.Template) = TextAnim(this, template)
-/** Instantiate a [TextAnim] tied to the current [Session]. */
-fun Session.textAnimOf(frames: List<String>, frameDuration: Duration) =
-    TextAnim(this, TextAnim.Template(frames, frameDuration))
+/**
+ * Instantiate a [TextAnim] tied to the current [Session].
+ *
+ * @param frames A list of text frames. This list must not be empty.
+ * @param frameDuration The length of each frame.
+ * @param looping If true, this animation will play forever in a loop. Otherwise, it will stop when it reaches the end.
+ */
+fun Session.textAnimOf(frames: List<String>, frameDuration: Duration, looping: Boolean = true) =
+    TextAnim(this, TextAnim.Template(frames, frameDuration, looping))
 
 /**
  * Append the current frame of text animation to the current section.
