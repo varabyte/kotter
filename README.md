@@ -747,13 +747,11 @@ you want and use the render scope to call any of Kotter's text rendering methods
 Declare a render animation using the `renderAnimOf` method and then invoke the result inside your render block:
 
 ```kotlin
-session {
-  val exampleAnim = renderAnimOf(numFrames = 5, Duration.ofMillis(250)) { i -> /* ... */ }
-  section {
-    // Call your render animation passing in the section block (i.e. `this`) as a parameter
-    exampleAnim(this)
-    /* ... */
-  }
+val exampleAnim = renderAnimOf(numFrames = 5, Duration.ofMillis(250)) { i -> /* ... */ }
+section {
+  // Call your render animation passing in the section block (i.e. `this`) as a parameter
+  exampleAnim(this)
+  /* ... */
 }
 ```
 
@@ -762,20 +760,46 @@ deal with raw text and don't have access to text effects like colors and styles,
 accomplish these easily using a render animation and the `color(Color)` method:
 
 ```kotlin
-// Note: Color is a Kotter enum with the main colors it supports
+// Note: `Color` is a Kotter enum that enumerates all the standard colors it supports
 
-session {
-  val colorAnim = renderAnimOf(Color.values().size, Duration.ofMillis(250)) { i ->
-    color(Color.values()[i])
-  }
-  section {
-    colorAnim(this) // Side-effect: sets the color for this section
-    text("RAINBOW")
-  }.runUntilSignal { /* ... */ }
+val colorAnim = renderAnimOf(Color.values().size, Duration.ofMillis(250)) { i ->
+  color(Color.values()[i])
 }
+section {
+  colorAnim(this) // Side-effect: sets the color for this section
+  text("RAINBOW")
+}.runUntilSignal { /* ... */ }
 ```
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-rainbow.gif)
+
+#### One-shot animations
+
+Both text and render animations can be created with a `looping` parameter set to false, if you only want them to run
+once and stop:
+
+```kotlin
+val arrow = "=============>"
+
+val wipeRightAnim = renderAnimOf(
+  arrow.length + 1, // `length + 1` because empty string is also a frame
+  Duration.ofMillis(40),
+  looping = false
+) { frameIndex ->
+  textLine(arrow.take(frameIndex))
+}
+
+section {
+  text("Go this way: "); wipeRightAnim(this)
+}.runUntilSignal {
+  // Give the animation time to complete:
+  addTimer(wipeRightAnim.totalDuration) { signal() }
+}
+```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-one-shot.gif)
+
+You can restart a one-shot animation by setting its `currFrame` property back to 0.
 
 ### 📥 Offscreen
 
