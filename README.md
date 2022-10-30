@@ -1235,7 +1235,7 @@ session(terminal = VirtualTerminal.create()) {
 }
 ```
 
-or you can chain multiple factory methods together using the `runUntilSuccess` method, which will try to start each
+or you can chain multiple factory methods together using the `firstSuccess` method, which will try to start each
 terminal type in turn:
 
 ```kotlin
@@ -1243,7 +1243,7 @@ session(
   terminal = listOf(
     { SystemTerminal() },
     { VirtualTerminal.create(title = "My App", terminalSize = Dimension(30, 30)) },
-  ).runUntilSuccess()
+  ).firstSuccess()
 ) {
   /* ... */
 }
