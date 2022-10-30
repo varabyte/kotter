@@ -17,7 +17,8 @@ private val RAINBOW_COLORS = (0 .. NUM_RAINBOW_COLORS).map { i ->
 private const val NUM_FADE_OUT_COLORS = 50
 private val FADE_OUT_COLORS = (0 .. NUM_FADE_OUT_COLORS).map { i ->
     val color = (255 * (NUM_FADE_OUT_COLORS - i)) / NUM_FADE_OUT_COLORS
-    RGB(color, 0, 0)
+    // Start with yellow, as it's bright and has some impact for the final frame
+    RGB(color, color, 0)
 }
 
 fun main() = session {
