@@ -76,11 +76,11 @@ fun main() = session {
         textLine()
         // Splash text looks better if it's not hugging the left
         shiftRight(20) {
-            wipeRightTextAnim.invoke(this)
+            wipeRightTextAnim(this)
 
             // The version string should appear at the bottom right
             shiftRight(23) {
-                scrollUpTextAnim.invoke(this)
+                scrollUpTextAnim(this)
             }
         }
     }.runUntilSignal {
