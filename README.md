@@ -963,21 +963,21 @@ Before continuing, let's look at the overview of a Kotter application. The follo
 glance, but don't worry as the remaining subsections will break it down:
 
 ```
-┌───────── | session {
-│ ┌─┬───── |   section {
-│ │ │      |      ...
-│ │ 3a┌─── |      offscreen {
-│ │ │ 3b   |         ...
-│ │ │ └─── |      }
-│ │ └───── |   }.onFinished {
-1 2        |      ...
-│ │ ┌───── |   }.run {
-│ │ │      |      ...
-│ │ 4 ┌─── |      aside {
-│ │ │ 3c   |         ...
-│ │ │ └─── |      }
-│ └─┴───── |   }
-└───────── | }
+┌───────── session {
+│ ┌─┬─────   section {
+│ │ │           ...
+│ │ 3a┌───      offscreen {
+│ │ │ 3b           ...
+│ │ │ └───      }
+│ │ └─────   }.onFinished {
+1 2             ...
+│ │ ┌─────   }.run {
+│ │ │           ...
+│ │ 4 ┌───      aside {
+│ │ │ 3c           ...
+│ │ │ └───      }
+│ └─┴─────   }
+└───────── }
 ```
 
 **1 - `Session`**
