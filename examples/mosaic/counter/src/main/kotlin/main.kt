@@ -3,7 +3,7 @@ import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.textLine
 import kotlinx.coroutines.delay
 
-// https://github.com/JakeWharton/mosaic/tree/trunk/samples/counter
+// Compare with: https://github.com/JakeWharton/mosaic/tree/trunk/samples/counter
 fun main() = session {
     var count by liveVarOf(0)
     section {

@@ -65,7 +65,7 @@ private fun RenderScope.summary(tests: List<Test>, elapsedSecs: Int) {
     textLine("Time: ${elapsedSecs}s")
 }
 
-// https://github.com/JakeWharton/mosaic/tree/trunk/samples/jest
+// Compare with: https://github.com/JakeWharton/mosaic/tree/trunk/samples/jest
 fun main() = session {
     // Use a random with a fixed seed for deterministic output.
     val random = Random(1234)
