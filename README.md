@@ -1274,35 +1274,36 @@ version of the Kotlin language, you can easily see the dreaded error message: `T
 Compiler requires Kotlin version a.b.c but you appear to be using Kotlin version d.e.f which is not known to be
 compatible.`
   * Using Kotlin v1.3 or older for some reason? You're out of luck.
-  * I suspect this issue with Compose will improve over time, but for the present, it still seems like a non-Compose
-  approach could be useful to many.
+  * Want to upgrade Kotlin without updating Kotter? You're out of luck.
+  * Want to update Kotter without also upgrading Kotlin? You might be out of luck.
 
 * Compose is great for rendering a whole, interactive UI, but console printing is often two parts: the active part that
 the user is interacting with, and the history, which is static. To support this with Compose, you'd need to manage the
-history list yourself and keep appending to it, and it was while thinking about an API that addressed this limitation
-that I envisioned Kotter.
-  * For a concrete example, see the [compiler demo](examples/compiler).
+history list yourself and keep appending to it, which would be a waste of render cycles and memory when you could just
+lean on the console to do it. It was while thinking about an API that addressed this limitation that I envisioned
+Kotter.
+  * For a concrete example, see the [compiler demo](examples/compiler). A compiler might generate hundreds (or
+    thousands!) of history lines. We definitely don't want to rerender all of those every frame.
 
 * Compose encourages using a set of powerful layout primitives, namely `Box`, `Column`, and `Row`, with margins and
   shapes and layers. Command line apps don't really need this level of power, however.
 
-* Compose has a lot of strengths built around, well, composing methods! And to enable this, it makes heavy use of
-  features like `remember` blocks, which you can call inside a composable method and it gets treated in a special way.
-  But for a simple CLI library, being able to focus on render blocks that don't nest too deeply and not worrying as much
-  about performance allowed a more pared down API to emerge.
+* Compose has a lot of strengths built around, well, composing methods! But for a simple CLI library, being able to
+  focus on simple render blocks that don't nest at all allowed a more pared down API to emerge.
 
-* Compose does a lot of nice tricks due to the fact it is ultimately a compiler plugin, but it is nice to see what the
-  API would kind of look like with no magic at all (although, admittedly, with some features sacrificed).
+* Compose does a lot of nice tricks due to the fact it is ultimately a compiler plugin, but it is interesting to see
+  what the API could look like with no magic at all (although, admittedly, with some features sacrificed).
 
-* Mosaic doesn't support input well yet (at the time of writing this README, maybe this has changed in the future).
+* Mosaic doesn't support input well yet (at the time of writing this README, but maybe this has changed in the future).
   For example, compare [Mosaic](https://github.com/JakeWharton/mosaic/blob/fd213711ce2b828a6436a61d6d345692222bdb95/samples/robot/src/main/kotlin/example/robot.kt#L45)
   to [Kotter](https://github.com/varabyte/kotter/blob/main/examples/mosaic/robot/src/main/kotlin/main.kt#L27).
 
 #### Mosaic comparison
 
-Mosaic and Kotter programs look very similar, but they are organized slightly differently. Instead of a single code
-block where values, layout, and logic are combined together (with judicious use of `remember` and `LaunchedEffect`), in
-Kotter you tend to have three separate areas for these concepts.
+Mosaic and Kotter programs look very similar, but they are organized slightly differently. Instead of Compose, where you
+have a single code block where values, layout, and logic are combined (with judicious use of `remember` and
+`LaunchedEffect`), in Kotter you tend to have three separate areas for these concepts: before a section, a section
+block, and a run block.
 
 ```kotlin
 // Mosaic
