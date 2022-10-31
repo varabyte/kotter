@@ -550,7 +550,7 @@ section {
 #### Input Completions
 
 You can pass in an `InputCompleter` implementation to `input` that can generate suggestions based on the current input.
-The user can press RIGHT at any time to autocomplete any suggested shown to them.
+The user can press RIGHT at any time to autocomplete any suggestions shown to them.
 
 Here's the interface (with some parts elided for simplicity):
 
@@ -725,11 +725,7 @@ words, all you have to do is treat your animation instance as if it were a strin
 #### Text animation templates
 
 If you have an animation that you want to share in a bunch of places, you can create a template for it and instantiate
-instances from the template. `TextAnim.Template` takes exactly the same arguments as the `textAnimOf` method.
-
-This may be useful if you have a single animation that you want to run in many places at the same time but all slightly
-off from one another. For example, if you were processing 10 threads at a time, you may want the spinner for each thread
-to start spinning whenever its thread activates:
+instances from the template. `TextAnim.Template` takes exactly the same arguments as the `textAnimOf` method:
 
 ```kotlin
 val SPINNER_TEMPATE = TextAnim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
@@ -815,15 +811,25 @@ query it and control when it actually renders to the screen.
 for example. To render it, you need to call `offscreen.createRenderer` and then use `renderer.renderNextRow` to render
 out each line at a time.
 
+Here, we use `offscreen` to render the header effect described above:
+
 ```kotlin
 section {
-  // NOTE: This example doesn't really take advantage of the offscreen buffer,
-  // but it does showcase all of its moving parts.
-  val buffer = offscreen { /* ... */ }
+  val buffer = offscreen {
+    textLine("Multi-line"); textLine("Header"); textLine("Example")
+  }
+  val headerLen = buffer.lineLengths.maxOrNull() ?: 0
   val renderer = buffer.createRenderer()
-  while (renderer.hasNextRow()) { renderer.renderNextRow() }
-}
+  repeat(headerLen) { text('=') }; textLine()
+  while (renderer.hasNextRow()) {
+    renderer.renderNextRow()
+    textLine()
+  }
+  repeat(headerLen) { text('=') }; textLine()
+}.run()
 ```
+
+![Offscreen header example](https://github.com/varabyte/media/raw/main/kotter/images/offscreen-header-example.png)
 
 ***Note:** Although you usually won't need to, you can create multiple renderers, each which manages its own state for
 what row to render out next.*
@@ -847,7 +853,7 @@ section {
   while (renderer.hasNextRow()) {
     text("red -- "); renderer.renderNextRow(); textLine(" -- red")
   }
-}
+}.run()
 ```
 
 will render:
@@ -1179,9 +1185,14 @@ add values to it are:
   * This is essentially a shortcut for calling `tryPut` and then getting the value, but doing so in a way that ensures
     no one else grabs the thread from you in between.
 
+By having a session own and expose such a data structure, it makes it possible for anyone to write their own extension
+methods on top of Kotter, using data as a way to manage long-lived state. For example, `input()`, which may get called
+many times in a row as the section rerenders, can distinguish the first time it is called from later calls based on
+whether some value is present in the data cache or not.
+
 To close this section, we just wanted to say that it was very tempting at first to create a bunch of hardcoded functions
 baked inside `Section`, `MainRenderScope`, etc., with access to some private state, but implementing everything through
-`ConcurrentScopedData` plus extension methods ensured that we had the same tools and constraints as any user would.
+`ConcurrentScopedData` plus extension methods ensured that we were using the same tools as users.
 
 So go forth, and extend Kotter!
 
