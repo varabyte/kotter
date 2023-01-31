@@ -90,8 +90,7 @@ class SystemTerminal : Terminal {
     }
 
     override fun clear() {
-        // From https://stackoverflow.com/a/32295974/17966710
-        terminal.writer().print("\u001b[H\u001b[2J")
+        terminal.puts(InfoCmp.Capability.clear_screen)
         terminal.writer().flush()
     }
 }
