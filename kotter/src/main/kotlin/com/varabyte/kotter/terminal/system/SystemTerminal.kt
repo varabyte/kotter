@@ -5,11 +5,13 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
+import org.jline.terminal.Terminal.Signal
 import org.jline.terminal.TerminalBuilder
 import org.jline.utils.InfoCmp
 import java.io.IOException
 import java.io.OutputStream
 import java.io.PrintStream
+import kotlin.system.exitProcess
 
 /**
  * A [Terminal] implementation which interacts directly with the underlying system terminal.
@@ -30,6 +32,10 @@ class SystemTerminal : Terminal {
         .build().apply {
             // Swallow keypresses - instead, we will handle them
             enterRawMode()
+
+            // Handle Ctrl-C ourselves, because Windows otherwise swallows it
+            // See also: https://github.com/jline/jline3/issues/822
+            handle(Signal.INT) { exitProcess(130) } // 130 == 128+2, where 2 == SIGINT
 
             val disabledPrintStream = PrintStream(object : OutputStream() {
                 override fun write(b: Int) = Unit
