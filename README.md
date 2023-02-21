@@ -5,6 +5,8 @@
 ![kotter docs](https://img.shields.io/badge/docs-grey?logo=readthedocs)
 </a>
 <br>
+![JVM 11](https://img.shields.io/badge/requires_jvm-11-blue?logo=jvm)
+<br>
 <a href="https://discord.gg/5NZ2GKV5Cs">
   <img alt="Varabyte Discord" src="https://img.shields.io/discord/886036660767305799.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2" />
 </a>
@@ -59,6 +61,11 @@ repositories {
 dependencies {
   implementation 'com.varabyte.kotter:kotter:1.0.1'
 }
+
+kotlin {
+  jvmToolchain 11
+}
+
 ```
 
 ```kotlin
@@ -71,6 +78,26 @@ repositories {
 dependencies {
   implementation("com.varabyte.kotter:kotter:1.0.1")
 }
+
+kotlin {
+  jvmToolchain(11)
+}
+```
+
+**Note:** It's important to specify your JVM toolchain to 11 (or higher!). Otherwise, you will get a build error that
+looks like:
+
+```
+* What went wrong:
+Execution failed for task ':compileKotlin'.
+> Could not resolve all files for configuration ':compileClasspath'.
+> Could not resolve com.varabyte.kotter:kotter.
+     Required by:
+         project :
+> No matching variant of com.varabyte.kotter:kotter was found. The consumer was configured to find an API of a library
+compatible with Java 8, preferably in the form of class files, preferably optimized for standard JVMs, and its
+dependencies declared externally, as well as attribute 'org.jetbrains.kotlin.platform.type' with value 'jvm' but:
+   ...
 ```
 
 ### 🚥 Running examples
