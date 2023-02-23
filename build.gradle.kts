@@ -4,6 +4,7 @@
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlinx.kover) apply false
     alias(libs.plugins.jetbrains.dokka) apply false
     alias(libs.plugins.nexus.publish)
@@ -20,5 +21,11 @@ nexusPublishing {
             (findProperty("ossrhUsername") as? String)?.let { username.set(it) }
             (findProperty("ossrhPassword") as? String)?.let { password.set(it) }
         }
+    }
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
     }
 }

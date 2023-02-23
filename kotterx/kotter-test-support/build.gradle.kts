@@ -49,10 +49,6 @@ fun MavenArtifactRepository.sonatypeAuth() {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(libs.kotlinx.coroutines)
 
