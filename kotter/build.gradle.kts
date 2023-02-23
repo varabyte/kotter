@@ -1,9 +1,10 @@
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import javax.xml.parsers.DocumentBuilderFactory
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.multiplatform)
     `maven-publish`
     signing
     alias(libs.plugins.kotlinx.kover)
@@ -12,6 +13,34 @@ plugins {
 
 group = "com.varabyte.kotter"
 version = libs.versions.kotter.get()
+
+kotlin {
+    jvm()
+
+    sourceSets {
+        val jvmMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.coroutines)
+
+                // For system terminal implementation
+                implementation(libs.jline.terminal.core)
+                implementation(libs.jline.terminal.jansi)
+                runtimeOnly(files("libs/jansi-1.18.jar")) // Required for windows support
+
+                // For GuardedBy concurrency annotation
+                implementation(libs.jcip.annotations)
+            }
+        }
+
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.truthish)
+                implementation(project(":kotterx:kotter-test-support"))
+            }
+        }
+    }
+}
 
 fun shouldSign() = (findProperty("kotter.sign") as? String).toBoolean()
 fun shouldPublishToGCloud(): Boolean {
@@ -55,30 +84,8 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation(libs.kotlinx.coroutines)
-
-    // For system terminal implementation
-    implementation(libs.jline.terminal.core)
-    implementation(libs.jline.terminal.jansi)
-    runtimeOnly(files("libs/jansi-1.18.jar")) // Required for windows support
-
-    // For GuardedBy concurrency annotation
-    implementation(libs.jcip.annotations)
-
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.truthish)
-    testImplementation(project(":kotterx:kotter-test-support"))
-}
-
-java {
-    withJavadocJar()
-    withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
 tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions.jvmTarget = "1.8"
     kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
 }
 
@@ -150,6 +157,14 @@ tasks.register("printLineCoverage") {
     }
 }
 
+val dokkaHtml by tasks.getting(DokkaTask::class)
+
+val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
+    dependsOn(dokkaHtml)
+    archiveClassifier.set("javadoc")
+    from(dokkaHtml.outputDirectory)
+}
+
 publishing {
     publications {
         if (shouldPublishToGCloud()) {
@@ -171,7 +186,7 @@ publishing {
 
         create<MavenPublication>("kotter") {
             val githubPath = "https://github.com/varabyte/kotter"
-            from(components["java"])
+            artifact(javadocJar)
             pom {
                 name.set("Kotter")
                 description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")

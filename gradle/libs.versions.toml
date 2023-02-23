@@ -1,6 +1,7 @@
 [versions]
+dokka = "1.7.20"
 jline = "3.21.0"
-kotlin = "1.7.10"
+kotlin = "1.8.0"
 kotlinx-coroutines = "1.6.4"
 kotter = "1.0.3-SNAPSHOT"
 kover = "0.6.1"
@@ -18,7 +19,8 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 truthish = { module = "com.varabyte.truthish:truthish", version.ref = "truthish" }
 
 [plugins]
-jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
+jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlinx-kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus-publish" }
