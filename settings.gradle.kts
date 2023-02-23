@@ -3,14 +3,12 @@ pluginManagement {
         google()
         gradlePluginPortal()
         mavenCentral()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
 rootProject.name = "kotter"
 
 include(":kotter")
-include(":kotterx:compose")
 include(":kotterx:kotter-test-support")
 
 include(":examples:anim")
