@@ -8,7 +8,7 @@ import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.SectionScope
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.render.RenderScope
-import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 // This file introduces the `textorize` method which applies one of several TextorizeEffect effects. You can call this
 // method within a render block. When you use it, it automatically adds a timer that causes the block to repaint
@@ -59,7 +59,7 @@ class TextorizeState(
         }
 
     init {
-        renderScope.data.addTimer(Duration.ofMillis(125), repeat = true) {
+        renderScope.data.addTimer(125.milliseconds, repeat = true) {
             counter++
             renderScope.section.requestRerender()
         }

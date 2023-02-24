@@ -8,15 +8,16 @@ import com.varabyte.kotter.foundation.text.p
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
 import kotlinx.coroutines.delay
-import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 fun main() = session {
 
     var result by liveVarOf<Int?>(null)
-    val spinnerAnim = textAnimOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
+    val spinnerAnim = textAnimOf(listOf("\\", "|", "/", "-"), 125.milliseconds)
 
     // Same as: val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
-    val thinkingAnim = renderAnimOf(4, Duration.ofMillis(500)) { frameIndex ->
+    val thinkingAnim = renderAnimOf(4, 500.milliseconds) { frameIndex ->
         text(".".repeat(frameIndex))
     }
 
@@ -37,7 +38,7 @@ fun main() = session {
             }
         }
     }.run {
-        delay(Duration.ofSeconds(4).toMillis())
+        delay(4.seconds)
         result = 42
     }
 }

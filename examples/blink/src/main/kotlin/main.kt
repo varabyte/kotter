@@ -5,7 +5,7 @@ import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.invert
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.foundation.timer.addTimer
-import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 fun main() = session {
     section {
@@ -13,7 +13,7 @@ fun main() = session {
         textLine()
     }.run()
 
-    val BLINK_LEN = Duration.ofMillis(250)
+    val BLINK_LEN = 250.milliseconds
     var blinkOn by liveVarOf(false)
     section {
         scopedState {

@@ -6,7 +6,8 @@ import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotterx.text.shiftRight
-import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 private const val NUM_RAINBOW_COLORS = 90
 private val RAINBOW_COLORS = (0 .. NUM_RAINBOW_COLORS).map { i ->
@@ -49,12 +50,12 @@ fun main() = session {
         """.trimIndent().split("\n")
 
     // 'length + 1' for num frames because we also include the empty string as a frame
-    val wipeRightTextAnim = renderAnimOf(productNameLines.maxOf { it.length + 1 }, Duration.ofMillis(40), looping = false) { frameIndex ->
+    val wipeRightTextAnim = renderAnimOf(productNameLines.maxOf { it.length + 1 }, 40.milliseconds, looping = false) { frameIndex ->
         for (y in productNameLines.indices) {
             textLine(productNameLines[y].take(frameIndex))
         }
     }
-    val scrollUpTextAnim = renderAnimOf(versionLines.size, Duration.ofMillis(200), looping = false) { frameIndex ->
+    val scrollUpTextAnim = renderAnimOf(versionLines.size, 200.milliseconds, looping = false) { frameIndex ->
         for (i in 0 until (versionLines.size - frameIndex - 1)) {
             textLine()
         }
@@ -63,10 +64,10 @@ fun main() = session {
         }
     }
 
-    val rainbowAnim = renderAnimOf(RAINBOW_COLORS.size, Duration.ofMillis(10)) { i ->
+    val rainbowAnim = renderAnimOf(RAINBOW_COLORS.size, 10.milliseconds) { i ->
         hsv(RAINBOW_COLORS[i])
     }
-    val fadeOutAnim = renderAnimOf(FADE_OUT_COLORS.size, Duration.ofMillis(30), looping = false) { i ->
+    val fadeOutAnim = renderAnimOf(FADE_OUT_COLORS.size, 30.milliseconds, looping = false) { i ->
         rgb(FADE_OUT_COLORS[i])
     }
 
@@ -89,7 +90,7 @@ fun main() = session {
             colorAnim = rainbowAnim
 
             // Enjoy some rainbox colors looping for a little while
-            addTimer(Duration.ofMillis(3000)) {
+            addTimer(3.seconds) {
                 colorAnim = fadeOutAnim
 
                 addTimer(fadeOutAnim.totalDuration) {

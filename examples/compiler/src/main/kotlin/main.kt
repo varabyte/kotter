@@ -6,9 +6,9 @@ import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.render.RenderScope
 import kotlinx.coroutines.*
-import java.time.Duration
 import kotlin.math.roundToInt
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 class Report(private val line: Int, private val text: String, private val isError: Boolean) {
     fun render(scope: RenderScope) {
@@ -139,8 +139,8 @@ fun main() = session {
             })
         }
 
-        addTimer(Duration.ofMillis(10), repeat = true) {
-            elapsedMs += this.elapsed.toMillis()
+        addTimer(10.milliseconds, repeat = true) {
+            elapsedMs += this.elapsed.inWholeMilliseconds
         }
         jobs.forEach { job -> job.join() }
         finished = true
