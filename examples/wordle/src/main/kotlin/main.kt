@@ -14,7 +14,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val URL_BASE = "https://raw.githubusercontent.com/varabyte/media/main/kotter/data/wordle"
 private const val WORD_LEN = 5
@@ -236,7 +236,7 @@ private fun RenderScope.toOnOff(value: Boolean) {
 }
 
 fun main() = session(clearTerminal = true) {
-    val waitingAnim = textAnimOf(listOf("", ".", "..", "..."), frameDuration = Duration.ofMillis(250))
+    val waitingAnim = textAnimOf(listOf("", ".", "..", "..."), frameDuration = 250.milliseconds)
     var gameState by liveVarOf<GameState>(GameState.Downloading)
     var gameMode by liveVarOf(GameMode.NORMAL)
     var useHighContrast by liveVarOf(false)
@@ -424,7 +424,7 @@ fun main() = session(clearTerminal = true) {
                         clearInput()
 
                         val newRow = Row.from(input, gs.board.targetWord)
-                        addTimer(Duration.ofMillis(300), repeat = true) {
+                        addTimer(300.milliseconds, repeat = true) {
                             val revealing = gameState as? GameState.Revealing ?: run {
                                 repeat = false
                                 return@addTimer

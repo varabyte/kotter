@@ -637,7 +637,7 @@ Kotter can manage a set of timers for you. Use the `addTimer` method in your `ru
 section {
   /* ... */
 }.runUntilSignal {
-  addTimer(Duration.ofMillis(500)) {
+  addTimer(500.milliseconds) {
     println("500ms passed!")
     signal()
   }
@@ -648,8 +648,8 @@ You can create a repeating timer by passing in `repeat = true` to the method. An
 at some point, set `repeat = false` inside the timer block when it is triggered:
 
 ```kotlin
-val BLINK_TOTAL_LEN = Duration.ofSeconds(5)
-val BLINK_LEN = Duration.ofMillis(250)
+val BLINK_TOTAL_LEN = 5.seconds
+val BLINK_LEN = 250.milliseconds
 var blinkOn by liveVarOf(false)
 section {
   scopedState {
@@ -682,7 +682,7 @@ section {
 }.onFinishing {
   blinkOn = false // Because user might press Q while the blinking state was on
 }.runUntilKeyPressed(Keys.Q) {
-  addTimer(Duration.ofMillis(250), repeat = true) { blinkOn = !blinkOn }
+  addTimer(250.milliseconds, repeat = true) { blinkOn = !blinkOn }
   /* ... */
 }
 ```
@@ -705,8 +705,8 @@ You can easily create quick animations by calling `textAnimOf`:
 
 ```kotlin
 var finished = false
-val spinnerAnim = textAnimOf(listOf("\\", "|", "/", "-"), Duration.ofMillis(125))
-val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+val spinnerAnim = textAnimOf(listOf("\\", "|", "/", "-"), 125.milliseconds)
+val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), 500.milliseconds)
 section {
   if (!finished) { text(spinnerAnim) } else { text("✓") }
   text(" Searching for files")
@@ -728,7 +728,7 @@ If you have an animation that you want to share in a bunch of places, you can cr
 instances from the template. `TextAnim.Template` takes exactly the same arguments as the `textAnimOf` method:
 
 ```kotlin
-val SPINNER_TEMPATE = TextAnim.Template(listOf("\\", "|", "/", "-"), Duration.ofMillis(250))
+val SPINNER_TEMPATE = TextAnim.Template(listOf("\\", "|", "/", "-"), 250.milliseconds)
 
 val spinners = (1..10).map { textAnimOf(SPINNER_TEMPLATE) }
 /* ... */
@@ -743,7 +743,7 @@ you want and use the render scope to call any of Kotter's text rendering methods
 Declare a render animation using the `renderAnimOf` method and then invoke the result inside your render block:
 
 ```kotlin
-val exampleAnim = renderAnimOf(numFrames = 5, Duration.ofMillis(250)) { i -> /* ... */ }
+val exampleAnim = renderAnimOf(numFrames = 5, 250.milliseconds) { i -> /* ... */ }
 section {
   // Call your render animation passing in the section block (i.e. `this`) as a parameter
   exampleAnim(this)
@@ -758,7 +758,7 @@ accomplish these easily using a render animation and the `color(Color)` method:
 ```kotlin
 // Note: `Color` is a Kotter enum that enumerates all the standard colors it supports
 
-val colorAnim = renderAnimOf(Color.values().size, Duration.ofMillis(250)) { i ->
+val colorAnim = renderAnimOf(Color.values().size, 250.milliseconds) { i ->
   color(Color.values()[i])
 }
 section {
@@ -779,7 +779,7 @@ val arrow = "=============>"
 
 val wipeRightAnim = renderAnimOf(
   arrow.length + 1, // `length + 1` because empty string is also a frame
-  Duration.ofMillis(40),
+  40.milliseconds,
   looping = false
 ) { frameIndex ->
   textLine(arrow.take(frameIndex))
@@ -919,7 +919,7 @@ result to a list. We can, instead, put a spinner in the active section and use t
 ```kotlin
 val fileWalker = FileWalker(".")
 var isFinished by liveVarOf(false)
-val searchingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+val searchingAnim = textAnimOf(listOf("", ".", "..", "..."), 500.milliseconds)
 section {
   textLine()
   if (!isFinished) {

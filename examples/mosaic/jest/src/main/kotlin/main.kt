@@ -7,9 +7,9 @@ import com.varabyte.kotter.foundation.text.ColorLayer.BG
 import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.runtime.render.RenderScope
 import kotlinx.coroutines.*
-import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedDeque
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
 
 data class Test(
     val path: String,
@@ -122,7 +122,7 @@ fun main() = session {
                 }
             })
         }
-        addTimer(Duration.ofSeconds(1), repeat = true) {
+        addTimer(1.seconds, repeat = true) {
             ++elapsedSecs
         }
         jobs.forEach { job -> job.join() }

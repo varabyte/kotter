@@ -7,8 +7,8 @@ import com.varabyte.kotter.foundation.text.p
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.foundation.timer.addTimer
-import java.time.Duration
 import java.time.LocalDateTime
+import kotlin.time.Duration.Companion.seconds
 
 fun main() = session {
     section {
@@ -57,13 +57,13 @@ fun main() = session {
         updateDate()
         dateReady = true
 
-        addTimer(Duration.ofSeconds(1), repeat = true) {
+        addTimer(1.seconds, repeat = true) {
             tick = !tick
             elapsedSecs++
         }
         // We can have multiple timers. Query this one less frequently to avoid "expensive" date time querying, it's OK
         // if we're off by 5-10 seconds.
-        addTimer(Duration.ofSeconds(10), repeat = true) {
+        addTimer(10.seconds, repeat = true) {
             updateDate()
         }
         onKeyPressed {

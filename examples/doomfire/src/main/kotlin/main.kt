@@ -4,8 +4,8 @@ import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
-import java.time.Duration
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
 
 // Fire renderer ported from https://fabiensanglard.net/doom_fire_psx/
 
@@ -111,7 +111,7 @@ fun main() = session(clearTerminal = true) {
                 doomFire.toggleFire()
             }
         }
-        addTimer(Duration.ofMillis(50), repeat = true) {
+        addTimer(50.milliseconds, repeat = true) {
             doomFire.update()
             rerender()
         }

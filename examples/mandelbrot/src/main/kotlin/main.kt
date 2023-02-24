@@ -7,7 +7,7 @@ import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotterx.decorations.bordered
 import kotlinx.coroutines.*
-import java.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val VIEW_WIDTH = 70
 private const val VIEW_HEIGHT = 17
@@ -166,7 +166,7 @@ fun main() = session(clearTerminal = true) {
                 rerender()
             }
         }
-        addTimer(Duration.ofMillis(50), repeat = true) {
+        addTimer(50.milliseconds, repeat = true) {
             if (!paused) {
                 zoom *= 1.1
                 if (mandelbrot.calculate(cx, cy, zoom)) {
