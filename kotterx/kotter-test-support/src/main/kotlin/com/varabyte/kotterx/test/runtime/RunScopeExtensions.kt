@@ -35,7 +35,10 @@ fun RunScope.blockUntilRenderWhen(condition: () -> Boolean) {
     // Prevent the section from starting a render pass until we're sure we've registered our callback
     // Or, if a render is in progress, this will wait for it to finish first.
     data.lock.write {
-        if (condition()) return
+        if (condition()) {
+            latch.countDown()
+            return@write
+        }
 
         section.onRendered {
             if (condition()) {

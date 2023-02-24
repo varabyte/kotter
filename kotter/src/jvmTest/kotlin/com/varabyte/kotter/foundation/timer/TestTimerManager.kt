@@ -2,17 +2,17 @@ package com.varabyte.kotter.foundation.timer
 
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
-import java.time.Duration
-import java.util.concurrent.locks.ReentrantReadWriteLock
+import com.varabyte.kotter.runtime.concurrent.locks.ReentrantReadWriteLock
+import kotlin.time.Duration
 
 // Note: Class needs to be internal because TimerManager is internal
 internal class TestTimerManager(lock: ReentrantReadWriteLock) : TimerManager(lock) {
     var currentTime: Long = 0
         private set
     fun fastForward(duration: Duration) {
-        if (duration.isNegative || duration.isZero) return
+        if (!duration.isPositive()) return
 
-        currentTime += duration.toMillis()
+        currentTime += duration.inWholeMilliseconds
         triggerTimers()
     }
 

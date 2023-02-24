@@ -18,7 +18,7 @@ class TextAnimTest {
         var timer: TestTimer? = null
 
         val anim = textAnimOf(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS)
-        assertThat(anim.totalDuration).isEqualTo(Anim.ONE_FRAME_60FPS.multipliedBy(3L))
+        assertThat(anim.totalDuration).isEqualTo(Anim.ONE_FRAME_60FPS.times(3))
         assertThat(anim.isRunning).isTrue()
 
         section {
@@ -373,7 +373,7 @@ class TextAnimTest {
         var timer: TestTimer? = null
 
         val anim1 = textAnimOf(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS)
-        val anim2 = textAnimOf(listOf("a", "b"), Anim.ONE_FRAME_60FPS.multipliedBy(2L))
+        val anim2 = textAnimOf(listOf("a", "b"), Anim.ONE_FRAME_60FPS.times(2))
         section {
             if (timer == null) {
                 // Need to initialize a test timer BEFORE we reference $anim for the first time

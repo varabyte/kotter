@@ -20,7 +20,7 @@ class RenderAnimTest {
             val frameNumber = it + 1
             text("> $frameNumber <")
         }
-        assertThat(anim.totalDuration).isEqualTo(Anim.ONE_FRAME_60FPS.multipliedBy(3L))
+        assertThat(anim.totalDuration).isEqualTo(Anim.ONE_FRAME_60FPS.times(3))
 
         section {
             if (timer == null) {

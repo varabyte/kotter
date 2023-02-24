@@ -14,10 +14,10 @@ import com.varabyte.kotterx.test.terminal.sendCode
 import com.varabyte.kotterx.test.terminal.type
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
-import java.time.Duration
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 class InputSupportTest {
     @Test
@@ -101,7 +101,7 @@ class InputSupportTest {
                         ""
                     )
                 }
-                timer.fastForward(Duration.ofMillis(BLINKING_DURATION_MS.toLong()))
+                timer.fastForward(BLINKING_DURATION_MS.milliseconds)
 
                 blockUntilRenderWhen {
                     terminal.resolveRerenders() == listOf(
@@ -109,7 +109,7 @@ class InputSupportTest {
                         ""
                     )
                 }
-                timer.fastForward(Duration.ofMillis(BLINKING_DURATION_MS.toLong()))
+                timer.fastForward(BLINKING_DURATION_MS.milliseconds)
             }
         }
     }
