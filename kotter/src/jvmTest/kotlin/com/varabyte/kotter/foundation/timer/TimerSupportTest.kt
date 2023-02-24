@@ -6,8 +6,8 @@ import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotterx.test.foundation.testSession
 import com.varabyte.kotterx.test.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
-import java.time.Duration
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 class TimerSupportTest {
     @Test
@@ -18,11 +18,11 @@ class TimerSupportTest {
         }.run {
             val timer = data.useTestTimer()
 
-            addTimer(Duration.ofMillis(5)) {
+            addTimer(5.milliseconds) {
                 ++count
             }
 
-            timer.fastForward(Duration.ofMillis(5))
+            timer.fastForward(5.milliseconds)
         }
 
         assertThat(terminal.resolveRerenders()).containsExactly(
@@ -39,13 +39,13 @@ class TimerSupportTest {
         }.run {
             val timer = data.useTestTimer()
 
-            addTimer(Duration.ofMillis(5), repeat = true) {
+            addTimer(5.milliseconds, repeat = true) {
                 ++count
             }
 
-            timer.fastForward(Duration.ofMillis(5))
-            timer.fastForward(Duration.ofMillis(5))
-            timer.fastForward(Duration.ofMillis(5))
+            timer.fastForward(5.milliseconds)
+            timer.fastForward(5.milliseconds)
+            timer.fastForward(5.milliseconds)
         }
 
         assertThat(terminal.resolveRerenders()).containsExactly(
@@ -62,12 +62,12 @@ class TimerSupportTest {
         }.run {
             val timer = data.useTestTimer()
 
-            addTimer(Duration.ofMillis(5), repeat = true) {
+            addTimer(5.milliseconds, repeat = true) {
                 ++count
             }
 
             // Only triggers a single timer update, not 10
-            timer.fastForward(Duration.ofMillis(50))
+            timer.fastForward(50.milliseconds)
         }
 
         assertThat(terminal.resolveRerenders()).containsExactly(
