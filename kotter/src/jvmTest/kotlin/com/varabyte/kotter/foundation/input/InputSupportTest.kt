@@ -91,7 +91,7 @@ class InputSupportTest {
             input(initialText = "Hello")
             text("<")
         }.run {
-            val timer = timer!!
+            @Suppress("NAME_SHADOWING") val timer = timer!!
 
             // Run a few times just to verify that the blinking continues in a cycle
             for (i in 0 until 3) {
