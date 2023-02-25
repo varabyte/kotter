@@ -4,6 +4,7 @@ import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.terminal.Terminal
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.newFixedThreadPoolContext
 import kotlinx.coroutines.newSingleThreadContext
 
@@ -20,12 +21,10 @@ class Session internal constructor(internal val terminal: Terminal) {
     class Dispatchers {
         private val _render = newSingleThreadContext("Kotter Render")
         val render: CoroutineDispatcher = _render
-        private val _io = newFixedThreadPoolContext(50, "Kotter I/O")
-        val io: CoroutineDispatcher = _io
+        val io: CoroutineDispatcher = kotlinx.coroutines.Dispatchers.Default
 
         internal fun close() {
             _render.close()
-            _io.close()
         }
     }
 
