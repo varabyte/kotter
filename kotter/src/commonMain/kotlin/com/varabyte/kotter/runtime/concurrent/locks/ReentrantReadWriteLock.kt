@@ -2,6 +2,7 @@ package com.varabyte.kotter.runtime.concurrent.locks
 
 import com.varabyte.kotter.platform.concurrent.Thread
 import com.varabyte.kotter.platform.concurrent.annotations.ThreadSafe
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -25,8 +26,8 @@ class ReentrantReadWriteLock {
     private var readingThreadsIds = mutableListOf<Any>()
     private var writingThreadId: Any? = null
 
-    fun <T> read(block: () -> T): T {
-        return runBlocking {
+    inner class ReaderLock {
+        fun lock() = runBlocking {
             val threadId = Thread.getId()
             var waitInLine = true
             while (waitInLine) {
@@ -42,24 +43,24 @@ class ReentrantReadWriteLock {
                     }
                 }
 
-                if (waitInLine) Thread.sleep(0)
+                if (waitInLine) delay(0)
             }
+        }
 
-            val result = block()
-
+        fun unlock() = runBlocking {
+            val threadId = Thread.getId()
             stateLock.withLock {
                 readingThreadsIds.remove(threadId)
                 if (readingThreadsIds.isEmpty() && writeCount == 0) {
                     currState = State.IDLE
                 }
             }
-
-            result
         }
     }
+    val readerLock = ReaderLock()
 
-    fun <T> write(block: () -> T): T {
-        return runBlocking {
+    inner class WriterLock {
+        fun lock() = runBlocking {
             var waitInLine = true
             val threadId = Thread.getId()
 
@@ -77,11 +78,11 @@ class ReentrantReadWriteLock {
                     }
                 }
 
-                if (waitInLine) Thread.sleep(0)
+                if (waitInLine) delay(0)
             }
+        }
 
-            val result = block()
-
+        fun unlock() = runBlocking {
             stateLock.withLock {
                 writeCount--
                 if (writeCount == 0) {
@@ -89,7 +90,25 @@ class ReentrantReadWriteLock {
                 }
             }
 
-            result
         }
+    }
+    val writerLock = WriterLock()
+}
+
+inline fun <T> ReentrantReadWriteLock.read(block: () -> T): T {
+    return try {
+        readerLock.lock()
+        block()
+    } finally {
+        readerLock.unlock()
+    }
+}
+
+inline fun <T> ReentrantReadWriteLock.write(block: () -> T): T {
+    return try {
+        writerLock.lock()
+        block()
+    } finally {
+        writerLock.unlock()
     }
 }

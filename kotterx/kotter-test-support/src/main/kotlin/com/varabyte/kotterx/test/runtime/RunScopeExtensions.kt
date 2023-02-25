@@ -1,6 +1,7 @@
 package com.varabyte.kotterx.test.runtime
 
 import com.varabyte.kotter.runtime.RunScope
+import com.varabyte.kotter.runtime.concurrent.locks.write
 import java.util.concurrent.CountDownLatch
 import kotlin.concurrent.write
 
@@ -35,10 +36,7 @@ fun RunScope.blockUntilRenderWhen(condition: () -> Boolean) {
     // Prevent the section from starting a render pass until we're sure we've registered our callback
     // Or, if a render is in progress, this will wait for it to finish first.
     data.lock.write {
-        if (condition()) {
-            latch.countDown()
-            return@write
-        }
+        if (condition()) return
 
         section.onRendered {
             if (condition()) {

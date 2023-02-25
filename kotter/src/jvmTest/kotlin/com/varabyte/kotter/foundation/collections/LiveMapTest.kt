@@ -51,7 +51,7 @@ class LiveMapTest {
             textLine("Contains value: ${numSquares.containsValue(25)}")
             textLine("Square of 2: ${numSquares[2]}")
         }.run {
-            numSquares.putAll((4..6).map(::squarePair))
+            numSquares.putAll((4..6).associate(::squarePair))
         }
 
         assertThat(terminal.lines()).containsExactly(
@@ -91,7 +91,7 @@ class LiveMapTest {
                 numSquares.remove(0)
 
                 (1 .. 3).forEach { i -> numSquares[i] = i * i }
-                numSquares.putAll((4 .. 6).map { i -> i to i * i })
+                numSquares.putAll((4..6).associateWith { i -> i * i })
             }
         }
 

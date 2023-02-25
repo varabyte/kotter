@@ -13,6 +13,7 @@ import com.varabyte.kotter.runtime.RunScope.Lifecycle
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.concurrent.locks.withLock
+import com.varabyte.kotter.runtime.concurrent.locks.write
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.text.numLines
 import com.varabyte.kotter.runtime.internal.text.toRawText
