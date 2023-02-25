@@ -2,6 +2,7 @@ package com.varabyte.kotter.runtime.concurrent.locks
 
 import com.varabyte.kotter.platform.concurrent.Thread
 import com.varabyte.kotter.platform.concurrent.annotations.ThreadSafe
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 
@@ -68,7 +69,7 @@ class ReentrantLock {
                         ownerMutex.unlock()
                     }
 
-                    Thread.sleep(0)
+                    delay(0)
                 }
             }
         }

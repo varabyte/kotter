@@ -5,6 +5,7 @@ import com.varabyte.kotter.platform.runtime.getCurrentTimeMs
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.locks.ReentrantReadWriteLock
+import com.varabyte.kotter.runtime.concurrent.locks.write
 import kotlinx.coroutines.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds

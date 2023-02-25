@@ -5,6 +5,8 @@ import com.varabyte.kotter.platform.ref.WeakReference
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.Section
+import com.varabyte.kotter.runtime.concurrent.locks.read
+import com.varabyte.kotter.runtime.concurrent.locks.write
 import kotlin.reflect.KProperty
 
 /**
