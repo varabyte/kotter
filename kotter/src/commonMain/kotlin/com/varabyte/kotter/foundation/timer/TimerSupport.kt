@@ -115,12 +115,13 @@ internal class SystemTimerManager(ioDispatcher: CoroutineDispatcher, lock: Reent
  * inside a `section` block).
  */
 fun ConcurrentScopedData.addTimer(
+    ioDispatcher: CoroutineDispatcher,
     duration: Duration,
     repeat: Boolean,
     key: Any? = null,
     callback: TimerScope.() -> Unit
 ) {
-    putIfAbsent(TimerManager.Key, { SystemTimerManager(Dispatchers.Default, lock) }, { timers -> timers.dispose() }) {
+    putIfAbsent(TimerManager.Key, { SystemTimerManager(ioDispatcher, lock) }, { timers -> timers.dispose() }) {
         addTimer(duration, repeat, key, callback)
     }
 }
@@ -164,5 +165,5 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Durat
  * @param callback Logic to trigger every time the timer runs.
  */
 fun RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit) {
-    data.addTimer(duration, repeat, key, callback)
+    data.addTimer(section.session.dispatchers.io, duration, repeat, key, callback)
 }
