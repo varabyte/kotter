@@ -10,6 +10,20 @@ import kotlinx.coroutines.sync.withLock
 /**
  * A poor man's reimplementation of the JVM ReentrantReadWriteLock class.
  *
+ * The basic idea is that you can run any number of read requests concurrently across any number of threads, OR you can
+ * run a single write request, during which time other writes and even read requests will block until it is released.
+ *
+ * There's one exception to the write lock limitation: because this class is reentrant, if you own a write lock, and
+ * then request an additional write lock, it will work. (This might happen if you are in one method that has write
+ * access which calls another method that requests write access)
+ *
+ * Additionally, threads that own a write lock can also request a read lock (which might seem like a strange thing to do
+ * but could occur in practice if a method that has write access calls another method that requests read access).
+ *
+ * Finally, if you are the *only* thread making a read request *and* you request write access, then your access will
+ * temporarily be upgraded to write mode. (Of course, if other reads were open, the write request would temporarily
+ * block until all other readers relinquished their read access)
+ *
  * Programmer's note: See note in ReentrantLock about how bad an idea this probably is...
  */
 @ThreadSafe
