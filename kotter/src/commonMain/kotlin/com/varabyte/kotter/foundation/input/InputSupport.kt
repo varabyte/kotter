@@ -212,7 +212,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
         // This block represents global state that gets triggered just once for all input blocks in this section, so we
         // do some quick init side effects as well
 
-        addTimer(Anim.ONE_FRAME_60FPS, repeat = true, key = cursorState) {
+        addTimer(section.session.dispatchers.io, Anim.ONE_FRAME_60FPS, repeat = true, key = cursorState) {
             if (cursorState.elapse(elapsed)) {
                 section.requestRerender()
             }
