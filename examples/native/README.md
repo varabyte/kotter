@@ -1,9 +1,22 @@
 An example that shows how to generate native releases for Kotter applications.
 
-Check out this project's `build.gradle.kts` file to see how this is set up.
+To run this sample, in a terminal call:
+
+```bash
+# in kotter/examples/native
+$ ./gradlew linkDebugExecutableNative && ./build/bin/native/debugExecutable/native.kexe
+```
+
+To build a production binary, call:
+
+```bash
+$ ./gradlew linkReleaseExecutableNative
+```
+
+Check out this example's [`build.gradle.kts`](build.gradle.kts) file to see how this is set up.
 
 For native builds, you must build them on the proper host machine -- for example, Windows binaries should get built on
 Windows machines and Linux binaries should get built on Linux machines.
 
-You can probably use something like GitHub CI to provision different host macines in order to generate artifacts for all
-three platforms.
+You can use something like GitHub CI to provision different host machines in order to generate and publish artifacts for
+all different platforms.
