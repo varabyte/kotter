@@ -3,10 +3,6 @@ package com.varabyte.kotter.runtime
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.terminal.Terminal
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.newFixedThreadPoolContext
-import kotlinx.coroutines.newSingleThreadContext
 
 /**
  * A Kotter session.
@@ -18,16 +14,6 @@ import kotlinx.coroutines.newSingleThreadContext
  * You cannot create an instance manually. Instead, use [session].
  */
 class Session internal constructor(internal val terminal: Terminal) {
-    class Dispatchers {
-        private val _render = newSingleThreadContext("Kotter Render")
-        val render: CoroutineDispatcher = _render
-        val io: CoroutineDispatcher = kotlinx.coroutines.Dispatchers.Default
-
-        internal fun close() {
-            _render.close()
-        }
-    }
-
     /**
      * A long-lived lifecycle that sticks around for the length of the entire session.
      *
@@ -44,8 +30,6 @@ class Session internal constructor(internal val terminal: Terminal) {
      * program from a different thread that isn't blocked by a call to [Section.run].
      */
     val activeSection: Section? get() = data[ActiveSectionKey]
-
-    val dispatchers = Dispatchers()
 
     init {
         data.start(Lifecycle)
@@ -80,8 +64,6 @@ class Session internal constructor(internal val terminal: Terminal) {
         if (data.isActive(Lifecycle)) {
             data.stopAll()
             terminal.close()
-
-            dispatchers.close()
         }
     }
 }

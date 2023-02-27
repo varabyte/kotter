@@ -134,7 +134,7 @@ abstract class Anim protected constructor(
 
             // Set key to this animation, just to show our intention / ensure that we'll only ever start one timer per
             // animation instance ever, even though due to the logic of this block, it shouldn't be necessary.
-            session.data.addTimer(session.dispatchers.io, ANIM_TIMER_DURATION, repeat = true, key = this) {
+            session.data.addTimer(ANIM_TIMER_DURATION, repeat = true, key = this) {
                 if (stopTimer) {
                     repeat = false
                     stopTimer = false // Reset for next time this animation starts

@@ -1,6 +1,7 @@
 package com.varabyte.kotter.runtime
 
 import com.varabyte.kotter.foundation.LiveVar
+import com.varabyte.kotter.foundation.coroutines.KotterDispatchers
 import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.render.AsideRenderScope
@@ -181,7 +182,7 @@ class Section internal constructor(val session: Session, private val render: Mai
     }
 
     private fun renderOnceAsync(): Job {
-        return CoroutineScope(session.dispatchers.render).launch {
+        return CoroutineScope(KotterDispatchers.Render).launch {
             session.data.start(MainRenderScope.Lifecycle)
             // Rendering might crash, and if so, we should still propagate the exception but only after we've cleaned up
             // our rendering.
@@ -332,7 +333,7 @@ class Section internal constructor(val session: Session, private val render: Mai
         // Our run block is done, let's just wait until any remaining renders are finished. We can do this by adding
         // ourselves to the end of the line and waiting to get through.
         val allRendersFinished = CompletableDeferred<Unit>()
-        CoroutineScope(session.dispatchers.render).launch { allRendersFinished.complete(Unit) }
+        CoroutineScope(KotterDispatchers.Render).launch { allRendersFinished.complete(Unit) }
         runBlocking { allRendersFinished.await() }
 
         session.data.stop(Lifecycle)

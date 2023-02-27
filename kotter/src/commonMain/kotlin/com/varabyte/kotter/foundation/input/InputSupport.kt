@@ -1,6 +1,7 @@
 package com.varabyte.kotter.foundation.input
 
 import com.varabyte.kotter.foundation.anim.Anim
+import com.varabyte.kotter.foundation.coroutines.KotterDispatchers
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
 import com.varabyte.kotter.platform.collections.computeIfAbsent
@@ -26,7 +27,7 @@ private val KeyFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
  * Create a [Flow<Key>] value which converts bytes read from a terminal into keys, handling some gnarly multibyte
  * cases and smoothing over other inconsistent, historical legacy.
  */
-private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal, ioDispatcher: CoroutineDispatcher) {
+private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
     tryPut(KeyFlowKey) {
         val keyLock = ReentrantLock()
         val escSeq = StringBuilder()
@@ -83,7 +84,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal, ioDispatcher
                                     // sure we aren't getting any followup characters. Note that a user can hold the
                                     // keys down which generates a bunch of key signals, so we additionally make sure
                                     // there hasn't been any other key pressed.
-                                    CoroutineScope(ioDispatcher).launch {
+                                    CoroutineScope(KotterDispatchers.IO).launch {
                                         val delayMs = 50L
                                         var doneWaiting = false
                                         var sendEsc = false
@@ -114,7 +115,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal, ioDispatcher
         }
             // We only want to collect keypresses in one place per session. Use shareIn so collecters don't spawn new
             // flows. For example, multiple flows here would really mess with the escSeq logic
-            .shareIn(CoroutineScope(ioDispatcher), SharingStarted.Lazily)
+            .shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
     }
 }
 
@@ -206,13 +207,13 @@ private fun ConcurrentScopedData.deactivate(state: InputState) {
  */
 private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, initialText: String, isActive: Boolean) {
     val section = scope.section
-    prepareKeyFlow(section.session.terminal, section.session.dispatchers.io)
+    prepareKeyFlow(section.session.terminal)
     val cursorState = putOrGet(BlinkingCursorStateKey) {
         val cursorState = BlinkingCursorState()
         // This block represents global state that gets triggered just once for all input blocks in this section, so we
         // do some quick init side effects as well
 
-        addTimer(section.session.dispatchers.io, Anim.ONE_FRAME_60FPS, repeat = true, key = cursorState) {
+        addTimer(Anim.ONE_FRAME_60FPS, repeat = true, key = cursorState) {
             if (cursorState.elapse(elapsed)) {
                 section.requestRerender()
             }
@@ -284,7 +285,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
     tryPut(
         UpdateInputJobKey,
         provideInitialValue = {
-            CoroutineScope(section.session.dispatchers.io).launch {
+            CoroutineScope(KotterDispatchers.IO).launch {
                 getValue(KeyFlowKey).collect { key ->
                     withActiveInput {
                         val prevText = text
@@ -626,12 +627,12 @@ private val SystemKeyPressedCallbackKey = RunScope.Lifecycle.createKey<OnKeyPres
  *
  * This is a no-op when called after the first time.
  */
-private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal, ioDispatcher: CoroutineDispatcher) {
-    prepareKeyFlow(terminal, ioDispatcher)
+private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
+    prepareKeyFlow(terminal)
     tryPut(
         KeyPressedJobKey,
         provideInitialValue = {
-            CoroutineScope(ioDispatcher).launch {
+            CoroutineScope(KotterDispatchers.IO).launch {
                 getValue(KeyFlowKey).collect { key ->
                     val scope = OnKeyPressedScope(key)
                     get(KeyPressedCallbackKey) { this.invoke(scope) }
@@ -660,7 +661,7 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal, ioDispa
  * ```
  */
 fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
-    data.prepareOnKeyPressed(section.session.terminal, section.session.dispatchers.io)
+    data.prepareOnKeyPressed(section.session.terminal)
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
     }
@@ -683,7 +684,7 @@ fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
 
 fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> Unit = {}) {
     run {
-        data.prepareOnKeyPressed(section.session.terminal, section.session.dispatchers.io)
+        data.prepareOnKeyPressed(section.session.terminal)
         // We need to abort as even if the user puts a while(true) in their run block, we still want to exit
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) abort() }
         block()
