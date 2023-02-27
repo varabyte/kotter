@@ -19,9 +19,10 @@ class NativeTerminal : Terminal {
             // Enter raw mode and disable some commands we don't want Kotter apps to worry about
             // See also org.jline.terminal.impl.enterRawMode and the post linked earlier in this file
             val newTermios = alloc<termios>()
-            memcpy(newTermios.ptr, origTermios.ptr, sizeOf<termios>().toULong())
-            newTermios.c_iflag = newTermios.c_iflag.and((IXON.or(ICRNL.or(INLCR))).inv().toUInt())
-            newTermios.c_lflag = newTermios.c_lflag.and((ECHO.or(ICANON.or(IEXTEN))).inv().toUInt())
+            memcpy(newTermios.ptr, origTermios.ptr, sizeOf<termios>().convert())
+
+            newTermios.c_iflag = newTermios.c_iflag.and((IXON.or(ICRNL.or(INLCR))).inv().convert())
+            newTermios.c_lflag = newTermios.c_lflag.and((ECHO.or(ICANON.or(IEXTEN))).inv().convert())
             newTermios.c_cc[VMIN] = 0U
             newTermios.c_cc[VTIME] = 1U
 
