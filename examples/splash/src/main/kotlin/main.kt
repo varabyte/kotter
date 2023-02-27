@@ -89,7 +89,7 @@ fun main() = session {
         addTimer(maxOf(scrollUpTextAnim.totalDuration, wipeRightTextAnim.totalDuration)) {
             colorAnim = rainbowAnim
 
-            // Enjoy some rainbox colors looping for a little while
+            // Enjoy some rainbow colors looping for a little while, then fade out
             addTimer(3.seconds) {
                 colorAnim = fadeOutAnim
 
