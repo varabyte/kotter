@@ -189,7 +189,7 @@ fun main() = session(
             val snake = level.snake
             snake.onMoved = {
                 addTimer(Anim.ONE_FRAME_60FPS, repeat = true, key = snake) {
-                    currTickMs += elapsed.toMillis()
+                    currTickMs += elapsed.inWholeMilliseconds
                     if (currTickMs >= moveTickMs) {
                         snake.move() // As a side effect, will reset currTickMs
                     }
