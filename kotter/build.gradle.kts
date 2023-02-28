@@ -14,16 +14,27 @@ plugins {
 group = "com.varabyte.kotter"
 version = libs.versions.kotter.get()
 
+sealed interface HostOs {
+    object Linux : HostOs
+    object Win : HostOs
+    class Mac(val m1: Boolean) : HostOs
+}
+
 kotlin {
     jvm()
 
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    when {
-        hostOs == "Mac OS X" -> macosX64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    val hostOsName = System.getProperty("os.name")
+    val hostOsArch = System.getProperty("os.arch")
+    val hostOs = when {
+        hostOsName == "Mac OS X" -> HostOs.Mac(m1 = (hostOsArch == "aarch64"))
+        hostOsName == "Linux" -> HostOs.Linux
+        hostOsName.startsWith("Windows") -> HostOs.Win
+        else -> throw GradleException("Kotter doesn't support host OS \"$hostOsName\". If you think it should, visit https://github.com/varabyte/kotter/issues/93 and leave a comment if no one has mentioned your host yet.")
+    }
+    when (hostOs) {
+        is HostOs.Linux -> linuxX64("posix")
+        is HostOs.Mac -> if (hostOs.m1) macosArm64("posix") else macosX64("posix")
+        is HostOs.Win -> mingwX64("win")
     }
 
     sourceSets {
@@ -50,6 +61,16 @@ kotlin {
                 implementation(libs.kotlin.test)
                 implementation(libs.truthish)
                 implementation(project(":kotterx:kotter-test-support"))
+            }
+        }
+
+        val nativeMain by creating { dependsOn(commonMain) }
+        when(hostOs) {
+            is HostOs.Linux, is HostOs.Mac -> {
+                val posixMain by getting { dependsOn(nativeMain) }
+            }
+            is HostOs.Win -> {
+                val winMain by getting { dependsOn(nativeMain) }
             }
         }
     }
