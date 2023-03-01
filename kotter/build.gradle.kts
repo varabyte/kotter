@@ -31,11 +31,11 @@ kotlin {
         hostOsName.startsWith("Windows") -> HostOs.Win
         else -> throw GradleException("Kotter doesn't support host OS \"$hostOsName\". If you think it should, visit https://github.com/varabyte/kotter/issues/93 and leave a comment if no one has mentioned your host yet.")
     }
-    when (hostOs) {
-        is HostOs.Linux -> linuxX64()
-        is HostOs.Mac -> if (hostOs.m1) macosArm64() else macosX64()
-        is HostOs.Win -> mingwX64()
-    }
+
+    linuxX64()
+    macosArm64()
+    macosX64()
+    mingwX64()
 
     sourceSets {
         val commonMain by getting {
@@ -65,29 +65,17 @@ kotlin {
         }
 
         val nativeMain by creating { dependsOn(commonMain) }
+        val posixMain by creating { dependsOn(nativeMain) }
 
-        when (hostOs) {
-            is HostOs.Linux, is HostOs.Mac -> {
-                val posixMain by creating { dependsOn(nativeMain) }
-                if (hostOs is HostOs.Linux) {
-                    val linuxMain by creating { dependsOn(posixMain) }
-                    val linuxX64Main by getting { dependsOn(linuxMain) }
-                } else {
-                    hostOs as HostOs.Mac // Side effect: smart cast
-                    val macosMain by creating { dependsOn(posixMain) }
-                    if (hostOs.m1) {
-                        val macosArm64Main by getting { dependsOn(macosMain) }
-                    } else {
-                        val macosX64Main by getting { dependsOn(macosMain) }
-                    }
-                }
-            }
+        val linuxMain by creating { dependsOn(posixMain) }
+        val linuxX64Main by getting { dependsOn(linuxMain) }
 
-            is HostOs.Win -> {
-                val winMain by creating { dependsOn(nativeMain) }
-                val mingwX64Main by getting { dependsOn(winMain) }
-            }
-        }
+        val macosMain by creating { dependsOn(posixMain) }
+        val macosArm64Main by getting { dependsOn(macosMain) }
+        val macosX64Main by getting { dependsOn(macosMain) }
+
+        val winMain by creating { dependsOn(nativeMain) }
+        val mingwX64Main by getting { dependsOn(winMain) }
     }
 }
 
@@ -127,10 +115,6 @@ fun MavenArtifactRepository.sonatypeAuth() {
     authentication {
         create<BasicAuthentication>("basic")
     }
-}
-
-repositories {
-    mavenCentral()
 }
 
 tasks.withType<JavaCompile>().configureEach {
