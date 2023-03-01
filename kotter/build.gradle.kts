@@ -65,23 +65,26 @@ kotlin {
         }
 
         val nativeMain by creating { dependsOn(commonMain) }
-        val posixMain by creating { dependsOn(nativeMain) }
-        val linuxMain by creating { dependsOn(posixMain) }
-        val macosMain by creating { dependsOn(posixMain) }
-        val winMain by creating { dependsOn(nativeMain) }
 
-        when(hostOs) {
-            is HostOs.Linux -> {
-                val linuxX64Main by getting { dependsOn(linuxMain) }
-            }
-            is HostOs.Mac -> {
-                if (hostOs.m1) {
-                    val macosArm64Main by getting { dependsOn(macosMain) }
+        when (hostOs) {
+            is HostOs.Linux, is HostOs.Mac -> {
+                val posixMain by creating { dependsOn(nativeMain) }
+                if (hostOs is HostOs.Linux) {
+                    val linuxMain by creating { dependsOn(posixMain) }
+                    val linuxX64Main by getting { dependsOn(linuxMain) }
                 } else {
-                    val macosX64Main by getting { dependsOn(macosMain) }
+                    hostOs as HostOs.Mac // Side effect: smart cast
+                    val macosMain by creating { dependsOn(posixMain) }
+                    if (hostOs.m1) {
+                        val macosArm64Main by getting { dependsOn(macosMain) }
+                    } else {
+                        val macosX64Main by getting { dependsOn(macosMain) }
+                    }
                 }
             }
+
             is HostOs.Win -> {
+                val winMain by creating { dependsOn(nativeMain) }
                 val mingwX64Main by getting { dependsOn(winMain) }
             }
         }
