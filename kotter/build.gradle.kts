@@ -23,15 +23,6 @@ sealed interface HostOs {
 kotlin {
     jvm()
 
-    val hostOsName = System.getProperty("os.name")
-    val hostOsArch = System.getProperty("os.arch")
-    val hostOs = when {
-        hostOsName == "Mac OS X" -> HostOs.Mac(m1 = (hostOsArch == "aarch64"))
-        hostOsName == "Linux" -> HostOs.Linux
-        hostOsName.startsWith("Windows") -> HostOs.Win
-        else -> throw GradleException("Kotter doesn't support host OS \"$hostOsName\". If you think it should, visit https://github.com/varabyte/kotter/issues/93 and leave a comment if no one has mentioned your host yet.")
-    }
-
     linuxX64()
     macosArm64()
     macosX64()
