@@ -1,15 +1,25 @@
 An example that shows how to generate native releases for Kotter applications.
 
-To run this sample, in a terminal, call the correct `linkDebugExecutable...`. For example, on Linux:
+To run this sample on your machine, you must call the correct `linkDebugExecutable...` Gradle task for your OS.
+For example:
 
 ```bash
 # in kotter/examples/native
-$ ./gradlew linkDebugExecutableLinux64 && ./build/bin/native/debugExecutable/native.kexe
+
+# Linux
+$ ./gradlew linkDebugExecutableLinux64 && ./build/bin/linux64/debugExecutable/native.kexe
+
+# Windows
+$ ./gradlew linkDebugExecutableMingw64 && ./build/bin/mingw64/debugExecutable/native.exe
 ```
+
+*Currently, Kotter supports Linux, Windows, Mac M1, and Mac Intel. Visit [this issue](https://github.com/varabyte/kotter/issues/93)
+if you have suggestions for other native targets.*
 
 To build a production binary, call:
 
 ```bash
+# Linux
 $ ./gradlew linkReleaseExecutableLinux64
 ```
 
