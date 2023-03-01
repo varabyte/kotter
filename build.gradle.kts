@@ -24,7 +24,7 @@ nexusPublishing {
     }
 }
 
-subprojects {
+allprojects {
     repositories {
         mavenCentral()
     }
