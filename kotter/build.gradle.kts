@@ -214,9 +214,9 @@ publishing {
         }
 
         create<MavenPublication>("kotter") {
-            val githubPath = "https://github.com/varabyte/kotter"
             artifact(javadocJar)
             pom {
+                val githubPath = "https://github.com/varabyte/kotter"
                 name.set("Kotter")
                 description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")
                 url.set(githubPath)
