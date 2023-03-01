@@ -32,9 +32,9 @@ kotlin {
         else -> throw GradleException("Kotter doesn't support host OS \"$hostOsName\". If you think it should, visit https://github.com/varabyte/kotter/issues/93 and leave a comment if no one has mentioned your host yet.")
     }
     when (hostOs) {
-        is HostOs.Linux -> linuxX64("posix")
-        is HostOs.Mac -> if (hostOs.m1) macosArm64("posix") else macosX64("posix")
-        is HostOs.Win -> mingwX64("win")
+        is HostOs.Linux -> linuxX64()
+        is HostOs.Mac -> if (hostOs.m1) macosArm64() else macosX64()
+        is HostOs.Win -> mingwX64()
     }
 
     sourceSets {
@@ -65,12 +65,24 @@ kotlin {
         }
 
         val nativeMain by creating { dependsOn(commonMain) }
+        val posixMain by creating { dependsOn(nativeMain) }
+        val linuxMain by creating { dependsOn(posixMain) }
+        val macosMain by creating { dependsOn(posixMain) }
+        val winMain by creating { dependsOn(nativeMain) }
+
         when(hostOs) {
-            is HostOs.Linux, is HostOs.Mac -> {
-                val posixMain by getting { dependsOn(nativeMain) }
+            is HostOs.Linux -> {
+                val linuxX64Main by getting { dependsOn(linuxMain) }
+            }
+            is HostOs.Mac -> {
+                if (hostOs.m1) {
+                    val macosArm64Main by getting { dependsOn(macosMain) }
+                } else {
+                    val macosX64Main by getting { dependsOn(macosMain) }
+                }
             }
             is HostOs.Win -> {
-                val winMain by getting { dependsOn(nativeMain) }
+                val mingwX64Main by getting { dependsOn(winMain) }
             }
         }
     }
