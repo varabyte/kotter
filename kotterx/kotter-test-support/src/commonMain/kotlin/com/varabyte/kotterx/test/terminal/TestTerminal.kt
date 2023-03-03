@@ -50,7 +50,7 @@ class TestTerminal : Terminal {
     var closed = false
         private set
 
-    private val _buffer = StringBuffer()
+    private val _buffer = StringBuilder()
     val buffer get() = _buffer.toString()
 
     private val keysChannel = Channel<Int>()
@@ -71,7 +71,7 @@ class TestTerminal : Terminal {
 
     override fun clear() {
         assertNotClosed()
-        _buffer.delete(0, _buffer.length)
+        _buffer.clear()
     }
 
     override fun close() {
@@ -127,7 +127,7 @@ fun TestTerminal.resolveRerenders(): List<String> {
             }
             textPtr.startsWith(codeEraseToLineEnd) -> {
                 textPtr.charIndex += codeEraseToLineEnd.length
-                currLine.delete(currLineIndex, currLine.length)
+                currLine.removeRange(currLineIndex, currLineIndex + currLine.length)
             }
             textPtr.startsWith(codeMoveToPrevLine) -> {
                 textPtr.charIndex += codeMoveToPrevLine.length

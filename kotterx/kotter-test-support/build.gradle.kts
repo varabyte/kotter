@@ -1,8 +1,9 @@
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
-    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.jetbrains.dokka)
     `maven-publish`
     signing
@@ -10,6 +11,32 @@ plugins {
 
 group = "com.varabyte.kotterx"
 version = libs.versions.kotter.get()
+
+kotlin {
+    jvm()
+
+    linuxX64()
+    macosArm64()
+    macosX64()
+    mingwX64()
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.coroutines)
+
+                implementation(project(":kotter"))
+            }
+        }
+
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.truthish)
+            }
+        }
+    }
+}
 
 fun shouldSign() = (findProperty("kotter.sign") as? String).toBoolean()
 fun shouldPublishToGCloud(): Boolean {
@@ -49,25 +76,14 @@ fun MavenArtifactRepository.sonatypeAuth() {
     }
 }
 
-dependencies {
-    implementation(libs.kotlinx.coroutines)
+val dokkaHtml by tasks.getting(DokkaTask::class)
 
-    implementation(project(":kotter"))
-
-    testImplementation(libs.kotlin.test)
-    testImplementation(libs.truthish)
+val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
+    dependsOn(dokkaHtml)
+    archiveClassifier.set("javadoc")
+    from(dokkaHtml.outputDirectory)
 }
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
-}
 
 publishing {
     publications {
@@ -89,8 +105,8 @@ publishing {
         }
 
         create<MavenPublication>("kotterTestSupport") {
+            artifact(javadocJar)
             val githubPath = "https://github.com/varabyte/kotter"
-            from(components["java"])
             pom {
                 artifactId = "kotter-test-support"
                 name.set("Kotter test support")
