@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 // Note: This seems to need to exist here and NOT in settings.gradle.kts pluginManagment, or else Gradle/Kotlin whines
 // at build about the same plugin being loaded multiple times.
 // See also: https://docs.gradle.org/current/userguide/plugins.html#sec:subprojects_plugins_dsl
@@ -28,5 +30,15 @@ allprojects {
     repositories {
         mavenCentral()
         maven("https://us-central1-maven.pkg.dev/varabyte-repos/public")
+    }
+
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = JavaVersion.VERSION_1_8.toString()
+        targetCompatibility = JavaVersion.VERSION_1_8.toString()
+    }
+
+    tasks.withType<KotlinCompile>().configureEach {
+        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
 }
