@@ -184,9 +184,6 @@ class Section internal constructor(val session: Session, private val render: Mai
     private fun renderOnceAsync(): Job {
         return CoroutineScope(KotterDispatchers.Render).launch {
             session.data.start(MainRenderScope.Lifecycle)
-            // Rendering might crash, and if so, we should still propagate the exception but only after we've cleaned up
-            // our rendering.
-            var deferredException: Exception? = null
             // Make sure run logic doesn't modify values while we're in the middle of rendering
             session.data.lock.write {
                 renderLock.withLock { renderRequested = false }
@@ -225,8 +222,7 @@ class Section internal constructor(val session: Session, private val render: Mai
 
                 try {
                     renderer.render(render)
-                } catch (ex: Exception) {
-                    deferredException = ex
+                } catch (ignored: Throwable) {
                 }
                 // Send the whole set of instructions through "write" at once so the clear and updates are processed
                 // in one pass.
@@ -239,8 +235,6 @@ class Section internal constructor(val session: Session, private val render: Mai
                 }
             }
             session.data.stop(MainRenderScope.Lifecycle)
-
-            deferredException?.let { throw it }
         }
     }
     private fun renderOnce() = runBlocking {
