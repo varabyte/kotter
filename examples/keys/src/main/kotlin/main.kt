@@ -30,6 +30,7 @@ fun main() = session {
                 Keys.PAGE_UP -> "PAGE_UP"
                 Keys.PAGE_DOWN -> "PAGE_DOWN"
                 Keys.TAB -> "TAB"
+                Keys.SPACE -> "SPACE"
                 is CharKey -> (key as CharKey).code.toString()
                 else -> "Unhandled key. Please report a bug!"
            }
