@@ -127,7 +127,7 @@ fun TestTerminal.resolveRerenders(): List<String> {
             }
             textPtr.startsWith(codeEraseToLineEnd) -> {
                 textPtr.charIndex += codeEraseToLineEnd.length
-                currLine.removeRange(currLineIndex, currLineIndex + currLine.length)
+                currLine.deleteRange(currLineIndex, currLineIndex + currLine.length)
             }
             textPtr.startsWith(codeMoveToPrevLine) -> {
                 textPtr.charIndex += codeMoveToPrevLine.length
