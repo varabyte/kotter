@@ -3,10 +3,6 @@ import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.Session
 
 fun main() = session {
-    textExample()
-}
-
-private fun Session.textExample() {
     section {
         bold { textLine("Bolded") }
         underline { textLine("Underlined") }
