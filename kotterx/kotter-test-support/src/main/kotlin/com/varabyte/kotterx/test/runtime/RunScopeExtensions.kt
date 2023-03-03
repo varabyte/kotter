@@ -2,8 +2,8 @@ package com.varabyte.kotterx.test.runtime
 
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.concurrent.locks.write
-import java.util.concurrent.CountDownLatch
-import kotlin.concurrent.write
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 
 /**
  * Block the current run block until a render has occurred where the passed in [condition] is true.
@@ -31,7 +31,7 @@ import kotlin.concurrent.write
  * ```
  */
 fun RunScope.blockUntilRenderWhen(condition: () -> Boolean) {
-    val latch = CountDownLatch(1)
+    val latch = CompletableDeferred<Unit>()
 
     // Prevent the section from starting a render pass until we're sure we've registered our callback
     // Or, if a render is in progress, this will wait for it to finish first.
@@ -41,9 +41,10 @@ fun RunScope.blockUntilRenderWhen(condition: () -> Boolean) {
         section.onRendered {
             if (condition()) {
                 removeListener = true
-                latch.countDown()
+                latch.complete(Unit)
             }
         }
     }
-    latch.await()
+
+    runBlocking { latch.await() }
 }
