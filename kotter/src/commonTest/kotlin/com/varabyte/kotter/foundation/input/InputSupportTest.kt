@@ -14,8 +14,8 @@ import com.varabyte.kotterx.test.terminal.sendCode
 import com.varabyte.kotterx.test.terminal.type
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
-import java.util.*
-import java.util.concurrent.CountDownLatch
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -116,28 +116,30 @@ class InputSupportTest {
 
     @Test
     fun `input calls are activated when first rendered and deactivated on section end`() = testSession { terminal ->
-        val wasActivated = CountDownLatch(1)
-        val wasDeactivated = CountDownLatch(1)
+        val wasActivated = CompletableDeferred<Unit>()
+        val wasDeactivated = CompletableDeferred<Unit>()
 
         section {
             input()
         }.runUntilInputEntered {
             onInputActivated {
                 // Auto-activated on initial render
-                wasActivated.countDown()
+                wasActivated.complete(Unit)
             }
 
             onInputDeactivated {
                 // Auto-deactivated when section exists
-                wasDeactivated.countDown()
+                wasDeactivated.complete(Unit)
             }
 
             terminal.type(Ansi.CtrlChars.ENTER)
         }
 
         // Verify that activation and deactivation events occurred
-        wasActivated.await()
-        wasDeactivated.await()
+        runBlocking {
+            wasActivated.await()
+            wasDeactivated.await()
+        }
     }
 
     @Test
@@ -300,7 +302,7 @@ class InputSupportTest {
             input()
         }.runUntilInputEntered {
             onInputChanged {
-                input = input.lowercase(Locale.getDefault())
+                input = input.lowercase()
             }
             onInputEntered {
                 typed = input
@@ -474,7 +476,7 @@ class InputSupportTest {
     }
 
     @Test
-    fun `can set and get input directly (even though you shoudln't usually)`() = testSession { terminal ->
+    fun `can set and get input directly even though you shoudln't usually`() = testSession { terminal ->
 
         section {
             text("1>"); input(id = "first", isActive = true); textLine("<")

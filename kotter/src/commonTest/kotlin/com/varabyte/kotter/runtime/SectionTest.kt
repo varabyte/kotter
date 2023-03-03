@@ -1,7 +1,5 @@
 package com.varabyte.kotter.runtime
 
-import com.varabyte.kotter.foundation.input.input
-import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.render.aside
 import com.varabyte.kotter.foundation.runUntilSignal
@@ -14,11 +12,9 @@ import com.varabyte.kotterx.test.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlinx.coroutines.*
-import java.util.concurrent.ArrayBlockingQueue
-import java.util.concurrent.CountDownLatch
+import kotlinx.coroutines.channels.Channel
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
-import kotlin.test.fail
 
 class SectionTest {
     @Test
@@ -30,7 +26,7 @@ class SectionTest {
     }
 
     @Test
-    fun `if a section does not get run, the session will throw an exception`() {
+    fun `if a section does not get run the session will throw an exception`() {
         assertThrows<IllegalStateException> {
             testSession {
                 section {} // Whoops, forgot to add ".run()"! I hope I get warned about my mistake....
@@ -106,17 +102,17 @@ class SectionTest {
     fun `single line sections get repainted in place`() = testSession { terminal ->
         var count by liveVarOf(0)
 
-        val rendered = ArrayBlockingQueue<Unit>(1)
+        val renderedSignal = Channel<Unit>(capacity = 1)
         section {
             text(count.toString())
         }.onRendered {
-            rendered.add(Unit)
+            runBlocking { renderedSignal.send(Unit) }
         }.run {
-            rendered.take()
+            renderedSignal.receive()
             count = 1
-            rendered.take()
+            renderedSignal.receive()
             count = 2
-            rendered.take()
+            renderedSignal.receive()
         }
 
         assertThat(terminal.lines()).containsExactly(
@@ -139,18 +135,19 @@ class SectionTest {
     fun `multiline sections get repainted in place`() = testSession { terminal ->
         var count by liveVarOf(1)
 
-        val rendered = ArrayBlockingQueue<Unit>(1)
+        val renderedSignal = Channel<Unit>(capacity = 1)
+
         section {
             textLine("Multiple lines")
             text("Run #$count")
         }.onRendered {
-            rendered.add(Unit)
+            runBlocking { renderedSignal.send(Unit) }
         }.run {
-            rendered.take()
+            renderedSignal.receive()
             count++
-            rendered.take()
+            renderedSignal.receive()
             count++
-            rendered.take()
+            renderedSignal.receive()
         }
 
         assertThat(terminal.lines()).containsExactly(
@@ -179,15 +176,15 @@ class SectionTest {
 
     @Test
     fun `any extra asides always flush`() = testSession { terminal ->
-        val renderedOnce = CountDownLatch(1)
+        val renderedSignal = CompletableDeferred<Unit>()
 
         section {
             textLine()
             text("Section text")
         }.onRendered {
-            renderedOnce.countDown()
+            renderedSignal.complete(Unit)
         }.run {
-            renderedOnce.await()
+            renderedSignal.await()
             for (i in 1..5) {
                 aside { text("Aside #$i") }
             }

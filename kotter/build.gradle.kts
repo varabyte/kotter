@@ -35,6 +35,14 @@ kotlin {
             }
         }
 
+        val commonTest by getting {
+            dependencies {
+                implementation(libs.kotlin.test)
+                implementation(libs.truthish)
+                implementation(project(":kotterx:kotter-test-support"))
+            }
+        }
+
         val jvmMain by getting {
             dependencies {
                 // For system terminal implementation
@@ -44,14 +52,6 @@ kotlin {
 
                 // For GuardedBy concurrency annotation
                 implementation(libs.jcip.annotations)
-            }
-        }
-
-        val jvmTest by getting {
-            dependencies {
-                implementation(libs.kotlin.test)
-                implementation(libs.truthish)
-                implementation(project(":kotterx:kotter-test-support"))
             }
         }
 
