@@ -13,7 +13,15 @@ group = "com.varabyte.kotterx"
 version = libs.versions.kotter.get()
 
 kotlin {
-    jvm()
+    jvm {
+        jvmToolchain(8)
+
+        val main by compilations.getting {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
 
     linuxX64()
     macosArm64()
