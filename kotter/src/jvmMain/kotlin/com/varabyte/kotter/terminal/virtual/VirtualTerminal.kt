@@ -11,6 +11,7 @@ import java.awt.*
 import java.awt.Cursor.HAND_CURSOR
 import java.awt.event.*
 import java.awt.event.WindowEvent.WINDOW_CLOSING
+import java.awt.geom.Point2D
 import java.net.URI
 import java.net.URISyntaxException
 import java.nio.file.Path
@@ -380,9 +381,15 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
         }
     }
 
+    // viewToModel2D is not available in JDK8, so backport it
     @Suppress("DEPRECATION") // viewToModel2d not available in JDK8
+    private fun JTextComponent.viewToModel2D_jdk8(pt: Point2D): Int {
+        // In our limited use of viewToModel2D, its behavior is identical to viewToModel
+        return viewToModel(pt as Point)
+    }
+
     override fun getToolTipText(event: MouseEvent): String? {
-        val offset = viewToModel(event.point)
+        val offset = viewToModel2D_jdk8(event.point)
         val uriUnderCursor = getUriAtOffset(offset)
         if (uriUnderCursor != null) {
             val word = getWordAtOffset(offset)
@@ -402,10 +409,9 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
         mouseMotionListeners.toList().forEach { removeMouseMotionListener(it) }
         ToolTipManager.sharedInstance().registerComponent(this@SwingTerminalPane)
 
-        @Suppress("DEPRECATION") // viewToModel2d not available in JDK8
         addMouseMotionListener(object : MouseMotionAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                val uriUnderCursor = getUriAtOffset(this@SwingTerminalPane.viewToModel(e.point))
+                val uriUnderCursor = getUriAtOffset(this@SwingTerminalPane.viewToModel2D_jdk8(e.point))
                 cursor = if (uriUnderCursor != null) {
                     Cursor.getPredefinedCursor(HAND_CURSOR)
                 } else {
@@ -414,10 +420,9 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
             }
         })
 
-        @Suppress("DEPRECATION") // viewToModel2d not available in JDK8
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                getUriAtOffset(this@SwingTerminalPane.viewToModel(e.point))?.let { uriUnderCursor ->
+                getUriAtOffset(this@SwingTerminalPane.viewToModel2D_jdk8(e.point))?.let { uriUnderCursor ->
                     Desktop.getDesktop().browse(uriUnderCursor)
                 }
             }
