@@ -1,5 +1,6 @@
 package com.varabyte.kotter.runtime
 
+import com.varabyte.kotter.foundation.runtime.ShutdownHookKey
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.terminal.Terminal
@@ -62,7 +63,13 @@ class Session internal constructor(internal val terminal: Terminal) {
 
     internal fun dispose() {
         // Protect against dispose being called multiple times
-        if (data.isActive(Lifecycle)) {
+        @Suppress("RemoveRedundantQualifierName") // Useful to show "Session.Lifecycle" for readability
+        if (data.isActive(Session.Lifecycle)) {
+            data[ShutdownHookKey]?.let { disposeCalls ->
+                disposeCalls.forEach { it.invoke() }
+                activeSection?.requestRerender()
+            }
+
             data.stopAll()
             terminal.close()
         }
