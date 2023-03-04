@@ -64,6 +64,12 @@ jobs:
       - uses: actions/checkout@v3
         if: steps.shouldrun.conclusion == 'success'
 
+      - uses: actions/setup-java@v3
+        if: steps.shouldrun.conclusion == 'success'
+        with:
+          distribution: temurin
+          java-version: 8
+
       - name: Setup Gradle
         if: steps.shouldrun.conclusion == 'success'
         uses: gradle/gradle-build-action@v2
