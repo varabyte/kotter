@@ -250,7 +250,8 @@ class Section internal constructor(val session: Session, private val render: Mai
      * not the next (at which point, they could clean up their resources). It may also be useful for tests.
      */
     fun onRendered(block: OnRenderedScope.() -> Unit): Section {
-        require(session.data.isActive(Lifecycle))
+        @Suppress("RemoveRedundantQualifierName") // Useful to show "Section.Lifecycle" for readability
+        require(session.data.isActive(Section.Lifecycle))
         onRendered.add(block)
 
         return this
@@ -264,7 +265,8 @@ class Section internal constructor(val session: Session, private val render: Mai
      * cursor). Changes made in `onFinishing` may potentially kick off one final render pass.
      */
     fun onFinishing(block: () -> Unit): Section {
-        require(session.data.isActive(Lifecycle))
+        @Suppress("RemoveRedundantQualifierName") // Useful to show "Section.Lifecycle" for readability
+        require(session.data.isActive(Section.Lifecycle))
         onFinishing.add(block)
 
         return this

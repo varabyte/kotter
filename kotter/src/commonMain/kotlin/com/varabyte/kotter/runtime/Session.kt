@@ -32,7 +32,8 @@ class Session internal constructor(internal val terminal: Terminal) {
     val activeSection: Section? get() = data[ActiveSectionKey]
 
     init {
-        data.start(Lifecycle)
+        @Suppress("RemoveRedundantQualifierName") // Useful to show "Session.Lifecycle" for readability
+        data.start(Session.Lifecycle)
     }
 
     internal fun assertNoActiveSections() {
