@@ -69,7 +69,7 @@ class ReentrantLock {
                         ownerMutex.unlock()
                     }
 
-                    delay(0)
+                    Thread.sleepMs(0)
                 }
             }
         }

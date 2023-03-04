@@ -4,5 +4,6 @@ import java.lang.Thread as JvmThread
 internal actual class Thread {
     actual companion object {
         actual fun getId(): Any = JvmThread.currentThread()
+        actual fun sleepMs(millis: Int) { JvmThread.sleep(millis.toLong()) }
     }
 }

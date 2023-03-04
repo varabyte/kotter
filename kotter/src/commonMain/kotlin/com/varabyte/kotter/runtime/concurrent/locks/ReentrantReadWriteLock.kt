@@ -57,7 +57,7 @@ class ReentrantReadWriteLock {
                     }
                 }
 
-                if (waitInLine) delay(0)
+                if (waitInLine) Thread.sleepMs(0)
             }
         }
 
@@ -92,7 +92,7 @@ class ReentrantReadWriteLock {
                     }
                 }
 
-                if (waitInLine) delay(0)
+                if (waitInLine) Thread.sleepMs(0)
             }
         }
 
