@@ -1,8 +1,8 @@
 package com.varabyte.kotter.runtime.concurrent.locks
 
 import com.varabyte.kotter.platform.concurrent.Thread
+import com.varabyte.kotter.platform.concurrent.ThreadId
 import com.varabyte.kotter.platform.concurrent.annotations.ThreadSafe
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -37,8 +37,9 @@ class ReentrantReadWriteLock {
     private val stateLock = Mutex()
     private var writeCount = 0
     private var currState = State.IDLE
-    private var readingThreadsIds = mutableListOf<Any>()
-    private var writingThreadId: Any? = null
+    private var readingThreadsIds = mutableListOf<ThreadId>()
+    private var readCountsToRestore = mutableMapOf<ThreadId, Int>()
+    private var writingThreadId: ThreadId? = null
 
     inner class ReaderLock {
         fun lock() = runBlocking {
@@ -80,8 +81,18 @@ class ReentrantReadWriteLock {
 
             while (waitInLine) {
                 stateLock.withLock {
-                    // Special case -- if you're the only reader, then we can promote to write
-                    if (currState == State.IDLE || currState == State.READING && readingThreadsIds.all { it == threadId }) {
+                    if (currState == State.READING && !readCountsToRestore.containsKey(threadId)) {
+                        val readCountsToRelease = readingThreadsIds.count { it == threadId }
+                        if (readCountsToRelease > 0) {
+                            readingThreadsIds.removeAll { it == threadId }
+                            readCountsToRestore[threadId] = readCountsToRelease
+                        }
+                        if (readingThreadsIds.isEmpty()) {
+                            currState = State.IDLE
+                        }
+                    }
+
+                    if (currState == State.IDLE) {
                         currState = State.WRITING
                         writingThreadId = threadId
                     }
@@ -97,9 +108,14 @@ class ReentrantReadWriteLock {
         }
 
         fun unlock() = runBlocking {
+            val threadId = Thread.getId()
+
             stateLock.withLock {
                 writeCount--
                 if (writeCount == 0) {
+                    val readCountsToAcquire = readCountsToRestore.remove(threadId) ?: 0
+                    repeat(readCountsToAcquire) { readingThreadsIds.add(threadId) }
+
                     currState = if (readingThreadsIds.isEmpty()) State.IDLE else State.READING
                 }
             }
