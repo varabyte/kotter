@@ -6,7 +6,19 @@ on:
     branches: [ main ]
   # Manual dispatch option is useful for triggering tests on a different branch
   workflow_dispatch:
-
+    inputs:
+      target-linux:
+        type: boolean
+        description: "Linux"
+        default: true
+      target-win:
+        type: boolean
+        description: "Windows"
+        default: true
+      target-mac:
+        type: boolean
+        description: "Mac OS"
+        default: true
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -16,16 +28,34 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
+      - id: shouldrun
+        name: Should Run (early exit check)
+        if: |
+          (github.event_name == 'push' && matrix.os == 'ubuntu-latest') ||
+          (matrix.os == 'ubuntu-latest' && inputs.target-linux) ||
+          (matrix.os == 'windows-latest' && inputs.target-win) ||
+          (matrix.os == 'macos-latest' && inputs.target-mac)
+        run: echo "This workflow will run because the inputs are relevant to this machine."
+
       - uses: actions/checkout@v3
+        if: steps.shouldrun.conclusion == 'success'
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
 
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
+        if: steps.shouldrun.conclusion == 'success'
 
       - name: Cache Kotlin Native compiler
+        if: steps.shouldrun.conclusion == 'success'
         uses: actions/cache@v3
         with:
           path: ~/.konan
           key: kotlin-native-compiler-${{ runner.OS }}
 
       - name: Test with Gradle
+        if: steps.shouldrun.conclusion == 'success'
         run: ./gradlew allTests --no-daemon
