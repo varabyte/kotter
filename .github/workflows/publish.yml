@@ -1,0 +1,172 @@
+name: Publish to Maven
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo-gcloud:
+        type: boolean
+        description: "Repository: GCloud"
+        default: true
+      repo-sonatype:
+        type: boolean
+        description: "Repository: Sonatype"
+        default: false
+      target-common:
+        type: boolean
+        description: "Target: Common"
+        default: true
+      target-jvm:
+        type: boolean
+        description: "Target: JVM"
+        default: true
+      target-linux:
+        type: boolean
+        description: "Target: Linux"
+        default: true
+      target-win:
+        type: boolean
+        description: "Target: Windows"
+        default: true
+      target-mac:
+        type: boolean
+        description: "Target: Mac OS"
+        default: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    env:
+      # See: https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
+      ORG_GRADLE_PROJECT_signingKey: ${{ secrets.VARABYTE_SIGNING_KEY }}
+
+    strategy:
+      matrix:
+        # Note: We use Linux to build the windows target because we can and it's easier than using a windows-latest
+        # machine (which would require configuring the "Add secret Gradle properties" step below differently using
+        # Windows paths. It's also faster to grab a Linux machine runner vs. a Windows machine runner, at least in my
+        # experience.
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - id: shouldrun
+        name: Should Run (early exit check)
+        if: |
+          (inputs.repo-gcloud || inputs.repo-sonatype) && (
+            (matrix.os == 'ubuntu-latest' && inputs.target-linux) ||
+            (matrix.os == 'ubuntu-latest' && inputs.target-common) ||
+            (matrix.os == 'ubuntu-latest' && inputs.target-jvm) ||
+            (matrix.os == 'ubuntu-latest' && inputs.target-win) ||
+            (matrix.os == 'macos-latest' && inputs.target-mac)
+          )
+        run: echo "This workflow will run because the inputs are relevant to this machine."
+
+      - uses: actions/checkout@v3
+        if: steps.shouldrun.conclusion == 'success'
+
+      - name: Setup Gradle
+        if: steps.shouldrun.conclusion == 'success'
+        uses: gradle/gradle-build-action@v2
+
+      - name: Add secret Gradle properties
+        if: steps.shouldrun.conclusion == 'success'
+        env:
+          GRADLE_PROPERTIES: ${{ secrets.VARABYTE_GRADLE_PROPERTIES }}
+        shell: bash
+        run: |
+          mkdir -p ~/.gradle/
+          echo "GRADLE_USER_HOME=${HOME}/.gradle" >> $GITHUB_ENV
+          echo "${GRADLE_PROPERTIES}" > ~/.gradle/gradle.properties
+
+      - name: Cache Kotlin Native compiler
+        if: steps.shouldrun.conclusion == 'success'
+        uses: actions/cache@v3
+        with:
+          path: ~/.konan
+          key: kotlin-native-compiler-${{ runner.OS }}
+
+      #################### GCLOUD ####################
+
+      - name: Publish Common (GCloud)
+        # Doesn't have to be Linux but it tends to be the fastest image
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-gcloud) &&
+          (matrix.os == 'ubuntu-latest' && inputs.target-common)
+        run: |
+          ./gradlew publishKotlinMultiplatformPublicationToGCloudMavenRepository --no-daemon
+
+      - name: Publish JVM (GCloud)
+        # Doesn't have to be Linux but it tends to be the fastest image
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-gcloud) &&
+          (matrix.os == 'ubuntu-latest' && inputs.target-jvm)
+        run: |
+          ./gradlew publishJvmPublicationToGCloudMavenRepository --no-daemon
+
+      - name: Publish Linux (GCloud)
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-gcloud) &&
+          (matrix.os == 'ubuntu-latest' && inputs.target-linux)
+        run: ./gradlew publishLinuxX64PublicationToGCloudMavenRepository --no-daemon
+
+      - name: Publish Mac (GCloud)
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-gcloud) &&
+          (matrix.os == 'macos-latest' && inputs.target-mac)
+        run: |
+          ./gradlew publishMacosX64PublicationToGCloudMavenRepository --no-daemon
+          ./gradlew publishMacosArm64PublicationToGCloudMavenRepository --no-daemon
+
+      - name: Publish Win (GCloud)
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-gcloud) &&
+          (matrix.os == 'ubuntu-latest' && inputs.target-win)
+        run: ./gradlew publishMingwX64PublicationToGCloudMavenRepository --no-daemon
+
+      #################### SONATYPE ####################
+
+      - name: Publish Common (Sonatype)
+        # Doesn't have to be Linux but it tends to be the fastest image
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-sonatype) &&
+          (matrix.os == 'ubuntu-latest' && inputs.target-common)
+        run: |
+          ./gradlew publishKotlinMultiplatformPublicationToSonatypeMavenRepository --no-daemon
+
+      - name: Publish JVM (Sonatype)
+        # Doesn't have to be Linux but it tends to be the fastest image
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-sonatype) &&
+          (matrix.os == 'ubuntu-latest' && inputs.target-jvm)
+        run: |
+          ./gradlew publishJvmPublicationToSonatypeMavenRepository --no-daemon
+
+      - name: Publish Linux (Sonatype)
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-sonatype) &&
+          (matrix.os == 'ubuntu-latest' && inputs.target-linux)
+        run: ./gradlew publishLinuxX64PublicationToSonatypeMavenRepository --no-daemon
+
+      - name: Publish Mac (Sonatype)
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-sonatype) &&
+          (matrix.os == 'macos-latest' && inputs.target-mac)
+        run: |
+          ./gradlew publishMacosX64PublicationToSonatypeMavenRepository --no-daemon
+          ./gradlew publishMacosArm64PublicationToSonatypeMavenRepository --no-daemon
+
+      - name: Publish Win (Sonatype)
+        if: |
+          (steps.shouldrun.conclusion == 'success') &&
+          (inputs.repo-sonatype) &&
+          (matrix.os == 'ubuntu-latest' && inputs.target-win)
+        run: ./gradlew publishMingwX64PublicationToSonatypeMavenRepository --no-daemon

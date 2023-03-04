@@ -53,9 +53,7 @@ fun shouldPublishToGCloud(): Boolean {
 }
 
 fun shouldPublishToMavenCentral(): Boolean {
-    // Only publish snapshots to our varabyte repo for now, we may change our mind later
-    return !version.toString().endsWith("SNAPSHOT")
-            && (findProperty("kotterx.test.maven.publish") as? String).toBoolean()
+    return (findProperty("kotterx.test.maven.publish") as? String).toBoolean()
             && findProperty("ossrhUsername") != null && findProperty("ossrhPassword") != null
 }
 
@@ -146,7 +144,22 @@ publishing {
 }
 
 if (shouldSign()) {
+    // If "shouldSign" returns true, then singing password should be set
+    val secretKeyRingExists = (findProperty("signing.secretKeyRingFile") as? String)
+        ?.let { File(it).exists() }
+        ?: false
+
+    // If "shouldSign" returns true, then singing password should be set
+    val signingPassword = findProperty("signing.password") as String
+
     signing {
+        // If here, we're on a CI. Check for the signing key which must be set in an environment variable.
+        // See also: https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
+        if (!secretKeyRingExists) {
+            val signingKey: String? by project
+            useInMemoryPgpKeys(signingKey, signingPassword)
+        }
+
         // Signing requires following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
         // and adding singatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
         sign(publishing.publications["kotterTestSupport"])
