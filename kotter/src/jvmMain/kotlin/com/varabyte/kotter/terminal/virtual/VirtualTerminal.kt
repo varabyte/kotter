@@ -380,8 +380,9 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
         }
     }
 
+    @Suppress("DEPRECATION") // viewToModel2d not available in JDK8
     override fun getToolTipText(event: MouseEvent): String? {
-        val offset = viewToModel2D(event.point)
+        val offset = viewToModel(event.point)
         val uriUnderCursor = getUriAtOffset(offset)
         if (uriUnderCursor != null) {
             val word = getWordAtOffset(offset)
@@ -401,9 +402,10 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
         mouseMotionListeners.toList().forEach { removeMouseMotionListener(it) }
         ToolTipManager.sharedInstance().registerComponent(this@SwingTerminalPane)
 
+        @Suppress("DEPRECATION") // viewToModel2d not available in JDK8
         addMouseMotionListener(object : MouseMotionAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                val uriUnderCursor = getUriAtOffset(this@SwingTerminalPane.viewToModel2D(e.point))
+                val uriUnderCursor = getUriAtOffset(this@SwingTerminalPane.viewToModel(e.point))
                 cursor = if (uriUnderCursor != null) {
                     Cursor.getPredefinedCursor(HAND_CURSOR)
                 } else {
@@ -412,9 +414,10 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
             }
         })
 
+        @Suppress("DEPRECATION") // viewToModel2d not available in JDK8
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                getUriAtOffset(this@SwingTerminalPane.viewToModel2D(e.point))?.let { uriUnderCursor ->
+                getUriAtOffset(this@SwingTerminalPane.viewToModel(e.point))?.let { uriUnderCursor ->
                     Desktop.getDesktop().browse(uriUnderCursor)
                 }
             }
