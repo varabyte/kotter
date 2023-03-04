@@ -1,0 +1,26 @@
+name: Manual Test
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Cache Kotlin Native compiler
+        uses: actions/cache@v3
+        with:
+          path: ~/.konan
+          key: kotlin-native-compiler-${{ runner.OS }}
+
+      - name: Test with Gradle
+        run: ./gradlew allTests --no-daemon
