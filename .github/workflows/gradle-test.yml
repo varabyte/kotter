@@ -4,6 +4,8 @@ name: tests
 on:
   push:
     branches: [ main ]
+  # Manual dispatch option is useful for triggering tests on a different branch
+  workflow-dispatch:
 
 jobs:
   build:
