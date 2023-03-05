@@ -1,13 +1,16 @@
 package com.varabyte.kotter.foundation.timer
 
-import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
+import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
+import com.varabyte.kotter.platform.concurrent.locks.write
 import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
 import com.varabyte.kotter.platform.internal.system.getCurrentTimeMs
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
-import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
-import com.varabyte.kotter.platform.concurrent.locks.write
-import kotlinx.coroutines.*
+import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 

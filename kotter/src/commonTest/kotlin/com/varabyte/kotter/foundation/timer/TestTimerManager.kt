@@ -1,8 +1,8 @@
 package com.varabyte.kotter.foundation.timer
 
+import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
-import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
 import kotlin.time.Duration
 
 // Note: Class needs to be internal because TimerManager is internal

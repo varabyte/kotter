@@ -1,10 +1,12 @@
 package com.varabyte.kotterx.decorations
 
-import com.varabyte.kotter.runtime.render.OffscreenRenderScope
 import com.varabyte.kotter.foundation.render.offscreen
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.runtime.render.OffscreenRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotterx.decorations.BorderCharacters.Companion.ASCII
+import com.varabyte.kotterx.decorations.BorderCharacters.Companion.CURVED
 
 /**
  * Characters which collectively describe the look and feel of some border built out of text.

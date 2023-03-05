@@ -1,20 +1,23 @@
 package com.varabyte.kotter.foundation.input
 
 import com.varabyte.kotter.foundation.anim.Anim
-import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
+import com.varabyte.kotter.platform.concurrent.locks.ReentrantLock
+import com.varabyte.kotter.platform.concurrent.locks.withLock
 import com.varabyte.kotter.platform.internal.collections.computeIfAbsent
 import com.varabyte.kotter.platform.internal.system.getCurrentTimeMs
 import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
-import com.varabyte.kotter.platform.concurrent.locks.ReentrantLock
-import com.varabyte.kotter.platform.concurrent.locks.withLock
+import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.terminal.Terminal
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.shareIn
 import kotlin.time.Duration
 
 // Once created, we keep it alive for the session, because Flow is designed to be collected multiple times, meaning
