@@ -9,8 +9,8 @@ import com.varabyte.kotter.platform.internal.runtime.getCurrentTimeMs
 import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
-import com.varabyte.kotter.runtime.concurrent.locks.ReentrantLock
-import com.varabyte.kotter.runtime.concurrent.locks.withLock
+import com.varabyte.kotter.platform.concurrent.locks.ReentrantLock
+import com.varabyte.kotter.platform.concurrent.locks.withLock
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.terminal.Terminal
 import kotlinx.coroutines.*
