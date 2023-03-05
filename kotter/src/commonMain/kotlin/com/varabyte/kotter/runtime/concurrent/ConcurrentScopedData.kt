@@ -6,9 +6,9 @@ import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
 import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData.Key
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData.Lifecycle
-import com.varabyte.kotter.runtime.concurrent.locks.ReentrantReadWriteLock
-import com.varabyte.kotter.runtime.concurrent.locks.read
-import com.varabyte.kotter.runtime.concurrent.locks.write
+import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
+import com.varabyte.kotter.platform.concurrent.locks.read
+import com.varabyte.kotter.platform.concurrent.locks.write
 
 /**
  * A thread-safe collection of key/value pairs, where additionally each key is typed and tied to a [Lifecycle].

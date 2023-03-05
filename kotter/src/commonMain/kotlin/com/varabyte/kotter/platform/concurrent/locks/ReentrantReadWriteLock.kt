@@ -1,4 +1,4 @@
-package com.varabyte.kotter.runtime.concurrent.locks
+package com.varabyte.kotter.platform.concurrent.locks
 
 import com.varabyte.kotter.platform.internal.concurrent.Thread
 import com.varabyte.kotter.platform.internal.concurrent.ThreadId
