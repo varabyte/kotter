@@ -1,7 +1,7 @@
 package com.varabyte.kotter.foundation
 
-import com.varabyte.kotter.platform.concurrent.annotations.ThreadSafe
-import com.varabyte.kotter.platform.ref.WeakReference
+import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
+import com.varabyte.kotter.platform.internal.ref.WeakReference
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.Section

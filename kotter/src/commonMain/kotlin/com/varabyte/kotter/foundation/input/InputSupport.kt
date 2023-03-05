@@ -4,8 +4,8 @@ import com.varabyte.kotter.foundation.anim.Anim
 import com.varabyte.kotter.foundation.coroutines.KotterDispatchers
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotter.platform.collections.computeIfAbsent
-import com.varabyte.kotter.platform.runtime.getCurrentTimeMs
+import com.varabyte.kotter.platform.internal.collections.computeIfAbsent
+import com.varabyte.kotter.platform.internal.runtime.getCurrentTimeMs
 import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey

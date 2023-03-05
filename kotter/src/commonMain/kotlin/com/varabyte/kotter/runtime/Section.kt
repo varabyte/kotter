@@ -6,9 +6,9 @@ import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.render.AsideRenderScope
 import com.varabyte.kotter.foundation.runUntilSignal
-import com.varabyte.kotter.platform.concurrent.AtomicReference
-import com.varabyte.kotter.platform.concurrent.annotations.GuardedBy
-import com.varabyte.kotter.platform.collections.removeIf
+import com.varabyte.kotter.platform.internal.concurrent.AtomicReference
+import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
+import com.varabyte.kotter.platform.internal.collections.removeIf
 import com.varabyte.kotter.runtime.concurrent.locks.ReentrantLock
 import com.varabyte.kotter.runtime.RunScope.Lifecycle
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData

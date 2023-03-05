@@ -1,9 +1,9 @@
 package com.varabyte.kotter.runtime.concurrent
 
-import com.varabyte.kotter.platform.collections.computeIfAbsent
-import com.varabyte.kotter.platform.collections.removeIf
-import com.varabyte.kotter.platform.concurrent.annotations.GuardedBy
-import com.varabyte.kotter.platform.concurrent.annotations.ThreadSafe
+import com.varabyte.kotter.platform.internal.collections.computeIfAbsent
+import com.varabyte.kotter.platform.internal.collections.removeIf
+import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
+import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData.Key
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData.Lifecycle
 import com.varabyte.kotter.runtime.concurrent.locks.ReentrantReadWriteLock
