@@ -1,4 +1,4 @@
-package com.varabyte.kotter.platform.internal.runtime
+package com.varabyte.kotter.platform.internal.system
 
 import kotlin.system.getTimeMillis
 

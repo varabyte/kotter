@@ -1,4 +1,4 @@
-package com.varabyte.kotter.foundation.coroutines
+package com.varabyte.kotter.runtime.coroutines
 
 import kotlinx.coroutines.*
 

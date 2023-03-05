@@ -1,6 +1,6 @@
 package com.varabyte.kotter.foundation
 
-import com.varabyte.kotter.platform.internal.runtime.onShutdown
+import com.varabyte.kotter.platform.internal.system.onShutdown
 import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.terminal.Terminal
 
