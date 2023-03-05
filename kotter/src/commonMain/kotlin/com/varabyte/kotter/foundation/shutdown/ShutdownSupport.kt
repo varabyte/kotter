@@ -1,4 +1,4 @@
-package com.varabyte.kotter.foundation.runtime
+package com.varabyte.kotter.foundation.shutdown
 
 import com.varabyte.kotter.foundation.LiveVar
 import com.varabyte.kotter.runtime.RunScope

@@ -1,6 +1,6 @@
 package com.varabyte.kotter.runtime
 
-import com.varabyte.kotter.foundation.runtime.ShutdownHookKey
+import com.varabyte.kotter.foundation.shutdown.ShutdownHookKey
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.terminal.Terminal

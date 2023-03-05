@@ -1,7 +1,7 @@
 package com.varabyte.kotter.runtime
 
 import com.varabyte.kotter.foundation.LiveVar
-import com.varabyte.kotter.foundation.coroutines.KotterDispatchers
+import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.render.AsideRenderScope

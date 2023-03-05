@@ -1,4 +1,4 @@
-package com.varabyte.kotter.platform.internal.runtime
+package com.varabyte.kotter.platform.internal.system
 
 import kotlinx.cinterop.staticCFunction
 import kotlinx.coroutines.CoroutineScope

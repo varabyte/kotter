@@ -1,8 +1,8 @@
 package com.varabyte.kotter.foundation.timer
 
-import com.varabyte.kotter.foundation.coroutines.KotterDispatchers
+import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
-import com.varabyte.kotter.platform.internal.runtime.getCurrentTimeMs
+import com.varabyte.kotter.platform.internal.system.getCurrentTimeMs
 import com.varabyte.kotter.runtime.RunScope
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
