@@ -6,13 +6,11 @@ import com.varabyte.kotter.runtime.render.OneShotRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
 
-/**
- * A [RenderScope] used for the [aside] method.
- *
- * While it seems unnecessary to create an empty class like this, this can be useful if library authors want to provide
- * extension methods that only apply to `aside` scopes.
- */
-class AsideRenderScope(renderer: Renderer<AsideRenderScope>): OneShotRenderScope(renderer)
+@Deprecated(
+    "AsideRenderScope should have been declared under the runtime package originally. Please change `foundation` to `runtime` in the import.",
+    replaceWith = ReplaceWith("com.varabyte.kotter.runtime.render.AsideRenderScope")
+)
+typealias AsideRenderScope = com.varabyte.kotter.runtime.render.AsideRenderScope
 
 /**
  * A one-off render block that can be triggered within a [RenderScope.run] block.
@@ -80,10 +78,10 @@ class AsideRenderScope(renderer: Renderer<AsideRenderScope>): OneShotRenderScope
  * A compiler program could be another good example of this -- you might have a spinner plus some text saying which
  * file is currently being compiled, with finished files output using asides.
  */
-fun RunScope.aside(render: AsideRenderScope.() -> Unit) {
+fun RunScope.aside(render: com.varabyte.kotter.runtime.render.AsideRenderScope.() -> Unit) {
     val session = section.session
 
-    val asideRenderer = Renderer(session) { AsideRenderScope(it) }.apply { render(render) }
+    val asideRenderer = Renderer(session) { com.varabyte.kotter.runtime.render.AsideRenderScope(it) }.apply { render(render) }
     session.data.putIfAbsent(AsideRendersKey, { mutableListOf() }) {
         add(asideRenderer)
         section.requestRerender()

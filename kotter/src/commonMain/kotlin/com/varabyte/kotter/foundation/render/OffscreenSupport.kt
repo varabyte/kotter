@@ -6,19 +6,16 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
 import com.varabyte.kotter.runtime.internal.text.lineLengths
 import com.varabyte.kotter.runtime.internal.text.toRawText
-import com.varabyte.kotter.runtime.render.OneShotRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
-import com.varabyte.kotterx.text.justified
 import com.varabyte.kotterx.decorations.bordered
+import com.varabyte.kotterx.text.justified
 
-/**
- * A [RenderScope] used for the [offscreen] method.
- *
- * While it seems unnecessary to create an empty class like this, this can be useful if library authors want to provide
- * extension methods that only apply to `offscreen` scopes.
- */
-class OffscreenRenderScope(renderer: Renderer<OffscreenRenderScope>): OneShotRenderScope(renderer)
+@Deprecated(
+    "OffscreenRenderScope should have been declared under the runtime package originally. Please change `foundation` to `runtime` in the import.",
+    replaceWith = ReplaceWith("com.varabyte.kotter.runtime.render.OffscreenRenderScope")
+)
+typealias OffscreenRenderScope = com.varabyte.kotter.runtime.render.OffscreenRenderScope
 
 /**
  * An internal buffer that stores commands without actively rendering them.
@@ -32,10 +29,10 @@ class OffscreenRenderScope(renderer: Renderer<OffscreenRenderScope>): OneShotRen
  */
 class OffscreenBuffer internal constructor(
     internal val parentScope: RenderScope,
-    render: OffscreenRenderScope.() -> Unit
+    render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit
 ) {
     private val commands = run {
-        val offscreenRenderer = Renderer(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
+        val offscreenRenderer = Renderer(parentScope.renderer.session) { com.varabyte.kotter.runtime.render.OffscreenRenderScope(it) }.apply {
             render(render)
         }
         // The renderer normally makes sure that a command block ends with a trailing newline and a state reset, but we
@@ -192,6 +189,6 @@ class OffscreenCommandRenderer internal constructor(
  *
  * See also: [justified], [bordered]
  */
-fun RenderScope.offscreen(render: OffscreenRenderScope.() -> Unit): OffscreenBuffer {
+fun RenderScope.offscreen(render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit): OffscreenBuffer {
     return OffscreenBuffer(this, render)
 }

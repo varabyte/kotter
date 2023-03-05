@@ -4,7 +4,7 @@ import com.varabyte.kotter.foundation.LiveVar
 import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.foundation.input.runUntilInputEntered
 import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.render.AsideRenderScope
+import com.varabyte.kotter.runtime.render.AsideRenderScope
 import com.varabyte.kotter.foundation.runUntilSignal
 import com.varabyte.kotter.platform.internal.concurrent.AtomicReference
 import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
