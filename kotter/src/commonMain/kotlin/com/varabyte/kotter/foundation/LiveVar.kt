@@ -1,12 +1,12 @@
 package com.varabyte.kotter.foundation
 
+import com.varabyte.kotter.platform.concurrent.locks.read
+import com.varabyte.kotter.platform.concurrent.locks.write
 import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
 import com.varabyte.kotter.platform.internal.ref.WeakReference
 import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.Section
-import com.varabyte.kotter.platform.concurrent.locks.read
-import com.varabyte.kotter.platform.concurrent.locks.write
+import com.varabyte.kotter.runtime.Session
 import kotlin.reflect.KProperty
 
 /**

@@ -1,8 +1,8 @@
 package com.varabyte.kotter.foundation.text
 
 import com.varabyte.kotter.runtime.internal.ansi.commands.CharCommand
-import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.internal.ansi.commands.CharSequenceCommand
+import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.render.RenderScope
 
 /**

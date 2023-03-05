@@ -1,9 +1,9 @@
 package com.varabyte.kotterx.text
 
-import com.varabyte.kotter.runtime.render.OffscreenRenderScope
 import com.varabyte.kotter.foundation.render.offscreen
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.runtime.render.OffscreenRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import kotlin.math.max
 

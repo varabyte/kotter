@@ -11,8 +11,9 @@ import com.varabyte.kotterx.test.terminal.lines
 import com.varabyte.kotterx.test.terminal.resolveRerenders
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 

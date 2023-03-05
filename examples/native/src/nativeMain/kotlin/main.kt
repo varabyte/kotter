@@ -1,6 +1,5 @@
 import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.runtime.Session
 
 fun main() = session {
     section {

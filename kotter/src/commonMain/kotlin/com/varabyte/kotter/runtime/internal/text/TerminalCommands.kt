@@ -1,8 +1,8 @@
 package com.varabyte.kotter.runtime.internal.text
 
 import com.varabyte.kotter.runtime.internal.TerminalCommand
-import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
 import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
+import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
 
 /**
  * Return the length of each line of text a list of [TerminalCommand]s would generate if rendered.

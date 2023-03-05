@@ -2,7 +2,6 @@ package com.varabyte.kotter.foundation.render
 
 import com.varabyte.kotter.runtime.AsideRendersKey
 import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.render.OneShotRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
 
