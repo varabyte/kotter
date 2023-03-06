@@ -7,7 +7,7 @@ kotter = "1.1.0-SNAPSHOT"
 kover = "0.6.1"
 nexus-publish = "1.2.0"
 okhttp = "4.9.3"
-truthish = "0.6.4"
+truthish = "0.6.5"
 
 [libraries]
 jcip-annotations = { module = "net.jcip:jcip-annotations", version = "1.0" }
