@@ -66,7 +66,7 @@ fun session(
     val session = Session(terminal)
 
     // Clean-up even if the user presses control-C
-    onShutdown { session.dispose() }
+    onShutdown { session.shutdown() }
 
     try {
         session.apply(block)

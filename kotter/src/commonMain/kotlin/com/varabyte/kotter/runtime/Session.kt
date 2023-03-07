@@ -1,9 +1,15 @@
 package com.varabyte.kotter.runtime
 
 import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.shutdown.ShutdownHookKey
+import com.varabyte.kotter.foundation.shutdown.SectionShutdownHookKey
+import com.varabyte.kotter.foundation.shutdown.SessionShutdownHookKey
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
+import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.runtime.terminal.Terminal
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 /**
  * A Kotter session.
@@ -61,15 +67,26 @@ class Session internal constructor(internal val terminal: Terminal) {
         return Section(this, render)
     }
 
+    /**
+     * Called in response to the user forcefully exiting the program, i.e. via ctrl+C.
+     */
+    internal fun shutdown() {
+        data.get(SessionShutdownHookKey) { this.forEach { it.invoke() } }
+        data.get(SectionShutdownHookKey) { this.forEach { it.invoke() } }
+        if (activeSection != null) {
+            // If there's a section currently running, it's *possible* that one of the shutdown
+            // hooks modified a livevar, so let's give the renderer one more frame to run just in case.
+            val renderingFinished = CompletableDeferred<Unit>()
+            CoroutineScope(KotterDispatchers.Render).launch { renderingFinished.complete(Unit) }
+            runBlocking { renderingFinished.await() }
+        }
+
+        dispose()
+    }
+
     internal fun dispose() {
-        // Protect against dispose being called multiple times
         @Suppress("RemoveRedundantQualifierName") // Useful to show "Session.Lifecycle" for readability
         if (data.isActive(Session.Lifecycle)) {
-            data[ShutdownHookKey]?.let { disposeCalls ->
-                disposeCalls.forEach { it.invoke() }
-                activeSection?.requestRerender()
-            }
-
             data.stopAll()
             terminal.close()
         }
