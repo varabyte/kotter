@@ -22,10 +22,10 @@ fun main() = session {
         textLine("Normal colors")
 
         // nested syntax
-        white(com.varabyte.kotter.foundation.text.ColorLayer.BG) {
+        white(ColorLayer.BG) {
             black {
                 textLine("Black on white")
-                blue(com.varabyte.kotter.foundation.text.ColorLayer.BG) {
+                blue(ColorLayer.BG) {
                     textLine("Black on blue")
                 }
                 textLine("Black on white again")
@@ -41,7 +41,7 @@ fun main() = session {
         scopedState {
             red()
             textLine("Red text")
-            white(com.varabyte.kotter.foundation.text.ColorLayer.BG)
+            white(ColorLayer.BG)
             textLine("Red on white")
         }
         textLine("Normal colors again")
@@ -50,7 +50,7 @@ fun main() = session {
         // Using reset
         blue()
         textLine("Blue text")
-        black(com.varabyte.kotter.foundation.text.ColorLayer.BG)
+        black(ColorLayer.BG)
         textLine("Blue on black")
         clearColors()
         textLine("Normal colors again")
@@ -64,12 +64,12 @@ fun main() = session {
             clearBold()
             textLine("Underlined text")
             red()
-            blue(com.varabyte.kotter.foundation.text.ColorLayer.BG)
+            blue(ColorLayer.BG)
             textLine("Underlined red on blue text")
-            clearColor(com.varabyte.kotter.foundation.text.ColorLayer.BG)
+            clearColor(ColorLayer.BG)
             textLine("Underlined red text")
             clearUnderline()
-            green(com.varabyte.kotter.foundation.text.ColorLayer.BG)
+            green(ColorLayer.BG)
             textLine("Red on green text")
             clearColors()
             textLine("Normal colors again")
@@ -78,7 +78,7 @@ fun main() = session {
 
         // Using scoped clear methods
         scopedState {
-            blue(com.varabyte.kotter.foundation.text.ColorLayer.BG)
+            blue(ColorLayer.BG)
             red()
             textLine("Red on blue")
             clearColor {
@@ -91,7 +91,7 @@ fun main() = session {
         // Inverting colors
         scopedState {
             blue()
-            green(com.varabyte.kotter.foundation.text.ColorLayer.BG)
+            green(ColorLayer.BG)
             textLine("Blue on green")
             invert {
                 textLine("Green on blue (inverted)")
@@ -105,7 +105,7 @@ fun main() = session {
         bold {
             underline {
                 strikethrough {
-                    red(com.varabyte.kotter.foundation.text.ColorLayer.BG) {
+                    red(ColorLayer.BG) {
                         blue {
                             invert {
                                 textLine("All styles applied! (Red on blue)")
