@@ -35,7 +35,7 @@ actual class NativeTerminal : Terminal {
     // Thanks to JLine3: https://github.com/jline/jline3/blob/2c55e39b0380a1b6ce4696bb6068c0091568d336/terminal/src/main/java/org/jline/terminal/impl/AbstractWindowsTerminal.java#L278
     private suspend fun FlowCollector<Int>.handleControlChars(keyCode: Int, isCtrl: Boolean, isAlt: Boolean, isShift: Boolean): Boolean {
         // TODO: Revisit adding support for control chars + meta keys if requested; should be OK to not worry about this
-        //  for a first pass.
+        //  for a first pass. Note: system commands (like Ctrl+C / Ctrl+D) are handled by Windows before we get here.
         if (isCtrl || isAlt || isShift) return false
 
         suspend fun emitStr(str: String) {
