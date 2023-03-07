@@ -1,7 +1,7 @@
 [versions]
 dokka = "1.7.20"
 jline = "3.21.0"
-kotlin = "1.8.10"
+kotlin = "1.7.20" # Don't increase! We're intentionally using an old a version as possiblefor better compatibility
 kotlinx-coroutines = "1.6.4"
 kotter = "1.1.0-SNAPSHOT"
 kover = "0.6.1"
