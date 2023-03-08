@@ -34,7 +34,8 @@ session {
 
 *See also: [the game of life](examples/life), [snake](examples/snake), [sliding tiles](examples/sliding), [doom fire](examples/doomfire), and [Wordle](examples/wordle) implemented in Kotter!*
 
-***Are you a 1.0.x user? Check the [migration](MIGRATING.md) docs.***
+| NOTE: 1.1.0 is still in pre-release. [You can read the docs for 1.0.2 here.](https://github.com/varabyte/kotter/blob/d2068cb948d294639ef41ace5b9bd5e3509e86fb/README.md) |
+|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ---
 
@@ -62,6 +63,9 @@ project will have access to a very broad ecosystem of Kotlin and Java libraries.
 
 In case it affects your decision, you can read more about [distributing Kotter applications ▼](#-distributing-your-application)
 later in this document.
+
+| Are you a 1.0.x user looking to upgrade? [Review the migration docs](MIGRATING.md). |
+|-------------------------------------------------------------------------------------|
 
 #### JVM
 
