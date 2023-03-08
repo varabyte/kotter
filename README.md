@@ -1,9 +1,11 @@
-![version: 1.0.2](https://img.shields.io/badge/kotter-v1.0.2-blue)
+![version: 1.1.0rc1](https://img.shields.io/badge/kotter-v1.1.0_rc1-blue)
 ![kotter tests](https://github.com/varabyte/kotter/actions/workflows/gradle-test.yml/badge.svg?branch=main)
 ![kotter coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bitspittle/1fab2b6fd23489bdea3f5d1f38e4dcb2/raw/kotter-coverage-badge.json)
 <a href="https://varabyte.github.io/kotter">
 ![kotter docs](https://img.shields.io/badge/docs-grey?logo=readthedocs)
 </a>
+<br>
+![kotlin version](https://img.shields.io/badge/kotlin_compatibility-1.6+-lightgray?logo=kotlin)
 <br>
 <a href="https://discord.gg/5NZ2GKV5Cs">
   <img alt="Varabyte Discord" src="https://img.shields.io/discord/886036660767305799.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2" />
@@ -32,6 +34,8 @@ session {
 
 *See also: [the game of life](examples/life), [snake](examples/snake), [sliding tiles](examples/sliding), [doom fire](examples/doomfire), and [Wordle](examples/wordle) implemented in Kotter!*
 
+***Are you a 1.0.x user? Check the [migration](MIGRATING.md) docs.***
+
 ---
 
 Kotter (a **KOT**lin **TER**minal library) aims to be a relatively thin, declarative, Kotlin-idiomatic API that provides
@@ -45,31 +49,67 @@ Specifically, this library helps with:
 * Creating timers and animations
 * Seamlessly repainting terminal text when values change
 
+Kotter is multiplatform, supporting JVM and native targets.
+
 ## 🐘 Gradle
 
 ### 🎯 Dependency
 
-```groovy
-// build.gradle (groovy)
+Kotter supports JVM and native targets.
 
-repositories {
-  mavenCentral()
-}
+If you're not sure what you want, start with a JVM project. That target is far easier to distribute. It also means your
+project will have access to a very broad ecosystem of Kotlin and Java libraries.
 
-dependencies {
-  implementation 'com.varabyte.kotter:kotter:1.0.2'
-}
-```
+In case it affects your decision, you can read more about [distributing Kotter applications ▼](#-distributing-your-application)
+later in this document.
+
+#### JVM
 
 ```kotlin
 // build.gradle.kts (kotlin script)
+plugins {
+    kotlin("jvm")
+}
 
 repositories {
-  mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-  implementation("com.varabyte.kotter:kotter:1.0.2")
+    implementation("com.varabyte.kotter:kotter-jvm:1.1.0-rc1")
+}
+```
+
+#### Multiplatform
+
+Multiplatform can be useful if you want to distribute binaries to users without requiring they have Java installed on
+their machine. Note that building native binaries is tricky as you will need different host machines for building the
+different targets (or, otherwise, a CI solution for building them).
+
+```kotlin
+// build.gradle.kts (kotlin script)
+plugins {
+    kotlin("multiplatform")
+}
+
+repositories {
+    mavenCentral()
+}
+
+kotlin {
+    // Choose the targets you care about:
+    linuxX64()
+    macosArm64() // Mac M1+
+    macosX64() // Mac Intel
+    mingwX64() // Windows
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation("com.varabyte.kotter:kotter:1.1.0-rc1")
+            }
+        }
+    }
 }
 ```
 
@@ -943,6 +983,51 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-aside.gif)
 
+### 🪝 Shutdown Hook
+
+Terminal applications can be forcefully interrupted if the user presses CTRL-C. Some apps may want to handle this.
+
+While you can register hooks for such an event directly with the underlying platform, Kotter offers an additional
+API for this: `addShutdownHook`.
+
+You can register a handler insider your run block, like so:
+
+```kotlin
+section { /* ... */ }.run {
+  addShutdownHook { /* this will get called only if the user presses ctrl-c */ }
+}
+```
+
+Unlike a shutdown hook registered with the system, Kotter's managed shutdown hook will additionally try to give the
+render block one more chance to run before the program exits. You can take advantage of this to send a message to the
+user:
+
+```kotlin
+var emergencyShutdown by liveVarOf(false)
+section {
+  /* ... */
+  if (emergencyShutdown) {
+    yellow {
+      textLine("This program is exiting NOW because the user pressed CTRL-C.")
+      textLine("We sent a request to shut down the server but could not confirm it was received.")
+      textLine("Consider running `./stop-server.sh` later to make sure it actually stopped.")
+    }
+  }
+}.run {
+  addShutdownHook {
+    sendServerShutdownRequestAsync()
+    emergencyShutdown = true
+  }
+}
+```
+
+It's important that you never run any long-running logic inside a shutdown hook. If your program continues to run for
+too long after an interrupt request, the system may just halt your program anyway.
+
+Finally, you should not rely on shutdown hooks actually getting run. They don't get triggered if the system exits
+normally or if the process gets aggressively halted by the OS (perhaps because things were taking too long to shut down,
+or maybe the user issued a kill command from the terminal).
+
 ## 🎓 Advanced
 
 ### 🔨 "Extending" Kotter
@@ -1229,6 +1314,8 @@ pattern (just calling `section`s one after another on a single thread) is powerf
 
 ### 🖥️  Virtual Terminal
 
+*NOTE: The virtual terminal is only supported for JVM targets. Kotlin/Native targets don't implement this feature.*
+
 It's not guaranteed that every user's command line setup supports ANSI. For example, debugging this project with
 IntelliJ as well as running within Gradle are two such environments where functionality isn't available! According to
 many online reports, some legacy terminals on Windows are also an offender here.
@@ -1259,6 +1346,141 @@ session(
   /* ... */
 }
 ```
+
+### 📦 Distributing Your Application
+
+You finished your Kotter application. Congratulations!! 🎉
+
+Now what? How do you get your amazing program to your users?
+
+Let's explore a few options.
+
+#### Package your JVM application as a zip (or tar) file
+
+**Pros:**
+* Trivial to do.
+* Easy to share.
+* Access to the whole JVM ecosystem.
+
+**Cons:**
+* User must extract files on their machine, a step they aren't used to worrying about.
+* User must have Java installed.
+
+If your application targets the JVM, you can easily build zip and tar files of your project using the `assembleDist`
+task:
+
+```bash
+$ cd yourkotterapp
+$ ./assembleDist
+$ cd build/distributions
+$ ls
+yourkotterapp-version.tar  yourkotterapp-version.zip
+```
+
+You can ask your user to download either file, extract it, and then run the program under the bin folder:
+
+```bash
+$ unzip yourkotterapp-version.zip
+$ ./yourkotterapp-version/bin/yourkotterapp
+```
+
+---
+
+#### Publish your JVM application to a package manager
+
+**Pros:**
+* Trivial for the user to install (although this may install Java as a side effect).
+* Access to the whole JVM ecosystem.
+
+**Cons:**
+* Everyone has their favorite package manager, and you won't be able to satisfy everyone.
+* Some package managers take a lot of effort to set up.
+* Some users won't want to use a package manager, so you'll need to include other options anyway.
+
+For a concrete example, let's consider Homebrew, a very popular package manager. They're one of the easier ones to
+support -- you can create a custom repo that declares a manifest ([example here](https://github.com/varabyte/homebrew-tap/blob/main/Formula/kobweb.rb)).
+Once set up, a user can install / update your software simply by running: `brew install yourkotterapp`
+
+Notice how that manifest declares JDK11 as a dependency. You'll need to figure out how to do that with each package
+manager you decide to support.
+
+**Pro-tip:** I have a project that uses [JReleaser](https://jreleaser.org/guide/latest/reference/packagers/index.html)
+to publish my program to several package managers with a single Gradle publish task. If you decide to try JReleaser in
+your own project, you can review
+[my jreleaser block in this build.gradle.kts](https://github.com/varabyte/kobweb/blob/a8910bf5168a3e27be88ab49fce8b0a86322caac/cli/kobweb/build.gradle.kts#L49).
+
+---
+
+#### Build a Kotlin/Native target
+
+**Pros:**
+* No Java required on the user's machine.
+* Potentially small final binary size.
+* Relatively easy to set up.
+
+**Cons:**
+* Will require multiple host machines if you want to build binaries for all platform targets.
+* No access to the broader JVM ecosystem.
+* Native targets don't provide a virtual terminal.
+
+Configuring a Kotter/Native application is relatively easy but outside the scope of this document. Start with
+[the official docs](https://kotlinlang.org/docs/native-overview.html) and review the
+[native example](https://github.com/varabyte/kotter/tree/main/examples/native) for guidance.
+
+Once your Kotlin/Native project is set up, you can build it using `./gradlew linkDebugExecutable[Host]` (or
+`./gradlew linkReleaseExecutable[Host]`) which puts a binary under `./build/bin/[host]/debugExecutable/native.exe`
+(or `native.kexe` on Linux).
+
+Unless you already have Mac, Windows, and Linux machines at home, you may want to use a CI to build binaries for you.
+How to do this is also outside the scope of this document, but I personally use GitHub Actions to handle this, creating
+a workflow that runs on several machines, publishing artifacts based on which runner is active. You can read more about
+[GitHub CI strategies here](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs).
+
+For example, you could set up a workflow to link various binaries into executables whenever a new commit is pushed to
+the main branch. You could then use the [upload artifact](https://github.com/actions/upload-artifact) action to push
+binaries to [a location you can download from](https://github.com/actions/upload-artifact#where-does-the-upload-go)
+later.
+
+You can share those binaries with your users, either from cloud storage somewhere or by publishing it via a package
+manager (as [discussed above ▲](#publish-your-jvm-application-to-a-package-manager)).
+
+---
+
+#### Build your JVM application with GraalVM Native Image
+
+**Pros:**
+* No Java required on the user's machine.
+* Great flexibility. User can use the entire JVM library ecosystem while still producing a binary that can run anywhere.
+* Potentially small final binary size (after using UPX).
+
+* **Cons:**
+* Will require multiple host machines if you want to build binaries for all platform targets.
+* GraalVM can be annoying to install.
+* GraalVM can be very fussy.
+* Can be frustrating to chase down runtime exceptions caused by a misconfigured compile.
+
+*This section is incomplete as my own experimentation fell a bit short with it. However, GraalVM is a very promising
+technology, so if anyone reading this knows how to get this solution to work, please [contact me](mailto:bitspittle@gmail.com)
+and I can update this section.*
+
+[GraalVM](https://www.graalvm.org/) is a high-performance JDK distribution, while
+[GraalVM Native Image](https://www.graalvm.org/latest/reference-manual/native-image/) is an ahead-of-time compiler for
+Java programs. What this means to you is that you can build a Java application jar and then target it with native image
+to convert it into a standalone binary.
+
+You may be able to further minify your GraalVM output with [UPX](https://upx.github.io/), which may be able to shrink
+your final binary size dramatically.
+
+**Pro-tip**: If you decide to try using GraalVM on your project, you should strongly consider excluding the virtual
+terminal by overriding the default `terminal` parameter when creating a session:
+
+```kotlin
+session(terminal = SystemTerminal.create()) { /* ... */ }
+```
+
+This allows GraalVM to strip out all Swing code, which is otherwise very tricky to configure.
+
+---
 
 ### 🤷 Why Not Compose / Mosaic?
 
