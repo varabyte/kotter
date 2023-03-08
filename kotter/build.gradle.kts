@@ -208,7 +208,7 @@ publishing {
             }
         }
 
-        create<MavenPublication>("kotter") {
+        withType<MavenPublication> {
             artifact(javadocJar)
             pom {
                 val githubPath = "https://github.com/varabyte/kotter"
@@ -259,6 +259,6 @@ if (shouldSign()) {
 
         // Signing requires following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
         // and adding singatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
-        sign(publishing.publications["kotter"])
+        sign(publishing.publications)
     }
 }

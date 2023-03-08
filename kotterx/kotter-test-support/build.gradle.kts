@@ -109,11 +109,10 @@ publishing {
             }
         }
 
-        create<MavenPublication>("kotterTestSupport") {
+        withType<MavenPublication> {
             artifact(javadocJar)
             val githubPath = "https://github.com/varabyte/kotter"
             pom {
-                artifactId = "kotter-test-support"
                 name.set("Kotter test support")
                 description.set("Helper classes for writing tests for code using Kotter.")
                 url.set(githubPath)
@@ -161,6 +160,6 @@ if (shouldSign()) {
 
         // Signing requires following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
         // and adding singatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
-        sign(publishing.publications["kotterTestSupport"])
+        sign(publishing.publications)
     }
 }
