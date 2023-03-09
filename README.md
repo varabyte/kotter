@@ -1029,8 +1029,8 @@ It's important that you never run any long-running logic inside a shutdown hook.
 too long after an interrupt request, the system may just halt your program anyway.
 
 Finally, you should not rely on shutdown hooks actually getting run. They don't get triggered if the system exits
-normally or if the process gets aggressively halted by the OS (perhaps because things were taking too long to shut down,
-or maybe the user issued a kill command from the terminal).
+normally, the program crashes, or if the process gets aggressively halted by the OS (perhaps because things were taking
+too long to shut down, or maybe the user issued a kill command from the terminal).
 
 ## 🎓 Advanced
 
