@@ -1560,3 +1560,135 @@ session {
 ```
 
 Comparisons with Mosaic are included in the [examples/mosaic](examples/mosaic) folder.
+
+### 🧶 How About Mordant?
+
+[Mordant](https://github.com/ajalt/mordant) is another Kotlin console API. And honestly, it's awesome. It's worth a
+look!
+
+Mordant provides an API where you instantiate a `Terminal` object and issue commands to it directly. It's very clean!
+The library also provides markdown support and builders for complex tables, which are really nice features that don't
+currently exist in Kotter. It has a few other opinionated components, such as an animated progress bar and an input
+prompter that requires the answer be one of a few choices.
+
+If you are mostly rendering output text, Mordant may honestly result in more streamlined code.
+
+You may still prefer using Kotter for cases where you plan to have a lot of interactive elements, such as several
+animations running side by side in parallel, or if you want keypress handling, or if you want to want the ability to
+manage timers, or if you want to show interactive prompts with rich auto-completion behavior.
+
+Additionally, Kotter's split between the `section` block and `run` blocks benefit more and more in increasingly complex
+scenarios. It can be nice to have a clear separation of the rendering logic from background computation logic.
+
+Still, for concreteness, let's take a few examples from Mordant's README and show them side-by-side with equivalent
+Kotter implementations:
+
+**Multiple styles**
+```kotlin
+// Mordant
+val t = Terminal()
+t.println("${red("red")} ${white("white")} and ${blue("blue")}")
+
+// Kotter
+section {
+    red { text("red") }; text(' ')
+    white { text("white")}; text(" and ")
+    blue { textLine("blue") }
+}.run()
+```
+
+**Nest styles**
+```kotlin
+// Mordant
+t.println(white("You ${(blue on yellow)("can ${(black + strikethrough)("nest")} styles")} arbitrarily"))
+
+// Kotter
+section {
+    white {
+        text("You ")
+        blue { yellow(BG) {
+            text("can ")
+            black { strikethrough {
+                text("nest")
+            }}
+            text(" styles")
+        }}
+        textLine(" arbitrarily")
+    }
+}.run()
+```
+
+**Reuse styles**
+```kotlin
+// Mordant
+val style = (bold + white + underline)
+t.println(style("You can save styles"))
+t.println(style("to reuse"))
+
+// Kotter
+fun RenderScope.withStyle(block: () -> Unit) {
+  bold { white { underline { block() }}}
+}
+section {
+  withStyle { textLine("You can refactor styles") }
+  withStyle { textLine("to reuse") }
+}.run()
+```
+
+**Animating a horizontal bar**
+```kotlin
+// Mordant
+val t = Terminal()
+val a = t.textAnimation<Int> { frame ->
+  (1..50).joinToString("") {
+    val hue = (frame + it) * 3 % 360
+    t.colors.hsv(hue, 1, 1)("━")
+  }
+}
+
+t.cursor.hide(showOnExit = true)
+repeat(120) {
+  a.update(it)
+  Thread.sleep(25)
+}
+
+// Kotter
+val barAnim = renderAnimOf(numFrames = 120, 25.milliseconds) { frame ->
+    for (i in 1..50) {
+        val hue = ((frame + i) * 3) % 360
+        hsv(hue, 1f, 1f) { text("━") }
+    }
+}
+section {
+    barAnim()
+}.runUntilKeyPressed(Keys.Q)
+```
+
+**Prompting for input**
+```kotlin
+// Mordant
+val t = Terminal()
+val response = t.prompt("Choose a size", choices=listOf("small", "large"))
+t.println("You chose: $response")
+
+// Kotter
+val choices = listOf("small", "large")
+var choice: String = ""
+section {
+    text("Choose a size [${choices.joinToString()}]: "); input(Completions(*choices))
+}.runUntilInputEntered {
+    onInputEntered {
+        if (input !in choices) rejectInput() else choice = input
+    }
+}
+section {
+    text("You chose: $choice")
+}.run()
+```
+
+The above samples definitely look really nice in Mordant, and if those cases capture the main sort of functionality you
+were planning to use in your own app, Mordant may be the better API for your project.
+
+Meanwhile, for examples that respond to user input like [snake](examples/snake), or which do a lot of clearing /
+repainting like [doomfire](examples/doomfire), or which query for input in the middle of a bunch of other text like
+[wordle](examples/wordle), Kotter may be the better choice in those cases.
