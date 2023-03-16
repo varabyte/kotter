@@ -16,7 +16,7 @@ import kotlin.time.Duration
  *
  * ```
  * session {
- *   val waitingAnim = textAnimOf(listOf("", ".", "..", "..."), frameDuration = 250.ms)
+ *   val waitingAnim = textAnimOf(listOf("", ".", "..", "..."), frameDuration = 250.milliseconds)
  *   section {
  *     text("Thinking$waitingAnim")
  *   }.runUntilSignal { ... }
