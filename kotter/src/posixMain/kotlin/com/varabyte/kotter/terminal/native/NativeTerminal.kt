@@ -34,6 +34,12 @@ actual class NativeTerminal : Terminal {
         puts("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
     }
 
+    override val width: Int = memScoped {
+        val winsize = alloc<winsize>()
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
+        winsize.ws_col.toInt()
+    }
+
     override fun write(text: String) {
         print(text)
     }

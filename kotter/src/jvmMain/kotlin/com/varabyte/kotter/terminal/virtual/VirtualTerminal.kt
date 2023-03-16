@@ -168,6 +168,8 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
     private var userVScrollPos: Int? = null
     private var userHScrollPos: Int? = null
 
+    override val width = Int.MAX_VALUE // Virtual terminals can scroll horizontally forever
+
     override fun write(text: String) {
         SwingUtilities.invokeLater {
             // Here, we update our text pane causing it to repaint, but as a side effect, this screws with the

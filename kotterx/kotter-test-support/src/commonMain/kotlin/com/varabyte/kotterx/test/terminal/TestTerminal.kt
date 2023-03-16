@@ -59,6 +59,9 @@ class TestTerminal : Terminal {
         keys.forEach { keysChannel.send(it) }
     }
 
+    // TODO: Allow tests to set this so we can verify width wrapping behavior.
+    override val width = Int.MAX_VALUE // In memory text doesn't wrap
+
     override fun write(text: String) {
         assertNotClosed()
         _buffer.append(text)

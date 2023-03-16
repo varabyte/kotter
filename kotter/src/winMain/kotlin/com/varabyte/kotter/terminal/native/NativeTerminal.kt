@@ -13,6 +13,8 @@ import platform.windows.*
 
 actual class NativeTerminal : Terminal {
     private val stdInHandle = GetStdHandle(STD_INPUT_HANDLE)!!
+    private val stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE)!!
+
     private val origModeVar = nativeHeap.alloc<DWORDVar>().apply {
         // Disable all console features, meaning we're indicating we'll handle processing all input ourselves
         // See also: https://learn.microsoft.com/en-us/windows/console/high-level-console-modes
@@ -26,6 +28,12 @@ actual class NativeTerminal : Terminal {
 
     init {
         puts("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
+    }
+
+    override val width: Int = memScoped {
+        val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
+        GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
+        (csbi.srWindow.Right - csbi.srWindow.Left)
     }
 
     override fun write(text: String) {

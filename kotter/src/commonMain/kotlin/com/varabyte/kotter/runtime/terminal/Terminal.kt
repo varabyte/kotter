@@ -9,9 +9,10 @@ interface Terminal {
     /**
      * The width of the terminal.
      *
-     * If set, text written to the terminal will have newlines auto-appended.
+     * Once this width is reached, newlines will be auto-appended. It will also be used in calculating how many
+     * lines to erase on repaint.
      */
-    val width: Int get() = Int.MAX_VALUE
+    val width: Int
 
     /**
      * Write some text to the underlying terminal.
