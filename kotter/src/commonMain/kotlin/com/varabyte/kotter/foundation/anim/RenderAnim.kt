@@ -14,7 +14,7 @@ import kotlin.time.Duration
  *
  * ```
  * session {
- *   val colorAnim = renderAnimOf(Color.values().size, Duration.ofMillis(250)) { i ->
+ *   val colorAnim = renderAnimOf(Color.values().size, 250.ms) { i ->
  *     color(Color.values()[i])
  *   }
  *   section {

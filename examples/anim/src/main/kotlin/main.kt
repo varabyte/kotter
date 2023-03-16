@@ -16,7 +16,7 @@ fun main() = session {
     var result by liveVarOf<Int?>(null)
     val spinnerAnim = textAnimOf(listOf("\\", "|", "/", "-"), 125.milliseconds)
 
-    // Same as: val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), Duration.ofMillis(500))
+    // Same as: val thinkingAnim = textAnimOf(listOf("", ".", "..", "..."), 500.ms)
     val thinkingAnim = renderAnimOf(4, 500.milliseconds) { frameIndex ->
         text(".".repeat(frameIndex))
     }
