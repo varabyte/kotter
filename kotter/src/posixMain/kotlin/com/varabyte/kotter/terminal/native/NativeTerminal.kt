@@ -9,6 +9,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import platform.posix.*
 
+// Workaround needed for the fact that K/N doesn't expose
+// platform.posix.TIOCGWINSZ in macos platforms at this posix layer
+internal expect val TIOCGWINSZ: ULong
+
 // Thanks to https://viewsourcecode.org/snaptoken/kilo/index.html!
 actual class NativeTerminal : Terminal {
     val origTermios = nativeHeap.alloc<termios>().apply {
