@@ -1450,6 +1450,37 @@ manager (as [discussed above ▲](#publish-your-jvm-application-to-a-package-man
 
 ---
 
+#### Use `jlink / jpackage` to convert your JVM project into a binary
+
+**Pros:**
+* No Java required on the user's machine.
+* Access to the whole JVM ecosystem.
+
+**Cons:**
+* Requires JDK14 or newer.
+* Will require multiple host machines if you want to build binaries for all platform targets.
+* May be complicated to set up.
+* May require your CI have access to two different JDKs, one for compiling your code and one for running the jpackage
+  step, in case you are intentionally compiling your code with an older JDK version.
+
+*This section is incomplete as I have not found time to try out these tools yet. However, any readers familiar with them
+are welcome to [contact me](mailto:bitspittle@gmail.com) with information so that I can update this section.*
+
+`jlink`, introduced in Java 9, allows you to assemble modules into a custom runtime image, which can significantly
+reduce the final size of a runtime you'd want to ship (as you'd be excluding a bunch of standard library code you don't
+need). [Official docs here](https://docs.oracle.com/javase/9/tools/jlink.htm).
+
+`jpackage`, introduced in Java 14, allows you to bundle a JVM program plus a runtime (e.g. produced by `jlink`) into
+a final binary + installer, one per platform. [Official docs here](https://docs.oracle.com/en/java/javase/14/jpackage/index.html).
+
+JReleaser, discussed in a previous section, exposes support for [jlink](https://jreleaser.org/guide/early-access/reference/assemble/jlink.html)
+and [jpackage](https://jreleaser.org/guide/early-access/reference/assemble/jpackage.html) configurations.
+
+If you don't need access to the JVM library ecosystem, using [Kotlin/Native ▲](#build-a-kotlinnative-target) is probably
+easier.
+
+---
+
 #### Build your JVM application with GraalVM Native Image
 
 **Pros:**
