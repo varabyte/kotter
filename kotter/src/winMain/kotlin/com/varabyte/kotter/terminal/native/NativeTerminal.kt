@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
-import platform.posix.puts
+import platform.posix.printf
 import platform.windows.*
 
 actual class NativeTerminal : Terminal {
@@ -27,7 +27,7 @@ actual class NativeTerminal : Terminal {
     }
 
     init {
-        puts("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
+        printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
     }
 
     override val width: Int = memScoped {
@@ -114,12 +114,12 @@ actual class NativeTerminal : Terminal {
     override fun read(): Flow<Int> = charFlow
 
     override fun clear() {
-        puts("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}2J") // Clear console
-        puts("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}H") // Move cursor to top-left
+        printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}2J") // Clear console
+        printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}H") // Move cursor to top-left
     }
 
     override fun close() {
-        puts("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25h") // restore the cursor
+        printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25h") // restore the cursor
         SetConsoleMode(stdInHandle, origModeVar.value)
         nativeHeap.free(origModeVar)
     }

@@ -35,7 +35,7 @@ actual class NativeTerminal : Terminal {
     }
 
     init {
-        puts("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
+        printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
     }
 
     override val width: Int = memScoped {
@@ -74,7 +74,7 @@ actual class NativeTerminal : Terminal {
     }
 
     override fun close() {
-        puts("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25h") // restore the cursor
+        printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25h") // restore the cursor
         tcsetattr(STDIN_FILENO, TCSAFLUSH, origTermios.ptr)
         nativeHeap.free(origTermios)
     }
