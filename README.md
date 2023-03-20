@@ -1,4 +1,4 @@
-![version: 1.1.0rc2](https://img.shields.io/badge/kotter-v1.1.0_rc2-blue)
+![version: 1.1.0rc3](https://img.shields.io/badge/kotter-v1.1.0_rc3-blue)
 ![kotter tests](https://github.com/varabyte/kotter/actions/workflows/gradle-test.yml/badge.svg?branch=main)
 ![kotter coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bitspittle/1fab2b6fd23489bdea3f5d1f38e4dcb2/raw/kotter-coverage-badge.json)
 <a href="https://varabyte.github.io/kotter">
@@ -80,7 +80,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.varabyte.kotter:kotter-jvm:1.1.0-rc2")
+    implementation("com.varabyte.kotter:kotter-jvm:1.1.0-rc3")
 }
 ```
 
@@ -110,7 +110,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("com.varabyte.kotter:kotter:1.1.0-rc2")
+                implementation("com.varabyte.kotter:kotter:1.1.0-rc3")
             }
         }
     }
