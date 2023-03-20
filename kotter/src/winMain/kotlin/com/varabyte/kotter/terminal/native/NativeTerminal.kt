@@ -15,18 +15,26 @@ actual class NativeTerminal : Terminal {
     private val stdInHandle = GetStdHandle(STD_INPUT_HANDLE)!!
     private val stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE)!!
 
-    private val origModeVar = nativeHeap.alloc<DWORDVar>().apply {
+    private val origModeInVar = nativeHeap.alloc<DWORDVar>()
+    private val origModeOutVar = nativeHeap.alloc<DWORDVar>()
+    init {
+        GetConsoleMode(stdInHandle, origModeInVar.ptr)
+        GetConsoleMode(stdOutHandle, origModeOutVar.ptr)
+
         // Disable all console features, meaning we're indicating we'll handle processing all input ourselves
         // See also: https://learn.microsoft.com/en-us/windows/console/high-level-console-modes
+        // And also: https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#example-of-enabling-virtual-terminal-processing
+
         SetConsoleMode(
             stdInHandle,
-            ENABLE_VIRTUAL_TERMINAL_PROCESSING // Parse ANSI control characters
-                .or(ENABLE_PROCESSED_INPUT)  // The system will handle CTRL-C
-                .convert()
+            ENABLE_VIRTUAL_TERMINAL_INPUT.or(ENABLE_PROCESSED_INPUT).convert()
         )
-    }
 
-    init {
+        SetConsoleMode(
+            stdOutHandle,
+            ENABLE_VIRTUAL_TERMINAL_PROCESSING.or(ENABLE_PROCESSED_OUTPUT).convert()
+        )
+
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
     }
 
@@ -120,7 +128,9 @@ actual class NativeTerminal : Terminal {
 
     override fun close() {
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25h") // restore the cursor
-        SetConsoleMode(stdInHandle, origModeVar.value)
-        nativeHeap.free(origModeVar)
+        SetConsoleMode(stdInHandle, origModeInVar.value)
+        SetConsoleMode(stdOutHandle, origModeOutVar.value)
+        nativeHeap.free(origModeInVar)
+        nativeHeap.free(origModeOutVar)
     }
 }
