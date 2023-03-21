@@ -15,6 +15,10 @@ internal expect val TIOCGWINSZ: ULong
 
 // Thanks to https://viewsourcecode.org/snaptoken/kilo/index.html!
 actual class NativeTerminal : Terminal {
+    init {
+        if (isatty(STDOUT_FILENO) == 0) throw NativeTerminalException()
+    }
+
     val origTermios = nativeHeap.alloc<termios>().apply {
         val origTermios = this
         tcgetattr(STDIN_FILENO, origTermios.ptr)
