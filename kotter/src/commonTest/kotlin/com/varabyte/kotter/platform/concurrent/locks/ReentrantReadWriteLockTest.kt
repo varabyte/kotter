@@ -59,7 +59,7 @@ class ReentrantReadWriteLockTest {
             }
 
             runBlocking {
-                listOf(finished1, finished1).awaitAll()
+                listOf(finished1, finished2).awaitAll()
             }
 
             // This is probably not necessary, but let's be 100% sure both write blocks ran
