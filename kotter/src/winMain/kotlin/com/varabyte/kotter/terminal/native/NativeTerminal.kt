@@ -15,12 +15,15 @@ actual class NativeTerminal : Terminal {
     private val stdInHandle = GetStdHandle(STD_INPUT_HANDLE)!!
     private val stdOutHandle = GetStdHandle(STD_OUTPUT_HANDLE)!!
 
-    private val origModeInVar = nativeHeap.alloc<DWORDVar>()
-    private val origModeOutVar = nativeHeap.alloc<DWORDVar>()
+    private val arena = Arena()
+    private val origModeInVar = arena.alloc<DWORDVar>()
+    private val origModeOutVar = arena.alloc<DWORDVar>()
+
     init {
         if (
             GetConsoleMode(stdInHandle, origModeInVar.ptr) != TRUE ||
             GetConsoleMode(stdOutHandle, origModeOutVar.ptr) != TRUE) {
+            arena.clear()
             throw CreateNativeTerminalException()
         }
 
@@ -28,10 +31,14 @@ actual class NativeTerminal : Terminal {
         // See also: https://learn.microsoft.com/en-us/windows/console/high-level-console-modes
         // And also: https://learn.microsoft.com/en-us/windows/console/console-virtual-terminal-sequences#example-of-enabling-virtual-terminal-processing
 
-        if (
-            SetConsoleMode(stdInHandle, ENABLE_VIRTUAL_TERMINAL_INPUT.or(ENABLE_PROCESSED_INPUT).convert()) != TRUE ||
-            SetConsoleMode(stdOutHandle, ENABLE_VIRTUAL_TERMINAL_PROCESSING.or(ENABLE_PROCESSED_OUTPUT).convert()) != TRUE
-        ) {
+        if (SetConsoleMode(stdInHandle, ENABLE_VIRTUAL_TERMINAL_INPUT.or(ENABLE_PROCESSED_INPUT).convert()) != TRUE) {
+            arena.clear()
+            throw CreateNativeTerminalException()
+        }
+
+        if (SetConsoleMode(stdOutHandle, ENABLE_VIRTUAL_TERMINAL_PROCESSING.or(ENABLE_PROCESSED_OUTPUT).convert()) != TRUE) {
+            SetConsoleMode(stdInHandle, origModeInVar.value)
+            arena.clear()
             throw CreateNativeTerminalException()
         }
 
@@ -130,7 +137,6 @@ actual class NativeTerminal : Terminal {
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25h") // restore the cursor
         SetConsoleMode(stdInHandle, origModeInVar.value)
         SetConsoleMode(stdOutHandle, origModeOutVar.value)
-        nativeHeap.free(origModeInVar)
-        nativeHeap.free(origModeOutVar)
+        arena.clear()
     }
 }
