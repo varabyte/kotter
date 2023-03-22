@@ -7,6 +7,7 @@ import com.varabyte.kotter.runtime.internal.text.startsWith
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.terminal.Terminal
 import com.varabyte.kotterx.test.foundation.testSession
+import com.varabyte.kotterx.test.runtime.replaceControlCharacters
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -161,12 +162,35 @@ fun TestTerminal.resolveRerenders(): List<String> {
  *
  * ```
  * testSession { terminal ->
- *   section { ... do some crazy stuff here ... }.run { ... more crazy stuff ... }
+ *   section { ... do some crazy stuff here, much which gets erased ... }.run { ... more crazy stuff ... }
  *
- *   assertTrue(terminal.matches {
- *     green { textLine("Expected text!") }
- *   })
+ *   terminal.assertMatches {
+ *     green { textLine("Expected final text!") }
+ *   }
  * }
+ * ```
+ *
+ * This method will throw an [AssertionError] containing more information if the two renders don't match.
+ */
+fun TestTerminal.assertMatches(expected: RenderScope.() -> Unit) {
+    val oursResolved = this.resolveRerenders()
+    val theirsResolved = TestTerminal.consoleOutputFor(expected)
+
+    if (oursResolved != theirsResolved) {
+        throw AssertionError(buildString {
+            appendLine("Text render output does not match.")
+            appendLine()
+            appendLine("Ours:")
+            oursResolved.forEach { line -> appendLine("\t${line.replaceControlCharacters()}") }
+            appendLine()
+            appendLine("Expected:")
+            theirsResolved.forEach { line -> appendLine("\t${line.replaceControlCharacters()}") }
+        })
+    }
+}
+
+/**
+ * Similar to [assertMatches] but just returns a boolean value instead of throwing an assertion.
  */
 fun TestTerminal.matches(expected: RenderScope.() -> Unit): Boolean {
     return this.resolveRerenders() == TestTerminal.consoleOutputFor(expected)

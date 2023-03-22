@@ -25,8 +25,8 @@ class TestTerminalTest {
             counter++
         }
 
-        assertThat(terminal.matches {
+        terminal.assertMatches {
             bold { red { textLine("> 3 <") } }
-        }).isTrue()
+        }
     }
 }
