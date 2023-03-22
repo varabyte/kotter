@@ -21,7 +21,7 @@ actual class NativeTerminal : Terminal {
         if (
             GetConsoleMode(stdInHandle, origModeInVar.ptr) != TRUE ||
             GetConsoleMode(stdOutHandle, origModeOutVar.ptr) != TRUE) {
-            throw NativeTerminalException()
+            throw CreateNativeTerminalException()
         }
 
         // Disable all console features, meaning we're indicating we'll handle processing all input ourselves
@@ -32,7 +32,7 @@ actual class NativeTerminal : Terminal {
             SetConsoleMode(stdInHandle, ENABLE_VIRTUAL_TERMINAL_INPUT.or(ENABLE_PROCESSED_INPUT).convert()) != TRUE ||
             SetConsoleMode(stdOutHandle, ENABLE_VIRTUAL_TERMINAL_PROCESSING.or(ENABLE_PROCESSED_OUTPUT).convert()) != TRUE
         ) {
-            throw NativeTerminalException()
+            throw CreateNativeTerminalException()
         }
 
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
