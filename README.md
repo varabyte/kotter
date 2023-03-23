@@ -34,8 +34,8 @@ session {
 
 *See also: [the game of life](examples/life), [snake](examples/snake), [sliding tiles](examples/sliding), [doom fire](examples/doomfire), and [Wordle](examples/wordle) implemented in Kotter!*
 
-| NOTE: 1.1.0 is still in pre-release. [You can read the docs for 1.0.2 here.](https://github.com/varabyte/kotter/blob/d2068cb948d294639ef41ace5b9bd5e3509e86fb/README.md) |
-|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| NOTE: 1.1.0 is pre-release (though still recommended to use). [You can read the docs for 1.0.2 here.](https://github.com/varabyte/kotter/blob/d2068cb948d294639ef41ace5b9bd5e3509e86fb/README.md) |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ---
 
