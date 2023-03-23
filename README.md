@@ -1838,5 +1838,5 @@ repainting like [doomfire](examples/doomfire), or which query for input in the m
 [wordle](examples/wordle), Kotter may be the better choice in those cases.
 
 And finally, it's possible to use Kotter and Mordant together. For example, referring back to the
-[fallback section above ▲](#-fallback-in-non-interactive-terminals), you can use Mordant in the fallback section, since
+[fallback section above ▲](#-fallback-in-non-interactive-terminals), you can use Mordant in the fallback block, since
 it provides a friendlier API than raw `println`/`readLine` calls.
