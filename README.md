@@ -52,6 +52,9 @@ Specifically, this library helps with:
 
 Kotter is multiplatform, supporting JVM and native targets.
 
+The next sections deal with setting Kotter up, but you may wish to jump straight
+[to the usage section ▼](#-usage) to immediately start learning about this library.
+
 ## 🐘 Gradle
 
 ### 🎯 Dependency
@@ -87,8 +90,7 @@ dependencies {
 #### Multiplatform
 
 Multiplatform can be useful if you want to distribute binaries to users without requiring they have Java installed on
-their machine. Note that building native binaries is tricky as you will need different host machines for building the
-different targets (or, otherwise, a CI solution for building them).
+their machine.
 
 ```kotlin
 // build.gradle.kts (kotlin script)
@@ -117,10 +119,17 @@ kotlin {
 }
 ```
 
+Note that building native binaries is a little tricky, as you may need different host machines in order to build the
+various binaries.
+
 ### 🚥 Running examples
 
-If you've cloned this repository, examples are located under the [examples](examples) folder. To try one of them, you
-can navigate into it on the command line and run it via Gradle.
+If you've cloned this repository, examples are located under the [examples](examples) folder.
+
+#### JVM
+
+Most of the examples (except `examples/native` target the JVM. To try one of them, you can navigate into it on the
+command line and run it via Gradle.
 
 ```bash
 $ cd examples/life
@@ -140,8 +149,24 @@ $ cd build/install/life/bin
 $ ./life
 ```
 
-***Note:** If your terminal does not support features needed by Kotter, then this still may end up running inside a
-virtual terminal.*
+***Note:** If your terminal does not support features needed by Kotter, which could happen on legacy machines for
+example, then this still may end up running inside a virtual terminal.*
+
+#### Multiplatform
+
+Unlike the JVM target, native targets do not have a virtual terminal fallback. So be sure you **do not** use any of the
+Gradle run tasks (e.g. `runDebugExecutabule...`). This will also fail if you try to run your program through the IDE via
+the green "play" arrow.
+
+Instead, you should link your executable and then run it directly.
+
+For example, on Linux:
+
+```bash
+$ cd examples/native
+$ ../../gradlew linkDebugExecutableLinuxX64
+$ ./build/bin/linuxX64/debugExecutable/native.kexe
+```
 
 ## 📖 Usage
 
@@ -1351,6 +1376,58 @@ session(
 }
 ```
 
+### 🔙 Fallback in Non-Interactive Terminals
+
+Kotter is designed to *only* run within a rich, interactive terminal environment, such as a console with ANSI support
+or inside a virtual terminal.
+
+However, there may be cases that Kotter won't be able to run. For example:
+
+1. You're trying to run Kotter in an environment that is both non-interactive AND doesn't have any graphical system
+   enabled (like ssh-ing to some remote machine).
+
+2. You constructed your session in a way that excludes using a `VirtualTerminal`.
+
+3. You are using Kotlin/Native (which does not provide a `VirtualTerminal` implementation).
+
+If you run a console app in such a non-interactive environment, calls like `println` and `readLine` still work, but any
+attempts to move the cursor, erase previous lines, and mamy other ANSI commands which Kotter builds on top of are not
+supported.
+
+Such cases are increasingly rare on modern machines, so you may just decide to ignore them and crash!
+
+However, if you're very determined, you could consider writing some parts of your program twice, once with Kotter using
+all its fancy bells and whistles, and a second time providing a much simpler presentation, limited to printing
+information and asking the occasional question.
+
+To accomplish this, you can use the following code structure:
+
+```kotlin
+fun main() {
+    var kotterStarted = false
+    try {
+        session {
+            kotterStarted = true
+            runKotterLogic()
+        }
+    } catch (ex: Exception) {
+        if (!kotterStarted) {
+            runFallbackLogic()
+        } else {
+            // This exception came from after startup, when the user was
+            // interacting with Kotter. Crashing with an informative stack
+            // is probably the best thing we can do at this point.
+            throw ex
+        }
+    }
+}
+```
+
+For a concrete example, imagine you are writing a file downloading app. You can have the Kotter version show
+animated progress bars, but if you end up in the fallback zone, you can simply print "10%... 20%... 30%..." instead.
+Both sections could delegate to some downloader class that did all the heavy lifting -- you should
+absolutely share as much non-UI code as you can!
+
 ### 📦 Distributing Your Application
 
 You finished your Kotter application. Congratulations!! 🎉
@@ -1445,8 +1522,12 @@ the main branch. You could then use the [upload artifact](https://github.com/act
 binaries to [a location you can download from](https://github.com/actions/upload-artifact#where-does-the-upload-go)
 later.
 
-You can share those binaries with your users, either from cloud storage somewhere or by publishing it via a package
-manager (as [discussed above ▲](#publish-your-jvm-application-to-a-package-manager)).
+*NOTE: For reference, you may wish to refer to [Kotter's publishing workflow script.](https://github.com/varabyte/kotter/blob/main/.github/workflows/publish.yml)
+It doesn't use the upload action, but you can see how we run multiple target hosts in order to build all the different
+flavors of artifacts.*
+
+Once built, you can share your binaries with your users, either from cloud storage somewhere or by publishing it via a
+package manager (as [discussed above ▲](#publish-your-jvm-application-to-a-package-manager)).
 
 ---
 
@@ -1602,7 +1683,9 @@ The library also provides markdown support and builders for complex tables, whic
 currently exist in Kotter. It has a few other opinionated components, such as an animated progress bar and an input
 prompter that requires the answer be one of a few choices.
 
-If you are mostly rendering output text, Mordant may honestly result in more streamlined code.
+If you are mostly rendering output text, Mordant may honestly result in more streamlined code. It also handles falling
+back better if you run it inside a terminal that does not support interactive mode. (Kotter will open a virtual terminal
+if it can, or crash if it can't).
 
 You may still prefer using Kotter for cases where you plan to have a lot of interactive elements, such as several
 animations running side by side in parallel, or if you want keypress handling, or if you want to want the ability to
@@ -1723,3 +1806,8 @@ were planning to use in your own app, Mordant may be the better API for your pro
 Meanwhile, for examples that respond to user input like [snake](examples/snake), or which do a lot of clearing /
 repainting like [doomfire](examples/doomfire), or which query for input in the middle of a bunch of other text like
 [wordle](examples/wordle), Kotter may be the better choice in those cases.
+
+And finally, it's possible to use Kotter and Mordant together. For example, referring back to the
+[fallback section above ▲](#-fallback-in-non-interactive-terminals), you can use Mordant for a nicer API than raw
+`println`/`readLine` calls.
+
