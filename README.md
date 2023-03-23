@@ -1804,7 +1804,7 @@ val barAnim = renderAnimOf(numFrames = 120, 25.milliseconds) { frame ->
     }
 }
 section {
-    barAnim()
+    barAnim(this)
 }.runFor(3.seconds)
 ```
 
