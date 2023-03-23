@@ -1805,7 +1805,7 @@ val barAnim = renderAnimOf(numFrames = 120, 25.milliseconds) { frame ->
 }
 section {
     barAnim()
-}.runUntilKeyPressed(Keys.Q)
+}.runFor(3.seconds)
 ```
 
 **Prompting for input**

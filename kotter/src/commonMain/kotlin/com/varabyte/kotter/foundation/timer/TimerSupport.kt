@@ -5,12 +5,10 @@ import com.varabyte.kotter.platform.concurrent.locks.write
 import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
 import com.varabyte.kotter.platform.internal.system.getCurrentTimeMs
 import com.varabyte.kotter.runtime.RunScope
+import com.varabyte.kotter.runtime.Section
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -169,4 +167,75 @@ class TimerScope(var duration: Duration, var repeat: Boolean, val elapsed: Durat
  */
 fun RunScope.addTimer(duration: Duration, repeat: Boolean = false, key: Any? = null, callback: TimerScope.() -> Unit) {
     data.addTimer(duration, repeat, key, callback)
+}
+
+/**
+ * A `run` block which runs for an exact duration amount, before exiting.
+ *
+ * This is essentially a convenience method for running a block that waits for a timer to expire.
+ *
+ * Note that this will quit the run block even if it is still in the middle of some work. If you don't want that
+ * behavior, consider using [runForAtLeast] instead.
+ *
+ * A minimal example:
+ *
+ * ```
+ * var neverEndingAnim = animRenderOf(...)
+ * section {
+ *   neverEndingAnim()
+ * }.runFor(5.seconds)
+ * ```
+ *
+ * @param onTimeElapsed An optional callback that will get triggered when the specified run duration has elapsed.
+ */
+fun Section.runFor(duration: Duration, onTimeElapsed: () -> Unit = {}, block: suspend RunScope.() -> Unit = {}) {
+    run {
+        addTimer(duration) { onTimeElapsed(); abort() }
+        block()
+        CompletableDeferred<Unit>().await() // The only way out of this function is by aborting
+    }
+}
+
+/**
+ * Like [runFor], but won't violently exit the run block after the timer expires.
+ *
+ * @param onTimeElapsed An optional callback that will get triggered when the specified run duration has elapsed.
+ */
+fun Section.runForAtLeast(duration: Duration, onTimeElapsed: () -> Unit = {}, block: suspend RunScope.() -> Unit) {
+    run {
+        val timePassed = CompletableDeferred<Unit>()
+        addTimer(duration) { onTimeElapsed(); timePassed.complete(Unit) }
+        block()
+        timePassed.await()
+    }
+}
+
+/**
+ * A `run` block which sets a maximum amount of time that it can run.
+ *
+ * A minimal example:
+ *
+ * ```
+ * var canceled by liveVarOf(false)
+ * var result by liveVarOf<Int?>(null)
+ * section {
+ *     if (canceled) {
+ *         textLine("Calculation was aborted")
+ *     }
+ *     else {
+ *         if (result != null) textLine("Calculation finished: $result") else textLine("Calculating...")
+ *     }
+ * }.runForAtMost(5.seconds, onTimeElapsed = { canceled = true }) {
+ *     result = doLongRunningWork()
+ * }
+ * ```
+ *
+ * @param onTimeElapsed An optional callback that will get triggered when the specified run duration has elapsed.
+ * ```
+ */
+fun Section.runForAtMost(duration: Duration, onTimeElapsed: () -> Unit = {}, block: suspend RunScope.() -> Unit = {}) {
+    run {
+        addTimer(duration) { onTimeElapsed(); abort() }
+        block()
+    }
 }
