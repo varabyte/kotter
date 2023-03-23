@@ -583,7 +583,7 @@ section {
   onInputChanged {
     if (input.any { !it.isLetter() }) { rejectInput() }
     // Would also work: input = input.filter { it.isLetter() }
-    // although oftren `rejectInput()` specifies your intention more clearly
+    // although often `rejectInput()` specifies your intention more clearly
   }
   /* ... */
 }
@@ -642,7 +642,8 @@ object : InputCompleter {
       return names
           .firstOrNull { it.startsWith(input) }
           ?.let { it.drop(input.length) }
-    // ^ Don't return the whole word; just the part that comes after the user's input so far.
+    //            ^^^^^^^^^^^^^^^^^^^^
+    // Don't return the whole word; just the part that comes after the user's input so far.
   }
 }
 ```
@@ -821,8 +822,8 @@ section {
 ```
 
 For example, let's say we want to rotate through a list of colors and apply those to some text. Text animations only
-deal with raw text and don't have access to text effects like colors and styles, so we can't use them here, but we can
-accomplish these easily using a render animation and the `color(Color)` method:
+deal with raw text and don't have access to text effects like colors and styles. Therefore, we need to use a render
+animation instead, giving us access to the `color(Color)` method:
 
 ```kotlin
 // Note: `Color` is a Kotter enum that enumerates all the standard colors it supports
@@ -871,7 +872,7 @@ You can restart a one-shot animation by setting its `currFrame` property back to
 Occasionally, when you want to render some marked up text, you'll wish you could measure it first, for example allowing
 you to pad both sides of each line with spaces to center everything, or putting the right count of "=" characters above
 and below a block of text to give it a sort of header effect. But by the time you've rendered something out, then it's
-too late!
+too late to measure it!
 
 `offscreen` to the rescue. You can think of `offscreen` as a temporary buffer to render to, after which you can both
 query it and control when it actually renders to the screen.
@@ -900,8 +901,8 @@ section {
 
 ![Offscreen header example](https://github.com/varabyte/media/raw/main/kotter/images/offscreen-header-example.png)
 
-***Note:** Although you usually won't need to, you can create multiple renderers, each which manages its own state for
-what row to render out next.*
+***Note:** Although you usually won't need to, you can create multiple renderers per offscreen buffer, each which
+manages its own state for what row to render out next.*
 
 One nice thing about the offscreen buffer is it manages its own local state, and while it originally inherits its parent
 scope's state, any changes you make within the offscreen buffer will be remembered to its end.
@@ -932,6 +933,8 @@ will render:
 The driving motivation for adding offscreen buffers was to be able to easily add borders around any block of text, where
 the border might be a different color than its contents. So when this functionality went in, we also added the
 `bordered` method ([link to example](https://github.com/varabyte/kotter/tree/main/examples/border)).
+
+![Bordered example](https://github.com/varabyte/media/raw/main/kotter/images/border-example.png)
 
 If you want to implement your own utility method that uses `offscreen` under the hood, you can check
 [bordered's implementation](https://github.com/varabyte/kotter/blob/main/kotter/src/main/kotlin/com/varabyte/kotterx/decorations/BorderSupport.kt)
@@ -1011,6 +1014,11 @@ section {
 ```
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-aside.gif)
+
+Asides are very useful if you have some long-running process that generates text as a side effect. You could imagine
+a compiler spitting out warnings and errors as it continues to process more code, or a test runner reporting failures
+as it continues to run more tests. In fact, Kotter provides a [fake compiler example](examples/compiler) that you can
+reference.
 
 ### 🪝 Shutdown Hook
 
@@ -1237,11 +1245,26 @@ section {
 }
 ```
 
+As the `run` method is a suspend function, you may declare your `RunScope` extending methods suspend as well:
+
+```kotlin
+suspend fun RunScope.doLongRunningTask() { /* ... */ }
+
+section {
+    textLine("Please wait...")
+}.run {
+    doLongRunningTask()
+}
+```
+
 **`SectionScope`**
 
 To close off all this scope discussion, it's worth mentioning that a `SectionScope` interface exists. It is the base
 interface to both `RenderScope` AND a `RunScope`, and using it can allow you to define the occasional helper method that
 can be called from both of them.
+
+It's not expected that most users will ever use this, but it can be a way to write a common getter that both the render
+block and run block can use (perhaps for data that is also set by the run block elsewhere).
 
 #### ConcurrentScopedData
 
@@ -1270,8 +1293,9 @@ it.
   try {
     data.start(MyLifecycle)
     data[MySetting] = true
+    /* ... */
   } finally {
-    data.stop(MyLifecycle)
+    data.stop(MyLifecycle) // Side effect: Removes MySetting from data
   }
 ```
 
@@ -1296,8 +1320,8 @@ add values to it are:
 * add if first time: `data.tryPut(key, value) // returns true if added, false otherwise`
 * add if first time but always run some follow-up logic:<br>
   `data.putIfAbsent(key, provideInitialValue = { value }) { ... logic using value ... }`<br>
-  * This is essentially a shortcut for calling `tryPut` and then getting the value, but doing so in a way that ensures
-    no one else grabs the thread from you in between.
+  * This is essentially a shortcut for calling `tryPut` and then getting the value, but doing so in a lock-safe manner
+    that ensures no one else grabs the thread from you in between.
 
 By having a session own and expose such a data structure, it makes it possible for anyone to write their own extension
 methods on top of Kotter, using data as a way to manage long-lived state. For example, `input()`, which may get called
@@ -1345,9 +1369,12 @@ pattern (just calling `section`s one after another on a single thread) is powerf
 
 *NOTE: The virtual terminal is only supported for JVM targets. Kotlin/Native targets don't implement this feature.*
 
-It's not guaranteed that every user's command line setup supports ANSI. For example, debugging this project with
-IntelliJ as well as running within Gradle are two such environments where functionality isn't available! According to
-many online reports, some legacy terminals on Windows are also an offender here.
+It's not guaranteed that your program will be run in an interactive way, or even that you won't be called in a legacy
+terminal (e.g. on Windows) that doesn't support ANSI virtual codes.
+
+For example, debugging this project with IntelliJ as well as running within Gradle are two such environments where
+interactivity isn't available! Since in that case, IntelliJ/Gradle are already consuming the interactivity themselves,
+and running your program in a more limited environment.
 
 Kotter will attempt to detect if your console does not support the features it uses, and if not, it will open up a
 virtual terminal instead. This fallback gives your application better cross-platform support.
@@ -1385,13 +1412,13 @@ However, there may be cases that Kotter won't be able to run. For example:
 
 1. You're trying to run Kotter in an environment that is both non-interactive AND doesn't have any graphical system
    enabled (like ssh-ing to some remote machine).
-
-2. You constructed your session in a way that excludes using a `VirtualTerminal`.
-
-3. You are using Kotlin/Native (which does not provide a `VirtualTerminal` implementation).
+2. You are in a non-interactive environment, and you constructed your session in a way that excludes using a
+   `VirtualTerminal`.
+3. You are in a non-interactive environment, and you are using Kotlin/Native (which does not provide a `VirtualTerminal`
+   implementation).
 
 If you run a console app in such a non-interactive environment, calls like `println` and `readLine` still work, but any
-attempts to move the cursor, erase previous lines, and mamy other ANSI commands which Kotter builds on top of are not
+attempts to move the cursor, erase previous lines, and many other ANSI commands which Kotter builds on top of are not
 supported.
 
 Such cases are increasingly rare on modern machines, so you may just decide to ignore them and crash!
@@ -1403,6 +1430,9 @@ information and asking the occasional question.
 To accomplish this, you can use the following code structure:
 
 ```kotlin
+private fun Session.runKotterLogic() { /* ... */ }
+private fun runFallbackLogic() { /* ... */ }
+
 fun main() {
     var kotterStarted = false
     try {
@@ -1808,6 +1838,5 @@ repainting like [doomfire](examples/doomfire), or which query for input in the m
 [wordle](examples/wordle), Kotter may be the better choice in those cases.
 
 And finally, it's possible to use Kotter and Mordant together. For example, referring back to the
-[fallback section above ▲](#-fallback-in-non-interactive-terminals), you can use Mordant for a nicer API than raw
-`println`/`readLine` calls.
-
+[fallback section above ▲](#-fallback-in-non-interactive-terminals), you can use Mordant in the fallback section, since
+it provides a friendlier API than raw `println`/`readLine` calls.

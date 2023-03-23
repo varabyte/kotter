@@ -2,3 +2,5 @@ Demonstrates the `bordered` method which, itself, relies on the `offscreen` buff
 
 The `offscreen` block is useful if you need to get sizing information about some content before you render it to the
 screen.
+
+![Example screenshot](https://github.com/varabyte/media/raw/main/kotter/images/border-example.png)
