@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import java.awt.*
 import java.awt.Cursor.HAND_CURSOR
+import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
 import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.awt.geom.Point2D
@@ -137,6 +138,32 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
                         }
                     })
                 }
+
+                terminal.pane.addKeyListener(object : KeyAdapter() {
+                    override fun keyPressed(e: KeyEvent) {
+                        if (e.isControlDown && e.keyCode == KeyEvent.VK_V) {
+                            val data = Toolkit.getDefaultToolkit().systemClipboard.getData(DataFlavor.stringFlavor) as? String
+                            with (terminal.pane) {
+                                if (data != null && this.hasFocus()) {
+                                    data.trim().forEach { c ->
+                                        dispatchEvent(
+                                            KeyEvent(
+                                                this,
+                                                KeyEvent.KEY_PRESSED,
+                                                0,
+                                                0,
+                                                KeyEvent.getExtendedKeyCodeForChar(c.code),
+                                                c,
+                                                KeyEvent.KEY_LOCATION_STANDARD
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                            e.consume()
+                        }
+                    }
+                })
 
                 // No tooltip delay looks way better when hovering over URLs
                 ToolTipManager.sharedInstance().initialDelay = 0
