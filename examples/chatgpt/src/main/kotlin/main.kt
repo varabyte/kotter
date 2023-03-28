@@ -253,9 +253,8 @@ fun main() = session {
                 lastState = state
 
                 if (state == State.ROBOT_THINKING) {
-                    val response = sendMessageToChatGpt(json, httpClient, userText)
-
                     CoroutineScope(Dispatchers.IO).launch {
+                        val response = sendMessageToChatGpt(json, httpClient, userText)
                         robotText = if (response != null && response.choices.isNotEmpty()) {
                             response.choices.first().message.content
                         } else {
