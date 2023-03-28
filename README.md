@@ -1,4 +1,4 @@
-![version: 1.1.0rc4](https://img.shields.io/badge/kotter-v1.1.0_rc4-blue)
+![version: 1.1.0](https://img.shields.io/badge/kotter-v1.1.0-blue)
 ![kotter tests](https://github.com/varabyte/kotter/actions/workflows/gradle-test.yml/badge.svg?branch=main)
 ![kotter coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bitspittle/1fab2b6fd23489bdea3f5d1f38e4dcb2/raw/kotter-coverage-badge.json)
 <a href="https://varabyte.github.io/kotter">
@@ -33,9 +33,6 @@ session {
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-input.gif)
 
 *See also: [the game of life](examples/life), [snake](examples/snake), [sliding tiles](examples/sliding), [doom fire](examples/doomfire), and [Wordle](examples/wordle) implemented in Kotter!*
-
-| NOTE: 1.1.0 is pre-release (though still recommended to use). [You can read the docs for 1.0.2 here.](https://github.com/varabyte/kotter/blob/d2068cb948d294639ef41ace5b9bd5e3509e86fb/README.md) |
-|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 
 ---
 
@@ -83,7 +80,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.varabyte.kotter:kotter-jvm:1.1.0-rc4")
+    implementation("com.varabyte.kotter:kotter-jvm:1.1.0")
 }
 ```
 
@@ -112,7 +109,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("com.varabyte.kotter:kotter:1.1.0-rc4")
+                implementation("com.varabyte.kotter:kotter:1.1.0")
             }
         }
     }
