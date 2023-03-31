@@ -35,22 +35,22 @@ import kotlin.reflect.KProperty
  */
 @ThreadSafe
 class LiveVar<T> internal constructor(private val session: Session, value: T) {
-    private var associatedBlockRef: WeakReference<Section>? = null
+    private var associatedSectionRef: WeakReference<Section>? = null
     var value: T = value
         get() = session.data.lock.read {
-            associatedBlockRef = session.activeSection?.let { WeakReference(it) }
+            associatedSectionRef = session.activeSection?.let { WeakReference(it) }
             field
         }
         set(value) {
             session.data.lock.write {
                 if (field != value) {
                     field = value
-                    associatedBlockRef?.get()?.let { associatedBlock ->
+                    associatedSectionRef?.get()?.let { associatedBlock ->
                         session.activeSection?.let { activeSection ->
                             if (associatedBlock === activeSection) activeSection.requestRerender()
                         } ?: run {
                             // Our old block is finished, no need to keep a reference around to it anymore.
-                            associatedBlockRef = null
+                            associatedSectionRef = null
                         }
                     }
                 }
