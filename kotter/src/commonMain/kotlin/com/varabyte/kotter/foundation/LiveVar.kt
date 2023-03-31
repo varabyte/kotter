@@ -34,30 +34,31 @@ import kotlin.reflect.KProperty
  * This class is thread safe and expected to be accessed across different threads.
  */
 @ThreadSafe
-class LiveVar<T> internal constructor(private val session: Session, private var value: T) {
-
+class LiveVar<T> internal constructor(private val session: Session, value: T) {
     private var associatedBlockRef: WeakReference<Section>? = null
-    operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
-        return session.data.lock.read {
+    var value: T = value
+        get() = session.data.lock.read {
             associatedBlockRef = session.activeSection?.let { WeakReference(it) }
-            value
+            field
         }
-    }
-    operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
-        session.data.lock.write {
-            if (this.value != value) {
-                this.value = value
-                associatedBlockRef?.get()?.let { associatedBlock ->
-                    session.activeSection?.let { activeSection ->
-                        if (associatedBlock === activeSection) activeSection.requestRerender()
-                    } ?: run {
-                        // Our old block is finished, no need to keep a reference around to it anymore.
-                        associatedBlockRef = null
+        set(value) {
+            session.data.lock.write {
+                if (field != value) {
+                    field = value
+                    associatedBlockRef?.get()?.let { associatedBlock ->
+                        session.activeSection?.let { activeSection ->
+                            if (associatedBlock === activeSection) activeSection.requestRerender()
+                        } ?: run {
+                            // Our old block is finished, no need to keep a reference around to it anymore.
+                            associatedBlockRef = null
+                        }
                     }
                 }
             }
         }
-    }
+
+    operator fun getValue(thisRef: Any?, prop: KProperty<*>): T { return value }
+    operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) { this.value = value }
 }
 
 /** Create a [LiveVar] whose scope is tied to this session. */
