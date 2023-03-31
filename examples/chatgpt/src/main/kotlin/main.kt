@@ -60,10 +60,8 @@ data class Message(
 @Serializable
 data class ChatRequest(
     val model: String,
-    val messages: List<Message>,
-) {
-    constructor(model: String, message: Message) : this(model, listOf(message))
-}
+    val messages: List<Message>
+)
 
 @Serializable
 data class ChatResponse(
@@ -91,14 +89,34 @@ data class ChatResponse(
 
 // endregion
 
-suspend fun sendMessageToChatGpt(json: Json, httpClient: OkHttpClient, message: String): ChatResponse? {
+// This naive implementation is only provided for this demo. In production, this logic may cause problems! For example,
+// it will almost certainly fail if the message contains Chinese glyphs. OpenAI provides a library to calculate the
+// tokens for you, but it is written in Python, so I'm just provided a very naive implementation here for the sake of
+// the demo.
+// See also: https://huggingface.co/docs/transformers/model_doc/gpt2#transformers.GPT2TokenizerFast
+fun approximateTokenCountOf(text: String): Int {
+    return Regex("""\b\w+\b""").findAll(text).count()
+}
+
+
+suspend fun sendMessageToChatGpt(json: Json, httpClient: OkHttpClient, message: String, history: List<Message>): ChatResponse? {
+    var tokenLimit = 4096 - approximateTokenCountOf(message)
+    val recentHistory =
+        history.reversed().takeWhile {
+            val tokenCount = approximateTokenCountOf(it.content)
+            val keepGoing = tokenLimit >= tokenCount
+            tokenLimit -= tokenCount
+            keepGoing
+        }
+            .reversed()
+
     val request = Request.Builder()
         .url("${CHATGPT_BASE_URL}chat/completions")
         .post(
             json.encodeToString(
                 ChatRequest(
                     model = "gpt-3.5-turbo",
-                    message = Message(
+                    recentHistory + Message(
                         role = "user",
                         content = message
                     )
@@ -200,6 +218,8 @@ fun main() = session {
             }
         }
     }.run {
+        val histories = mutableListOf<Message>()
+
         var shouldQuit = false
         addShutdownHook { shouldQuit = true }
 
@@ -231,7 +251,14 @@ fun main() = session {
                 when (key) {
                     Keys.ENTER -> {
                         when (userOption) {
-                            UserOption.REGENERATE -> state = State.ROBOT_THINKING
+                            UserOption.REGENERATE -> {
+                                check(histories.size >= 2)
+                                // We're resending user text and getting new assistant text, so we need to remove our
+                                // stale versions from the list.
+                                histories.removeLast()
+                                histories.removeLast()
+                                state = State.ROBOT_THINKING
+                            }
                             UserOption.QUIT -> shouldQuit = true
                         }
                     }
@@ -254,9 +281,13 @@ fun main() = session {
 
                 if (state == State.ROBOT_THINKING) {
                     CoroutineScope(Dispatchers.IO).launch {
-                        val response = sendMessageToChatGpt(json, httpClient, userText)
+                        val response = sendMessageToChatGpt(json, httpClient, userText, histories)
                         robotText = if (response != null && response.choices.isNotEmpty()) {
                             response.choices.first().message.content
+                                .also { content ->
+                                    histories.add(Message("user", userText))
+                                    histories.add(Message("assistant", content))
+                                }
                         } else {
                             "(Error retrieving text from ChatGPT)"
                         }
