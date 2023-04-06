@@ -415,6 +415,8 @@ fun SectionScope.getInput(id: Any = Unit): String? {
 fun RunScope.setInput(text: String, cursorIndex: Int = text.length, id: Any = Unit) {
     data.get(InputStatesKey) {
         this[id]?.apply {
+            @Suppress("NAME_SHADOWING") val text = text.replace("\n", "")
+
             if (this.text != text || this.cursorIndex != cursorIndex) {
                 this.text = text
                 this.cursorIndex = cursorIndex
@@ -550,7 +552,8 @@ class ViewMapScope(val input: String, val index: Int) {
  *
  * @param completer Optional logic for suggesting auto-completions based on what the user typed in. See
  *   [Completions] which is a generally useful and common implementation.
- * @param initialText Text which will be used the first time `input()` is called and ignored subsequently.
+ * @param initialText Text which will be used the first time `input()` is called and ignored subsequently. Note that
+ *   newlines are now allowed in single-line inputs, and any newlines in this value will be removed.
  * @param id See docs above for more details. The value of this parameter can be anything - this method simply does an
  *   equality check on it against a previous value.
  * @param viewMap If set, *visually* transform the text by specifying the target character each letter in the text
@@ -565,7 +568,7 @@ fun MainRenderScope.input(
     id: Any = Unit,
     viewMap: ViewMapScope.() -> Char = { ch },
     isActive: Boolean = true) {
-    data.prepareInput(this, id, initialText, isActive)
+    data.prepareInput(this, id, initialText.replace("\n", ""), isActive)
     completer?.let { data[CompleterKey] = it }
 
     with(data.getValue(InputStatesKey)[id]!!) {

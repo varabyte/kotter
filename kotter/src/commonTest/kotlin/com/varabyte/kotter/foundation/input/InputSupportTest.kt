@@ -9,6 +9,7 @@ import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotterx.test.foundation.testSession
 import com.varabyte.kotterx.test.runtime.blockUntilRenderWhen
+import com.varabyte.kotterx.test.terminal.assertMatches
 import com.varabyte.kotterx.test.terminal.resolveRerenders
 import com.varabyte.kotterx.test.terminal.sendCode
 import com.varabyte.kotterx.test.terminal.type
@@ -75,6 +76,17 @@ class InputSupportTest {
                 input(id = "second", isActive = true)
             }
         }.run()
+    }
+
+    @Test
+    fun `input initialText will have newlines stripped`() = testSession { terminal ->
+        section {
+            input(initialText = "No\n\nNewlines")
+        }.run()
+
+        terminal.assertMatches {
+            text("NoNewlines ")
+        }
     }
 
     @Test
@@ -518,6 +530,17 @@ class InputSupportTest {
             assertThat(getInput(id = "second")).isEqualTo("456")
 
             assertThat(getInput(id = "none")).isNull()
+        }
+    }
+
+    @Test
+    fun `setInput will have its newlines stripped`() = testSession { terminal ->
+        section {
+            input(initialText = "initial")
+        }.run {
+            assertThat(getInput()).isEqualTo("initial")
+            setInput("No\nNewlines\nAllowed")
+            assertThat(getInput()).isEqualTo("NoNewlinesAllowed")
         }
     }
 }
