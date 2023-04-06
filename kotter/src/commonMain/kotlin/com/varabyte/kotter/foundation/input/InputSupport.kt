@@ -15,10 +15,7 @@ import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.terminal.Terminal
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.flow.*
 import kotlin.math.min
 import kotlin.time.Duration
 
@@ -27,6 +24,13 @@ import kotlin.time.Duration
 // will use input again in others. (We can always revisit this decision later and scope this to a Section lifecycle
 // instead)
 private val KeyFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
+
+// Kotter allows users to programmatically generate keypresses in addition to what is collected from the user
+// typing. See also `sendKeys`.
+// We expect the following feature to be used pretty rarely, so we'll tie it to the section lifecycle instead a session
+// one.
+private val SideInputKey = Section.Lifecycle.createKey<MutableList<Key>>()
+private val SideInputFlowKey = Section.Lifecycle.createKey<Flow<Key>>()
 
 /**
  * Create a [Flow<Key>] value which converts bytes read from a terminal into keys, handling some gnarly multibyte
@@ -122,7 +126,38 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
             // flows. For example, multiple flows here would really mess with the escSeq logic
             .shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
     }
+
+    tryPut(SideInputFlowKey) {
+        channelFlow {
+            while (true) {
+                get(SideInputKey) {
+                    val extraInput = this
+                    if (extraInput.isNotEmpty()) {
+                        CoroutineScope(KotterDispatchers.IO).launch {
+                            while (extraInput.isNotEmpty()) {
+                                send(extraInput.removeAt(0))
+                            }
+                        }
+                    }
+                }
+                delay(16)
+            }
+        }
+            .shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
+    }
 }
+
+/**
+ * Send one or more [Key] presses programmatically.
+ */
+fun RunScope.sendKeys(vararg keys: Key) {
+    if (keys.isEmpty()) return
+    data.putIfAbsent(SideInputKey, { mutableListOf() }) {
+        this.addAll(keys)
+    }
+}
+
+private fun ConcurrentScopedData.mergedKeyFlows(): Flow<Key> = merge(getValue(KeyFlowKey), getValue(SideInputFlowKey))
 
 private class MultilineState(private val parentState: InputState) {
     /**
@@ -334,7 +369,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
         UpdateInputJobKey,
         provideInitialValue = {
             CoroutineScope(KotterDispatchers.IO).launch {
-                getValue(KeyFlowKey).collect { key ->
+                mergedKeyFlows().collect { key ->
                     withActiveInput {
                         val prevText = text
                         val prevCursorIndex = cursorIndex
@@ -507,6 +542,27 @@ fun RunScope.setInput(text: String, cursorIndex: Int = text.length, id: Any = Un
 
                 rerender()
             }
+        }
+    }
+}
+
+/**
+ * Programmatically trigger an "input entered" event.
+ *
+ * For example, maybe you want to auto-trigger an event after some time runs out.
+ *
+ * Note that this request can still be rejected by the [onInputEntered] callback.
+ *
+ * This call works for both [input] and [multilineInput] calls. Conversely, if no input is currently active, calling
+ * this will do nothing.
+ */
+fun RunScope.enterInput() {
+    val runScope = this
+    data.withActiveInput {
+        if (this.multilineState == null) {
+            runScope.sendKeys(Keys.ENTER)
+        } else {
+            runScope.sendKeys(Keys.EOF)
         }
     }
 }
@@ -754,7 +810,7 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
         KeyPressedJobKey,
         provideInitialValue = {
             CoroutineScope(KotterDispatchers.IO).launch {
-                getValue(KeyFlowKey).collect { key ->
+                mergedKeyFlows().collect { key ->
                     val scope = OnKeyPressedScope(key)
                     get(KeyPressedCallbackKey) { this.invoke(scope) }
                     get(SystemKeyPressedCallbackKey) { this.invoke(scope) }
