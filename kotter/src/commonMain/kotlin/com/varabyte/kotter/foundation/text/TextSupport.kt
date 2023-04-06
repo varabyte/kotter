@@ -59,7 +59,7 @@ fun RenderScope.textLine(c: Char) {
  * For example, if we previously added 2 newlines, and then we called `addNewlinesIfNecessary(3)`, only one newline
  * would actually get appended.
  */
-private fun RenderScope.addNewlinesIfNecessary(count: Int) {
+internal fun RenderScope.addNewlinesIfNecessary(count: Int) {
     require(count > 0)
     // Don't add too many extra newlines when the `p` block is the first part of a section.
     var numNewlinesToAdd = count.coerceAtMost(renderer.commands.size)

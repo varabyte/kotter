@@ -12,12 +12,14 @@ import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.terminal.Terminal
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.shareIn
+import kotlin.math.min
 import kotlin.time.Duration
 
 // Once created, we keep it alive for the session, because Flow is designed to be collected multiple times, meaning
@@ -122,11 +124,30 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
     }
 }
 
+private class MultilineState(private val parentState: InputState) {
+    /**
+     * The line position we should try to set our cursor to if we can.
+     *
+     * Note: In a multiline context, the cursor index is the offset from the beginning of all the text, while the line
+     * index is the offset from the last newline.
+     *
+     * The reason this property is called "ideal" and not actual is because we might be moving up / down several lines,
+     * and some intermediate lines are too short to hit it. However, when we go back to a line that is long enough, we
+     * should try to set the cursor to this position again.
+     */
+    var idealLineIndex = 0
+        private set
 
+    fun updateIdealLineIndex() {
+        idealLineIndex = parentState.text.getLineIndex(parentState.cursorIndex)
+    }
+}
 
 /** State needed to support the `input()` function */
-private class InputState(val id: Any, val cursorState: BlinkingCursorState) {
+private class InputState(val id: Any, val cursorState: BlinkingCursorState, val isMultiline: Boolean) {
     var isActive = false
+
+    val multilineState: MultilineState? = if (isMultiline) MultilineState(this) else null
 
     private var _text = ""
     private var _cursorIndex = 0
@@ -203,12 +224,35 @@ private fun ConcurrentScopedData.deactivate(state: InputState) {
     state.isActive = false
 }
 
+private fun String.getLineStartCursorIndex(cursorIndex: Int): Int {
+    val ptr = TextPtr(this, cursorIndex)
+    ptr.decrementUntil { it == '\n' }
+    // Line start should be AFTER previous line's newline. However, don't increment if we're at the start of the text.
+    if (ptr.currChar == '\n') ptr.increment()
+    return ptr.charIndex
+}
+private fun String.getLineEndCursorIndex(cursorIndex: Int): Int {
+    val ptr = TextPtr(this, cursorIndex)
+    if (ptr.currChar != '\n') {
+        ptr.incrementUntil { it == '\n' }
+    }
+    return ptr.charIndex
+}
+
+private fun String.getLineIndex(cursorIndex: Int): Int {
+    return cursorIndex - getLineStartCursorIndex(cursorIndex)
+}
+
+private fun String.insertAtCursorIndex(cursorIndex: Int, c: Char): String {
+    return "${this.substring(0, cursorIndex)}$c${this.substring(cursorIndex)}"
+}
+
 /**
  * If necessary, instantiate data that the [input] method expects to exist.
  *
  * Is a no-op after the first time.
  */
-private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, initialText: String, isActive: Boolean) {
+private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, initialText: String, isActive: Boolean, isMultiline: Boolean) {
     val section = scope.section
     prepareKeyFlow(section.session.terminal)
     val cursorState = putOrGet(BlinkingCursorStateKey) {
@@ -259,9 +303,10 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
     putIfAbsent(InputStatesKey, provideInitialValue = { mutableMapOf() }) {
         val inputStates = this
         val state = inputStates.computeIfAbsent(id) {
-            val newState = InputState(id, cursorState)
+            val newState = InputState(id, cursorState, isMultiline)
             newState.text = initialText
             newState.cursorIndex = initialText.length
+            newState.multilineState?.updateIdealLineIndex()
             newState
         }
 
@@ -296,10 +341,14 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                         var proposedText: String? = null
                         var proposedCursorIndex: Int? = null
                         when (key) {
-                            Keys.LEFT -> cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
+                            Keys.LEFT -> {
+                                cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
+                                multilineState?.updateIdealLineIndex()
+                            }
                             Keys.RIGHT -> {
                                 if (cursorIndex < text.length) {
                                     cursorIndex++
+                                    multilineState?.updateIdealLineIndex()
                                 }
                                 else {
                                     get(CompleterKey) {
@@ -311,8 +360,32 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                                     }
                                 }
                             }
-                            Keys.HOME -> cursorIndex = 0
-                            Keys.END -> cursorIndex = text.length
+                            Keys.UP -> {
+                                if (multilineState == null) return@withActiveInput
+                                val prevLineEndCursorIndex = text.getLineStartCursorIndex(cursorIndex) - 1
+                                if (prevLineEndCursorIndex >= 0) {
+                                    val prevLineEndIndex = text.getLineIndex(prevLineEndCursorIndex)
+                                    val diffToIdealLineIndex = (prevLineEndIndex - multilineState.idealLineIndex).coerceAtLeast(0)
+                                    cursorIndex = prevLineEndCursorIndex - diffToIdealLineIndex
+                                }
+                            }
+                            Keys.DOWN -> {
+                                if (multilineState == null) return@withActiveInput
+                                val nextLineStartCursorIndex = text.getLineEndCursorIndex(cursorIndex) + 1
+                                if (nextLineStartCursorIndex <= text.length) {
+                                    val nextLineEndCursorIndex = text.getLineEndCursorIndex(nextLineStartCursorIndex)
+                                    val nextLineLength = nextLineEndCursorIndex - nextLineStartCursorIndex
+                                    cursorIndex = nextLineStartCursorIndex + min(multilineState.idealLineIndex, nextLineLength)
+                                }
+                            }
+                            Keys.HOME -> {
+                                cursorIndex = text.getLineStartCursorIndex(cursorIndex)
+                                multilineState?.updateIdealLineIndex()
+                            }
+                            Keys.END -> {
+                                cursorIndex = text.getLineEndCursorIndex(cursorIndex)
+                                multilineState?.updateIdealLineIndex()
+                            }
                             Keys.DELETE -> {
                                 if (cursorIndex <= text.lastIndex) {
                                     proposedText = text.removeRange(cursorIndex, cursorIndex + 1)
@@ -327,25 +400,32 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                                 }
                             }
 
-                            Keys.ENTER -> {
-                                var rejected = false
-                                var cleared = false
-                                get(InputEnteredCallbackKey) {
-                                    val onInputEnteredScope = OnInputEnteredScope(id, text)
-                                    this.invoke(onInputEnteredScope)
-                                    rejected = onInputEnteredScope.rejected
-                                    cleared = onInputEnteredScope.cleared
-                                }
-                                if (cleared) {
-                                    getValue(InputStatesKey).remove(id)
-                                }
-                                if (!rejected) {
-                                    get(SystemInputEnteredCallbackKey) { this.invoke() }
+                            Keys.ENTER, Keys.EOF -> {
+                                if ((multilineState == null && key == Keys.ENTER) || (multilineState != null && key == Keys.EOF)) {
+                                    var rejected = false
+                                    var cleared = false
+                                    get(InputEnteredCallbackKey) {
+                                        val onInputEnteredScope = OnInputEnteredScope(id, text)
+                                        this.invoke(onInputEnteredScope)
+                                        rejected = onInputEnteredScope.rejected
+                                        cleared = onInputEnteredScope.cleared
+                                    }
+                                    if (cleared) {
+                                        getValue(InputStatesKey).remove(id)
+                                    }
+                                    if (!rejected) {
+                                        get(SystemInputEnteredCallbackKey) { this.invoke() }
+                                    }
+                                } else if (multilineState != null) {
+                                    check(key == Keys.ENTER)
+
+                                    proposedText = text.insertAtCursorIndex(cursorIndex, '\n')
+                                    proposedCursorIndex = cursorIndex + 1
                                 }
                             }
                             else ->
                                 if (key is CharKey) {
-                                    proposedText = "${text.take(cursorIndex)}${key.code}${text.takeLast(text.length - cursorIndex)}"
+                                    proposedText = text.insertAtCursorIndex(cursorIndex, key.code)
                                     proposedCursorIndex = cursorIndex + 1
                                 }
                         }
@@ -365,6 +445,9 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
 
                             text = proposedText!!
                             cursorIndex = (proposedCursorIndex ?: cursorIndex).coerceIn(0, text.length)
+                            // If the user typed something that shifted the text, we should update the current line
+                            // index as well
+                            if (text != prevText) multilineState?.updateIdealLineIndex()
                         }
 
                         if (text != prevText || cursorIndex != prevCursorIndex) {
@@ -415,7 +498,8 @@ fun SectionScope.getInput(id: Any = Unit): String? {
 fun RunScope.setInput(text: String, cursorIndex: Int = text.length, id: Any = Unit) {
     data.get(InputStatesKey) {
         this[id]?.apply {
-            @Suppress("NAME_SHADOWING") val text = text.replace("\n", "")
+            @Suppress("NAME_SHADOWING") var text = text
+            if (this.multilineState == null) text = text.replace("\n", "")
 
             if (this.text != text || this.cursorIndex != cursorIndex) {
                 this.text = text
@@ -498,6 +582,66 @@ class ViewMapScope(val input: String, val index: Int) {
     val ch: Char = input[index]
 }
 
+private fun MainRenderScope.handleInput(
+    completer: InputCompleter?,
+    initialText: String,
+    id: Any,
+    viewMap: ViewMapScope.() -> Char,
+    isActive: Boolean,
+    isMultiline: Boolean) {
+    data.prepareInput(this, id, initialText, isActive, isMultiline)
+    completer?.let { data[CompleterKey] = it }
+
+    with(data.getValue(InputStatesKey)[id]!!) {
+        val transformedText =
+            text.mapIndexed { i, _ -> ViewMapScope(text, i).viewMap() }.joinToString("")
+
+        // Just asserting that for now this is always a 1:1 transformation. We may change this later but if we do, be
+        // careful that cursor keys still work as expected.
+        check(text.length == transformedText.length)
+
+        // First, check the hard but common case. If we're the currently active input, render it with current
+        // completions and cursor
+        if (this.isActive) {
+            val completion = try {
+                completer?.complete(text)
+            } catch (ex: Exception) {
+                null
+            } ?: ""
+
+
+            // Note: Trailing space as cursor can be put AFTER last character
+            val finalText = "$transformedText$completion "
+
+            scopedState { // Make sure color changes don't leak
+                for (i in finalText.indices) {
+                    if (i == text.length && completer != null && completion.isNotEmpty()) {
+                        color(completer.color)
+                    }
+                    if (i == cursorIndex && cursorState.blinkOn) {
+                        invert()
+                    }
+                    // Put in a placeholder space for every newline, which allows a cursor to appear in that place
+                    if (finalText[i] == '\n') text(' ')
+                    text(finalText[i])
+                    if (i == cursorIndex && cursorState.blinkOn) {
+                        clearInvert()
+                    }
+                }
+            }
+        }
+        // Otherwise, this input is dormant, and acts like normal text
+        else {
+            text(transformedText)
+        }
+
+        // Multiline inputs always render in their own area and therefore end with an extra newline
+        // A preceding newline is added when `multilineInput` is called.
+        if (multilineState != null) textLine()
+    }
+}
+
+
 /**
  * A function which, when called, will replace itself dynamically with text typed by the user, plus a blinking cursor.
  *
@@ -568,50 +712,21 @@ fun MainRenderScope.input(
     id: Any = Unit,
     viewMap: ViewMapScope.() -> Char = { ch },
     isActive: Boolean = true) {
-    data.prepareInput(this, id, initialText.replace("\n", ""), isActive)
-    completer?.let { data[CompleterKey] = it }
+    handleInput(completer, initialText.replace("\n", ""), id, viewMap, isActive, isMultiline = false)
+}
 
-    with(data.getValue(InputStatesKey)[id]!!) {
-        val transformedText =
-            text.mapIndexed { i, _ -> ViewMapScope(text, i).viewMap() }.joinToString("")
-
-        // Just asserting that for now this is always a 1:1 transformation. We may change this later but if we do, be
-        // careful that cursor keys still work as expected.
-        check(text.length == transformedText.length)
-
-        // First, check the hard but common case. If we're the currently active input, render it with current
-        // completions and cursor
-        if (this.isActive) {
-            val completion = try {
-                completer?.complete(text)
-            } catch (ex: Exception) {
-                null
-            } ?: ""
-
-
-            // Note: Trailing space as cursor can be put AFTER last character
-            val finalText = "$transformedText$completion "
-
-            scopedState { // Make sure color changes don't leak
-                for (i in finalText.indices) {
-                    if (i == text.length && completer != null && completion.isNotEmpty()) {
-                        color(completer.color)
-                    }
-                    if (i == cursorIndex && cursorState.blinkOn) {
-                        invert()
-                    }
-                    text(finalText[i])
-                    if (i == cursorIndex && cursorState.blinkOn) {
-                        clearInvert()
-                    }
-                }
-            }
-        }
-        // Otherwise, this input is dormant, and acts like normal text
-        else {
-            text(transformedText)
-        }
-    }
+/**
+ * Like [input], but allows the user to type multiple lines of text.
+ *
+ * To end a multiline input string, the user must press Ctrl+D, as pressing Enter just appends a new line.
+ */
+fun MainRenderScope.multilineInput(
+    initialText: String = "",
+    id: Any = Unit,
+    viewMap: ViewMapScope.() -> Char = { ch },
+    isActive: Boolean = true) {
+    addNewlinesIfNecessary(1)
+    handleInput(null, initialText, id, viewMap, isActive, isMultiline = true)
 }
 
 /**
