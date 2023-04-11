@@ -114,8 +114,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
             }
 
             val terminal = VirtualTerminal(pane)
-            val framePacked = CountDownLatch(1)
-            SwingUtilities.invokeLater {
+            SwingUtilities.invokeAndWait {
                 val frame = JFrame(title)
                 frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
@@ -168,10 +167,8 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
                 // No tooltip delay looks way better when hovering over URLs
                 ToolTipManager.sharedInstance().initialDelay = 0
 
-                framePacked.countDown()
                 frame.isVisible = true
             }
-            framePacked.await()
 
             return terminal
         }
