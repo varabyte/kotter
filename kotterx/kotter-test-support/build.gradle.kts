@@ -143,16 +143,15 @@ publishing {
 
 if (shouldSign()) {
     // If "shouldSign" returns true, then singing password should be set
-    val secretKeyRingExists = (findProperty("signing.secretKeyRingFile") as? String)
-        ?.let { File(it).exists() }
-        ?: false
-
-    // If "shouldSign" returns true, then singing password should be set
     val signingPassword = findProperty("signing.password") as String
 
     signing {
         // If here, we're on a CI. Check for the signing key which must be set in an environment variable.
         // See also: https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
+        val secretKeyRingExists = (findProperty("signing.secretKeyRingFile") as? String)
+            ?.let { File(it).exists() }
+            ?: false
+
         if (!secretKeyRingExists) {
             val signingKey: String? by project
             useInMemoryPgpKeys(signingKey, signingPassword)
