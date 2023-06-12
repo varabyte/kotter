@@ -43,10 +43,16 @@ actual class NativeTerminal : Terminal {
         fflush(stdout) // Needed or else the command seems to get missed
     }
 
-    override val width: Int = memScoped {
+    override val width: Int get() = memScoped {
         val winsize = alloc<winsize>()
         ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
         winsize.ws_col.toInt()
+    }
+
+    override val height: Int get() = memScoped {
+        val winsize = alloc<winsize>()
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
+        winsize.ws_row.toInt()
     }
 
     override fun write(text: String) {

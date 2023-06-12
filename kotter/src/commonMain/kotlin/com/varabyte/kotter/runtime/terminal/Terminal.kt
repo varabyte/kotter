@@ -15,6 +15,13 @@ interface Terminal {
     val width: Int
 
     /**
+     * The height of the terminal.
+     *
+     * This is used to ensure we don't try to render more lines than what fit on the screen.
+     */
+    val height: Int
+
+    /**
      * Write some text to the underlying terminal.
      *
      * This text may have ANSI control characters in it.

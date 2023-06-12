@@ -16,7 +16,8 @@ import kotlin.math.min
 /**
  * A fake terminal, built for tests, which stores data written to it in memory that can then be queried.
  */
-class TestTerminal : Terminal {
+class TestTerminal(private val provideWidth: (() -> Int)? = null, private val provideHeight: (() -> Int)? = null)
+    : Terminal {
     companion object {
         /**
          * Helper function that generates the final console output for a given, simple Kotter block.
@@ -61,7 +62,8 @@ class TestTerminal : Terminal {
     }
 
     // TODO: Allow tests to set this so we can verify width wrapping behavior.
-    override val width = Int.MAX_VALUE // In memory text doesn't wrap
+    override val width get() = provideWidth?.invoke() ?: Int.MAX_VALUE
+    override val height get() = provideHeight?.invoke() ?: Int.MAX_VALUE // In memory text doesn't have a height limit
 
     override fun write(text: String) {
         assertNotClosed()

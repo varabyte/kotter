@@ -45,10 +45,16 @@ actual class NativeTerminal : Terminal {
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
     }
 
-    override val width: Int = memScoped {
+    override val width: Int get() = memScoped {
         val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
         GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
         (csbi.srWindow.Right - csbi.srWindow.Left)
+    }
+
+    override val height: Int get() = memScoped {
+        val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
+        GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
+        (csbi.srWindow.Bottom - csbi.srWindow.Top)
     }
 
     override fun write(text: String) {

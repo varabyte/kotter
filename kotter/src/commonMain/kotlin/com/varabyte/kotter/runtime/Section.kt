@@ -21,9 +21,12 @@ import com.varabyte.kotter.runtime.render.AsideRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
 import kotlinx.coroutines.*
+import kotlin.math.min
 
 internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
 internal val AsideRendersKey = Section.Lifecycle.createKey<MutableList<Renderer<AsideRenderScope>>>()
+
+private val WIPE_CURRENT_LINE_COMMAND: String = "\r${Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()}"
 
 /**
  * Common interface used for scopes that can appear in both the render and run blocks.
@@ -190,18 +193,13 @@ class Section internal constructor(val session: Session, private val render: Mai
 
                 val clearBlockCommand = buildString {
                     if (renderer.commands.isNotEmpty()) {
-
-                        // Note: This logic works when a terminal first starts up, but if the user keeps resizing their
-                        // terminal while our session is running, it seems like the width value we get doesn't update. See
-                        // also: bug #34
-                        val totalNumLines = renderer.commands.numLines(session.terminal.width)
+                        val numLinesToErase = min(renderer.commands.numLines(session.terminal.width), session.terminal.height)
 
                         // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                         // last one down to the beginning (in other words, don't consume the \n of the previous line)
-                        for (i in 0 until totalNumLines) {
-                            append('\r')
-                            append(Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode())
-                            if (i < totalNumLines - 1) {
+                        for (i in 0 until numLinesToErase) {
+                            append(WIPE_CURRENT_LINE_COMMAND)
+                            if (i < numLinesToErase - 1) {
                                 append(Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
                             }
                         }
@@ -224,9 +222,22 @@ class Section internal constructor(val session: Session, private val render: Mai
                     renderer.render(render)
                 } catch (ignored: Throwable) {
                 }
+
+                // Unfortunately, terminals don't let you erase lines that have flowed off the top of their area, which
+                // means if we render too many lines aggressively, we fill the history with a bunch of junk. To avoid
+                // this, we limit the number of lines we render to the number of lines that can fit on the screen.
+                // We don't want to skip lines though, as a previous line might have issues a useful command (like
+                // setting the color), so instead we render all lines as usual EXCEPT we go back and keep overwriting
+                // the first line until we know that we can fit all remaining lines on screen.
+                val targetRenderLineCount = renderer.commands.numLines(session.terminal.width)
+                val maxRenderLineCount = (targetRenderLineCount - session.terminal.height).coerceAtLeast(0)
+                val finalRenderText = renderer.commands.toRawText()
+                    .split('\n', limit = maxRenderLineCount + 1)
+                    .joinToString(WIPE_CURRENT_LINE_COMMAND)
+
                 // Send the whole set of instructions through "write" at once so the clear and updates are processed
                 // in one pass.
-                session.terminal.write(clearBlockCommand + asideTextBuilder.toString() + renderer.commands.toRawText())
+                session.terminal.write(clearBlockCommand + asideTextBuilder.toString() + finalRenderText)
 
                 onRendered.removeIf {
                     val scope = OnRenderedScope()

@@ -193,6 +193,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
     private var userHScrollPos: Int? = null
 
     override val width = Int.MAX_VALUE // Virtual terminals can scroll horizontally forever
+    override val height = Int.MAX_VALUE // Virtual terminals can scroll vertically forever
 
     override fun write(text: String) {
         SwingUtilities.invokeLater {
