@@ -534,7 +534,7 @@ class InputSupportTest {
     }
 
     @Test
-    fun `setInput will have its newlines stripped`() = testSession { terminal ->
+    fun `setInput will have its newlines stripped`() = testSession {
         section {
             input(initialText = "initial")
         }.run {
