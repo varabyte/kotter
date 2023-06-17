@@ -30,23 +30,30 @@ internal val List<TerminalCommand>.lineLengths: List<Int>
 internal fun List<TerminalCommand>.withAutoNewlines(width: Int): List<TerminalCommand> {
     val commands = this
     return buildList {
-        var currWidth = 0
+        var currLineWidth = 0
         for (command in commands) {
             if (command is TextCommand) {
                 if (command === NEWLINE_COMMAND) {
-                    currWidth = 0
+                    currLineWidth = 0
                     add(command)
                 } else {
-                    var remainingText = command.text
-                    while (remainingText.isNotEmpty()) {
-                        val text = remainingText.take(width - currWidth)
-                        remainingText = remainingText.drop(text.length)
-                        add(TextCommand(text))
-                        currWidth += text.length
-                        if (currWidth == width) {
-                            currWidth = 0
-                            if (remainingText.isNotEmpty()) add(NEWLINE_COMMAND)
+                    val buffer = StringBuilder()
+                    var currIndex = 0
+                    while (currIndex <= command.text.lastIndex) {
+                        val nextChar = command.text[currIndex++]
+                        val charWidth = nextChar.toRenderWidth()
+                        val remainingWidth = width - currLineWidth
+                        if (charWidth > remainingWidth) {
+                            add(TextCommand(buffer.toString()))
+                            add(NEWLINE_COMMAND)
+                            buffer.clear()
+                            currLineWidth = 0
                         }
+                        buffer.append(nextChar)
+                        currLineWidth += charWidth
+                    }
+                    if (buffer.isNotEmpty()) {
+                        add(TextCommand(buffer.toString()))
                     }
                 }
             } else {
