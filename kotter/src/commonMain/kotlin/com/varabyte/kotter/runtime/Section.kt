@@ -16,7 +16,7 @@ import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.text.numLines
-import com.varabyte.kotter.runtime.internal.text.toRawText
+import com.varabyte.kotter.runtime.internal.text.toText
 import com.varabyte.kotter.runtime.render.AsideRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
@@ -211,7 +211,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                     if (this.isEmpty()) return@get
 
                     forEach { renderer ->
-                        asideTextBuilder.append(renderer.commands.toRawText())
+                        asideTextBuilder.append(renderer.commands.toText())
                     }
                     // Only render asides once. Since we don't erase them, they'll be baked into the history.
                     clear()
@@ -231,7 +231,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                 // the first line until we know that we can fit all remaining lines on screen.
                 val targetRenderLineCount = renderer.commands.numLines(session.terminal.width)
                 val maxRenderLineCount = (targetRenderLineCount - session.terminal.height).coerceAtLeast(0)
-                val finalRenderText = renderer.commands.toRawText()
+                val finalRenderText = renderer.commands.toText()
                     .split('\n', limit = maxRenderLineCount + 1)
                     .joinToString(WIPE_CURRENT_LINE_COMMAND)
 

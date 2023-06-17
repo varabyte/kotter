@@ -21,7 +21,7 @@ class OffscreenSupportTest {
         }
     }
 
-    private fun OffscreenBuffer.lines() = toRawText().split("\n")
+    private fun OffscreenBuffer.lines() = toText().split("\n")
 
     @Test
     fun `offscreen produces lines without newlines`() = testSession {

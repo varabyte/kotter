@@ -5,7 +5,7 @@ import com.varabyte.kotter.runtime.internal.TerminalCommand
 import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
 import com.varabyte.kotter.runtime.internal.text.lineLengths
-import com.varabyte.kotter.runtime.internal.text.toRawText
+import com.varabyte.kotter.runtime.internal.text.toText
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotter.runtime.render.Renderer
 import com.varabyte.kotterx.decorations.bordered
@@ -63,7 +63,7 @@ class OffscreenBuffer internal constructor(
         return OffscreenCommandRenderer(parentScope, commands)
     }
 
-    internal fun toRawText() = commands.toRawText()
+    internal fun toText() = commands.toText()
 }
 
 /** How many lines of text were generated within this offscreen buffer. */

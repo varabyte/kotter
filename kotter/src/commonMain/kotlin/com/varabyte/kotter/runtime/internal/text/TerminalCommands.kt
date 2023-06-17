@@ -40,6 +40,6 @@ internal fun List<TerminalCommand>.numLines(width: Int = Int.MAX_VALUE): Int {
  * Convert a list of [TerminalCommand]s to a raw string (including ANSI escape codes) which can then be passed to a
  * console output stream.
  */
-internal fun List<TerminalCommand>.toRawText(): String {
+internal fun List<TerminalCommand>.toText(): String {
     return this.joinToString("") { it.text }
 }
