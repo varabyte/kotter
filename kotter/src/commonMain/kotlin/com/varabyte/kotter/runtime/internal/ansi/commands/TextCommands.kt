@@ -27,7 +27,10 @@ internal class CharSequenceCommand(text: CharSequence) : TextCommand(text.toStri
         require(!text.contains("\n")) { "Newlines should be represented by the NEWLINE_COMMAND" }
     }
 }
-internal val NEWLINE_COMMAND = object : TextCommand("\n") {
+
+internal open class NewlineCommand(text: String) : TextCommand(text)
+
+internal val NEWLINE_COMMAND = object : NewlineCommand("\n") {
     override fun applyTo(state: SectionState, renderer: Renderer<*>) {
         // In some terminals, if you have a background color enabled, and you append a newline, the background color
         // extends to the end of the next line. This looks awful, as if the background color is leaking, and
@@ -46,3 +49,11 @@ internal val NEWLINE_COMMAND = object : TextCommand("\n") {
         super.applyTo(state, renderer)
     }
 }
+
+/**
+ * A placeholder command which represents when the terminal will insert a newline automatically.
+ *
+ * While on its own it's a no-op, by inserting it into the list of commands, it can be detected and used to influence
+ * repaint logic.
+ */
+internal val IMPLICIT_NEWLINE_COMMAND = NewlineCommand("")

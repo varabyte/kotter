@@ -16,8 +16,8 @@ import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.runtime.internal.TerminalCommand
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
-import com.varabyte.kotter.runtime.internal.text.withAutoNewlines
+import com.varabyte.kotter.runtime.internal.ansi.commands.NewlineCommand
+import com.varabyte.kotter.runtime.internal.text.withImplicitNewlines
 import com.varabyte.kotter.runtime.internal.text.toText
 import com.varabyte.kotter.runtime.render.AsideRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
@@ -200,7 +200,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                         // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                         // last one down to the beginning (in other words, don't consume the \n of the previous line)
                         // NOTE: We need to re-add auto newlines because the screen width might have changed since last time
-                        val numLinesToErase = min(lastCommandsRendered.withAutoNewlines(session.terminal.width).count { it === NEWLINE_COMMAND } + 1, session.terminal.height)
+                        val numLinesToErase = min(lastCommandsRendered.withImplicitNewlines(session.terminal.width).count { it is NewlineCommand } + 1, session.terminal.height)
                         for (i in 0 until numLinesToErase) {
                             append(WIPE_CURRENT_LINE_COMMAND)
                             if (i < numLinesToErase - 1) {
@@ -229,7 +229,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                 } catch (ignored: Throwable) {
                 }
 
-                lastCommandsRendered = renderer.commands.withAutoNewlines(session.terminal.width)
+                lastCommandsRendered = renderer.commands.withImplicitNewlines(session.terminal.width)
 
                 // Send the whole set of instructions through `write` at once so the clear and updates are processed
                 // in one pass.

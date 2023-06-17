@@ -1,7 +1,9 @@
 package com.varabyte.kotter.runtime.internal.text
 
 import com.varabyte.kotter.runtime.internal.TerminalCommand
+import com.varabyte.kotter.runtime.internal.ansi.commands.IMPLICIT_NEWLINE_COMMAND
 import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
+import com.varabyte.kotter.runtime.internal.ansi.commands.NewlineCommand
 import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
 
 /**
@@ -27,7 +29,7 @@ internal val List<TerminalCommand>.lineLengths: List<Int>
  * While this may seem redundant, as the terminal would have added the newlines for us anyway, it can be useful for us
  * to know where the newlines are explicitly which we can use when repainting the screen.
  */
-internal fun List<TerminalCommand>.withAutoNewlines(width: Int): List<TerminalCommand> {
+internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<TerminalCommand> {
     val commands = this
     return buildList {
         var currLineWidth = 0
@@ -45,7 +47,7 @@ internal fun List<TerminalCommand>.withAutoNewlines(width: Int): List<TerminalCo
                         val remainingWidth = width - currLineWidth
                         if (charWidth > remainingWidth) {
                             add(TextCommand(buffer.toString()))
-                            add(NEWLINE_COMMAND)
+                            add(IMPLICIT_NEWLINE_COMMAND)
                             buffer.clear()
                             currLineWidth = 0
                         }
@@ -72,7 +74,7 @@ internal fun List<TerminalCommand>.toText(height: Int = Int.MAX_VALUE): String {
     if (height == Int.MAX_VALUE) {
         return commands.joinToString("") { it.text }
     } else {
-        val targetNumLines = commands.count { it === NEWLINE_COMMAND } + 1
+        val targetNumLines = commands.count { it is NewlineCommand } + 1
         // Note: We skip rendering *text* but NOT commands, which we would still like to apply as they may
         // affect following lines that do get rendered.
         var numLinesToSkipText = (targetNumLines - height).coerceAtLeast(0)
@@ -80,7 +82,7 @@ internal fun List<TerminalCommand>.toText(height: Int = Int.MAX_VALUE): String {
         return buildString {
             for (command in commands) {
                 if (numLinesToSkipText > 0 && command is TextCommand) {
-                    if (command === NEWLINE_COMMAND) numLinesToSkipText--
+                    if (command is NewlineCommand) numLinesToSkipText--
                 } else {
                     append(command.text)
                 }
