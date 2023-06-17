@@ -66,7 +66,7 @@ actual class NativeTerminal : Terminal {
             memScoped {
                 val cVar = alloc<IntVar>()
                 while (!quit && context.isActive) {
-                    val readResult = read(STDIN_FILENO, cVar.ptr, 1)
+                    val readResult = read(STDIN_FILENO, cVar.ptr, 1u)
                     if (readResult > 0L) {
                         emit(cVar.value)
                     }
