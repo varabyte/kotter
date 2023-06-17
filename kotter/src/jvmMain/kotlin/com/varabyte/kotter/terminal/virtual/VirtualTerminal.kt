@@ -16,7 +16,6 @@ import java.awt.geom.Point2D
 import java.net.URI
 import java.net.URISyntaxException
 import java.nio.file.Path
-import java.util.concurrent.CountDownLatch
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.text.*
