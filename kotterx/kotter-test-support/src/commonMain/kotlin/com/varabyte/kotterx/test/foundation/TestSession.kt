@@ -10,10 +10,11 @@ import com.varabyte.kotterx.test.terminal.TestTerminal
  * The [TestTerminal] is a useful way to assert that various Kotter commands resulted in expected behavior.
  */
 fun testSession(
+    provideWidth: (() -> Int)? = null,
     provideHeight: (() -> Int)? = null,
     block: Session.(TestTerminal) -> Unit
 ) {
-    val terminal = TestTerminal(provideHeight)
+    val terminal = TestTerminal(provideWidth, provideHeight)
     session(terminal = terminal) {
         this.block(terminal)
     }

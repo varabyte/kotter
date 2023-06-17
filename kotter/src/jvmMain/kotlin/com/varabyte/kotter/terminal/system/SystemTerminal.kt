@@ -20,6 +20,7 @@ class SystemTerminal : Terminal {
     private var previousCursorSetting: InfoCmp.Capability
     private val previousOut = System.out
     private val previousErr = System.err
+
     private val terminal = TerminalBuilder.builder()
         .system(true)
         // According to https://github.com/jline/jline3#jansi-vs-jna, both of these are equally valid libraries but

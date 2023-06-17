@@ -14,8 +14,10 @@ import com.varabyte.kotter.runtime.RunScope.Lifecycle
 import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
 import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
+import com.varabyte.kotter.runtime.internal.TerminalCommand
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.internal.text.numLines
+import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
+import com.varabyte.kotter.runtime.internal.text.withAutoNewlines
 import com.varabyte.kotter.runtime.internal.text.toText
 import com.varabyte.kotter.runtime.render.AsideRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
@@ -115,14 +117,14 @@ class RunScope(val section: Section, private val scope: CoroutineScope): Section
 
 /**
  * The main [RenderScope] used for rendering a section.
- *
- * While it seems unnecessary to create an empty class like this, this can be useful if library authors want to provide
- * extension methods that only apply to `section` render scopes.
  */
 class MainRenderScope(renderer: Renderer<MainRenderScope>): RenderScope(renderer) {
     object Lifecycle : ConcurrentScopedData.Lifecycle {
         override val parent = Section.Lifecycle
     }
+
+    val width get() = renderer.session.terminal.width
+    val height get() = renderer.session.terminal.height
 }
 
 /**
@@ -171,7 +173,7 @@ class Section internal constructor(val session: Session, private val render: Mai
      *
      * This will not enqueue a render if one is already queued up.
      */
-    fun requestRerender() {
+    internal fun requestRerender() {
         if (session.activeSection != this) return
 
         renderLock.withLock {
@@ -184,6 +186,8 @@ class Section internal constructor(val session: Session, private val render: Mai
         }
     }
 
+    private var lastCommandsRendered = emptyList<TerminalCommand>()
+
     private fun renderOnceAsync(): Job {
         return CoroutineScope(KotterDispatchers.Render).launch {
             session.data.start(MainRenderScope.Lifecycle)
@@ -192,17 +196,19 @@ class Section internal constructor(val session: Session, private val render: Mai
                 renderLock.withLock { renderRequested = false }
 
                 val clearBlockCommand = buildString {
-                    if (renderer.commands.isNotEmpty()) {
-                        val numLinesToErase = min(renderer.commands.numLines(session.terminal.width), session.terminal.height)
-
+                    if (lastCommandsRendered.isNotEmpty()) {
                         // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                         // last one down to the beginning (in other words, don't consume the \n of the previous line)
+                        // NOTE: We need to re-add auto newlines because the screen width might have changed since last time
+                        val numLinesToErase = min(lastCommandsRendered.withAutoNewlines(session.terminal.width).count { it === NEWLINE_COMMAND } + 1, session.terminal.height)
                         for (i in 0 until numLinesToErase) {
                             append(WIPE_CURRENT_LINE_COMMAND)
                             if (i < numLinesToErase - 1) {
                                 append(Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
                             }
                         }
+
+                        lastCommandsRendered = emptyList()
                     }
                 }
 
@@ -223,21 +229,15 @@ class Section internal constructor(val session: Session, private val render: Mai
                 } catch (ignored: Throwable) {
                 }
 
-                // Unfortunately, terminals don't let you erase lines that have flowed off the top of their area, which
-                // means if we render too many lines aggressively, we fill the history with a bunch of junk. To avoid
-                // this, we limit the number of lines we render to the number of lines that can fit on the screen.
-                // We don't want to skip lines though, as a previous line might have issues a useful command (like
-                // setting the color), so instead we render all lines as usual EXCEPT we go back and keep overwriting
-                // the first line until we know that we can fit all remaining lines on screen.
-                val targetRenderLineCount = renderer.commands.numLines(session.terminal.width)
-                val maxRenderLineCount = (targetRenderLineCount - session.terminal.height).coerceAtLeast(0)
-                val finalRenderText = renderer.commands.toText()
-                    .split('\n', limit = maxRenderLineCount + 1)
-                    .joinToString(WIPE_CURRENT_LINE_COMMAND)
+                lastCommandsRendered = renderer.commands.withAutoNewlines(session.terminal.width)
 
-                // Send the whole set of instructions through "write" at once so the clear and updates are processed
+                // Send the whole set of instructions through `write` at once so the clear and updates are processed
                 // in one pass.
-                session.terminal.write(clearBlockCommand + asideTextBuilder.toString() + finalRenderText)
+                session.terminal.write(
+                    clearBlockCommand
+                            + asideTextBuilder.toString()
+                            + lastCommandsRendered.toText(session.terminal.height)
+                )
 
                 onRendered.removeIf {
                     val scope = OnRenderedScope()

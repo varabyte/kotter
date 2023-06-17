@@ -22,24 +22,62 @@ internal val List<TerminalCommand>.lineLengths: List<Int>
     }
 
 /**
- * Return the total number of lines a list of [TerminalCommand]s would generate if rendered.
+ * Manually insert newlines commands that would normally be auto-added by the terminal due to the limited window width.
  *
- * [width] An optional parameter which, if set, means the terminal will count as if a newline was auto-added for
- *   wrapping at that column.
+ * While this may seem redundant, as the terminal would have added the newlines for us anyway, it can be useful for us
+ * to know where the newlines are explicitly which we can use when repainting the screen.
  */
-internal fun List<TerminalCommand>.numLines(width: Int = Int.MAX_VALUE): Int {
-    val lineLengths = lineLengths
-    return lineLengths.size +
-            // The line gets an implicit newline once it goes ONE over the terminal width - or in other
-            // words, a 20 character line fits perfectly in a 20 column terminal, so don't treat that case
-            // as an extra newline until we hit 21 characters
-            lineLengths.sumOf { len -> (len - 1) / width }
+internal fun List<TerminalCommand>.withAutoNewlines(width: Int): List<TerminalCommand> {
+    val commands = this
+    return buildList {
+        var currWidth = 0
+        for (command in commands) {
+            if (command is TextCommand) {
+                if (command === NEWLINE_COMMAND) {
+                    currWidth = 0
+                    add(command)
+                } else {
+                    var remainingText = command.text
+                    while (remainingText.isNotEmpty()) {
+                        val text = remainingText.take(width - currWidth)
+                        remainingText = remainingText.drop(text.length)
+                        add(TextCommand(text))
+                        currWidth += text.length
+                        if (currWidth == width) {
+                            currWidth = 0
+                            if (remainingText.isNotEmpty()) add(NEWLINE_COMMAND)
+                        }
+                    }
+                }
+            } else {
+                add(command)
+            }
+        }
+    }
 }
 
 /**
  * Convert a list of [TerminalCommand]s to a raw string (including ANSI escape codes) which can then be passed to a
  * console output stream.
  */
-internal fun List<TerminalCommand>.toText(): String {
-    return this.joinToString("") { it.text }
+internal fun List<TerminalCommand>.toText(height: Int = Int.MAX_VALUE): String {
+    val commands = this
+    if (height == Int.MAX_VALUE) {
+        return commands.joinToString("") { it.text }
+    } else {
+        val targetNumLines = commands.count { it === NEWLINE_COMMAND } + 1
+        // Note: We skip rendering *text* but NOT commands, which we would still like to apply as they may
+        // affect following lines that do get rendered.
+        var numLinesToSkipText = (targetNumLines - height).coerceAtLeast(0)
+
+        return buildString {
+            for (command in commands) {
+                if (numLinesToSkipText > 0 && command is TextCommand) {
+                    if (command === NEWLINE_COMMAND) numLinesToSkipText--
+                } else {
+                    append(command.text)
+                }
+            }
+        }
+    }
 }
