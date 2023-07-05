@@ -638,19 +638,115 @@ class ViewMapScope(val input: String, val index: Int) {
     val ch: Char = input[index]
 }
 
+/**
+ * Information passed into the `customFormat` callback in the [input][com.varabyte.kotter.foundation.input.input] method.
+ *
+ * The callback will be triggered once per character in the `input` string when it's about to get rendered (excluding
+ * any autocomplete suggestion text). The user can then call any of the formatting methods which will be applied to THIS
+ * CHARACTER ONLY.
+ *
+ * For an example, to visually render all non-digits as invalid:
+ *
+ * ```
+ * input(customFormat = { if (ch.isDigit()) green() else red() })
+ * ```
+ *
+ * or, to underline everything:
+ *
+ * ```
+ * input(customFormat = { underline() })
+ * ```
+ *
+ * @property input The backing text associated with the [input][com.varabyte.kotter.foundation.input.input] call.
+ * @property index The index of the current character in the string being mapped.
+ * @property isActive Whether the input is currently active. This is useful if you want to render the input differently
+ *   when the input has active focus or not.
+ */
+class CustomFormatScope(val input: String, val index: Int, val isActive: Boolean) {
+    internal var fgColor: Color? = null
+        private set
+    internal var bgColor: Color? = null
+        private set
+    internal var isBold: Boolean = false
+        private set
+    internal var isUnderline: Boolean = false
+        private set
+    internal var isStrikethrough: Boolean = false
+        private set
+
+    /**
+     * The current source character being mapped.
+     *
+     * This is a convenience property identical to `input[index]`.
+     */
+    val ch: Char = input[index]
+
+    internal val changed get() = fgColor != null || bgColor != null || isBold || isUnderline || isStrikethrough
+
+    fun color(color: Color, layer: ColorLayer = ColorLayer.FG) {
+        when (layer) {
+            ColorLayer.FG -> fgColor = color
+            ColorLayer.BG -> bgColor = color
+        }
+    }
+    fun bold() {
+        isBold = true
+    }
+    fun underline() {
+        isUnderline = true
+    }
+    fun strikethrough() {
+        isStrikethrough = true
+    }
+}
+
+fun CustomFormatScope.black(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    color(if (isBright) Color.BRIGHT_BLACK else Color.BLACK, layer)
+}
+
+fun CustomFormatScope.red(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    color(if (isBright) Color.BRIGHT_RED else Color.RED, layer)
+}
+
+fun CustomFormatScope.green(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    color(if (isBright) Color.BRIGHT_GREEN else Color.GREEN, layer)
+}
+
+fun CustomFormatScope.yellow(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    color(if (isBright) Color.BRIGHT_YELLOW else Color.YELLOW, layer)
+}
+
+fun CustomFormatScope.blue(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    color(if (isBright) Color.BRIGHT_BLUE else Color.BLUE, layer)
+}
+
+fun CustomFormatScope.magenta(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    color(if (isBright) Color.BRIGHT_MAGENTA else Color.MAGENTA, layer)
+}
+
+fun CustomFormatScope.cyan(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    color(if (isBright) Color.BRIGHT_CYAN else Color.CYAN, layer)
+}
+
+fun CustomFormatScope.white(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = false) {
+    color(if (isBright) Color.BRIGHT_WHITE else Color.WHITE, layer)
+}
+
 private fun MainRenderScope.handleInput(
     completer: InputCompleter?,
     initialText: String,
     id: Any,
-    viewMap: ViewMapScope.() -> Char,
+    viewMap: (ViewMapScope.() -> Char)?,
+    customFormat: (CustomFormatScope.() -> Unit)?,
     isActive: Boolean,
     isMultiline: Boolean) {
     data.prepareInput(this, id, initialText, isActive, isMultiline)
     completer?.let { data[CompleterKey] = it }
 
     with(data.getValue(InputStatesKey)[id]!!) {
-        val transformedText =
+        val transformedText = if (viewMap != null) {
             text.mapIndexed { i, _ -> ViewMapScope(text, i).viewMap() }.joinToString("")
+        } else text
 
         // Just asserting that for now this is always a 1:1 transformation. We may change this later but if we do, be
         // careful that cursor keys still work as expected.
@@ -671,6 +767,19 @@ private fun MainRenderScope.handleInput(
 
             scopedState { // Make sure color changes don't leak
                 for (i in finalText.indices) {
+                    var customFormatApplied = false
+                    if (customFormat != null && i <= text.lastIndex) {
+                        val format = CustomFormatScope(text, i, isActive = true).apply(customFormat)
+                        if (format.changed) {
+                            customFormatApplied = true
+                            pushState()
+                            if (format.fgColor != null) color(format.fgColor!!)
+                            if (format.bgColor != null) color(format.bgColor!!, layer = ColorLayer.BG)
+                            if (format.isBold) bold()
+                            if (format.isUnderline) underline()
+                            if (format.isStrikethrough) strikethrough()
+                        }
+                    }
                     if (i == text.length && completer != null && completion.isNotEmpty()) {
                         color(completer.color)
                     }
@@ -683,12 +792,33 @@ private fun MainRenderScope.handleInput(
                     if (i == cursorIndex && cursorState.blinkOn) {
                         clearInvert()
                     }
+                    if (customFormatApplied) {
+                        popState()
+                    }
                 }
             }
         }
         // Otherwise, this input is dormant, and acts like normal text
         else {
-            text(transformedText)
+            if (customFormat == null) {
+                text(transformedText)
+            } else {
+                transformedText.forEachIndexed { i, c ->
+                    val format = CustomFormatScope(text, i, isActive = false).apply(customFormat)
+                    if (format.changed) {
+                        pushState()
+                        if (format.fgColor != null) color(format.fgColor!!)
+                        if (format.bgColor != null) color(format.bgColor!!, layer = ColorLayer.BG)
+                        if (format.isBold) bold()
+                        if (format.isUnderline) underline()
+                        if (format.isStrikethrough) strikethrough()
+                    }
+                    text(c)
+                    if (format.changed) {
+                        popState()
+                    }
+                }
+            }
         }
 
         // Multiline inputs always render in their own area and therefore end with an extra newline
@@ -766,9 +896,10 @@ fun MainRenderScope.input(
     completer: InputCompleter? = null,
     initialText: String = "",
     id: Any = Unit,
-    viewMap: ViewMapScope.() -> Char = { ch },
+    viewMap: (ViewMapScope.() -> Char)? = null,
+    customFormat: (CustomFormatScope.() -> Unit)? = null,
     isActive: Boolean = true) {
-    handleInput(completer, initialText.replace("\n", ""), id, viewMap, isActive, isMultiline = false)
+    handleInput(completer, initialText.replace("\n", ""), id, viewMap, customFormat, isActive, isMultiline = false)
 }
 
 /**
@@ -779,10 +910,10 @@ fun MainRenderScope.input(
 fun MainRenderScope.multilineInput(
     initialText: String = "",
     id: Any = Unit,
-    viewMap: ViewMapScope.() -> Char = { ch },
+    viewMap: (ViewMapScope.() -> Char)? = null,
     isActive: Boolean = true) {
     addNewlinesIfNecessary(1)
-    handleInput(null, initialText, id, viewMap, isActive, isMultiline = true)
+    handleInput(null, initialText, id, viewMap, customFormat = null, isActive, isMultiline = true)
 }
 
 /**

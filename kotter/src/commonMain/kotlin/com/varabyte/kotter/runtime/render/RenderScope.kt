@@ -50,12 +50,20 @@ abstract class RenderScope(internal val renderer: Renderer<*>): SectionScope {
         popState()
     }
 
-    private fun pushState(): SectionState {
+    /**
+     * Push a new state section onto the stack.
+     *
+     * You will break your program if you call this without a matching [popState]. To be safe, you should prefer using
+     * [scopedState] instead as much as possible.
+     */
+    fun pushState() {
         state = SectionState(state)
-        return state
     }
 
-    private fun popState() {
+    /**
+     * Pop a state section added by [pushState].
+     */
+    fun popState() {
         check(state.parent != null) { "Called popState more times than pushState" }
         state = state.parent!!
     }

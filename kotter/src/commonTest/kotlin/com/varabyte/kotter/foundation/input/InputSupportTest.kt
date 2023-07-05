@@ -1,6 +1,9 @@
 package com.varabyte.kotter.foundation.input
 
 import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.text.black
+import com.varabyte.kotter.foundation.text.cyan
+import com.varabyte.kotter.foundation.text.red
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.foundation.timer.TestTimer
@@ -440,6 +443,24 @@ class InputSupportTest {
             "******** ${Codes.Sgr.RESET}",
             ""
         ).inOrder()
+    }
+
+    @Test
+    fun `input rendering can be formatted with customFormat`() = testSession { terminal ->
+        section {
+            cyan {
+                input(customFormat = { if (index in 2..4) red() }, initialText = "active test", isActive = true, id = "active"); textLine()
+                input(customFormat = { if (isActive) green() else black() }, initialText = "inactive test", isActive = false, id = "inactive")
+            }
+        }.run()
+
+        terminal.assertMatches {
+            cyan {
+                text("ac"); red(); text("tiv"); cyan(); text("e test"); text(" "); textLine()
+                // Extra space where cursor goes -----------------------------^
+                black { text("inactive test") }
+            }
+        }
     }
 
     @Test

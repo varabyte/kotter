@@ -213,4 +213,24 @@ fun main() = session {
             }.run()
         }
     }
+
+    // Scenario #5: Use `input`'s `customFormat` callback to highlight invalid input
+    run {
+        section {
+            textLine("Type in a number")
+            text("> ");
+            input(
+                customFormat = {
+                    when {
+                        ch.isDigit() -> green()
+                        else -> red()
+                    }
+                }
+            )
+        }.runUntilInputEntered {
+            onInputEntered {
+                if (input.any { !it.isDigit() }) rejectInput()
+            }
+        }
+    }
 }
