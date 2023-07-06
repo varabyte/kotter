@@ -2,6 +2,9 @@ package com.varabyte.kotterx.test.runtime
 
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.runtime.terminal.*
+import com.varabyte.kotterx.test.terminal.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 
@@ -47,4 +50,28 @@ fun RunScope.blockUntilRenderWhen(condition: () -> Boolean) {
     }
 
     runBlocking { latch.await() }
+}
+
+/**
+ * Like [blockUntilRenderWhen] but using a more readable [RenderScope] syntax.
+ *
+ * For example:
+ *
+ * ```
+ * testSession { terminal ->
+ *   section { ... }.run {
+ *     // do some stuff and then...
+ *     blockUntilRenderWhenMatches {
+ *       red { textLine("expected line 1") }
+ *       green { textLine("expected line 2") }
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * It can be easier to use this version as a way to avoid writing ANSI codes directly into expected text values.
+ */
+fun RunScope.blockUntilRenderMatches(terminal: TestTerminal, expected: RenderScope.() -> Unit) {
+    val expected = TestTerminal.consoleOutputFor(expected)
+    blockUntilRenderWhen { terminal.resolveRerenders() == expected }
 }

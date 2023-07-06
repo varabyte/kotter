@@ -37,11 +37,8 @@ class InputSupportTest {
             }
 
             terminal.type('H', 'e', 'l', 'l', 'o')
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<${Codes.Sgr.RESET}",
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> Hello"); invert(); text(' '); clearInvert(); text("<")
             }
 
             terminal.type(Ansi.CtrlChars.ENTER)
@@ -101,19 +98,14 @@ class InputSupportTest {
 
             // Run a few times just to verify that the blinking continues in a cycle
             for (i in 0 until 3) {
-                blockUntilRenderWhen {
-                    terminal.resolveRerenders() == listOf(
-                        "> Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<${Codes.Sgr.RESET}",
-                        ""
-                    )
+                blockUntilRenderMatches(terminal) {
+                    text("> Hello"); invert(); text(' '); clearInvert(); text("<")
                 }
                 timer.fastForward(BLINKING_DURATION_MS.milliseconds)
 
-                blockUntilRenderWhen {
-                    terminal.resolveRerenders() == listOf(
-                        "> Hello <${Codes.Sgr.RESET}",
-                        ""
-                    )
+                blockUntilRenderMatches(terminal) {
+                    text("> Hello <")
+
                 }
                 timer.fastForward(BLINKING_DURATION_MS.milliseconds)
             }
@@ -158,11 +150,8 @@ class InputSupportTest {
             terminal.sendCode(Codes.Keys.LEFT) // l (second)
             terminal.sendCode(Codes.Keys.LEFT) // l (first)
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "He${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                text("He"); invert(); text('l'); clearInvert(); text("lo ")
             }
         }
     }
@@ -175,11 +164,8 @@ class InputSupportTest {
             // At this point, cursor is PAST the o
             terminal.sendCode(Codes.Keys.HOME) // h
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "${Codes.Sgr.Colors.INVERT}H${Codes.Sgr.Colors.CLEAR_INVERT}ello ${Codes.Sgr.RESET}",
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                invert(); text('H'); clearInvert(); text("ello ")
             }
         }
     }
@@ -192,11 +178,9 @@ class InputSupportTest {
             terminal.sendCode(Codes.Keys.HOME) // We know this puts the cursor at the beginning from the previous test
             terminal.sendCode(Codes.Keys.END)
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}", // CLEAR_INVERT lumped into RESET
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                // No need to "clearInvert". It's merged into the "reset" command added at the end of the section.
+                text("Hello"); invert(); text(' ');
             }
             terminal.type(Ansi.CtrlChars.ENTER)
         }
@@ -243,11 +227,8 @@ class InputSupportTest {
             terminal.sendCode(Codes.Keys.DELETE) // Would be "Hlo", but rejected
             terminal.sendCode(Codes.Keys.DELETE) // Would be "Hlo", but rejected again
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "H${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                text("H"); invert(); text('l'); clearInvert(); text("lo ")
             }
         }
     }
@@ -291,11 +272,8 @@ class InputSupportTest {
             terminal.type(Ansi.CtrlChars.BACKSPACE)
             terminal.type(Ansi.CtrlChars.BACKSPACE)
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "Hel${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}",
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                text("Hel"); invert(); text(' ')
             }
         }
     }
@@ -388,11 +366,8 @@ class InputSupportTest {
         }.run {
             terminal.type('H', 'e')
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "He${Codes.Sgr.Colors.Fg.BLACK_BRIGHT}${Codes.Sgr.Colors.INVERT}l${Codes.Sgr.Colors.CLEAR_INVERT}lo ${Codes.Sgr.RESET}",
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                text("He"); black(isBright = true); invert(); text('l'); clearInvert(); text("lo ")
             }
         }
     }
@@ -405,11 +380,8 @@ class InputSupportTest {
             terminal.type('H', 'e')
             terminal.sendCode(Codes.Keys.RIGHT)
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "Hello${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}",
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                text("Hello"); invert(); text(' ')
             }
         }
     }
@@ -455,7 +427,7 @@ class InputSupportTest {
 
         terminal.assertMatches {
             cyan {
-                text("ac"); red(); text("tiv"); cyan(); text("e test"); text(" "); textLine()
+                text("ac"); red(); text("tiv"); cyan(); text("e test"); text(' '); textLine()
                 // Extra space where cursor goes -----------------------------^
                 black { text("inactive test") }
             }
@@ -488,21 +460,15 @@ class InputSupportTest {
             }
 
             terminal.sendCode(Codes.Keys.DOWN)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "first",
-                    "${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("first")
+                invert(); text(' ')
             }
 
             terminal.type("second")
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "first",
-                    "second${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.RESET}", // CLEAR_INVERT skipped because RESET handles it
-                    ""
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("first")
+                text("second"); invert(); text(' ')
             }
         }
     }
@@ -514,36 +480,27 @@ class InputSupportTest {
             text("1>"); input(id = "first", isActive = true); textLine("<")
             text("2>"); input(id = "second", isActive = false); textLine("<")
         }.run {
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "1>${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<",
-                    "2><",
-                    "${Codes.Sgr.RESET}",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("1>"); invert(); text(' '); clearInvert(); textLine("<")
+                textLine("2><")
             }
 
             assertThat(getInput(id = "first")).isEqualTo("")
             assertThat(getInput(id = "second")).isEqualTo("")
 
             setInput("456", id = "second")
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "1>${Codes.Sgr.Colors.INVERT} ${Codes.Sgr.Colors.CLEAR_INVERT}<",
-                    "2>456<",
-                    "${Codes.Sgr.RESET}",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("1>"); invert(); text(' '); clearInvert(); textLine("<")
+                textLine("2>456<")
             }
 
             assertThat(getInput(id = "first")).isEqualTo("")
             assertThat(getInput(id = "second")).isEqualTo("456")
 
             setInput("123", cursorIndex = 1, id = "first")
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "1>1${Codes.Sgr.Colors.INVERT}2${Codes.Sgr.Colors.CLEAR_INVERT}3 <",
-                    "2>456<",
-                    "${Codes.Sgr.RESET}",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("1>1"); invert(); text('2'); clearInvert(); textLine("3 <")
+                textLine("2>456<")
             }
 
             assertThat(getInput(id = "first")).isEqualTo("123")

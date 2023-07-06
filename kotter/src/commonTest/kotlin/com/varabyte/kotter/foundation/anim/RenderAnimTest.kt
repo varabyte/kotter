@@ -29,35 +29,23 @@ class RenderAnimTest {
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 3 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 3 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
         }
     }
@@ -88,48 +76,33 @@ class RenderAnimTest {
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             startRunningAnim2 = true
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <",
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("> 2 <")
+                text("> 1 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 3 <",
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("> 3 <")
+                text("> 2 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <",
-                    "> 3 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("> 1 <")
+                text("> 3 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <",
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("> 2 <")
+                text("> 1 <")
             }
         }
     }
