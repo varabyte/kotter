@@ -65,7 +65,7 @@ private fun wcwidth(ucs: Int): Int {
         )
     ) 0 else 1 +
             if (ucs >= 0x1100 &&
-                (ucs <= 0x115f 
+                (ucs <= 0x115f
                         || ucs == 0x2329
                         || ucs == 0x232a
                         || ucs in 0x2e80..0xa4cf && ucs != 0x303f
@@ -243,5 +243,3 @@ private fun bisearch(ucs: Int, table: Array<Interval>, max: Int): Boolean {
     }
     return false
 }
-
-

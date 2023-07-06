@@ -1,7 +1,7 @@
 package com.varabyte.kotter.foundation.anim
 
-import com.varabyte.kotter.runtime.Session
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.render.*
 import kotlin.time.Duration
 
 /**
@@ -26,8 +26,8 @@ import kotlin.time.Duration
  *
  * If all you're doing is rendering text, consider using [TextAnim] instead.
  */
-class RenderAnim internal constructor(session: Session, private val template: Template)
-    : Anim(session, template.numFrames, template.frameDuration, template.looping) {
+class RenderAnim internal constructor(session: Session, private val template: Template) :
+    Anim(session, template.numFrames, template.frameDuration, template.looping) {
 
     /**
      * A template for a render animation, useful if you want to define an animation once but instantiate several copies
@@ -53,6 +53,7 @@ class RenderAnim internal constructor(session: Session, private val template: Te
 }
 
 fun Session.renderAnimOf(template: RenderAnim.Template) = RenderAnim(this, template)
+
 /**
  * Instantiate a [RenderAnim] tied to the current [Session].
  *
@@ -60,5 +61,10 @@ fun Session.renderAnimOf(template: RenderAnim.Template) = RenderAnim(this, templ
  * @param frameDuration The length of each frame.
  * @param looping If true, this animation will play forever in a loop. Otherwise, it will stop when it reaches the end.
  */
-fun Session.renderAnimOf(numFrames: Int, frameDuration: Duration, looping: Boolean = true, handler: RenderScope.(Int) -> Unit) =
+fun Session.renderAnimOf(
+    numFrames: Int,
+    frameDuration: Duration,
+    looping: Boolean = true,
+    handler: RenderScope.(Int) -> Unit
+) =
     RenderAnim(this, RenderAnim.Template(numFrames, frameDuration, looping, handler))

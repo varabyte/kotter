@@ -1,9 +1,6 @@
-import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.text.cyan
-import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotter.foundation.text.yellow
-import com.varabyte.kotterx.decorations.BorderCharacters
-import com.varabyte.kotterx.decorations.bordered
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotterx.decorations.*
 
 val LOREM_IPSUM = """
     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do

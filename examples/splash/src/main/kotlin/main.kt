@@ -1,22 +1,19 @@
-import com.varabyte.kotter.foundation.anim.RenderAnim
-import com.varabyte.kotter.foundation.anim.renderAnimOf
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.runUntilSignal
-import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.anim.*
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotterx.text.shiftRight
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotterx.text.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private const val NUM_RAINBOW_COLORS = 90
-private val RAINBOW_COLORS = (0 .. NUM_RAINBOW_COLORS).map { i ->
+private val RAINBOW_COLORS = (0..NUM_RAINBOW_COLORS).map { i ->
     // Use HSV instead of RGB because it's so much easier to loop through colors using it
     HSV(360 * (NUM_RAINBOW_COLORS - i) / NUM_RAINBOW_COLORS, 1.0f, 1.0f)
 }
 
 private const val NUM_FADE_OUT_COLORS = 50
-private val FADE_OUT_COLORS = (0 .. NUM_FADE_OUT_COLORS).map { i ->
+private val FADE_OUT_COLORS = (0..NUM_FADE_OUT_COLORS).map { i ->
     val color = (255 * (NUM_FADE_OUT_COLORS - i)) / NUM_FADE_OUT_COLORS
     // Start with yellow, as it's bright and has some impact for the final frame
     RGB(color, color, 0)
@@ -50,16 +47,17 @@ fun main() = session {
         """.trimIndent().split("\n")
 
     // 'length + 1' for num frames because we also include the empty string as a frame
-    val wipeRightTextAnim = renderAnimOf(productNameLines.maxOf { it.length + 1 }, 40.milliseconds, looping = false) { frameIndex ->
-        for (y in productNameLines.indices) {
-            textLine(productNameLines[y].take(frameIndex))
+    val wipeRightTextAnim =
+        renderAnimOf(productNameLines.maxOf { it.length + 1 }, 40.milliseconds, looping = false) { frameIndex ->
+            for (y in productNameLines.indices) {
+                textLine(productNameLines[y].take(frameIndex))
+            }
         }
-    }
     val scrollUpTextAnim = renderAnimOf(versionLines.size, 200.milliseconds, looping = false) { frameIndex ->
         for (i in 0 until (versionLines.size - frameIndex - 1)) {
             textLine()
         }
-        for (i in 0 .. frameIndex) {
+        for (i in 0..frameIndex) {
             textLine(versionLines[i])
         }
     }

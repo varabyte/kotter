@@ -1,9 +1,9 @@
 package com.varabyte.kotter.runtime.internal.ansi.commands
 
-import com.varabyte.kotter.runtime.SectionState
+import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes.Sgr.Colors
-import com.varabyte.kotter.runtime.render.Renderer
+import com.varabyte.kotter.runtime.render.*
 
 internal class FgColorCommand(csiCode: Csi.Code) : AnsiCsiCommand(csiCode) {
     override fun applyTo(state: SectionState, renderer: Renderer<*>) {

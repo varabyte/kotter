@@ -21,7 +21,7 @@ private var shutdownCountdown = 10 // Give the dispose coroutine a chance to wak
 
 internal actual fun onShutdown(dispose: () -> Unit) {
     CoroutineScope(Dispatchers.Default).launch {
-        while(!interrupted) {
+        while (!interrupted) {
             delay(PULSE_MS.milliseconds)
         }
         dispose()

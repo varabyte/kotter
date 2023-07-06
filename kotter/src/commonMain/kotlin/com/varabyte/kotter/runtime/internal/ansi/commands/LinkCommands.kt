@@ -1,7 +1,7 @@
 package com.varabyte.kotter.runtime.internal.ansi.commands
 
-import com.varabyte.kotter.platform.net.Uri
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.platform.net.*
+import com.varabyte.kotter.runtime.internal.ansi.*
 
 /**
  * A command for starting a block that allows for clickable links in the terminal.

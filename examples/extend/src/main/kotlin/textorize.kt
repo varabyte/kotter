@@ -1,13 +1,8 @@
-import com.varabyte.kotter.foundation.text.clearInvert
-import com.varabyte.kotter.foundation.text.invert
-import com.varabyte.kotter.foundation.text.rgb
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.Section
-import com.varabyte.kotter.runtime.SectionScope
-import com.varabyte.kotter.runtime.concurrent.createKey
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.concurrent.*
+import com.varabyte.kotter.runtime.render.*
 import kotlin.time.Duration.Companion.milliseconds
 
 // This file introduces the `textorize` method which applies one of several TextorizeEffect effects. You can call this
@@ -93,12 +88,14 @@ fun RenderScope.textorize(text: String, initialEffect: TextorizeEffect = Textori
                         text(c)
                     }
                 }
+
                 TextorizeEffect.BLINKING -> {
                     val shouldBlink = (counter / 5) % 2 == 1
                     if (shouldBlink) invert()
                     text(text)
                     clearInvert()
                 }
+
                 TextorizeEffect.SCROLLING -> {
                     // Add a space so that when text wraps there's a blank between the first and last words
                     val finalText = "$text "

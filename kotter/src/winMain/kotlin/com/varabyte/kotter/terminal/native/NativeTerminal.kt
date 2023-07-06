@@ -1,15 +1,42 @@
 package com.varabyte.kotter.terminal.native
 
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.terminal.Terminal
-import kotlinx.cinterop.*
+import com.varabyte.kotter.runtime.internal.ansi.*
+import com.varabyte.kotter.runtime.terminal.*
+import kotlinx.cinterop.Arena
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.invoke
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.value
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
 import platform.posix.printf
-import platform.windows.*
+import platform.windows.CONSOLE_SCREEN_BUFFER_INFO
+import platform.windows.DWORDVar
+import platform.windows.ENABLE_PROCESSED_INPUT
+import platform.windows.ENABLE_PROCESSED_OUTPUT
+import platform.windows.ENABLE_VIRTUAL_TERMINAL_INPUT
+import platform.windows.ENABLE_VIRTUAL_TERMINAL_PROCESSING
+import platform.windows.GetConsoleMode
+import platform.windows.GetConsoleScreenBufferInfo
+import platform.windows.GetStdHandle
+import platform.windows.INPUT_RECORD
+import platform.windows.KEY_EVENT
+import platform.windows.KEY_EVENT_RECORD
+import platform.windows.LEFT_ALT_PRESSED
+import platform.windows.LEFT_CTRL_PRESSED
+import platform.windows.RIGHT_ALT_PRESSED
+import platform.windows.RIGHT_CTRL_PRESSED
+import platform.windows.ReadConsoleInput
+import platform.windows.SHIFT_PRESSED
+import platform.windows.STD_INPUT_HANDLE
+import platform.windows.STD_OUTPUT_HANDLE
+import platform.windows.SetConsoleMode
+import platform.windows.TRUE
 
 actual class NativeTerminal : Terminal {
     private val stdInHandle = GetStdHandle(STD_INPUT_HANDLE)!!
@@ -22,7 +49,8 @@ actual class NativeTerminal : Terminal {
     init {
         if (
             GetConsoleMode(stdInHandle, origModeInVar.ptr) != TRUE ||
-            GetConsoleMode(stdOutHandle, origModeOutVar.ptr) != TRUE) {
+            GetConsoleMode(stdOutHandle, origModeOutVar.ptr) != TRUE
+        ) {
             arena.clear()
             throw CreateNativeTerminalException()
         }
@@ -36,7 +64,11 @@ actual class NativeTerminal : Terminal {
             throw CreateNativeTerminalException()
         }
 
-        if (SetConsoleMode(stdOutHandle, ENABLE_VIRTUAL_TERMINAL_PROCESSING.or(ENABLE_PROCESSED_OUTPUT).convert()) != TRUE) {
+        if (SetConsoleMode(
+                stdOutHandle,
+                ENABLE_VIRTUAL_TERMINAL_PROCESSING.or(ENABLE_PROCESSED_OUTPUT).convert()
+            ) != TRUE
+        ) {
             SetConsoleMode(stdInHandle, origModeInVar.value)
             arena.clear()
             throw CreateNativeTerminalException()
@@ -45,24 +77,31 @@ actual class NativeTerminal : Terminal {
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
     }
 
-    override val width: Int get() = memScoped {
-        val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
-        GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
-        (csbi.srWindow.Right - csbi.srWindow.Left)
-    }
+    override val width: Int
+        get() = memScoped {
+            val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
+            GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
+            (csbi.srWindow.Right - csbi.srWindow.Left)
+        }
 
-    override val height: Int get() = memScoped {
-        val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
-        GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
-        (csbi.srWindow.Bottom - csbi.srWindow.Top)
-    }
+    override val height: Int
+        get() = memScoped {
+            val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
+            GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
+            (csbi.srWindow.Bottom - csbi.srWindow.Top)
+        }
 
     override fun write(text: String) {
         print(text)
     }
 
     // Thanks to JLine3: https://github.com/jline/jline3/blob/2c55e39b0380a1b6ce4696bb6068c0091568d336/terminal/src/main/java/org/jline/terminal/impl/AbstractWindowsTerminal.java#L278
-    private suspend fun FlowCollector<Int>.handleControlChars(keyCode: Int, isCtrl: Boolean, isAlt: Boolean, isShift: Boolean): Boolean {
+    private suspend fun FlowCollector<Int>.handleControlChars(
+        keyCode: Int,
+        isCtrl: Boolean,
+        isAlt: Boolean,
+        isShift: Boolean
+    ): Boolean {
         // TODO: Revisit adding support for control chars + meta keys if requested; should be OK to not worry about this
         //  for a first pass. Note: system commands (like Ctrl+C / Ctrl+D) are handled by Windows before we get here.
         if (isCtrl || isAlt || isShift) return false
@@ -70,6 +109,7 @@ actual class NativeTerminal : Terminal {
         suspend fun emitStr(str: String) {
             str.forEach { c -> emit(c.code) }
         }
+
         suspend fun emitCode(csiCode: Ansi.Csi.Code) {
             emitStr(csiCode.toFullEscapeCode())
         }

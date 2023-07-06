@@ -1,10 +1,5 @@
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.input
-import com.varabyte.kotter.foundation.input.onInputEntered
-import com.varabyte.kotter.foundation.input.onKeyPressed
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.runUntilSignal
-import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
 import kotlin.math.roundToInt
 
@@ -56,8 +51,7 @@ fun main() = session {
 
                 if (xCurr == x && yCurr == y) {
                     text("░")
-                }
-                else {
+                } else {
                     hsv(h, s, v) {
                         text("█")
                     }
@@ -69,9 +63,18 @@ fun main() = session {
         val rgb = HSV(h, sCurr, vCurr).toRgb()
         textLine()
         when (state) {
-            State.ENTERING_HUE -> { text("Enter hue (0 - 360): "); input(); textLine() }
-            State.ENTERING_SAT -> { text("Enter saturation (0 - 100): "); input(); textLine() }
-            State.ENTERING_VAL -> { text("Enter value (0 - 100): "); input(); textLine() }
+            State.ENTERING_HUE -> {
+                text("Enter hue (0 - 360): "); input(); textLine()
+            }
+
+            State.ENTERING_SAT -> {
+                text("Enter saturation (0 - 100): "); input(); textLine()
+            }
+
+            State.ENTERING_VAL -> {
+                text("Enter value (0 - 100): "); input(); textLine()
+            }
+
             else -> {
                 textLine("HSV: $h°, ${sCurr.toPercentStr()}, ${vCurr.toPercentStr()}")
                 textLine("RGB: ${rgb.r}, ${rgb.g}, ${rgb.b} (0x${rgb.r.toHexStr()}${rgb.g.toHexStr()}${rgb.b.toHexStr()})")
@@ -95,8 +98,7 @@ fun main() = session {
                     Keys.V -> state = State.ENTERING_VAL
                     Keys.Q -> signal()
                 }
-            }
-            else {
+            } else {
                 if (key == Keys.ESC) {
                     state = State.PICKING_COLOR
                 }
@@ -112,6 +114,7 @@ fun main() = session {
                         }
                     }
                 }
+
                 State.ENTERING_SAT -> {
                     input.toIntOrNull()?.let { sIn ->
                         if (sIn in (0..100)) {
@@ -119,6 +122,7 @@ fun main() = session {
                         }
                     }
                 }
+
                 State.ENTERING_VAL -> {
                     input.toIntOrNull()?.let { vIn ->
                         if (vIn in (0..100)) {
@@ -126,7 +130,10 @@ fun main() = session {
                         }
                     }
                 }
-                else -> { error("Unexpected state: $state") }
+
+                else -> {
+                    error("Unexpected state: $state")
+                }
             }
 
             clearInput()

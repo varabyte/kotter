@@ -1,10 +1,9 @@
 package com.varabyte.kotter.foundation.text
 
-import com.varabyte.kotter.platform.net.Uri
-import com.varabyte.kotter.platform.net.UriSyntaxException
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotterx.test.foundation.testSession
-import com.varabyte.kotterx.test.terminal.lines
+import com.varabyte.kotter.platform.net.*
+import com.varabyte.kotter.runtime.internal.ansi.*
+import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
@@ -19,9 +18,15 @@ class LinkSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "Hello there, you should ${Ansi.Osc.Codes.openLink(Uri("https://example1.com")).toFullEscapeCode()}click here${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}",
-            "You can define ${Ansi.Osc.Codes.openLink(Uri("https://example2.com")).toFullEscapeCode()}multiple links${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}!",
-            "If display text not set, the uri is used: ${Ansi.Osc.Codes.openLink(Uri("https://example3.com")).toFullEscapeCode()}https://example3.com${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}",
+            "Hello there, you should ${
+                Ansi.Osc.Codes.openLink(Uri("https://example1.com")).toFullEscapeCode()
+            }click here${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}",
+            "You can define ${
+                Ansi.Osc.Codes.openLink(Uri("https://example2.com")).toFullEscapeCode()
+            }multiple links${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}!",
+            "If display text not set, the uri is used: ${
+                Ansi.Osc.Codes.openLink(Uri("https://example3.com")).toFullEscapeCode()
+            }https://example3.com${Ansi.Osc.Codes.CLOSE_LINK.toFullEscapeCode()}",
             "${Ansi.Csi.Codes.Sgr.RESET}"
         ).inOrder()
     }

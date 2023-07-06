@@ -1,12 +1,6 @@
-import com.varabyte.kotter.foundation.anim.renderAnimOf
-import com.varabyte.kotter.foundation.anim.text
-import com.varabyte.kotter.foundation.anim.textAnimOf
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.text.green
-import com.varabyte.kotter.foundation.text.p
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.anim.*
+import com.varabyte.kotter.foundation.text.*
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds

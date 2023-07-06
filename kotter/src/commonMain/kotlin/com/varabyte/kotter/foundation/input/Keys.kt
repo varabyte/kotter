@@ -1,6 +1,6 @@
 package com.varabyte.kotter.foundation.input
 
-import com.varabyte.kotter.runtime.RunScope
+import com.varabyte.kotter.runtime.*
 
 /**
  * Base class for all keypresses.

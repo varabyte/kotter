@@ -10,6 +10,7 @@ actual class Uri actual constructor(private val uri: String) {
             throw UriSyntaxException(uri)
         }
     }
+
     override fun toString() = uri
 }
 

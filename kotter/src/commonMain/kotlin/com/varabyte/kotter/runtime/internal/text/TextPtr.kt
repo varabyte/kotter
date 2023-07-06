@@ -133,7 +133,8 @@ class TextPtr(val text: CharSequence, charIndex: Int = 0) {
  * ```
  */
 fun TextPtr.substring(length: Int): String {
-    val cappedLen = min(length, text.length - charIndex) // In case user passes in Int.MAX_VALUE, this avoids int wrapping
+    val cappedLen =
+        min(length, text.length - charIndex) // In case user passes in Int.MAX_VALUE, this avoids int wrapping
     return text.substring(charIndex, min(charIndex + cappedLen, text.length))
 }
 

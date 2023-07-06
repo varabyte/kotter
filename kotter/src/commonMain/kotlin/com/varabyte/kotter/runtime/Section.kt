@@ -1,28 +1,26 @@
 package com.varabyte.kotter.runtime
 
-import com.varabyte.kotter.foundation.LiveVar
-import com.varabyte.kotter.foundation.input.runUntilInputEntered
-import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.runUntilSignal
-import com.varabyte.kotter.platform.concurrent.locks.ReentrantLock
-import com.varabyte.kotter.platform.concurrent.locks.withLock
-import com.varabyte.kotter.platform.concurrent.locks.write
-import com.varabyte.kotter.platform.internal.collections.removeIf
-import com.varabyte.kotter.platform.internal.concurrent.AtomicReference
-import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
-import com.varabyte.kotter.runtime.RunScope.Lifecycle
-import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
-import com.varabyte.kotter.runtime.concurrent.createKey
-import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
-import com.varabyte.kotter.runtime.internal.TerminalCommand
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.internal.ansi.commands.NewlineCommand
-import com.varabyte.kotter.runtime.internal.text.withImplicitNewlines
-import com.varabyte.kotter.runtime.internal.text.toText
-import com.varabyte.kotter.runtime.render.AsideRenderScope
-import com.varabyte.kotter.runtime.render.RenderScope
-import com.varabyte.kotter.runtime.render.Renderer
-import kotlinx.coroutines.*
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.input.*
+import com.varabyte.kotter.platform.concurrent.locks.*
+import com.varabyte.kotter.platform.internal.collections.*
+import com.varabyte.kotter.platform.internal.concurrent.*
+import com.varabyte.kotter.platform.internal.concurrent.annotations.*
+import com.varabyte.kotter.runtime.RunScope.*
+import com.varabyte.kotter.runtime.concurrent.*
+import com.varabyte.kotter.runtime.coroutines.*
+import com.varabyte.kotter.runtime.internal.*
+import com.varabyte.kotter.runtime.internal.ansi.*
+import com.varabyte.kotter.runtime.internal.ansi.commands.*
+import com.varabyte.kotter.runtime.internal.text.*
+import com.varabyte.kotter.runtime.render.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.min
 
 internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
@@ -58,7 +56,7 @@ interface SectionScope {
  *
  * @property section The [Section] this run block is attached to.
  */
-class RunScope(val section: Section, private val scope: CoroutineScope): SectionScope {
+class RunScope(val section: Section, private val scope: CoroutineScope) : SectionScope {
     object Lifecycle : ConcurrentScopedData.Lifecycle {
         override val parent = Section.Lifecycle
     }
@@ -118,7 +116,7 @@ class RunScope(val section: Section, private val scope: CoroutineScope): Section
 /**
  * The main [RenderScope] used for rendering a section.
  */
-class MainRenderScope(renderer: Renderer<MainRenderScope>): RenderScope(renderer) {
+class MainRenderScope(renderer: Renderer<MainRenderScope>) : RenderScope(renderer) {
     object Lifecycle : ConcurrentScopedData.Lifecycle {
         override val parent = Section.Lifecycle
     }
@@ -153,6 +151,7 @@ class Section internal constructor(val session: Session, private val render: Mai
 
     internal val renderer = Renderer(session) { MainRenderScope(it) }
     private val renderLock = ReentrantLock()
+
     @GuardedBy("renderLock")
     private var renderRequested = false
 
@@ -200,7 +199,9 @@ class Section internal constructor(val session: Session, private val render: Mai
                         // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
                         // last one down to the beginning (in other words, don't consume the \n of the previous line)
                         // NOTE: We need to re-add auto newlines because the screen width might have changed since last time
-                        val numLinesToErase = min(lastCommandsRendered.withImplicitNewlines(session.terminal.width).count { it is NewlineCommand } + 1, session.terminal.height)
+                        val numLinesToErase = min(
+                            lastCommandsRendered.withImplicitNewlines(session.terminal.width)
+                                .count { it is NewlineCommand } + 1, session.terminal.height)
                         for (i in 0 until numLinesToErase) {
                             append(WIPE_CURRENT_LINE_COMMAND)
                             if (i < numLinesToErase - 1) {
@@ -248,6 +249,7 @@ class Section internal constructor(val session: Session, private val render: Mai
             session.data.stop(MainRenderScope.Lifecycle)
         }
     }
+
     private fun renderOnce() = runBlocking {
         renderOnceAsync().join()
     }

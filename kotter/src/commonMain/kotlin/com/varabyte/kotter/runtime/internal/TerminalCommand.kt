@@ -1,7 +1,7 @@
 package com.varabyte.kotter.runtime.internal
 
-import com.varabyte.kotter.runtime.SectionState
-import com.varabyte.kotter.runtime.render.Renderer
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.render.*
 
 internal open class TerminalCommand(val text: String) {
     /**

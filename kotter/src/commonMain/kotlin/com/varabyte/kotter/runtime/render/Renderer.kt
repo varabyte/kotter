@@ -1,10 +1,8 @@
 package com.varabyte.kotter.runtime.render
 
-import com.varabyte.kotter.runtime.Session
-import com.varabyte.kotter.runtime.internal.TerminalCommand
-import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
-import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
-import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.internal.*
+import com.varabyte.kotter.runtime.internal.ansi.commands.*
 
 /**
  * A class responsible for executing some block of logic which requests render instructions, ultimately converting them
@@ -13,7 +11,7 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommand
  * @property session The parent session this renderer is tied to. This class makes no use of it, but some places that
  *   work with a renderer do.
  */
-class Renderer<R: RenderScope>(val session: Session, private val createScope: (Renderer<R>) -> R) {
+class Renderer<R : RenderScope>(val session: Session, private val createScope: (Renderer<R>) -> R) {
     private val _commands = mutableListOf<TerminalCommand>()
     internal val commands: List<TerminalCommand> = _commands
 

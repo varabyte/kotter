@@ -1,8 +1,8 @@
 package com.varabyte.kotter.foundation.anim
 
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotter.runtime.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -43,10 +43,11 @@ abstract class Anim protected constructor(
      * An animation is considered not running if it is paused OR if it is a non-looping animation that has hit the last
      * frame.
      */
-    val isRunning: Boolean get() {
-        return !paused
-                && (looping || (currFrame < lastFrame))
-    }
+    val isRunning: Boolean
+        get() {
+            return !paused
+                    && (looping || (currFrame < lastFrame))
+        }
 
     /**
      * Whether this animation is paused or not.
@@ -78,7 +79,7 @@ abstract class Anim protected constructor(
             // Note: Another option is to allow people to specify out of bound values and just wrap it ourselves.
             // We may do that later, especially if we get feedback from users asking for it, but for now, since I'm not
             // sure, we'll choose to fail fast. It's easier to go from strict to loose rather than the other way around.
-            require(value in 0 .. lastFrame) {
+            require(value in 0..lastFrame) {
                 "Animation frame out of bounds. Tried to set $value but should be between 0 and $lastFrame."
             }
 

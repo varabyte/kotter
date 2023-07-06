@@ -1,8 +1,8 @@
 package com.varabyte.kotter.runtime
 
-import com.varabyte.kotter.runtime.internal.TerminalCommand
+import com.varabyte.kotter.runtime.internal.*
 import com.varabyte.kotter.runtime.internal.ansi.commands.*
-import com.varabyte.kotter.runtime.render.Renderer
+import com.varabyte.kotter.runtime.render.*
 
 /**
  * Keep track of all text states applied so far against the current section.
@@ -40,6 +40,7 @@ internal class SectionState(val parent: SectionState? = null) {
 
     /** Styles which are actively applied, and any text rendered right now would use them. */
     val applied: Styles = parent?.applied ?: Styles()
+
     /**
      * The current style based on commands received so far in the current state scope.
      *

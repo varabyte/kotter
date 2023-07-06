@@ -1,15 +1,9 @@
 import Cells.State
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.onKeyPressed
-import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.text.green
-import com.varabyte.kotter.foundation.text.red
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotter.runtime.render.RenderScope
-import com.varabyte.kotterx.decorations.bordered
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.input.*
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotterx.decorations.*
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -37,7 +31,10 @@ class Cells {
 
     private val buffer = Array(WIDTH * HEIGHT) { State.DEAD }
     private operator fun Array<State>.get(x: Int, y: Int) = this[y * WIDTH + x]
-    private operator fun Array<State>.set(x: Int, y: Int, state: State) { this[y * WIDTH + x] = state }
+    private operator fun Array<State>.set(x: Int, y: Int, state: State) {
+        this[y * WIDTH + x] = state
+    }
+
     operator fun get(x: Int, y: Int) = buffer[x, y]
 
     var onChanged: () -> Unit = {}
@@ -47,7 +44,9 @@ class Cells {
     }
 
     fun randomize() {
-        for (i in buffer.indices) { buffer[i] = if (Random.nextFloat() > 0.9) State.ALIVE else State.DEAD }
+        for (i in buffer.indices) {
+            buffer[i] = if (Random.nextFloat() > 0.9) State.ALIVE else State.DEAD
+        }
         // The first frame is chaotic but settles after the first few steps
         step()
         step()
@@ -71,14 +70,13 @@ class Cells {
         for (y in 0 until HEIGHT) {
             for (x in 0 until WIDTH) {
                 val neighborCount = bufferCurr.countNeighbors(x, y)
-                val alive = when(bufferCurr[x, y].isAlive()) {
+                val alive = when (bufferCurr[x, y].isAlive()) {
                     true -> neighborCount == 2 || neighborCount == 3
                     false -> neighborCount == 3
                 }
                 if (alive) {
                     buffer[x, y] = if (bufferCurr[x, y].isDead()) State.BORN else State.ALIVE
-                }
-                else {
+                } else {
                     buffer[x, y] = if (bufferCurr[x, y].isAlive()) State.DYING else State.DEAD
                 }
             }
@@ -111,7 +109,11 @@ fun main() = session(clearTerminal = true) {
 
     var paused by liveVarOf(false)
     section {
-        textLine(if (paused) { centered("* PAUSED *", WIDTH + 2) } else "")
+        textLine(
+            if (paused) {
+                centered("* PAUSED *", WIDTH + 2)
+            } else ""
+        )
 
         bordered {
             for (y in 0 until HEIGHT) {

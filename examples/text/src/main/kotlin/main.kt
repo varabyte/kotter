@@ -1,6 +1,6 @@
-import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.foundation.text.ColorLayer.BG
+import com.varabyte.kotter.foundation.text.ColorLayer.*
 
 fun main() = session {
     section {

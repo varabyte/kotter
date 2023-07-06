@@ -1,10 +1,7 @@
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.text.invert
-import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotter.foundation.timer.addTimer
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.input.*
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.timer.*
 import kotlin.time.Duration.Companion.milliseconds
 
 fun main() = session {

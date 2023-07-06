@@ -1,7 +1,7 @@
 package com.varabyte.kotterx.test.runtime
 
-import com.varabyte.kotter.platform.concurrent.locks.write
-import com.varabyte.kotter.runtime.RunScope
+import com.varabyte.kotter.platform.concurrent.locks.*
+import com.varabyte.kotter.runtime.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.runBlocking
 

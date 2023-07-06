@@ -1,14 +1,15 @@
-import com.varabyte.kotter.foundation.anim.Anim
-import com.varabyte.kotter.foundation.anim.text
-import com.varabyte.kotter.foundation.anim.textAnimOf
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.anim.*
 import com.varabyte.kotter.foundation.input.*
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.render.aside
-import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.shutdown.addShutdownHook
+import com.varabyte.kotter.foundation.render.*
+import com.varabyte.kotter.foundation.shutdown.*
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.runtime.render.RenderScope
-import kotlinx.coroutines.*
+import com.varabyte.kotter.runtime.render.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
@@ -99,7 +100,12 @@ fun approximateTokenCountOf(text: String): Int {
 }
 
 
-suspend fun sendMessageToChatGpt(json: Json, httpClient: OkHttpClient, message: String, history: List<Message>): ChatResponse? {
+suspend fun sendMessageToChatGpt(
+    json: Json,
+    httpClient: OkHttpClient,
+    message: String,
+    history: List<Message>
+): ChatResponse? {
     var tokenLimit = 4096 - approximateTokenCountOf(message)
     val recentHistory =
         history.reversed().takeWhile {
@@ -172,13 +178,16 @@ fun main() = session {
     fun RenderScope.humanColor(block: RenderScope.() -> Unit) {
         white(scopedBlock = block)
     }
+
     fun RenderScope.robotColor(block: RenderScope.() -> Unit) {
         // I yoinked the cyan-ish color of ChatGPT's icon
         rgb(0x00a78e, scopedBlock = block)
     }
+
     fun RenderScope.infoColor(block: RenderScope.() -> Unit) {
         black(isBright = true, scopedBlock = block)
     }
+
     fun RenderScope.invertIf(condition: Boolean, block: RenderScope.() -> Unit) {
         if (condition) invert()
         block()
@@ -259,15 +268,20 @@ fun main() = session {
                                 histories.removeLast()
                                 state = State.ROBOT_THINKING
                             }
+
                             UserOption.QUIT -> shouldQuit = true
                         }
                     }
+
                     Keys.LEFT -> {
-                        userOption = UserOption.values()[(userOption.ordinal + UserOption.values().size - 1) % UserOption.values().size]
+                        userOption =
+                            UserOption.values()[(userOption.ordinal + UserOption.values().size - 1) % UserOption.values().size]
                     }
+
                     Keys.RIGHT -> {
                         userOption = UserOption.values()[(userOption.ordinal + 1) % UserOption.values().size]
                     }
+
                     Keys.DOWN -> continueChatting()
                     is CharKey -> continueChatting((key as CharKey).code.toString())
                 }

@@ -1,13 +1,12 @@
 package com.varabyte.kotterx.test.terminal
 
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotter.runtime.internal.text.TextPtr
-import com.varabyte.kotter.runtime.internal.text.startsWith
-import com.varabyte.kotter.runtime.render.RenderScope
-import com.varabyte.kotter.runtime.terminal.Terminal
-import com.varabyte.kotterx.test.foundation.testSession
-import com.varabyte.kotterx.test.runtime.replaceControlCharacters
+import com.varabyte.kotter.runtime.internal.text.*
+import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.runtime.terminal.*
+import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotterx.test.runtime.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -16,8 +15,8 @@ import kotlin.math.min
 /**
  * A fake terminal, built for tests, which stores data written to it in memory that can then be queried.
  */
-class TestTerminal(private val provideWidth: (() -> Int)? = null, private val provideHeight: (() -> Int)? = null)
-    : Terminal {
+class TestTerminal(private val provideWidth: (() -> Int)? = null, private val provideHeight: (() -> Int)? = null) :
+    Terminal {
     companion object {
         /**
          * Helper function that generates the final console output for a given, simple Kotter block.
@@ -125,15 +124,18 @@ fun TestTerminal.resolveRerenders(): List<String> {
             textPtr.currChar == '\r' -> {
                 currLineIndex = 0
             }
+
             textPtr.currChar == '\n' -> {
                 resolved.add(currLine.toString())
                 currLine.clear()
                 currLineIndex = 0
             }
+
             textPtr.startsWith(codeEraseToLineEnd) -> {
                 textPtr.charIndex += codeEraseToLineEnd.length
                 currLine.deleteRange(currLineIndex, currLineIndex + currLine.length)
             }
+
             textPtr.startsWith(codeMoveToPrevLine) -> {
                 textPtr.charIndex += codeMoveToPrevLine.length
                 resolved.removeLast()
@@ -141,6 +143,7 @@ fun TestTerminal.resolveRerenders(): List<String> {
                 resolved.firstOrNull()?.let { currLine.append(it) }
                 currLineIndex = min(currLineIndex, currLine.lastIndex)
             }
+
             else -> {
                 currLine.insert(currLineIndex++, textPtr.currChar)
             }

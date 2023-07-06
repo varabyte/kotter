@@ -16,6 +16,9 @@ internal actual class Thread {
     actual companion object {
         actual fun getId(): ThreadId =
             com.varabyte.kotter.platform.internal.concurrent.ThreadId(JvmThread.currentThread())
-        actual fun sleepMs(millis: Int) { JvmThread.sleep(millis.toLong()) }
+
+        actual fun sleepMs(millis: Int) {
+            JvmThread.sleep(millis.toLong())
+        }
     }
 }

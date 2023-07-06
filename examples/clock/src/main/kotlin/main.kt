@@ -1,12 +1,7 @@
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.onKeyPressed
-import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.text.p
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotter.foundation.timer.addTimer
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.input.*
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.timer.*
 import java.time.LocalDateTime
 import kotlin.time.Duration.Companion.seconds
 
@@ -47,8 +42,7 @@ fun main() = session {
                     amPm = "P.M."
                     currHour -= 12
                 }
-            }
-            else {
+            } else {
                 amPm = ""
             }
             month = now.month.name

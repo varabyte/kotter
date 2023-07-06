@@ -1,7 +1,7 @@
 package com.varabyte.kotter.foundation.text
 
 import com.varabyte.kotter.runtime.internal.ansi.commands.*
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.runtime.render.*
 
 /**
  * Marks the current scope so that any text after this point will be bolded.

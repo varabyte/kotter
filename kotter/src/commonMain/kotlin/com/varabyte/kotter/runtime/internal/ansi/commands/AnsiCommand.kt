@@ -1,6 +1,6 @@
 package com.varabyte.kotter.runtime.internal.ansi.commands
 
-import com.varabyte.kotter.runtime.internal.TerminalCommand
+import com.varabyte.kotter.runtime.internal.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Osc
 

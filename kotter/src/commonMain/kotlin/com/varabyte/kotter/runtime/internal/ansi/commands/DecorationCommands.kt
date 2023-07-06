@@ -1,8 +1,8 @@
 package com.varabyte.kotter.runtime.internal.ansi.commands
 
-import com.varabyte.kotter.runtime.SectionState
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.render.Renderer
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.internal.ansi.*
+import com.varabyte.kotter.runtime.render.*
 
 internal val BOLD_COMMAND = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decorations.BOLD) {
     override fun applyTo(state: SectionState, renderer: Renderer<*>) {

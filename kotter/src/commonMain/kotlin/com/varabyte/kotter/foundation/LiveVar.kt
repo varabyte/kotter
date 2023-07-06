@@ -1,12 +1,9 @@
 package com.varabyte.kotter.foundation
 
-import com.varabyte.kotter.platform.concurrent.locks.read
-import com.varabyte.kotter.platform.concurrent.locks.write
-import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
-import com.varabyte.kotter.platform.internal.ref.WeakReference
-import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.Section
-import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotter.platform.concurrent.locks.*
+import com.varabyte.kotter.platform.internal.concurrent.annotations.*
+import com.varabyte.kotter.platform.internal.ref.*
+import com.varabyte.kotter.runtime.*
 import kotlin.reflect.KProperty
 
 /**
@@ -57,8 +54,13 @@ class LiveVar<T> internal constructor(private val session: Session, value: T) {
             }
         }
 
-    operator fun getValue(thisRef: Any?, prop: KProperty<*>): T { return value }
-    operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) { this.value = value }
+    operator fun getValue(thisRef: Any?, prop: KProperty<*>): T {
+        return value
+    }
+
+    operator fun setValue(thisRef: Any?, prop: KProperty<*>, value: T) {
+        this.value = value
+    }
 }
 
 /** Create a [LiveVar] whose scope is tied to this session. */

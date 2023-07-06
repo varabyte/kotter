@@ -1,15 +1,12 @@
 package com.varabyte.kotter.foundation.render
 
-import com.varabyte.kotter.runtime.SectionState
-import com.varabyte.kotter.runtime.internal.TerminalCommand
-import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
-import com.varabyte.kotter.runtime.internal.ansi.commands.RESET_COMMAND
-import com.varabyte.kotter.runtime.internal.text.lineLengths
-import com.varabyte.kotter.runtime.internal.text.toText
-import com.varabyte.kotter.runtime.render.RenderScope
-import com.varabyte.kotter.runtime.render.Renderer
-import com.varabyte.kotterx.decorations.bordered
-import com.varabyte.kotterx.text.justified
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.internal.*
+import com.varabyte.kotter.runtime.internal.ansi.commands.*
+import com.varabyte.kotter.runtime.internal.text.*
+import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotterx.decorations.*
+import com.varabyte.kotterx.text.*
 
 @Deprecated(
     "OffscreenRenderScope should have been declared under the runtime package originally. Please change `foundation` to `runtime` in the import.",
@@ -32,9 +29,10 @@ class OffscreenBuffer internal constructor(
     render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit
 ) {
     private val commands = run {
-        val offscreenRenderer = Renderer(parentScope.renderer.session) { com.varabyte.kotter.runtime.render.OffscreenRenderScope(it) }.apply {
-            render(render)
-        }
+        val offscreenRenderer =
+            Renderer(parentScope.renderer.session) { com.varabyte.kotter.runtime.render.OffscreenRenderScope(it) }.apply {
+                render(render)
+            }
         // The renderer normally makes sure that a command block ends with a trailing newline and a state reset, but we
         // don't need those in an offscreen buffer.
         // 1) The final newline shouldn't leak into the output. For example,

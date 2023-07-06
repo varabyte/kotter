@@ -1,8 +1,8 @@
 package com.varabyte.kotter.foundation.text
 
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotterx.test.foundation.testSession
-import com.varabyte.kotterx.test.terminal.lines
+import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat
 import kotlin.test.Test
 

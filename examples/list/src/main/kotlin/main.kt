@@ -1,17 +1,15 @@
-import com.varabyte.kotter.foundation.collections.liveSetOf
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.onKeyPressed
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.runUntilSignal
-import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.collections.*
+import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotter.runtime.*
 import java.util.*
 
 fun Enum<*>.toDisplayName(capitalized: Boolean = false): String {
     // e.g. HOT_DOG to "Hot Dog"
     return name.split("_").joinToString(" ") { s ->
-        s.lowercase().let { if (capitalized) it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } else it }
+        s.lowercase()
+            .let { if (capitalized) it.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } else it }
     }
 }
 
@@ -95,7 +93,7 @@ private fun Session.chooseDish(): Dish {
         textLine()
     }.runUntilSignal {
         onKeyPressed {
-            when(key) {
+            when (key) {
                 Keys.UP -> cursorIndex -= 1
                 Keys.DOWN -> cursorIndex += 1
                 Keys.ENTER -> signal()
@@ -140,7 +138,7 @@ private fun Session.chooseToppingsFor(dish: Dish): Set<Topping> {
         textLine()
     }.runUntilSignal {
         onKeyPressed {
-            when(key) {
+            when (key) {
                 Keys.UP -> cursorIndex -= 1
                 Keys.DOWN -> cursorIndex += 1
                 Keys.HOME -> cursorIndex = 0

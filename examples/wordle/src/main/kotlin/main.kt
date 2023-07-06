@@ -1,13 +1,11 @@
-import com.varabyte.kotter.foundation.anim.textAnimOf
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.anim.*
 import com.varabyte.kotter.foundation.input.*
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.runUntilSignal
-import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotter.runtime.Section
-import com.varabyte.kotter.runtime.concurrent.createKey
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.concurrent.*
+import com.varabyte.kotter.runtime.render.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -30,7 +28,7 @@ private enum class GameMode {
     HARD;
 
     fun toggle(): GameMode {
-        return when(this) {
+        return when (this) {
             NORMAL -> HARD
             HARD -> NORMAL
         }
@@ -43,6 +41,7 @@ private val HighContrastKey = Section.Lifecycle.createKey<Boolean>()
 @Suppress("EqualsOrHashCode") // hashcode override not needed for this example
 private class Tile(val type: Type, letter: Char) {
     val letter: Char = letter.uppercaseChar()
+
     enum class Type {
         ABSENT,
         PRESENT,
@@ -60,6 +59,7 @@ private class Row(val tiles: Array<Tile>) {
     init {
         require(tiles.size == WORD_LEN)
     }
+
     companion object {
         @Suppress("NAME_SHADOWING")
         fun from(guess: String, targetWord: String): Row {
@@ -148,6 +148,7 @@ private sealed interface GameState {
     class Revealing(val board: Board, val row: Row, val numTiles: Int) : GameState {
         fun revealOneMore(): Revealing? = if (numTiles < WORD_LEN) Revealing(board, row, numTiles + 1) else null
     }
+
     class EndGame(val board: Board) : GameState
 }
 
@@ -156,15 +157,24 @@ private fun RenderScope.setColorFor(type: Tile.Type) {
     if (!useHighContrast) {
         when (type) {
             Tile.Type.ABSENT -> rgb(0x555555, ColorLayer.BG)
-            Tile.Type.PRESENT -> { rgb(0xb59f3b, ColorLayer.BG); black() }
-            Tile.Type.MATCH -> { rgb(0x538d4e, ColorLayer.BG); black() }
+            Tile.Type.PRESENT -> {
+                rgb(0xb59f3b, ColorLayer.BG); black()
+            }
+
+            Tile.Type.MATCH -> {
+                rgb(0x538d4e, ColorLayer.BG); black()
+            }
         }
-    }
-    else {
+    } else {
         when (type) {
             Tile.Type.ABSENT -> rgb(0x555555, ColorLayer.BG)
-            Tile.Type.PRESENT -> { rgb(0x85c0f9, ColorLayer.BG); black() }
-            Tile.Type.MATCH -> { rgb(0xf5793a, ColorLayer.BG); black() }
+            Tile.Type.PRESENT -> {
+                rgb(0x85c0f9, ColorLayer.BG); black()
+            }
+
+            Tile.Type.MATCH -> {
+                rgb(0xf5793a, ColorLayer.BG); black()
+            }
         }
     }
 }
@@ -228,8 +238,7 @@ private fun RenderScope.toOnOff(value: Boolean) {
     text("[")
     if (value) {
         green { text("On") }
-    }
-    else {
+    } else {
         text("Off")
     }
     text("]")
@@ -302,11 +311,13 @@ fun main() = session(clearTerminal = true) {
                         yellow { textLine(error) }
                     }
                 }
+
                 is GameState.Revealing -> {
                     renderBoard(gs.board, indent = 2)
                     renderRow(gs.row, indent = 2, gs.numTiles)
                     renderKeyboard(gs.board)
                 }
+
                 is GameState.EndGame -> {
                     renderBoard(gs.board, indent = 2)
                     renderKeyboard(gs.board)
@@ -323,6 +334,7 @@ fun main() = session(clearTerminal = true) {
                     textLine()
                     text("> "); input(completer = Completions("yes", "no"), "y")
                 }
+
                 else -> error("Unexpected gameState: $gs")
             }
         }
@@ -403,15 +415,19 @@ fun main() = session(clearTerminal = true) {
                                             idealType == Tile.Type.MATCH -> {
                                                 "The letter ${ideal.tiles[i].letter} should be in spot #${i + 1}"
                                             }
+
                                             idealType == Tile.Type.PRESENT && actualType == Tile.Type.ABSENT -> {
                                                 "The letter ${ideal.tiles[i].letter} should be present in your guess"
                                             }
+
                                             idealType == Tile.Type.PRESENT && actualType == Tile.Type.MATCH -> {
                                                 "The letter ${ideal.tiles[i].letter} should not be in spot #${i + 1}"
                                             }
+
                                             idealType == Tile.Type.ABSENT -> {
                                                 "The letter ${ideal.tiles[i].letter} should not be present in your guess"
                                             }
+
                                             else -> error("Unexpected case comparing $idealType to $actualType")
                                         }
                                         gameState = GameState.Playing(gs.board, "Hard mode: $error")
@@ -445,6 +461,7 @@ fun main() = session(clearTerminal = true) {
                         gameState = GameState.Revealing(gs.board, newRow, 1)
                     }
                 }
+
                 is GameState.EndGame -> {
                     if ("yes".startsWith(input, ignoreCase = true)) {
                         gameState = createNewGameState()
@@ -453,6 +470,7 @@ fun main() = session(clearTerminal = true) {
                         signal()
                     }
                 }
+
                 else -> error("No input expected during game state: $gs")
             }
         }

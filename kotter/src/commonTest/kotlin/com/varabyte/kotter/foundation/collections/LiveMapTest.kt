@@ -1,11 +1,9 @@
 package com.varabyte.kotter.foundation.collections
 
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotterx.test.foundation.testSession
-import com.varabyte.kotterx.test.terminal.lines
-import com.varabyte.kotterx.test.terminal.resolveRerenders
+import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat
 import kotlin.test.Test
 
@@ -42,7 +40,7 @@ class LiveMapTest {
         fun squarePair(value: Int) = value to value * value
         val numSquares = liveMapOf((1..3).map(::squarePair))
         section {
-            textLine("Set: [${numSquares.entries.joinToString(", ") { (num, squared) -> "$num² = $squared"}}]")
+            textLine("Set: [${numSquares.entries.joinToString(", ") { (num, squared) -> "$num² = $squared" }}]")
             textLine("Keys: [${numSquares.keys.joinToString(", ")}]")
             textLine("Values: [${numSquares.values.joinToString(", ")}]")
             textLine("Size: ${numSquares.size}")
@@ -82,7 +80,7 @@ class LiveMapTest {
     fun `live map modify methods work`() = testSession { terminal ->
         val numSquares = liveMapOf<Int, Int>()
         section {
-            text("Set: [${numSquares.entries.joinToString(", ") { (num, squared) -> "$num² = $squared"}}]")
+            text("Set: [${numSquares.entries.joinToString(", ") { (num, squared) -> "$num² = $squared" }}]")
         }.run {
             numSquares.withWriteLock {
                 (1..10).forEach { i -> numSquares[i] = i }
@@ -90,7 +88,7 @@ class LiveMapTest {
                 numSquares[0] = 123
                 numSquares.remove(0)
 
-                (1 .. 3).forEach { i -> numSquares[i] = i * i }
+                (1..3).forEach { i -> numSquares[i] = i * i }
                 numSquares.putAll((4..6).associateWith { i -> i * i })
             }
         }

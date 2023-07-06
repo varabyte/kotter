@@ -1,8 +1,8 @@
 package com.varabyte.kotter.runtime.internal.ansi.commands
 
-import com.varabyte.kotter.runtime.SectionState
-import com.varabyte.kotter.runtime.internal.TerminalCommand
-import com.varabyte.kotter.runtime.render.Renderer
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.internal.*
+import com.varabyte.kotter.runtime.render.*
 
 /**
  * A console command which prints text to the screen, and should ensure the current state effects are applied if not
@@ -22,6 +22,7 @@ internal class CharCommand(char: Char) : TextCommand(char.toString()) {
         require(char != '\n') { "Newlines should be represented by the NEWLINE_COMMAND" }
     }
 }
+
 internal class CharSequenceCommand(text: CharSequence) : TextCommand(text.toString()) {
     init {
         require(!text.contains("\n")) { "Newlines should be represented by the NEWLINE_COMMAND" }

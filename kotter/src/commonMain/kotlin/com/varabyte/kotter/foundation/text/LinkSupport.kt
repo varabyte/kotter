@@ -1,9 +1,8 @@
 package com.varabyte.kotter.foundation.text
 
-import com.varabyte.kotter.platform.net.Uri
-import com.varabyte.kotter.runtime.internal.ansi.commands.CloseLinkCommand
-import com.varabyte.kotter.runtime.internal.ansi.commands.OpenLinkCommand
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.platform.net.*
+import com.varabyte.kotter.runtime.internal.ansi.commands.*
+import com.varabyte.kotter.runtime.render.*
 
 /**
  * Render text backed by a link, so it can be clicked to navigate to some URI.

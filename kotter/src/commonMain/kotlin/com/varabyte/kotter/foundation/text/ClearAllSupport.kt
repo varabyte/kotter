@@ -1,6 +1,6 @@
 package com.varabyte.kotter.foundation.text
 
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.runtime.render.*
 
 /**
  * Clear all actively set text effects.

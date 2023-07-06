@@ -1,8 +1,7 @@
 package com.varabyte.kotter.runtime.render
 
-import com.varabyte.kotter.runtime.SectionScope
-import com.varabyte.kotter.runtime.SectionState
-import com.varabyte.kotter.runtime.internal.TerminalCommand
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.internal.*
 
 /**
  * A scope which represents a single render pass inside a section.
@@ -23,7 +22,7 @@ import com.varabyte.kotter.runtime.internal.TerminalCommand
  *
  * the part between the `section` curly braces represents a render block, where `this` is a `RenderScope`.
  */
-abstract class RenderScope(internal val renderer: Renderer<*>): SectionScope {
+abstract class RenderScope(internal val renderer: Renderer<*>) : SectionScope {
     internal var state = SectionState()
 
     /**
@@ -74,4 +73,4 @@ abstract class RenderScope(internal val renderer: Renderer<*>): SectionScope {
 }
 
 /** Marker base class for render scopes that are only ever meant to fire once */
-abstract class OneShotRenderScope(renderer: Renderer<*>): RenderScope(renderer)
+abstract class OneShotRenderScope(renderer: Renderer<*>) : RenderScope(renderer)

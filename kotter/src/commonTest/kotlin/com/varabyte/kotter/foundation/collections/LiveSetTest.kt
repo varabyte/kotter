@@ -1,11 +1,9 @@
 package com.varabyte.kotter.foundation.collections
 
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotterx.test.foundation.testSession
-import com.varabyte.kotterx.test.terminal.lines
-import com.varabyte.kotterx.test.terminal.resolveRerenders
+import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat
 import kotlin.test.Test
 
@@ -72,7 +70,7 @@ class LiveSetTest {
         val nums = liveSetOf(listOf(1, 2, 3, 4, 5, 6))
         section {
             text("Iterator: ")
-            with (nums.iterator()) {
+            with(nums.iterator()) {
                 while (hasNext()) {
                     text(next().toString())
                     if (hasNext()) {

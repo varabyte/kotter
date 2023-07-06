@@ -1,12 +1,15 @@
 import MandelbrotModel.Companion.MAX_ITERATIONS
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.onKeyPressed
-import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotterx.decorations.bordered
-import kotlinx.coroutines.*
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotterx.decorations.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val VIEW_WIDTH = 70
@@ -39,8 +42,10 @@ class MandelbrotModel {
     companion object {
         const val MAX_ITERATIONS = 26
     }
+
     var isCalculating = false
         private set
+
     /** Buffer of number of iterations it took before this value diverged */
     val iterations = Array(VIEW_WIDTH * VIEW_HEIGHT) { 0 }
 
@@ -83,7 +88,7 @@ class MandelbrotModel {
             val c = x + y.i
             var z = 0.0 + 0.0.i
 
-            for (i in 0 .. MAX_ITERATIONS) {
+            for (i in 0..MAX_ITERATIONS) {
                 iterations[cellX, cellY] = i
                 if (z.abs2() > 4.0) break
                 z = (z * z) + c
@@ -152,12 +157,30 @@ fun main() = session(clearTerminal = true) {
             }
 
             when (key) {
-                Keys.W -> { zoom *= 1.1 }
-                Keys.S -> { zoom = (zoom / 1.1).coerceAtLeast(1.0) }
-                Keys.LEFT -> { cx -= (1.0 / zoom) }
-                Keys.RIGHT -> { cx += (1.0 / zoom) }
-                Keys.UP -> { cy -= (1.0 / zoom) }
-                Keys.DOWN -> { cy += (1.0 / zoom) }
+                Keys.W -> {
+                    zoom *= 1.1
+                }
+
+                Keys.S -> {
+                    zoom = (zoom / 1.1).coerceAtLeast(1.0)
+                }
+
+                Keys.LEFT -> {
+                    cx -= (1.0 / zoom)
+                }
+
+                Keys.RIGHT -> {
+                    cx += (1.0 / zoom)
+                }
+
+                Keys.UP -> {
+                    cy -= (1.0 / zoom)
+                }
+
+                Keys.DOWN -> {
+                    cy += (1.0 / zoom)
+                }
+
                 else -> return@onKeyPressed
             }
 

@@ -1,14 +1,16 @@
 package com.varabyte.kotter.foundation.timer
 
-import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
-import com.varabyte.kotter.platform.concurrent.locks.write
-import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
-import com.varabyte.kotter.platform.internal.system.getCurrentTimeMs
-import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.Section
-import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
-import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
-import kotlinx.coroutines.*
+import com.varabyte.kotter.platform.concurrent.locks.*
+import com.varabyte.kotter.platform.internal.concurrent.annotations.*
+import com.varabyte.kotter.platform.internal.system.*
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.concurrent.*
+import com.varabyte.kotter.runtime.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -19,24 +21,34 @@ internal abstract class TimerManager(private val lock: ReentrantReadWriteLock) {
         override val lifecycle = RunScope.Lifecycle
     }
 
-    protected inner class Timer(var duration: Duration, val repeat: Boolean, val key: Any?, val callback: TimerScope.() -> Unit): Comparable<Timer> {
+    protected inner class Timer(
+        var duration: Duration,
+        val repeat: Boolean,
+        val key: Any?,
+        val callback: TimerScope.() -> Unit
+    ) : Comparable<Timer> {
         val enqueuedTime = produceCurrentTime()
         var wakeUpTimeRequested = 0L
         var wakeUpTime = 0L
-        init { updateWakeUpTime() }
+
+        init {
+            updateWakeUpTime()
+        }
 
         fun updateWakeUpTime() {
-            require(duration.isPositive()) { "Invalid timer requested with non-positive duration"}
+            require(duration.isPositive()) { "Invalid timer requested with non-positive duration" }
 
             wakeUpTimeRequested = produceCurrentTime()
             wakeUpTime = wakeUpTimeRequested + duration.inWholeMilliseconds
         }
+
         override fun compareTo(other: Timer): Int {
             // By default, we want to sort by wakeup time, but if two timers have the exact wakeup time, then the order
             // doesn't matter, but we have to return SOMETHING non-zero, or else some algorithm will think the two
             // timers are the same. We use hashCode because it's convenient, it's consistent, and it doesn't really
             // matter.
-            return (wakeUpTime.compareTo(other.wakeUpTime)).takeIf { it != 0 } ?: return hashCode().compareTo(other.hashCode())
+            return (wakeUpTime.compareTo(other.wakeUpTime)).takeIf { it != 0 }
+                ?: return hashCode().compareTo(other.hashCode())
         }
     }
 

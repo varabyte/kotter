@@ -1,9 +1,7 @@
 package com.varabyte.kotter.foundation.text
 
-import com.varabyte.kotter.runtime.internal.ansi.commands.CharCommand
-import com.varabyte.kotter.runtime.internal.ansi.commands.CharSequenceCommand
-import com.varabyte.kotter.runtime.internal.ansi.commands.NEWLINE_COMMAND
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.runtime.internal.ansi.commands.*
+import com.varabyte.kotter.runtime.render.*
 
 /**
  * Append a newline to the current section.
@@ -31,8 +29,7 @@ fun RenderScope.text(text: CharSequence) {
 fun RenderScope.text(c: Char) {
     if (c != '\n') {
         applyCommand(CharCommand(c))
-    }
-    else {
+    } else {
         textLine()
     }
 }

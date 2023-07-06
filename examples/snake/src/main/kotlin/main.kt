@@ -1,17 +1,12 @@
-import com.varabyte.kotter.foundation.anim.Anim
-import com.varabyte.kotter.foundation.firstSuccess
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.onKeyPressed
-import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.anim.*
+import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.foundation.text.ColorLayer.BG
-import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotter.runtime.render.RenderScope
-import com.varabyte.kotter.terminal.system.SystemTerminal
-import com.varabyte.kotter.terminal.virtual.TerminalSize
-import com.varabyte.kotter.terminal.virtual.VirtualTerminal
+import com.varabyte.kotter.foundation.text.ColorLayer.*
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.terminal.system.*
+import com.varabyte.kotter.terminal.virtual.*
 import kotlin.random.Random
 
 private const val WIDTH = 60
@@ -61,13 +56,13 @@ class Level {
         val xFifth = WIDTH / 5
 
         for (x in listOf(xFifth, 4 * xFifth)) {
-            for (y in yThird .. (HEIGHT - yThird)) {
+            for (y in yThird..(HEIGHT - yThird)) {
                 add(Pt(x, y))
             }
         }
 
         for (y in listOf(yFifth, 4 * yFifth)) {
-            for (x in xThird .. (WIDTH - xThird)) {
+            for (x in xThird..(WIDTH - xThird)) {
                 add(Pt(x, y))
             }
         }
@@ -75,7 +70,8 @@ class Level {
 
     fun isFloor(pt: Pt): Boolean = !isWall(pt)
     fun isFood(pt: Pt): Boolean = (pt == foodPt)
-    fun isWall(pt: Pt): Boolean = pt.x == 0 || pt.x == WIDTH - 1 || pt.y == 0 || pt.y == HEIGHT - 1 || walls.contains(pt)
+    fun isWall(pt: Pt): Boolean =
+        pt.x == 0 || pt.x == WIDTH - 1 || pt.y == 0 || pt.y == HEIGHT - 1 || walls.contains(pt)
 
     init {
         randomizeFood()
@@ -90,6 +86,7 @@ class Level {
 
 class Snake(private val level: Level, val head: Pt) {
     private var length = 2 // Head and tail to start
+
     // _segments.first == head, _segments.last == tail
     private val _segments = ArrayDeque<Pt>().apply { add(head) }
     val segments: List<Pt> = _segments
@@ -117,8 +114,7 @@ class Snake(private val level: Level, val head: Pt) {
         val newHeadPos = headPt + dir
         if (level.isWall(newHeadPos) || this.contains(newHeadPos)) {
             onDied()
-        }
-        else {
+        } else {
             _segments.addFirst(newHeadPos)
             if (_segments.size > length) {
                 _segments.removeLast()
@@ -141,7 +137,7 @@ fun main() = session(
         { VirtualTerminal.create(terminalSize = TerminalSize(WIDTH, HEIGHT + 15)) }
     ).firstSuccess(),
     clearTerminal = true,
-){
+) {
     section {
         textLine()
         text("Snake: "); snakeTail(); snakeBody(); snakeBody(); snakeHead(); textLine()
@@ -162,8 +158,7 @@ fun main() = session(
         blue { textLine("SCORE: ${level.snake.size - 2}") }
         if (!isDead) {
             textLine()
-        }
-        else {
+        } else {
             red { textLine("You are dead. Press R to restart.") }
         }
 
@@ -215,8 +210,7 @@ fun main() = session(
                     Keys.LEFT -> level.snake.move(Dir.W)
                     Keys.RIGHT -> level.snake.move(Dir.E)
                 }
-            }
-            else {
+            } else {
                 if (key == Keys.R) {
                     level = Level()
                     isDead = false

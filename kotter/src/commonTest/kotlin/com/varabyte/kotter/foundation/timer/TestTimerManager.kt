@@ -1,14 +1,15 @@
 package com.varabyte.kotter.foundation.timer
 
-import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
-import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
+import com.varabyte.kotter.platform.concurrent.locks.*
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.concurrent.*
 import kotlin.time.Duration
 
 // Note: Class needs to be internal because TimerManager is internal
 internal class TestTimerManager(lock: ReentrantReadWriteLock) : TimerManager(lock) {
     var currentTime: Long = 0
         private set
+
     fun fastForward(duration: Duration) {
         if (!duration.isPositive()) return
 
@@ -39,7 +40,11 @@ fun ConcurrentScopedData.useTestTimer(): TestTimer {
     }
 
     val testTimerManager = TestTimerManager(lock)
-    if (!tryPut(TimerManager.Key, provideInitialValue = { testTimerManager }, dispose = { testTimerManager.dispose() })) {
+    if (!tryPut(
+            TimerManager.Key,
+            provideInitialValue = { testTimerManager },
+            dispose = { testTimerManager.dispose() })
+    ) {
         error("Attempted to initialize this test with a test timer after a different timer was already created.")
     }
 

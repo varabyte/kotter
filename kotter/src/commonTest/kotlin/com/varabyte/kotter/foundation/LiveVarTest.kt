@@ -1,7 +1,7 @@
 package com.varabyte.kotter.foundation
 
-import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotterx.test.foundation.testSession
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.truthish.assertThat
 import kotlin.test.Test
 

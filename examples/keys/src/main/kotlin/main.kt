@@ -1,10 +1,6 @@
-import com.varabyte.kotter.foundation.input.CharKey
-import com.varabyte.kotter.foundation.input.Keys
-import com.varabyte.kotter.foundation.input.onKeyPressed
-import com.varabyte.kotter.foundation.input.runUntilKeyPressed
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.session
-import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.input.*
+import com.varabyte.kotter.foundation.text.*
 
 fun main() = session {
     var keyName by liveVarOf("")
@@ -33,7 +29,7 @@ fun main() = session {
                 Keys.SPACE -> "SPACE"
                 is CharKey -> (key as CharKey).code.toString()
                 else -> "Unhandled key. Please report a bug!"
-           }
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.varabyte.kotter.foundation.text
 
 import com.varabyte.kotter.runtime.internal.ansi.commands.*
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.runtime.render.*
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -43,7 +43,7 @@ data class RGB(val r: Int, val g: Int, val b: Int) {
             : this((r * 255).roundToInt(), (g * 255).roundToInt(), (b * 255).roundToInt())
 
     init {
-        require(r in (0..255) && g in (0 .. 255) && b in (0 .. 255)) { "Color values must be between 0 and 255 (inclusive). Got: ($r, $g, $b)"}
+        require(r in (0..255) && g in (0..255) && b in (0..255)) { "Color values must be between 0 and 255 (inclusive). Got: ($r, $g, $b)" }
     }
 
     companion object {
@@ -63,7 +63,7 @@ data class RGB(val r: Int, val g: Int, val b: Int) {
 /** Simple data class representing HSV values. */
 data class HSV(val h: Int, val s: Float, val v: Float) {
     init {
-        require(h in (0 .. 360) && s in (0.0 .. 1.0) && v in (0.0 .. 1.0)) {
+        require(h in (0..360) && s in (0.0..1.0) && v in (0.0..1.0)) {
             "Hue must be between 0 and 360 (inclusive). Saturation and value must be between 0.0 and 1.0 (inclusive) Got: ($h, $s, $v)"
         }
     }
@@ -96,52 +96,52 @@ data class HSV(val h: Int, val s: Float, val v: Float) {
     }
 }
 
-private fun toBlackCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
+private fun toBlackCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
     ColorLayer.FG -> if (isBright) FG_BLACK_BRIGHT_COMMAND else FG_BLACK_COMMAND
     ColorLayer.BG -> if (isBright) BG_BLACK_BRIGHT_COMMAND else BG_BLACK_COMMAND
 }
 
-private fun toRedCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
+private fun toRedCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
     ColorLayer.FG -> if (isBright) FG_RED_BRIGHT_COMMAND else FG_RED_COMMAND
     ColorLayer.BG -> if (isBright) BG_RED_BRIGHT_COMMAND else BG_RED_COMMAND
 }
 
-private fun toGreenCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
+private fun toGreenCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
     ColorLayer.FG -> if (isBright) FG_GREEN_BRIGHT_COMMAND else FG_GREEN_COMMAND
     ColorLayer.BG -> if (isBright) BG_GREEN_BRIGHT_COMMAND else BG_GREEN_COMMAND
 }
 
-private fun toYellowCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
+private fun toYellowCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
     ColorLayer.FG -> if (isBright) FG_YELLOW_BRIGHT_COMMAND else FG_YELLOW_COMMAND
     ColorLayer.BG -> if (isBright) BG_YELLOW_BRIGHT_COMMAND else BG_YELLOW_COMMAND
 }
 
-private fun toBlueCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
+private fun toBlueCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
     ColorLayer.FG -> if (isBright) FG_BLUE_BRIGHT_COMMAND else FG_BLUE_COMMAND
     ColorLayer.BG -> if (isBright) BG_BLUE_BRIGHT_COMMAND else BG_BLUE_COMMAND
 }
 
-private fun toMagentaCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
+private fun toMagentaCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
     ColorLayer.FG -> if (isBright) FG_MAGENTA_BRIGHT_COMMAND else FG_MAGENTA_COMMAND
     ColorLayer.BG -> if (isBright) BG_MAGENTA_BRIGHT_COMMAND else BG_MAGENTA_COMMAND
 }
 
-private fun toCyanCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
+private fun toCyanCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
     ColorLayer.FG -> if (isBright) FG_CYAN_BRIGHT_COMMAND else FG_CYAN_COMMAND
     ColorLayer.BG -> if (isBright) BG_CYAN_BRIGHT_COMMAND else BG_CYAN_COMMAND
 }
 
-private fun toWhiteCommand(layer: ColorLayer, isBright: Boolean) = when(layer) {
+private fun toWhiteCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
     ColorLayer.FG -> if (isBright) FG_WHITE_BRIGHT_COMMAND else FG_WHITE_COMMAND
     ColorLayer.BG -> if (isBright) BG_WHITE_BRIGHT_COMMAND else BG_WHITE_COMMAND
 }
 
-private fun toLookupCommand(layer: ColorLayer, index: Int) = when(layer) {
+private fun toLookupCommand(layer: ColorLayer, index: Int) = when (layer) {
     ColorLayer.FG -> fgLookupCommand(index)
     ColorLayer.BG -> bgLookupCommand(index)
 }
 
-private fun toTruecolorCommand(layer: ColorLayer, r: Int, g: Int, b: Int) = when(layer) {
+private fun toTruecolorCommand(layer: ColorLayer, r: Int, g: Int, b: Int) = when (layer) {
     ColorLayer.FG -> fgTruecolorCommand(r, g, b)
     ColorLayer.BG -> bgTruecolorCommand(r, g, b)
 }
@@ -232,24 +232,26 @@ fun RenderScope.white(layer: ColorLayer = ColorLayer.FG, isBright: Boolean = fal
  * @param layer A color can be applied either to the text itself or its background.
  */
 fun RenderScope.color(color: Color, layer: ColorLayer = ColorLayer.FG) {
-    applyCommand(when (color) {
-        Color.BLACK -> toBlackCommand(layer, false)
-        Color.RED -> toRedCommand(layer, false)
-        Color.GREEN -> toGreenCommand(layer, false)
-        Color.YELLOW -> toYellowCommand(layer, false)
-        Color.BLUE -> toBlueCommand(layer, false)
-        Color.MAGENTA -> toMagentaCommand(layer, false)
-        Color.CYAN -> toCyanCommand(layer, false)
-        Color.WHITE -> toWhiteCommand(layer, false)
-        Color.BRIGHT_BLACK -> toBlackCommand(layer, true)
-        Color.BRIGHT_RED -> toRedCommand(layer, true)
-        Color.BRIGHT_GREEN -> toGreenCommand(layer, true)
-        Color.BRIGHT_YELLOW -> toYellowCommand(layer, true)
-        Color.BRIGHT_BLUE -> toBlueCommand(layer, true)
-        Color.BRIGHT_MAGENTA -> toMagentaCommand(layer, true)
-        Color.BRIGHT_CYAN -> toCyanCommand(layer, true)
-        Color.BRIGHT_WHITE -> toWhiteCommand(layer, true)
-    })
+    applyCommand(
+        when (color) {
+            Color.BLACK -> toBlackCommand(layer, false)
+            Color.RED -> toRedCommand(layer, false)
+            Color.GREEN -> toGreenCommand(layer, false)
+            Color.YELLOW -> toYellowCommand(layer, false)
+            Color.BLUE -> toBlueCommand(layer, false)
+            Color.MAGENTA -> toMagentaCommand(layer, false)
+            Color.CYAN -> toCyanCommand(layer, false)
+            Color.WHITE -> toWhiteCommand(layer, false)
+            Color.BRIGHT_BLACK -> toBlackCommand(layer, true)
+            Color.BRIGHT_RED -> toRedCommand(layer, true)
+            Color.BRIGHT_GREEN -> toGreenCommand(layer, true)
+            Color.BRIGHT_YELLOW -> toYellowCommand(layer, true)
+            Color.BRIGHT_BLUE -> toBlueCommand(layer, true)
+            Color.BRIGHT_MAGENTA -> toMagentaCommand(layer, true)
+            Color.BRIGHT_CYAN -> toCyanCommand(layer, true)
+            Color.BRIGHT_WHITE -> toWhiteCommand(layer, true)
+        }
+    )
 }
 
 /**
@@ -305,10 +307,12 @@ fun RenderScope.hsv(color: HSV, layer: ColorLayer = ColorLayer.FG) {
  * Clears any color set earlier in this scope on a particular [ColorLayer].
  */
 fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG) {
-    applyCommand(when(layer) {
-        ColorLayer.FG -> FG_CLEAR_COMMAND
-        ColorLayer.BG -> BG_CLEAR_COMMAND
-    })
+    applyCommand(
+        when (layer) {
+            ColorLayer.FG -> FG_CLEAR_COMMAND
+            ColorLayer.BG -> BG_CLEAR_COMMAND
+        }
+    )
 }
 
 /**

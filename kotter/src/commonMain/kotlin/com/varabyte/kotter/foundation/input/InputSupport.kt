@@ -1,19 +1,17 @@
 package com.varabyte.kotter.foundation.input
 
-import com.varabyte.kotter.foundation.anim.Anim
+import com.varabyte.kotter.foundation.anim.*
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotter.platform.concurrent.locks.ReentrantLock
-import com.varabyte.kotter.platform.concurrent.locks.withLock
-import com.varabyte.kotter.platform.internal.collections.computeIfAbsent
-import com.varabyte.kotter.platform.internal.system.getCurrentTimeMs
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotter.platform.concurrent.locks.*
+import com.varabyte.kotter.platform.internal.collections.*
+import com.varabyte.kotter.platform.internal.system.*
 import com.varabyte.kotter.runtime.*
-import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData
-import com.varabyte.kotter.runtime.concurrent.createKey
-import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.internal.text.TextPtr
-import com.varabyte.kotter.runtime.terminal.Terminal
+import com.varabyte.kotter.runtime.concurrent.*
+import com.varabyte.kotter.runtime.coroutines.*
+import com.varabyte.kotter.runtime.internal.ansi.*
+import com.varabyte.kotter.runtime.internal.text.*
+import com.varabyte.kotter.runtime.terminal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlin.math.min
@@ -77,6 +75,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                                 null
                             }
                         }
+
                         else -> {
                             when (c) {
                                 Ansi.CtrlChars.EOF -> Keys.EOF
@@ -111,6 +110,7 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
                                     }
                                     null
                                 }
+
                                 else -> if (!c.isISOControl()) CharKey(c) else null
                             }
                         }
@@ -266,6 +266,7 @@ private fun String.getLineStartCursorIndex(cursorIndex: Int): Int {
     if (ptr.currChar == '\n') ptr.increment()
     return ptr.charIndex
 }
+
 private fun String.getLineEndCursorIndex(cursorIndex: Int): Int {
     val ptr = TextPtr(this, cursorIndex)
     if (ptr.currChar != '\n') {
@@ -287,7 +288,13 @@ private fun String.insertAtCursorIndex(cursorIndex: Int, c: Char): String {
  *
  * Is a no-op after the first time.
  */
-private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, initialText: String, isActive: Boolean, isMultiline: Boolean) {
+private fun ConcurrentScopedData.prepareInput(
+    scope: MainRenderScope,
+    id: Any,
+    initialText: String,
+    isActive: Boolean,
+    isMultiline: Boolean
+) {
     val section = scope.section
     prepareKeyFlow(section.session.terminal)
     val cursorState = putOrGet(BlinkingCursorStateKey) {
@@ -310,7 +317,8 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                 idsRenderedThisFrame.addAll(this.keys)
             }
             get(InputStatesKey) {
-                val unrenderedActiveInputStates = this.values.filter { it.isActive && !idsRenderedThisFrame.contains(it.id) }
+                val unrenderedActiveInputStates =
+                    this.values.filter { it.isActive && !idsRenderedThisFrame.contains(it.id) }
                 if (unrenderedActiveInputStates.isNotEmpty()) {
                     unrenderedActiveInputStates.forEach { deactivate(it) }
                 }
@@ -380,12 +388,12 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                                 cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
                                 multilineState?.updateIdealLineIndex()
                             }
+
                             Keys.RIGHT -> {
                                 if (cursorIndex < text.length) {
                                     cursorIndex++
                                     multilineState?.updateIdealLineIndex()
-                                }
-                                else {
+                                } else {
                                     get(CompleterKey) {
                                         complete(text)?.let { completion ->
                                             val finalText = text + completion
@@ -395,32 +403,39 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                                     }
                                 }
                             }
+
                             Keys.UP -> {
                                 if (multilineState == null) return@withActiveInput
                                 val prevLineEndCursorIndex = text.getLineStartCursorIndex(cursorIndex) - 1
                                 if (prevLineEndCursorIndex >= 0) {
                                     val prevLineEndIndex = text.getLineIndex(prevLineEndCursorIndex)
-                                    val diffToIdealLineIndex = (prevLineEndIndex - multilineState.idealLineIndex).coerceAtLeast(0)
+                                    val diffToIdealLineIndex =
+                                        (prevLineEndIndex - multilineState.idealLineIndex).coerceAtLeast(0)
                                     cursorIndex = prevLineEndCursorIndex - diffToIdealLineIndex
                                 }
                             }
+
                             Keys.DOWN -> {
                                 if (multilineState == null) return@withActiveInput
                                 val nextLineStartCursorIndex = text.getLineEndCursorIndex(cursorIndex) + 1
                                 if (nextLineStartCursorIndex <= text.length) {
                                     val nextLineEndCursorIndex = text.getLineEndCursorIndex(nextLineStartCursorIndex)
                                     val nextLineLength = nextLineEndCursorIndex - nextLineStartCursorIndex
-                                    cursorIndex = nextLineStartCursorIndex + min(multilineState.idealLineIndex, nextLineLength)
+                                    cursorIndex =
+                                        nextLineStartCursorIndex + min(multilineState.idealLineIndex, nextLineLength)
                                 }
                             }
+
                             Keys.HOME -> {
                                 cursorIndex = text.getLineStartCursorIndex(cursorIndex)
                                 multilineState?.updateIdealLineIndex()
                             }
+
                             Keys.END -> {
                                 cursorIndex = text.getLineEndCursorIndex(cursorIndex)
                                 multilineState?.updateIdealLineIndex()
                             }
+
                             Keys.DELETE -> {
                                 if (cursorIndex <= text.lastIndex) {
                                     proposedText = text.removeRange(cursorIndex, cursorIndex + 1)
@@ -458,6 +473,7 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
                                     proposedCursorIndex = cursorIndex + 1
                                 }
                             }
+
                             else ->
                                 if (key is CharKey) {
                                     proposedText = text.insertAtCursorIndex(cursorIndex, key.code)
@@ -467,7 +483,8 @@ private fun ConcurrentScopedData.prepareInput(scope: MainRenderScope, id: Any, i
 
                         if (proposedText != null) {
                             get(InputChangedCallbackKey) {
-                                val onInputChangedScope = OnInputChangedScope(id, input = proposedText!!, prevInput = text)
+                                val onInputChangedScope =
+                                    OnInputChangedScope(id, input = proposedText!!, prevInput = text)
                                 this.invoke(onInputChangedScope)
 
                                 if (!onInputChangedScope.rejected) {
@@ -689,12 +706,15 @@ class CustomFormatScope(val input: String, val index: Int, val isActive: Boolean
             ColorLayer.BG -> bgColor = color
         }
     }
+
     fun bold() {
         isBold = true
     }
+
     fun underline() {
         isUnderline = true
     }
+
     fun strikethrough() {
         isStrikethrough = true
     }
@@ -739,7 +759,8 @@ private fun MainRenderScope.handleInput(
     viewMap: (ViewMapScope.() -> Char)?,
     customFormat: (CustomFormatScope.() -> Unit)?,
     isActive: Boolean,
-    isMultiline: Boolean) {
+    isMultiline: Boolean
+) {
     data.prepareInput(this, id, initialText, isActive, isMultiline)
     completer?.let { data[CompleterKey] = it }
 
@@ -898,7 +919,8 @@ fun MainRenderScope.input(
     id: Any = Unit,
     viewMap: (ViewMapScope.() -> Char)? = null,
     customFormat: (CustomFormatScope.() -> Unit)? = null,
-    isActive: Boolean = true) {
+    isActive: Boolean = true
+) {
     handleInput(completer, initialText.replace("\n", ""), id, viewMap, customFormat, isActive, isMultiline = false)
 }
 
@@ -911,7 +933,8 @@ fun MainRenderScope.multilineInput(
     initialText: String = "",
     id: Any = Unit,
     viewMap: (ViewMapScope.() -> Char)? = null,
-    isActive: Boolean = true) {
+    isActive: Boolean = true
+) {
     addNewlinesIfNecessary(1)
     handleInput(null, initialText, id, viewMap, customFormat = null, isActive, isMultiline = true)
 }
@@ -925,6 +948,7 @@ class OnKeyPressedScope(val key: Key)
 
 private val KeyPressedJobKey = RunScope.Lifecycle.createKey<Job>()
 private val KeyPressedCallbackKey = RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
@@ -1008,6 +1032,7 @@ fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> U
  * @property input The current text value of the input.
  */
 class OnInputActivatedScope(val id: Any, var input: String)
+
 private val InputActivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputActivatedScope.() -> Unit>()
 
 private fun ConcurrentScopedData.withActiveInput(block: InputState.() -> Unit) {
@@ -1061,6 +1086,7 @@ fun RunScope.onInputActivated(listener: OnInputActivatedScope.() -> Unit) {
  * @property input The current text value of the input.
  */
 class OnInputDeactivatedScope(val id: Any, var input: String)
+
 private val InputDeactivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputDeactivatedScope.() -> Unit>()
 
 /**
@@ -1113,9 +1139,13 @@ fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
  */
 class OnInputChangedScope(val id: Any, var input: String, val prevInput: String) {
     internal var rejected = false
+
     /** Indicate that the current [input] change isn't valid and the last state should be restored. */
-    fun rejectInput() { rejected = true }
+    fun rejectInput() {
+        rejected = true
+    }
 }
+
 private val InputChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputChangedScope.() -> Unit>()
 
 /**
@@ -1153,14 +1183,22 @@ fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
  */
 class OnInputEnteredScope(val id: Any, val input: String) {
     internal var rejected = false
+
     /** Indicate that the current [input] isn't valid and shouldn't be accepted as is. */
-    fun rejectInput() { rejected = true }
+    fun rejectInput() {
+        rejected = true
+    }
+
     internal var cleared = false
+
     /**
      * Call to reset the input back to blank, which can be useful if you are re-using the same [input] multiple times.
      */
-    fun clearInput() { cleared = true }
+    fun clearInput() {
+        cleared = true
+    }
 }
+
 private val InputEnteredCallbackKey = RunScope.Lifecycle.createKey<OnInputEnteredScope.() -> Unit>()
 
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user

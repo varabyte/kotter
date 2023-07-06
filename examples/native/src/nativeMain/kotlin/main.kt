@@ -1,4 +1,4 @@
-import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.text.*
 
 fun main() = session {

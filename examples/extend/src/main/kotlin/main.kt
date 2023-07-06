@@ -1,5 +1,5 @@
+import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.input.*
-import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
 
 fun main() = session {
@@ -11,7 +11,9 @@ fun main() = session {
         }
     }.runUntilInputEntered {
         onInputEntered {
-            if (input.isBlank()) rejectInput() else { inputText = input.trim() }
+            if (input.isBlank()) rejectInput() else {
+                inputText = input.trim()
+            }
         }
     }
 

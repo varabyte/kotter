@@ -1,10 +1,8 @@
-import com.varabyte.kotter.foundation.collections.liveListOf
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.collections.*
 import com.varabyte.kotter.foundation.input.*
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.runUntilSignal
-import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.runtime.MainRenderScope
+import com.varabyte.kotter.runtime.*
 
 fun main() = session {
     // Scenario #1 - trivial but common case. A section exists to request a single input from the user

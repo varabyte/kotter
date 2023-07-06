@@ -1,11 +1,14 @@
-import com.varabyte.kotter.foundation.collections.liveListOf
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.render.aside
-import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.collections.*
+import com.varabyte.kotter.foundation.render.*
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.foundation.timer.addTimer
-import com.varabyte.kotter.runtime.render.RenderScope
-import kotlinx.coroutines.*
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotter.runtime.render.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
@@ -14,8 +17,13 @@ class Report(private val line: Int, private val text: String, private val isErro
     fun render(scope: RenderScope) {
         scope.apply {
             when (isError) {
-                true -> { red(); text("e") }
-                false -> { yellow(); text("w") }
+                true -> {
+                    red(); text("e")
+                }
+
+                false -> {
+                    yellow(); text("w")
+                }
             }
             textLine(" (L$line): $text")
         }

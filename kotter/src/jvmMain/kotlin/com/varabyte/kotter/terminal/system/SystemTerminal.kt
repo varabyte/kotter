@@ -1,6 +1,6 @@
 package com.varabyte.kotter.terminal.system
 
-import com.varabyte.kotter.runtime.terminal.Terminal
+import com.varabyte.kotter.runtime.terminal.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -77,8 +77,7 @@ class SystemTerminal : Terminal {
                     val c = terminal.reader().read(16)
                     if (c >= 0) {
                         emit(c)
-                    }
-                    else {
+                    } else {
                         quit = (c == -1)
                     }
                 } catch (ex: IOException) {

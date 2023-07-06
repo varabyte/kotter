@@ -37,6 +37,7 @@ class Board(val sideLen: Int = 4) {
         override fun equals(other: Any?): Boolean {
             return (other is Pos) && x == other.x && y == other.y
         }
+
         override fun hashCode() = Objects.hash(x, y) // Don't need this but makes a warning go away
     }
 
@@ -158,13 +159,18 @@ fun main() = session(clearTerminal = true) {
                             val up = "↑".takeIf { !isFinished && tilePos.getNeighbor(Dir.UP) == board.blankPos } ?: " "
                             text("  $up  ")
                         }
+
                         1 -> {
-                            val left = "←".takeIf { !isFinished && tilePos.getNeighbor(Dir.LEFT) == board.blankPos } ?: " "
-                            val right = "→".takeIf { !isFinished && tilePos.getNeighbor(Dir.RIGHT) == board.blankPos } ?: " "
+                            val left =
+                                "←".takeIf { !isFinished && tilePos.getNeighbor(Dir.LEFT) == board.blankPos } ?: " "
+                            val right =
+                                "→".takeIf { !isFinished && tilePos.getNeighbor(Dir.RIGHT) == board.blankPos } ?: " "
                             text("$left ${tile.toTileChar()} $right")
                         }
+
                         2 -> {
-                            val down = "↓".takeIf { !isFinished && tilePos.getNeighbor(Dir.DOWN) == board.blankPos } ?: " "
+                            val down =
+                                "↓".takeIf { !isFinished && tilePos.getNeighbor(Dir.DOWN) == board.blankPos } ?: " "
                             text("  $down  ")
                         }
                     }
@@ -194,8 +200,7 @@ fun main() = session(clearTerminal = true) {
                     Keys.Q -> signal()
                     else -> handled = false
                 }
-            }
-            else {
+            } else {
                 when (key) {
                     Keys.Y -> board = createRandomizedBoard()
                     Keys.N, Keys.Q -> signal()

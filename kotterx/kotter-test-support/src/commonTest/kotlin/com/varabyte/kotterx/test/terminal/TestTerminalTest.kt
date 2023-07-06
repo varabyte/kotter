@@ -1,12 +1,9 @@
 package com.varabyte.kotterx.test.terminal
 
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.text.bold
-import com.varabyte.kotter.foundation.text.red
-import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotterx.test.foundation.testSession
-import com.varabyte.kotterx.test.runtime.blockUntilRenderWhen
-import com.varabyte.truthish.assertThat
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotterx.test.runtime.*
 import kotlin.test.Test
 
 class TestTerminalTest {

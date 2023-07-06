@@ -1,9 +1,7 @@
 package com.varabyte.kotter.foundation.render
 
-import com.varabyte.kotter.runtime.AsideRendersKey
-import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.render.RenderScope
-import com.varabyte.kotter.runtime.render.Renderer
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.render.*
 
 @Deprecated(
     "AsideRenderScope should have been declared under the runtime package originally. Please change `foundation` to `runtime` in the import.",
@@ -80,7 +78,8 @@ typealias AsideRenderScope = com.varabyte.kotter.runtime.render.AsideRenderScope
 fun RunScope.aside(render: com.varabyte.kotter.runtime.render.AsideRenderScope.() -> Unit) {
     val session = section.session
 
-    val asideRenderer = Renderer(session) { com.varabyte.kotter.runtime.render.AsideRenderScope(it) }.apply { render(render) }
+    val asideRenderer =
+        Renderer(session) { com.varabyte.kotter.runtime.render.AsideRenderScope(it) }.apply { render(render) }
     session.data.putIfAbsent(AsideRendersKey, { mutableListOf() }) {
         add(asideRenderer)
         section.requestRerender()

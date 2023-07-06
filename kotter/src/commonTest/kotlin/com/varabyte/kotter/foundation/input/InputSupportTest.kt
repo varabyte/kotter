@@ -1,21 +1,13 @@
 package com.varabyte.kotter.foundation.input
 
-import com.varabyte.kotter.foundation.liveVarOf
-import com.varabyte.kotter.foundation.text.black
-import com.varabyte.kotter.foundation.text.cyan
-import com.varabyte.kotter.foundation.text.red
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotter.foundation.timer.TestTimer
-import com.varabyte.kotter.foundation.timer.useTestTimer
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.timer.*
+import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotterx.test.foundation.testSession
-import com.varabyte.kotterx.test.runtime.blockUntilRenderWhen
-import com.varabyte.kotterx.test.terminal.assertMatches
-import com.varabyte.kotterx.test.terminal.resolveRerenders
-import com.varabyte.kotterx.test.terminal.sendCode
-import com.varabyte.kotterx.test.terminal.type
+import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotterx.test.runtime.*
+import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlinx.coroutines.CompletableDeferred
@@ -449,8 +441,18 @@ class InputSupportTest {
     fun `input rendering can be formatted with customFormat`() = testSession { terminal ->
         section {
             cyan {
-                input(customFormat = { if (index in 2..4) red() }, initialText = "active test", isActive = true, id = "active"); textLine()
-                input(customFormat = { if (isActive) green() else black() }, initialText = "inactive test", isActive = false, id = "inactive")
+                input(
+                    customFormat = { if (index in 2..4) red() },
+                    initialText = "active test",
+                    isActive = true,
+                    id = "active"
+                ); textLine()
+                input(
+                    customFormat = { if (isActive) green() else black() },
+                    initialText = "inactive test",
+                    isActive = false,
+                    id = "inactive"
+                )
             }
         }.run()
 

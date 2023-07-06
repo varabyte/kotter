@@ -1,14 +1,9 @@
 package com.varabyte.kotter.runtime.concurrent
 
-import com.varabyte.kotter.platform.concurrent.locks.ReentrantReadWriteLock
-import com.varabyte.kotter.platform.concurrent.locks.read
-import com.varabyte.kotter.platform.concurrent.locks.write
-import com.varabyte.kotter.platform.internal.collections.computeIfAbsent
-import com.varabyte.kotter.platform.internal.collections.removeIf
-import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
-import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
-import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData.Key
-import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData.Lifecycle
+import com.varabyte.kotter.platform.concurrent.locks.*
+import com.varabyte.kotter.platform.internal.collections.*
+import com.varabyte.kotter.platform.internal.concurrent.annotations.*
+import com.varabyte.kotter.runtime.concurrent.ConcurrentScopedData.*
 
 /**
  * A thread-safe collection of key/value pairs, where additionally each key is typed and tied to a [Lifecycle].
@@ -134,8 +129,10 @@ class ConcurrentScopedData {
      * generate some value that they want to put into it.
      */
     val lock = ReentrantReadWriteLock()
+
     @GuardedBy("lock")
     private val activeLifecycles = mutableSetOf<Lifecycle>()
+
     @GuardedBy("lock")
     private val keyValues = mutableMapOf<Key<out Any>, Value<out Any>>()
 
@@ -222,7 +219,7 @@ class ConcurrentScopedData {
      * Warning: Be careful with this method, as you are accessing data from outside a lock it is normally stored behind.
      * Prefer using the [get] method which takes a block for maximum safety.
      */
-    fun <T: Any> getValue(key: Key<T>): T = this[key]!!
+    fun <T : Any> getValue(key: Key<T>): T = this[key]!!
 
     /**
      * Access the stored value within a scoped block, during which a lock protecting all data is held.
@@ -241,7 +238,7 @@ class ConcurrentScopedData {
         return lock.read { keyValues.contains(key) }
     }
 
-    operator fun <T: Any> set(key: Key<T>, value: T) {
+    operator fun <T : Any> set(key: Key<T>, value: T) {
         set(key, value, dispose = {})
     }
 
@@ -251,7 +248,7 @@ class ConcurrentScopedData {
      * It is expected users will prefer to use [tryPut] or [putIfAbsent] methods instead, treating this data block like
      * a cache of lazily instantiated values, but this method is provided in case direct setting is needed.
      */
-    fun <T: Any> set(key: Key<T>, value: T, dispose: (T) -> Unit) {
+    fun <T : Any> set(key: Key<T>, value: T, dispose: (T) -> Unit) {
         return lock.write { keyValues[key] = Value(value, dispose) }
     }
 

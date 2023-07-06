@@ -1,7 +1,7 @@
 package com.varabyte.kotter.platform.concurrent.locks
 
-import com.varabyte.kotter.platform.internal.concurrent.Thread
-import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
+import com.varabyte.kotter.platform.internal.concurrent.*
+import com.varabyte.kotter.platform.internal.concurrent.annotations.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 

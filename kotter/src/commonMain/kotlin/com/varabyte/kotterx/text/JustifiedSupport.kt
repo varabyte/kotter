@@ -1,10 +1,9 @@
 package com.varabyte.kotterx.text
 
-import com.varabyte.kotter.foundation.render.offscreen
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.render.*
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.runtime.render.*
 import com.varabyte.kotter.runtime.render.OffscreenRenderScope
-import com.varabyte.kotter.runtime.render.RenderScope
 import kotlin.math.max
 
 /** [Text justification](https://en.wikipedia.org/wiki/Typographic_alignment). */
@@ -45,6 +44,7 @@ fun RenderScope.justified(
                 val secondHalf = spaceToDivideIntoTwo - firstHalf
                 (firstHalf to secondHalf)
             }
+
             else -> maxWidth - lineLength to 0
         }
         repeat(leftPad) { text(" ") }

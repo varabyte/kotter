@@ -1,8 +1,8 @@
 package com.varabyte.kotter.foundation
 
-import com.varabyte.kotter.platform.internal.system.onShutdown
-import com.varabyte.kotter.runtime.Session
-import com.varabyte.kotter.runtime.terminal.Terminal
+import com.varabyte.kotter.platform.internal.system.*
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.terminal.*
 
 /**
  * Run through a list of [Terminal] factory methods, attempting to create them in order until the first one succeeds,
@@ -25,12 +25,17 @@ fun Iterable<() -> Terminal>.firstSuccess(): Terminal {
     return this.asSequence().mapNotNull { createTerminal ->
         try {
             createTerminal()
-        }
-        catch (ex: Exception) {
+        } catch (ex: Exception) {
             creationErrors.add(ex)
             null
         }
-    }.firstOrNull() ?: error("No terminals could successfully be created. Encountered exceptions:\n\t{${creationErrors.joinToString("\n\t")}")
+    }.firstOrNull() ?: error(
+        "No terminals could successfully be created. Encountered exceptions:\n\t{${
+            creationErrors.joinToString(
+                "\n\t"
+            )
+        }"
+    )
 }
 
 internal expect val defaultTerminalProviders: List<() -> Terminal>
@@ -71,8 +76,7 @@ fun session(
     try {
         session.apply(block)
         session.assertNoActiveSections()
-    }
-    finally {
+    } finally {
         session.dispose()
     }
 }

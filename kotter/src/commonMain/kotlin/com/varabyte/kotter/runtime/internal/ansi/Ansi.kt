@@ -1,10 +1,7 @@
 package com.varabyte.kotter.runtime.internal.ansi
 
-import com.varabyte.kotter.platform.net.Uri
-import com.varabyte.kotter.runtime.internal.text.TextPtr
-import com.varabyte.kotter.runtime.internal.text.readUntil
-import com.varabyte.kotter.runtime.internal.text.substring
-import com.varabyte.kotter.runtime.internal.text.tryReadInt
+import com.varabyte.kotter.platform.net.*
+import com.varabyte.kotter.runtime.internal.text.*
 
 /**
  * A collection of common ANSI codes and other related constants which power the features of
@@ -29,6 +26,7 @@ object Ansi {
     object EscSeq {
         const val CSI = '['
         const val OSC = ']'
+
         // Hack alert: For a reason I don't understand yet, Windows uses 'O' and not '[' for a handful of its escape
         // sequence characters. 'O' normally represents "function shift" but I'm not finding great documentation about
         // it. For now, it seems to work OK if we just treat 'O' like '[' on Windows sometimes.
@@ -74,7 +72,7 @@ object Ansi {
 
         /** The full code for this command, e.g. the "31;1m" part of "ESC[31;1m" */
         class Code(val parts: Parts) {
-            constructor(value: String): this(
+            constructor(value: String) : this(
                 parts(value) ?: throw IllegalArgumentException("Invalid CSI code: $value")
             )
 
@@ -98,7 +96,9 @@ object Ansi {
             data class Parts(val numericCode: Int?, val optionalCodes: List<Int>?, val identifier: Char) {
                 override fun toString() = buildString {
                     if (numericCode != null) append(numericCode.toString())
-                    if (optionalCodes != null) { append(';'); append(optionalCodes.joinToString(";")) }
+                    if (optionalCodes != null) {
+                        append(';'); append(optionalCodes.joinToString(";"))
+                    }
                     append(identifier)
                 }
             }
@@ -117,6 +117,7 @@ object Ansi {
             object Cursor {
                 val MOVE_TO_PREV_LINE = Code("1${Identifiers.CURSOR_PREV_LINE}")
                 val MOVE_TO_LINE_START = Code("${Identifiers.CURSOR_POSITION}")
+
                 // Some terminals use "0 F" to mean to go the end of the current line??
                 val MOVE_TO_LINE_END = Code("${Identifiers.CURSOR_PREV_LINE}")
             }
@@ -170,7 +171,8 @@ object Ansi {
                         val CLEAR = Code("39${Identifiers.SGR}")
 
                         fun lookup(index: Int) = Code("$FG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
-                        fun truecolor(r: Int, g: Int, b: Int) = Code("$FG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
+                        fun truecolor(r: Int, g: Int, b: Int) =
+                            Code("$FG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
                     }
 
                     object Bg {
@@ -195,7 +197,8 @@ object Ansi {
                         val CLEAR = Code("49${Identifiers.SGR}")
 
                         fun lookup(index: Int) = Code("$BG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
-                        fun truecolor(r: Int, g: Int, b: Int) = Code("$BG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
+                        fun truecolor(r: Int, g: Int, b: Int) =
+                            Code("$BG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
                     }
                 }
             }
@@ -239,7 +242,7 @@ object Ansi {
 
         /** The code for this OSC command, e.g. the "8;(params);(uri)ESC\" part of "ESC]8;(params);(uri)ESC\" */
         class Code(val parts: Parts) {
-            constructor(value: String): this(
+            constructor(value: String) : this(
                 parts(value) ?: throw IllegalArgumentException("Invalid OSC code: $value")
             )
 

@@ -1,10 +1,8 @@
 package com.varabyte.kotter.foundation.shutdown
 
-import com.varabyte.kotter.foundation.LiveVar
-import com.varabyte.kotter.runtime.RunScope
-import com.varabyte.kotter.runtime.Section
-import com.varabyte.kotter.runtime.Session
-import com.varabyte.kotter.runtime.concurrent.createKey
+import com.varabyte.kotter.foundation.*
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.concurrent.*
 
 internal val SessionShutdownHookKey = Session.Lifecycle.createKey<MutableList<() -> Unit>>()
 internal val SectionShutdownHookKey = Section.Lifecycle.createKey<MutableList<() -> Unit>>()
@@ -34,5 +32,3 @@ fun RunScope.addShutdownHook(dispose: () -> Unit) {
     // Note: The value is definitely non-null -- if we're inside a run block, we know the section lifecycle is active.
     data.putOrGet(SectionShutdownHookKey) { mutableListOf() }!!.add(dispose)
 }
-
-

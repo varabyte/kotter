@@ -1,7 +1,12 @@
 package com.varabyte.kotter.platform.concurrent.locks
 
 import com.varabyte.truthish.assertThat
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 
 // NOTE: If this test seems sparse for such potentially delicate code, it's because the general usage of the lock class

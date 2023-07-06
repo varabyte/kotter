@@ -1,10 +1,8 @@
 package com.varabyte.kotter.foundation.anim
 
-import com.varabyte.kotter.foundation.text.text
-import com.varabyte.kotter.foundation.text.textLine
-import com.varabyte.kotter.runtime.Section
-import com.varabyte.kotter.runtime.Session
-import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.render.*
 import kotlin.time.Duration
 
 /**
@@ -23,8 +21,8 @@ import kotlin.time.Duration
  * }
  * ```
  */
-class TextAnim internal constructor(session: Session, private val template: Template)
-    : Anim(session, template.frames.size, template.frameDuration, template.looping) {
+class TextAnim internal constructor(session: Session, private val template: Template) :
+    Anim(session, template.frames.size, template.frameDuration, template.looping) {
 
     /**
      * A template for a text animation, useful if you want to define an animation once but instantiate several copies of
@@ -53,6 +51,7 @@ class TextAnim internal constructor(session: Session, private val template: Temp
 }
 
 fun Session.textAnimOf(template: TextAnim.Template) = TextAnim(this, template)
+
 /**
  * Instantiate a [TextAnim] tied to the current [Session].
  *

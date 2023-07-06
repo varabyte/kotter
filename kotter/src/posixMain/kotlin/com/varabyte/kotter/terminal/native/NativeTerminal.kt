@@ -1,13 +1,35 @@
 package com.varabyte.kotter.terminal.native
 
-import com.varabyte.kotter.runtime.internal.ansi.Ansi
-import com.varabyte.kotter.runtime.terminal.Terminal
+import com.varabyte.kotter.runtime.internal.ansi.*
+import com.varabyte.kotter.runtime.terminal.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.isActive
-import platform.posix.*
+import platform.posix.ECHO
+import platform.posix.ICANON
+import platform.posix.ICRNL
+import platform.posix.IEXTEN
+import platform.posix.INLCR
+import platform.posix.IXON
+import platform.posix.STDIN_FILENO
+import platform.posix.STDOUT_FILENO
+import platform.posix.TCSAFLUSH
+import platform.posix.VMIN
+import platform.posix.VTIME
+import platform.posix.fflush
+import platform.posix.ioctl
+import platform.posix.isatty
+import platform.posix.memcpy
+import platform.posix.printf
+import platform.posix.read
+import platform.posix.stdout
+import platform.posix.system
+import platform.posix.tcgetattr
+import platform.posix.tcsetattr
+import platform.posix.termios
+import platform.posix.winsize
 
 // Workaround needed for the fact that K/N doesn't expose
 // platform.posix.TIOCGWINSZ in macos platforms at this posix layer
@@ -43,17 +65,19 @@ actual class NativeTerminal : Terminal {
         fflush(stdout) // Needed or else the command seems to get missed
     }
 
-    override val width: Int get() = memScoped {
-        val winsize = alloc<winsize>()
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
-        winsize.ws_col.toInt()
-    }
+    override val width: Int
+        get() = memScoped {
+            val winsize = alloc<winsize>()
+            ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
+            winsize.ws_col.toInt()
+        }
 
-    override val height: Int get() = memScoped {
-        val winsize = alloc<winsize>()
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
-        winsize.ws_row.toInt()
-    }
+    override val height: Int
+        get() = memScoped {
+            val winsize = alloc<winsize>()
+            ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
+            winsize.ws_row.toInt()
+        }
 
     override fun write(text: String) {
         print(text)
@@ -69,8 +93,7 @@ actual class NativeTerminal : Terminal {
                     val readResult = read(STDIN_FILENO, cVar.ptr, 1u)
                     if (readResult > 0L) {
                         emit(cVar.value)
-                    }
-                    else {
+                    } else {
                         quit = (readResult == -1L)
                     }
                 }
