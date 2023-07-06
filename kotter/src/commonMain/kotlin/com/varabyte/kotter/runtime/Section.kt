@@ -172,7 +172,7 @@ class Section internal constructor(val session: Session, private val render: Mai
      *
      * This will not enqueue a render if one is already queued up.
      */
-    internal fun requestRerender() {
+    fun requestRerender() {
         if (session.activeSection != this) return
 
         renderLock.withLock {
