@@ -60,7 +60,9 @@ fun main() = session {
             onInputChanged { if (input.isNotBlank() && input.toIntOrNull() == null) rejectInput() }
             onInputEntered {
                 numbers.add(input.toIntOrNull() ?: 0)
-                if (input.isEmpty()) { isDone = true; signal() }
+                if (input.isEmpty()) {
+                    isDone = true; signal()
+                }
                 clearInput() // Clear the input, so we can start collecting the next number
             }
         }
@@ -134,11 +136,11 @@ fun main() = session {
         }
     }
 
-    // Use input's `transform` callback to support masking a password
+    // Scenario #4: Use input's `transform` callback to support masking a password
     run {
         fun checkPassword(password: String): List<String> = buildList {
             val hasUpper = password.any { it.isUpperCase() }
-            val hasLower = password.any { it.isLowerCase()}
+            val hasLower = password.any { it.isLowerCase() }
             val hasDigit = password.any { it.isDigit() }
             val hasSymbol = password.any { !(it.isWhitespace() || it.isLetterOrDigit()) }
 
