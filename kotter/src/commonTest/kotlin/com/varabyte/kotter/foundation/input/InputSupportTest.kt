@@ -49,11 +49,10 @@ class InputSupportTest {
 
         assertThat(typed).isEqualTo("Hello")
 
-        // When section has exited, the blinking cursor is removed
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "> Hello <${Codes.Sgr.RESET}",
-            ""
-        ).inOrder()
+        terminal.assertMatches {
+            // When section has exited, the blinking cursor is removed
+            text("> Hello <")
+        }
     }
 
     @Test
@@ -377,10 +376,9 @@ class InputSupportTest {
         }
         assertThat(typed).isEqualTo("Hello")
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "> <${Codes.Sgr.RESET}",
-            ""
-        ).inOrder()
+        terminal.assertMatches {
+            text("> <")
+        }
     }
 
     @Test
@@ -431,10 +429,9 @@ class InputSupportTest {
         }
         assertThat(typed).isEqualTo("password")
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "******** ${Codes.Sgr.RESET}",
-            ""
-        ).inOrder()
+        terminal.assertMatches {
+            text("******** ")
+        }
     }
 
     @Test
