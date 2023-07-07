@@ -161,9 +161,8 @@ class LiveListTest {
             }
         }
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "1, 2, 3, 4, 5, 6, 7, 8, 9${Codes.Sgr.RESET}",
-            "",
-        ).inOrder()
+        terminal.assertMatches {
+            text("1, 2, 3, 4, 5, 6, 7, 8, 9")
+        }
     }
 }

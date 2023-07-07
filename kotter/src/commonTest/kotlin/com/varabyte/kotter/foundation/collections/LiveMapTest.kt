@@ -93,9 +93,8 @@ class LiveMapTest {
             }
         }
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "Set: [1² = 1, 2² = 4, 3² = 9, 4² = 16, 5² = 25, 6² = 36]${Codes.Sgr.RESET}",
-            "",
-        ).inOrder()
+        terminal.assertMatches {
+            text("Set: [1² = 1, 2² = 4, 3² = 9, 4² = 16, 5² = 25, 6² = 36]")
+        }
     }
 }

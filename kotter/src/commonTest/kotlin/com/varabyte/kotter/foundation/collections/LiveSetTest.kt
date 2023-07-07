@@ -113,9 +113,8 @@ class LiveSetTest {
             }
         }
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "1, 2, 3${Codes.Sgr.RESET}",
-            "",
-        ).inOrder()
+        terminal.assertMatches {
+            text("1, 2, 3")
+        }
     }
 }
