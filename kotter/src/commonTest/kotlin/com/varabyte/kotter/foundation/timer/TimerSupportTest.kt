@@ -25,10 +25,9 @@ class TimerSupportTest {
             timer.fastForward(5.milliseconds)
         }
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "1${Codes.Sgr.RESET}",
-            "", // Newline always added at the end of a section
-        ).inOrder()
+        terminal.assertMatches {
+            text("1")
+        }
     }
 
     @Test
@@ -48,10 +47,9 @@ class TimerSupportTest {
             timer.fastForward(5.milliseconds)
         }
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "3${Codes.Sgr.RESET}",
-            "", // Newline always added at the end of a section
-        ).inOrder()
+        terminal.assertMatches {
+            text("3")
+        }
     }
 
     @Test
@@ -70,9 +68,8 @@ class TimerSupportTest {
             timer.fastForward(50.milliseconds)
         }
 
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "1${Codes.Sgr.RESET}",
-            "", // Newline always added at the end of a section
-        ).inOrder()
+        terminal.assertMatches {
+            text("1")
+        }
     }
 }

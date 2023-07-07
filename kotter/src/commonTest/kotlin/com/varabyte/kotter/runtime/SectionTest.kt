@@ -123,10 +123,9 @@ class SectionTest {
         ).inOrder()
 
         // Also, make sure the resolved view looks right
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "2${Codes.Sgr.RESET}",
-            "", // Newline added at the end of the section
-        ).inOrder()
+        terminal.assertMatches {
+            text("2")
+        }
     }
 
     @Test
@@ -165,11 +164,10 @@ class SectionTest {
         ).inOrder()
 
         // Also, make sure the resolved view looks right
-        assertThat(terminal.resolveRerenders()).containsExactly(
-            "Multiple lines",
-            "Run #3${Codes.Sgr.RESET}",
-            "", // Newline added at the end of the section
-        ).inOrder()
+        terminal.assertMatches {
+            textLine("Multiple lines")
+            text("Run #3")
+        }
     }
 
     @Test

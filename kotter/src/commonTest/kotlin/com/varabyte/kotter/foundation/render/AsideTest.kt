@@ -21,7 +21,6 @@ class AsideTest {
             "Section text${Ansi.Csi.Codes.Sgr.RESET}",
             "", // Newline added at the end of the section
         ).inOrder()
-
     }
 
     @Test
