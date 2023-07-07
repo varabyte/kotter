@@ -27,35 +27,23 @@ class TextAnimTest {
             text("> $anim <")
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 3 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 3 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
         }
     }
@@ -73,46 +61,31 @@ class TextAnimTest {
             text("> $anim <")
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 3 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 3 <")
             }
             assertThat(anim.isRunning).isFalse()
 
             // Set the animation back to an earlier frame and it will start running again
             anim.currFrame = 0
             assertThat(anim.isRunning).isTrue()
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
         }
     }
@@ -133,31 +106,20 @@ class TextAnimTest {
             }
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
 
             skipAnim = true
             // The timer update triggers a new repaint; however, the animation won't get hit this frame, meaning it
             // will pause its timer behind the scenes.
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "${Codes.Sgr.RESET}",
-                    "",
-                )
-            }
+            blockUntilRenderMatches(terminal) {}
 
             // Run a few more times, just to prove the point that when the animation restarts, it will be where it last
             // stopped, instead of at some frame in the future.
@@ -166,11 +128,8 @@ class TextAnimTest {
             timer.fastForward(Anim.ONE_FRAME_60FPS)
 
             skipAnim = false; rerender()
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 3 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 3 <")
             }
             // ^ We can tell the timer was reset because the animation went back to frame #3 instead of frame #6
         }
@@ -189,19 +148,13 @@ class TextAnimTest {
             text("> $anim <")
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
 
             anim.paused = true
@@ -211,19 +164,13 @@ class TextAnimTest {
             timer.fastForward(Anim.ONE_FRAME_60FPS)
 
             anim.paused = false
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 3 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 3 <")
             }
             // ^ We can tell the timer was reset because the animation went back to frame #1 instead of frame #3
         }
@@ -242,48 +189,33 @@ class TextAnimTest {
             text("> $anim <")
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
             timer.fastForward(Anim.ONE_FRAME_60FPS)
             timer.fastForward(Anim.ONE_FRAME_60FPS)
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 5 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 5 <")
             }
 
             anim.currFrame = 1
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2 <")
             }
 
             // Curr frame can be set even if the animation is paused
             anim.paused = true
             anim.currFrame = 6
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 7 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 7 <")
             }
 
             // Curr frame request must be in bounds
@@ -320,48 +252,33 @@ class TextAnimTest {
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1 <")
             }
 
             startRunningAnim2 = true
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <",
-                    "~ 1 ~${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("> 2 <")
+                text("~ 1 ~")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 3 <",
-                    "~ 2 ~${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("> 3 <")
+                text("~ 2 ~")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1 <",
-                    "~ 3 ~${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("> 1 <")
+                text("~ 3 ~")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2 <",
-                    "~ 1 ~${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                textLine("> 2 <")
+                text("~ 1 ~")
             }
         }
     }
@@ -381,43 +298,28 @@ class TextAnimTest {
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1:a <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1:a <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2:a <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2:a <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 3:b <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 3:b <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1:b <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1:b <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2:a <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2:a <")
             }
 
         }
@@ -439,19 +341,13 @@ class TextAnimTest {
         }.run {
             @Suppress("NAME_SHADOWING") val timer = timer!!
 
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 1:a <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 1:a <")
             }
 
             timer.fastForward(Anim.ONE_FRAME_60FPS)
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "> 2:b <${Codes.Sgr.RESET}",
-                    "",
-                )
+            blockUntilRenderMatches(terminal) {
+                text("> 2:b <")
             }
         }
     }
