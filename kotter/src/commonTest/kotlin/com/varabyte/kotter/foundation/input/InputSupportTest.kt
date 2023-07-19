@@ -469,7 +469,7 @@ class InputSupportTest {
     }
 
     @Test
-    fun `can set and get input directly even though you shoudln't usually`() = testSession { terminal ->
+    fun `can set and get input directly even though you shouldn't usually`() = testSession { terminal ->
 
         section {
             text("1>"); input(id = "first", isActive = true); textLine("<")
