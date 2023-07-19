@@ -14,9 +14,11 @@ fun RenderScope.textLine() {
  * Append some text to the current section.
  */
 fun RenderScope.text(text: CharSequence) {
+    if (text.isEmpty()) return
+
     val lines = text.split('\n')
     lines.forEachIndexed { i, line ->
-        applyCommand(CharSequenceCommand(line))
+        if (line.isNotEmpty()) applyCommand(CharSequenceCommand(line))
         if (i < lines.size - 1) {
             textLine()
         }

@@ -25,6 +25,7 @@ internal class CharCommand(char: Char) : TextCommand(char.toString()) {
 
 internal class CharSequenceCommand(text: CharSequence) : TextCommand(text.toString()) {
     init {
+        require(text.isNotEmpty()) { "Do not create empty CharSequenceCommands as they'd force state to apply for no reason" }
         require(!text.contains("\n")) { "Newlines should be represented by the NEWLINE_COMMAND" }
     }
 }

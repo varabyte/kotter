@@ -180,7 +180,7 @@ class InputSupportTest {
 
             blockUntilRenderMatches(terminal) {
                 // No need to "clearInvert". It's merged into the "reset" command added at the end of the section.
-                text("Hello"); invert(); text(' ');
+                text("Hello"); invert(); text(' ')
             }
             terminal.type(Ansi.CtrlChars.ENTER)
         }
@@ -449,14 +449,9 @@ class InputSupportTest {
             }
 
             terminal.type("first")
-            blockUntilRenderWhen {
-                terminal.resolveRerenders() == listOf(
-                    "first${Codes.Sgr.Colors.INVERT} ",
-                    "${Codes.Sgr.Colors.CLEAR_INVERT}${Codes.Sgr.RESET}",
-                    "",
-                )
-                // TODO(#90): Note sure why the CLEAR_INVERT command is ending up on the next line, and why it's not
-                //  getting folded into the RESET like happens with other cases.
+            blockUntilRenderMatches(terminal) {
+                text("first"); invert(); textLine(' ') // < inverted space is the cursor
+                // no need to clearInvert, since no text ever follows the cursor
             }
 
             terminal.sendCode(Codes.Keys.DOWN)
