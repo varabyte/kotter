@@ -859,6 +859,19 @@ class InputSupportTest {
     }
 
     @Test
+    fun `multilineInput initialText allows newlines`() = testSession { terminal ->
+        section {
+            multilineInput(initialText = "Newlines\nAre\nAllowed")
+        }.run()
+
+        terminal.assertMatches {
+            textLine("Newlines ")
+            textLine("Are ")
+            textLine("Allowed ")
+        }
+    }
+
+    @Test
     fun `enterInput works on both regular inputs an multilineInputs`() = testSession { terminal ->
         section {
             input()
