@@ -12,8 +12,16 @@ import com.varabyte.kotter.runtime.coroutines.*
 import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.text.*
 import com.varabyte.kotter.runtime.terminal.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import kotlin.math.min
 import kotlin.time.Duration
 
@@ -933,10 +941,11 @@ fun MainRenderScope.multilineInput(
     initialText: String = "",
     id: Any = Unit,
     viewMap: (ViewMapScope.() -> Char)? = null,
+    customFormat: (CustomFormatScope.() -> Unit)? = null,
     isActive: Boolean = true
 ) {
     addNewlinesIfNecessary(1)
-    handleInput(null, initialText, id, viewMap, customFormat = null, isActive, isMultiline = true)
+    handleInput(null, initialText, id, viewMap, customFormat = customFormat, isActive, isMultiline = true)
 }
 
 /**

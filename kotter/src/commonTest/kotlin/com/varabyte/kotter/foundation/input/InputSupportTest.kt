@@ -407,6 +407,23 @@ class InputSupportTest {
     }
 
     @Test
+    fun `input formatting can be affected by customFormat`() = testSession { terminal ->
+        section {
+            input(customFormat = {
+                if (!ch.isLetter()) {
+                    bold()
+                }
+            })
+        }.runUntilInputEntered {
+            terminal.type('h', 'e', 'y', '*', '!', 'y', 'o', 'u', Ansi.CtrlChars.ENTER)
+        }
+
+        terminal.assertMatches {
+            text("hey"); bold(); text("*!"); clearBold(); text("you ")
+        }
+    }
+
+    @Test
     fun `input rendering can be formatted with customFormat`() = testSession { terminal ->
         section {
             cyan {
@@ -808,7 +825,7 @@ class InputSupportTest {
             terminal.sendCode(Codes.Keys.HOME)
 
             blockUntilRenderMatches(terminal) {
-                textLine("12345 ");
+                textLine("12345 ")
                 invert(); text('6'); clearInvert(); textLine("7890 ")
             }
 
@@ -817,6 +834,27 @@ class InputSupportTest {
             blockUntilRenderMatches(terminal) {
                 text("12345"); invert(); text('6'); clearInvert(); textLine("7890 ")
             }
+        }
+    }
+
+    @Test
+    fun `multilineInput formatting can be affected by customFormat`() = testSession { terminal ->
+        section {
+            multilineInput(customFormat = {
+                if (ch.isDigit()) {
+                    bold()
+                }
+            })
+        }.runUntilInputEntered {
+            terminal.type("123abc456")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("def789hij")
+            terminal.type(Ansi.CtrlChars.EOF)
+        }
+
+        terminal.assertMatches {
+            bold(); text("123"); clearBold(); text("abc"); bold(); text("456"); clearBold(); textLine(' ')
+            text("def"); bold(); text("789"); clearBold(); textLine("hij ")
         }
     }
 }
