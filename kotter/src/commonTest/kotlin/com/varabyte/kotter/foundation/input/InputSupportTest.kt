@@ -515,4 +515,308 @@ class InputSupportTest {
             assertThat(getInput()).isEqualTo("NoNewlinesAllowed")
         }
     }
+
+    @Test
+    fun `multilineInput automatically adds text lines before and after`() = testSession { terminal ->
+        section {
+            text("BEFORE")
+            multilineInput()
+            text("AFTER")
+        }.run {
+            terminal.assertMatches {
+                textLine("BEFORE")
+                invert(); textLine(' ')
+                clearInvert(); text("AFTER")
+            }
+        }
+    }
+
+    @Test
+    fun `multilineInput allows typing multiple lines of text`() = testSession { terminal ->
+        lateinit var finalInput: String
+
+        section {
+            textLine("-----------")
+            multilineInput()
+            textLine("-----------")
+        }.runUntilInputEntered {
+            terminal.type("Hello")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("Multi-lined")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("World")
+
+            onInputEntered { finalInput = input }
+
+            blockUntilRenderMatches(terminal) {
+                textLine("-----------")
+                textLine("Hello ") // Spaces are added in multiline mode so user can highlight / delete newlines
+                textLine("Multi-lined ")
+                text("World"); invert(); textLine(' ')
+                clearInvert(); textLine("-----------")
+            }
+
+            terminal.type(Ansi.CtrlChars.EOF) // EOF (Ctrl-D) is used to finish input
+        }
+
+        assertThat(finalInput).isEqualTo("Hello\nMulti-lined\nWorld")
+    }
+
+    @Test
+    fun `multilineInput remembers the current cursor index as you navigate up and down`() = testSession { terminal ->
+        section {
+            multilineInput()
+        }.run {
+            terminal.type("1234567890")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("123456")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("123")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("12345")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("12")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("123456789")
+
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                textLine("123 ")
+                textLine("12345 ")
+                textLine("12 ")
+                text("123456789"); invert(); textLine(' ')
+            }
+
+            // First, keep going up. Note that the cursor "sticks" to the end of each line when it is too short
+
+            terminal.sendCode(Codes.Keys.UP)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                textLine("123 ")
+                textLine("12345 ")
+                text("12"); invert(); textLine(' ')
+                clearInvert(); textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.UP)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                textLine("123 ")
+                text("12345"); invert(); textLine(' ')
+                clearInvert(); textLine("12 ")
+                textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.UP)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                text("123"); invert(); textLine(' ')
+                clearInvert(); textLine("12345 ")
+                textLine("12 ")
+                textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.UP)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                text("123456"); invert(); textLine(' ')
+                clearInvert(); textLine("123 ")
+                textLine("12345 ")
+                textLine("12 ")
+                textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.UP)
+            blockUntilRenderMatches(terminal) {
+                text("123456789"); invert(); text('0'); clearInvert(); textLine(' ')
+                textLine("123456 ")
+                textLine("123 ")
+                textLine("12345 ")
+                textLine("12 ")
+                textLine("123456789 ")
+            }
+
+            // Now, let's go back down but on a different column that's somewhere in the middle of most lines
+
+            repeat(5) { terminal.sendCode(Codes.Keys.LEFT) }
+            blockUntilRenderMatches(terminal) {
+                text("1234"); invert(); text('5'); clearInvert(); textLine("67890 ")
+                textLine("123456 ")
+                textLine("123 ")
+                textLine("12345 ")
+                textLine("12 ")
+                textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.DOWN)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                text("1234"); invert(); text('5'); clearInvert(); textLine("6 ")
+                textLine("123 ")
+                textLine("12345 ")
+                textLine("12 ")
+                textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.DOWN)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                text("123"); invert(); textLine(' ')
+                clearInvert(); textLine("12345 ")
+                textLine("12 ")
+                textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.DOWN)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                textLine("123 ")
+                text("1234"); invert(); text('5'); clearInvert(); textLine(' ')
+                textLine("12 ")
+                textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.DOWN)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                textLine("123 ")
+                textLine("12345 ")
+                text("12"); invert(); textLine(' ')
+                clearInvert(); textLine("123456789 ")
+            }
+
+            terminal.sendCode(Codes.Keys.DOWN)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                textLine("123 ")
+                textLine("12345 ")
+                textLine("12 ")
+                text("1234"); invert(); text('5'); clearInvert(); textLine("6789 ")
+            }
+        }
+    }
+
+    @Test
+    fun `user can press HOME and END to jump to the beginning and end of lines`() = testSession { terminal ->
+        section {
+            multilineInput()
+        }.run {
+            terminal.type("1234567890")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("123456")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("1234567890")
+            repeat(6) { terminal.sendCode(Codes.Keys.LEFT) }
+            terminal.sendCode(Codes.Keys.UP)
+
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                text("1234"); invert(); text('5'); clearInvert(); textLine("6 ")
+                textLine("1234567890 ")
+            }
+
+            terminal.sendCode(Codes.Keys.HOME)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                invert(); text('1'); clearInvert(); textLine("23456 ")
+                textLine("1234567890 ")
+            }
+
+            terminal.sendCode(Codes.Keys.END)
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                text("123456"); invert(); textLine(' ')
+                clearInvert(); textLine("1234567890 ")
+            }
+        }
+    }
+
+    @Test
+    fun `you can move across lines using left and right`() = testSession { terminal ->
+        section {
+            multilineInput()
+        }.run {
+            terminal.type("1234567890")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("123456")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("1234567890")
+            repeat(6) { terminal.sendCode(Codes.Keys.LEFT) }
+            terminal.sendCode(Codes.Keys.UP)
+
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                text("1234"); invert(); text('5'); clearInvert(); textLine("6 ")
+                textLine("1234567890 ")
+            }
+
+            repeat(7) { terminal.sendCode(Codes.Keys.RIGHT) }
+            blockUntilRenderMatches(terminal) {
+                textLine("1234567890 ")
+                textLine("123456 ")
+                text("1234"); invert(); text('5'); clearInvert(); textLine("67890 ")
+            }
+
+            repeat(16) { terminal.sendCode(Codes.Keys.LEFT) }
+            blockUntilRenderMatches(terminal) {
+                text("123456"); invert(); text('7'); clearInvert(); textLine("890 ")
+                textLine("123456 ")
+                textLine("1234567890 ")
+            }
+        }
+    }
+
+    @Test
+    fun `you can delete newlines in multiline inputs`() = testSession { terminal ->
+        section {
+            multilineInput()
+        }.run {
+            terminal.type("12345")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("67890")
+            terminal.sendCode(Codes.Keys.UP)
+
+            blockUntilRenderMatches(terminal) {
+                text("12345"); invert(); textLine(' ')
+                clearInvert(); textLine("67890 ")
+            }
+
+            terminal.sendCode(Codes.Keys.DELETE)
+
+            blockUntilRenderMatches(terminal) {
+                text("12345"); invert(); text('6'); clearInvert(); textLine("7890 ")
+            }
+        }
+    }
+
+    @Test
+    fun `you can backspace newlines in multiline inputs`() = testSession { terminal ->
+        section {
+            multilineInput()
+        }.run {
+            terminal.type("12345")
+            terminal.type(Ansi.CtrlChars.ENTER)
+            terminal.type("67890")
+            terminal.sendCode(Codes.Keys.HOME)
+
+            blockUntilRenderMatches(terminal) {
+                textLine("12345 ");
+                invert(); text('6'); clearInvert(); textLine("7890 ")
+            }
+
+            terminal.type(Ansi.CtrlChars.BACKSPACE)
+
+            blockUntilRenderMatches(terminal) {
+                text("12345"); invert(); text('6'); clearInvert(); textLine("7890 ")
+            }
+        }
+    }
 }
