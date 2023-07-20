@@ -857,4 +857,19 @@ class InputSupportTest {
             text("def"); bold(); text("789"); clearBold(); textLine("hij ")
         }
     }
+
+    @Test
+    fun `enterInput works on both regular inputs an multilineInputs`() = testSession { terminal ->
+        section {
+            input()
+        }.runUntilInputEntered {
+            enterInput()
+        }
+
+        section {
+            multilineInput()
+        }.runUntilInputEntered {
+            enterInput()
+        }
+    }
 }
