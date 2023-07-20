@@ -183,6 +183,7 @@ fun main() = session {
                     textLine("Valid password! Press ENTER to accept it.")
                 }
             }
+            textLine()
         }.runUntilSignal {
             onInputChanged {
                 input = input.filter { !it.isWhitespace() }
@@ -206,8 +207,8 @@ fun main() = session {
 
         if (password.isNotBlank() && maskPassword) {
             section {
-                textLine()
                 textLine("The password you chose was: $password")
+                textLine()
             }.run()
         }
     }
@@ -215,8 +216,8 @@ fun main() = session {
     // Scenario #5: Use `input`'s `customFormat` callback to highlight invalid input
     run {
         section {
-            textLine("Type in a number")
-            text("> ");
+            textLine("Type in a number. Invalid values will be highlighted in red.")
+            text("> ")
             input(
                 customFormat = {
                     when {
@@ -225,10 +226,33 @@ fun main() = session {
                     }
                 }
             )
+            textLine()
+            textLine()
         }.runUntilInputEntered {
             onInputEntered {
                 if (input.any { !it.isDigit() }) rejectInput()
             }
         }
+    }
+
+    // Scenario #6: Use `multilineInput`
+    run {
+        lateinit var message: String
+
+        section {
+            textLine("Please type a multiline chat message. ENTER to add newlines and CTRL-D to finish:")
+            multilineInput()
+        }.runUntilInputEntered {
+            onInputEntered {
+                message = input
+            }
+        }
+
+        section {
+            textLine()
+            textLine("You typed: \"${message.replace("\n", "\\n")}\"")
+            textLine()
+        }.run()
+
     }
 }
