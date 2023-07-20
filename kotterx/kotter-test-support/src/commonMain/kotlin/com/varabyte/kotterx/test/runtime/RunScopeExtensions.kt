@@ -3,10 +3,13 @@ package com.varabyte.kotterx.test.runtime
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.render.*
-import com.varabyte.kotter.runtime.terminal.*
 import com.varabyte.kotterx.test.terminal.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Block the current run block until a render has occurred where the passed in [condition] is true.
@@ -32,8 +35,13 @@ import kotlinx.coroutines.runBlocking
  *   }
  * }
  * ```
+ *
+ * @param timeout A timeout to set for this block before it throws a [TimeoutCancellationException]. If null, this
+ *   defaults to a 1 second. The thought here is that we're never waiting for some 10 second real-time animation to
+ *   finish, but rather we're waiting for the Kotter engine to resolve its current event loop, which should barely take
+ *   milliseconds. You can pass in [Duration.INFINITE] if you want to disable this.
  */
-fun RunScope.blockUntilRenderWhen(condition: () -> Boolean) {
+fun RunScope.blockUntilRenderWhen(timeout: Duration? = null, condition: () -> Boolean) {
     val latch = CompletableDeferred<Unit>()
 
     // Prevent the section from starting a render pass until we're sure we've registered our callback
@@ -49,7 +57,7 @@ fun RunScope.blockUntilRenderWhen(condition: () -> Boolean) {
         }
     }
 
-    runBlocking { latch.await() }
+    runBlocking { withTimeout(timeout ?: 1.seconds) { latch.await() } }
 }
 
 /**
@@ -69,9 +77,23 @@ fun RunScope.blockUntilRenderWhen(condition: () -> Boolean) {
  * }
  * ```
  *
- * It can be easier to use this version as a way to avoid writing ANSI codes directly into expected text values.
+ * This method will print out a helpful error message if the render doesn't match at the time of the timeout running
+ * out.
  */
-fun RunScope.blockUntilRenderMatches(terminal: TestTerminal, expected: RenderScope.() -> Unit) {
-    val expected = TestTerminal.consoleOutputFor(expected)
-    blockUntilRenderWhen { terminal.resolveRerenders() == expected }
+fun RunScope.blockUntilRenderMatches(
+    terminal: TestTerminal,
+    timeout: Duration? = null,
+    expected: RenderScope.() -> Unit
+) {
+    val expectedOutput = TestTerminal.consoleOutputFor(expected)
+    try {
+        blockUntilRenderWhen(timeout) {
+            terminal.resolveRerenders() == expectedOutput
+        }
+    } catch (ex: TimeoutCancellationException) {
+        // This will fail but at least it will give us an informative error message
+        terminal.assertMatches { expected() }
+    } catch (t: Throwable) {
+        t.printStackTrace()
+    }
 }
