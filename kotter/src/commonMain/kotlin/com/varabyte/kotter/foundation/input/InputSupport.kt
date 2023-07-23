@@ -4,7 +4,6 @@ import com.varabyte.kotter.foundation.anim.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.*
 import com.varabyte.kotter.platform.concurrent.locks.*
-import com.varabyte.kotter.platform.internal.collections.*
 import com.varabyte.kotter.platform.internal.system.*
 import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.concurrent.*
@@ -37,6 +36,8 @@ private val KeyFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
 // one.
 private val SideInputKey = Section.Lifecycle.createKey<MutableList<Key>>()
 private val SideInputFlowKey = Section.Lifecycle.createKey<Flow<Key>>()
+
+private val DefaultPageSizeKey = Session.Lifecycle.createKey<Int>()
 
 /**
  * Create a [Flow<Key>] value which converts bytes read from a terminal into keys, handling some gnarly multibyte
@@ -167,7 +168,13 @@ fun RunScope.sendKeys(vararg keys: Key) {
 
 private fun ConcurrentScopedData.mergedKeyFlows(): Flow<Key> = merge(getValue(KeyFlowKey), getValue(SideInputFlowKey))
 
-private class MultilineState(private val parentState: InputState) {
+/**
+ * @property pageSize How many lines to scroll up / down when the user presses page up / page down.
+ */
+private class MultilineState(
+    private val parentState: InputState,
+    var pageSize: Int,
+) {
     /**
      * The line position we should try to set our cursor to if we can.
      *
@@ -187,10 +194,10 @@ private class MultilineState(private val parentState: InputState) {
 }
 
 /** State needed to support the `input()` function */
-private class InputState(val id: Any, val cursorState: BlinkingCursorState, val isMultiline: Boolean) {
+private class InputState(val id: Any, val cursorState: BlinkingCursorState, multilineConfig: MultilineConfig?) {
     var isActive = false
 
-    val multilineState: MultilineState? = if (isMultiline) MultilineState(this) else null
+    val multilineState: MultilineState? = multilineConfig?.let { config -> MultilineState(this, config.pageSize) }
 
     private var _text = ""
     private var _cursorIndex = 0
@@ -292,6 +299,19 @@ private fun String.insertAtCursorIndex(cursorIndex: Int, c: Char): String {
 }
 
 /**
+ * The default page size for multiline inputs.
+ *
+ * See also [multilineInput].
+ */
+var Session.defaultPageSize: Int
+    get() {
+        return data[DefaultPageSizeKey] ?: 5
+    }
+    set(value) {
+        data[DefaultPageSizeKey] = value
+    }
+
+/**
  * If necessary, instantiate data that the [input] method expects to exist.
  *
  * Is a no-op after the first time.
@@ -301,7 +321,7 @@ private fun ConcurrentScopedData.prepareInput(
     id: Any,
     initialText: String,
     isActive: Boolean,
-    isMultiline: Boolean
+    multilineConfig: MultilineConfig?,
 ) {
     val section = scope.section
     prepareKeyFlow(section.session.terminal)
@@ -353,13 +373,15 @@ private fun ConcurrentScopedData.prepareInput(
 
     putIfAbsent(InputStatesKey, provideInitialValue = { mutableMapOf() }) {
         val inputStates = this
-        val state = inputStates.computeIfAbsent(id) {
-            val newState = InputState(id, cursorState, isMultiline)
-            newState.text = initialText
-            newState.cursorIndex = initialText.length
-            newState.multilineState?.updateIdealLineIndex()
-            newState
-        }
+        val state = inputStates[id]?.also { multilineConfig?.update(it.multilineState!!) } ?: InputState(
+            id,
+            cursorState,
+            multilineConfig
+        ).apply {
+            text = initialText
+            cursorIndex = initialText.length
+            multilineState?.updateIdealLineIndex()
+        }.also { inputStates[id] = it }
 
         putIfAbsent(InputStatesCalledThisRender, provideInitialValue = { mutableMapOf() }) {
             val renderedInputStates = this
@@ -391,6 +413,29 @@ private fun ConcurrentScopedData.prepareInput(
                         val prevCursorIndex = cursorIndex
                         var proposedText: String? = null
                         var proposedCursorIndex: Int? = null
+
+                        fun moveCursorUp() {
+                            if (multilineState == null) return
+                            val prevLineEndCursorIndex = text.getLineStartCursorIndex(cursorIndex) - 1
+                            if (prevLineEndCursorIndex >= 0) {
+                                val prevLineEndIndex = text.getLineIndex(prevLineEndCursorIndex)
+                                val diffToIdealLineIndex =
+                                    (prevLineEndIndex - multilineState.idealLineIndex).coerceAtLeast(0)
+                                cursorIndex = prevLineEndCursorIndex - diffToIdealLineIndex
+                            }
+                        }
+
+                        fun moveCursorDown() {
+                            if (multilineState == null) return
+                            val nextLineStartCursorIndex = text.getLineEndCursorIndex(cursorIndex) + 1
+                            if (nextLineStartCursorIndex <= text.length) {
+                                val nextLineEndCursorIndex = text.getLineEndCursorIndex(nextLineStartCursorIndex)
+                                val nextLineLength = nextLineEndCursorIndex - nextLineStartCursorIndex
+                                cursorIndex =
+                                    nextLineStartCursorIndex + min(multilineState.idealLineIndex, nextLineLength)
+                            }
+                        }
+
                         when (key) {
                             Keys.LEFT -> {
                                 cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
@@ -413,25 +458,11 @@ private fun ConcurrentScopedData.prepareInput(
                             }
 
                             Keys.UP -> {
-                                if (multilineState == null) return@withActiveInput
-                                val prevLineEndCursorIndex = text.getLineStartCursorIndex(cursorIndex) - 1
-                                if (prevLineEndCursorIndex >= 0) {
-                                    val prevLineEndIndex = text.getLineIndex(prevLineEndCursorIndex)
-                                    val diffToIdealLineIndex =
-                                        (prevLineEndIndex - multilineState.idealLineIndex).coerceAtLeast(0)
-                                    cursorIndex = prevLineEndCursorIndex - diffToIdealLineIndex
-                                }
+                                moveCursorUp()
                             }
 
                             Keys.DOWN -> {
-                                if (multilineState == null) return@withActiveInput
-                                val nextLineStartCursorIndex = text.getLineEndCursorIndex(cursorIndex) + 1
-                                if (nextLineStartCursorIndex <= text.length) {
-                                    val nextLineEndCursorIndex = text.getLineEndCursorIndex(nextLineStartCursorIndex)
-                                    val nextLineLength = nextLineEndCursorIndex - nextLineStartCursorIndex
-                                    cursorIndex =
-                                        nextLineStartCursorIndex + min(multilineState.idealLineIndex, nextLineLength)
-                                }
+                                moveCursorDown()
                             }
 
                             Keys.HOME -> {
@@ -442,6 +473,16 @@ private fun ConcurrentScopedData.prepareInput(
                             Keys.END -> {
                                 cursorIndex = text.getLineEndCursorIndex(cursorIndex)
                                 multilineState?.updateIdealLineIndex()
+                            }
+
+                            Keys.PAGE_UP -> {
+                                if (multilineState == null) return@withActiveInput
+                                repeat(multilineState.pageSize) { moveCursorUp() }
+                            }
+
+                            Keys.PAGE_DOWN -> {
+                                if (multilineState == null) return@withActiveInput
+                                repeat(multilineState.pageSize) { moveCursorDown() }
                             }
 
                             Keys.DELETE -> {
@@ -760,6 +801,14 @@ fun CustomFormatScope.white(layer: ColorLayer = ColorLayer.FG, isBright: Boolean
     color(if (isBright) Color.BRIGHT_WHITE else Color.WHITE, layer)
 }
 
+private class MultilineConfig(
+    val pageSize: Int,
+) {
+    fun update(targetState: MultilineState) {
+        targetState.pageSize = pageSize
+    }
+}
+
 private fun MainRenderScope.handleInput(
     completer: InputCompleter?,
     initialText: String,
@@ -767,9 +816,9 @@ private fun MainRenderScope.handleInput(
     viewMap: (ViewMapScope.() -> Char)?,
     customFormat: (CustomFormatScope.() -> Unit)?,
     isActive: Boolean,
-    isMultiline: Boolean
+    multilineConfig: MultilineConfig?,
 ) {
-    data.prepareInput(this, id, initialText, isActive, isMultiline)
+    data.prepareInput(this, id, initialText, isActive, multilineConfig)
     completer?.let { data[CompleterKey] = it }
 
     with(data.getValue(InputStatesKey)[id]!!) {
@@ -929,23 +978,35 @@ fun MainRenderScope.input(
     customFormat: (CustomFormatScope.() -> Unit)? = null,
     isActive: Boolean = true
 ) {
-    handleInput(completer, initialText.replace("\n", ""), id, viewMap, customFormat, isActive, isMultiline = false)
+    handleInput(completer, initialText.replace("\n", ""), id, viewMap, customFormat, isActive, multilineConfig = null)
 }
 
 /**
  * Like [input], but allows the user to type multiple lines of text.
  *
  * To end a multiline input string, the user must press Ctrl+D, as pressing Enter just appends a new line.
+ *
+ * @param pageSize How many lines of text to skip over when pressing Page Up / Page Down. If not specified, uses the
+ *   value [defaultPageSize], which you can set instead to affect all inputs.
  */
 fun MainRenderScope.multilineInput(
     initialText: String = "",
     id: Any = Unit,
     viewMap: (ViewMapScope.() -> Char)? = null,
     customFormat: (CustomFormatScope.() -> Unit)? = null,
+    pageSize: Int? = null,
     isActive: Boolean = true
 ) {
     addNewlinesIfNecessary(1)
-    handleInput(null, initialText, id, viewMap, customFormat = customFormat, isActive, isMultiline = true)
+    handleInput(
+        null,
+        initialText,
+        id,
+        viewMap,
+        customFormat,
+        isActive,
+        multilineConfig = MultilineConfig(pageSize ?: section.session.defaultPageSize)
+    )
 }
 
 /**

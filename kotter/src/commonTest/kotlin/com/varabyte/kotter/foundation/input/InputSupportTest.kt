@@ -722,7 +722,7 @@ class InputSupportTest {
     }
 
     @Test
-    fun `user can press HOME and END to jump to the beginning and end of lines`() = testSession { terminal ->
+    fun `user can press HOME and END to jump to the beginning and end of multiline inputs`() = testSession { terminal ->
         section {
             multilineInput()
         }.run {
@@ -757,7 +757,7 @@ class InputSupportTest {
     }
 
     @Test
-    fun `you can move across lines using left and right`() = testSession { terminal ->
+    fun `you can move across multiline inputs using left and right`() = testSession { terminal ->
         section {
             multilineInput()
         }.run {
@@ -787,6 +787,86 @@ class InputSupportTest {
                 text("123456"); invert(); text('7'); clearInvert(); textLine("890 ")
                 textLine("123456 ")
                 textLine("1234567890 ")
+            }
+        }
+    }
+
+    @Test
+    fun `you can jump around multilineInput lines using page up and page down`() = testSession { terminal ->
+        defaultPageSize = 3
+
+        section {
+            multilineInput()
+        }.run {
+            for (i in 0..8) {
+                terminal.type(i.toString().repeat(5))
+                if (i < 8) {
+                    terminal.type(Ansi.CtrlChars.ENTER)
+                }
+            }
+
+            blockUntilRenderMatches(terminal) {
+                textLine("00000 ")
+                textLine("11111 ")
+                textLine("22222 ")
+                textLine("33333 ")
+                textLine("44444 ")
+                textLine("55555 ")
+                textLine("66666 ")
+                textLine("77777 ")
+                text("88888"); invert(); textLine(' ')
+            }
+
+            terminal.sendCode(Codes.Keys.PG_UP)
+            blockUntilRenderMatches(terminal) {
+                textLine("00000 ")
+                textLine("11111 ")
+                textLine("22222 ")
+                textLine("33333 ")
+                textLine("44444 ")
+                text("55555"); invert(); textLine(' ')
+                clearInvert(); textLine("66666 ")
+                textLine("77777 ")
+                textLine("88888 ")
+            }
+
+            terminal.sendCode(Codes.Keys.PG_UP)
+            blockUntilRenderMatches(terminal) {
+                textLine("00000 ")
+                textLine("11111 ")
+                text("22222"); invert(); textLine(' ')
+                clearInvert(); textLine("33333 ")
+                textLine("44444 ")
+                textLine("55555 ")
+                textLine("66666 ")
+                textLine("77777 ")
+                textLine("88888 ")
+            }
+
+            terminal.sendCode(Codes.Keys.PG_UP)
+            blockUntilRenderMatches(terminal) {
+                text("00000"); invert(); textLine(' ')
+                clearInvert(); textLine("11111 ")
+                textLine("22222 ")
+                textLine("33333 ")
+                textLine("44444 ")
+                textLine("55555 ")
+                textLine("66666 ")
+                textLine("77777 ")
+                textLine("88888 ")
+            }
+
+            terminal.sendCode(Codes.Keys.PG_DOWN)
+            blockUntilRenderMatches(terminal) {
+                textLine("00000 ")
+                textLine("11111 ")
+                textLine("22222 ")
+                text("33333"); invert(); textLine(' ')
+                clearInvert(); textLine("44444 ")
+                textLine("55555 ")
+                textLine("66666 ")
+                textLine("77777 ")
+                textLine("88888 ")
             }
         }
     }
@@ -872,7 +952,7 @@ class InputSupportTest {
     }
 
     @Test
-    fun `enterInput works on both regular inputs an multilineInputs`() = testSession { terminal ->
+    fun `enterInput works on both regular inputs an multilineInputs`() = testSession {
         section {
             input()
         }.runUntilInputEntered {
