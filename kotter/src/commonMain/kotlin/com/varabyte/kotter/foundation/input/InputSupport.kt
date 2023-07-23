@@ -708,16 +708,16 @@ class ViewMapScope(val input: String, val index: Int) {
  * Information passed into the `customFormat` callback in the [input][com.varabyte.kotter.foundation.input.input] method.
  *
  * The callback will be triggered once per character in the `input` string when it's about to get rendered (excluding
- * any autocomplete suggestion text). The user can then call any of the formatting methods which will be applied to THIS
- * CHARACTER ONLY.
+ * any autocomplete suggestion text). The user can then call any of the formatting methods which will be applied to THE
+ * CURRENT CHARACTER ONLY.
  *
- * For an example, to visually render all non-digits as invalid:
+ * For an example, to visually highlight all non-digits as invalid (or, red):
  *
  * ```
  * input(customFormat = { if (ch.isDigit()) green() else red() })
  * ```
  *
- * or, to underline everything:
+ * The following format will apply an underline to all characters:
  *
  * ```
  * input(customFormat = { underline() })
@@ -967,6 +967,8 @@ private fun MainRenderScope.handleInput(
  * @param viewMap If set, *visually* transform the text by specifying the target character each letter in the text
  *   should map to. This doesn't affect the input's actual value, just the value that is rendered on screen. This is
  *   particularly useful for password inputs, which would look like `viewMap = { '*' }`.
+ * @param customFormat If set, allow making custom formatting changes to the input text as it's being rendered.
+ *   See [CustomFormatScope] for more details.
  * @param isActive See docs above for more details. If multiple calls to input are made in a single section, at most one
  *   of them can be active at a time.
  */
