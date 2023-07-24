@@ -233,7 +233,7 @@ private var combining: Array<Interval> = arrayOf(
 
 /* auxiliary function for binary search in interval table */
 private fun bisearch(ucs: Int, table: Array<Interval>, max: Int): Boolean {
-    var max = max
+    @Suppress("NAME_SHADOWING") var max = max
     var min = 0
     var mid: Int
     if (ucs < table[0].first || ucs > table[max].last) return false
