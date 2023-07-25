@@ -43,7 +43,7 @@ private val DefaultPageSizeKey = Session.Lifecycle.createKey<Int>()
  * Create a [Flow<Key>] value which converts bytes read from a terminal into keys, handling some gnarly multibyte
  * cases and smoothing over other inconsistent, historical legacy.
  */
-private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
+private fun ConcurrentScopedData.prepareKeyFlows(terminal: Terminal) {
     tryPut(KeyFlowKey) {
         val keyLock = ReentrantLock()
         val escSeq = StringBuilder()
@@ -136,23 +136,26 @@ private fun ConcurrentScopedData.prepareKeyFlow(terminal: Terminal) {
             .shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
     }
 
-    tryPut(SideInputFlowKey) {
-        channelFlow {
-            while (true) {
-                get(SideInputKey) {
-                    val extraInput = this
-                    if (extraInput.isNotEmpty()) {
-                        CoroutineScope(KotterDispatchers.IO).launch {
-                            while (extraInput.isNotEmpty()) {
-                                send(extraInput.removeAt(0))
+    run {
+        var keepCheckingFlow = true
+        tryPut(SideInputFlowKey, provideInitialValue = {
+            channelFlow {
+                while (keepCheckingFlow) {
+                    get(SideInputKey) {
+                        val extraInput = this
+                        if (extraInput.isNotEmpty()) {
+                            CoroutineScope(KotterDispatchers.IO).launch {
+                                while (extraInput.isNotEmpty()) {
+                                    send(extraInput.removeAt(0))
+                                }
                             }
                         }
                     }
+                    delay(16)
                 }
-                delay(16)
             }
-        }
-            .shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
+                .shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
+        }, dispose = { keepCheckingFlow = false })
     }
 }
 
@@ -324,7 +327,7 @@ private fun ConcurrentScopedData.prepareInput(
     multilineConfig: MultilineConfig?,
 ) {
     val section = scope.section
-    prepareKeyFlow(section.session.terminal)
+    prepareKeyFlows(section.session.terminal)
     val cursorState = putOrGet(BlinkingCursorStateKey) {
         val cursorState = BlinkingCursorState()
         // This block represents global state that gets triggered just once for all input blocks in this section, so we
@@ -1032,7 +1035,7 @@ private val SystemKeyPressedCallbackKey = RunScope.Lifecycle.createKey<OnKeyPres
  * This is a no-op when called after the first time.
  */
 private fun ConcurrentScopedData.prepareOnKeyPressed(terminal: Terminal) {
-    prepareKeyFlow(terminal)
+    prepareKeyFlows(terminal)
     tryPut(
         KeyPressedJobKey,
         provideInitialValue = {
