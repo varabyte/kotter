@@ -57,6 +57,7 @@ class TestTerminal(private val provideWidth: (() -> Int)? = null, private val pr
     private val keysChannel = Channel<Int>()
 
     suspend fun sendKeys(vararg keys: Int) {
+        assertNotClosed()
         keys.forEach { keysChannel.send(it) }
     }
 
@@ -80,6 +81,7 @@ class TestTerminal(private val provideWidth: (() -> Int)? = null, private val pr
 
     override fun close() {
         assertNotClosed()
+        keysChannel.close()
         closed = true
     }
 
