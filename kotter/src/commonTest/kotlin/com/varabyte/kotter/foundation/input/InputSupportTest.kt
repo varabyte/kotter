@@ -459,19 +459,13 @@ class InputSupportTest {
             input(id = "first", isActive = !secondIsActive); textLine()
             input(id = "second", isActive = secondIsActive)
         }.run {
-            onKeyPressed {
-                if (key == Keys.DOWN) {
-                    secondIsActive = true
-                }
-            }
-
             terminal.type("first")
             blockUntilRenderMatches(terminal) {
                 text("first"); invert(); textLine(' ') // < inverted space is the cursor
                 // no need to clearInvert, since no text ever follows the cursor
             }
 
-            terminal.sendCode(Codes.Keys.DOWN)
+            secondIsActive = true
             blockUntilRenderMatches(terminal) {
                 textLine("first")
                 invert(); text(' ')
