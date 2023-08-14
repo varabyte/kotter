@@ -17,39 +17,43 @@ interface Key
  *
  * See also [Character.isISOControl]
  */
-class IsoControlKey : Key
+class IsoControlKey(private val name: String) : Key {
+    override fun toString() = name
+}
 
 /**
  * Class for every key with a typeable value, e.g. 'a', '~', '7'
  *
  * Note that 'a' and 'A' are different CharKeys!
  */
-data class CharKey(val code: Char) : Key
+data class CharKey(val code: Char) : Key {
+    override fun toString() = code.toString()
+}
 
 // TODO(Bug #22): Add some way to check if two keys are the same (perhaps given a keyboard layout?)
 //  e.g. 'a' and 'A' are the same underlying key
 /** A collection of all keypresses supported by Kotter. */
 object Keys {
-    val ESC = IsoControlKey()
-    val ENTER = IsoControlKey()
+    val ESC = IsoControlKey("Esc")
+    val ENTER = IsoControlKey("Enter")
 
-    val BACKSPACE = IsoControlKey()
-    val DELETE = IsoControlKey()
+    val BACKSPACE = IsoControlKey("Backspace")
+    val DELETE = IsoControlKey("Delete")
 
-    val EOF = IsoControlKey()
+    val EOF = IsoControlKey("EOF")
 
-    val UP = IsoControlKey()
-    val DOWN = IsoControlKey()
-    val LEFT = IsoControlKey()
-    val RIGHT = IsoControlKey()
+    val UP = IsoControlKey("Up")
+    val DOWN = IsoControlKey("Down")
+    val LEFT = IsoControlKey("Left")
+    val RIGHT = IsoControlKey("Right")
 
-    val HOME = IsoControlKey()
-    val END = IsoControlKey()
-    val INSERT = IsoControlKey()
-    val PAGE_UP = IsoControlKey()
-    val PAGE_DOWN = IsoControlKey()
+    val HOME = IsoControlKey("Home")
+    val END = IsoControlKey("End")
+    val INSERT = IsoControlKey("Insert")
+    val PAGE_UP = IsoControlKey("PgUp")
+    val PAGE_DOWN = IsoControlKey("PgDn")
 
-    val TAB = IsoControlKey()
+    val TAB = IsoControlKey("Tab")
 
     val A = CharKey('a')
     val B = CharKey('b')
