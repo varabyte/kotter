@@ -30,17 +30,12 @@ kotlin {
     }
 
     sourceSets {
-        val nativeMain by creating {
+        val commonMain by getting {
             dependencies {
                 implementation(project(":kotter"))
                 implementation(libs.kotlinx.coroutines)
             }
         }
-
-        val linuxX64Main by getting { dependsOn(nativeMain) }
-        val mingwX64Main by getting { dependsOn(nativeMain) }
-        val macosArm64Main by getting { dependsOn(nativeMain) }
-        val macosX64Main by getting { dependsOn(nativeMain) }
     }
 }
 
@@ -48,4 +43,3 @@ kotlin {
 application {
     mainClass.set("MainKt")
 }
-
