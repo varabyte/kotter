@@ -100,11 +100,22 @@ repositories {
 }
 
 kotlin {
-    // Choose the targets you care about:
-    linuxX64()
-    macosArm64() // Mac M1+
-    macosX64() // Mac Intel
-    mingwX64() // Windows
+    // Choose the targets you care about.
+    // Note: You will need the right machine to build each one; otherwise, the target is disabled automatically
+    listOf(
+        linuxX64(), // Linux
+        mingwX64(), // Windows
+        macosArm64(), // Mac M1
+        macosX64(), // Mac Legacy
+    ).forEach { nativeTarget ->
+        nativeTarget.apply {
+            binaries {
+                executable {
+                    entryPoint = "main"
+                }
+            }
+        }
+    }
 
     sourceSets {
         val commonMain by getting {
