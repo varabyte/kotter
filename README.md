@@ -136,7 +136,7 @@ If you've cloned this repository, examples are located under the [examples](exam
 
 #### JVM
 
-Most of the examples (except `examples/native` target the JVM. To try one of them, you can navigate into it on the
+Most of the examples (except `examples/native`) target the JVM. To try one of them, you can navigate into it on the
 command line and run it via Gradle.
 
 ```bash
