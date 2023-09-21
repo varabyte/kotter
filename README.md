@@ -1242,10 +1242,8 @@ session {
 └─ }
 ```
 
-Unlike `Session`, you shouldn't ever need to add an extension method on top of a `Section`. This is because its
-`section { ... }` block and its `run { ... }` block both receive different scope classes as their receiver classes.
-
-It is those scope classes you usually will want to extend. These are discussed next.
+The `section { ... }` block receives a `RenderScope` and the `run { ... }` block receives a `RunScope`. These are
+discussed next.
 
 **3 - `RenderScope`**
 
