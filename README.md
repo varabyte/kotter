@@ -58,14 +58,12 @@ The next sections deal with setting Kotter up, but you may wish to jump straight
 
 Kotter supports JVM and native targets.
 
-If you're not sure what you want, start with a JVM project. That target is far easier to distribute. It also means your
-project will have access to a very broad ecosystem of Kotlin and Java libraries.
-
-In case it affects your decision, you can read more about [distributing Kotter applications ▼](#-distributing-your-application)
-later in this document.
-
-| Are you a 1.0.x user looking to upgrade? [Review the migration docs](MIGRATING.md). |
-|-------------------------------------------------------------------------------------|
+> [!IMPORTANT]
+> If you're not sure what you want, start with a JVM project. That target is far easier to distribute. It also means
+> your project will have access to a very broad ecosystem of Kotlin and Java libraries.
+>
+> In case it affects your decision, you can read more about [distributing Kotter applications ▼](#-distributing-your-application)
+> later in this document.
 
 #### JVM
 
@@ -127,8 +125,10 @@ kotlin {
 }
 ```
 
-Note that building native binaries is a little tricky, as you may need different host machines in order to build the
-various binaries.
+> [!NOTE]
+> Building native binaries is a little tricky, as you may need different host machines in order to build the various
+> binaries. For example, [here is Kotter's CI workflow](https://github.com/varabyte/kotter/blob/main/.github/workflows/publish.yml)
+> which runs on both Linux and Mac targets to build platform-specific Kotter artifacts.
 
 ### 🚥 Running examples
 
@@ -157,8 +157,9 @@ $ cd build/install/life/bin
 $ ./life
 ```
 
-***Note:** If your terminal does not support features needed by Kotter, which could happen on legacy machines for
-example, then this still may end up running inside a virtual terminal.*
+> [!WARNING]
+> If your terminal does not support features needed by Kotter, which could happen on legacy machines for example, then
+> this still may end up running inside a virtual terminal.
 
 #### Multiplatform
 
@@ -249,9 +250,10 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-text-ex-3.png)
 
-***Note:** If truecolor is not supported, terminals may attempt to emulate it by falling back to a nearby color, which
-may look decent! However, to be safe, you may want to avoid subtle gradient tricks, as they may come out clumped for
-some users.*
+> [!NOTE]
+> If truecolor is not supported, terminals may attempt to emulate it by falling back to a nearby color, which may look
+> decent! However, to be safe, you may want to avoid rendering smooth gradient color changes, as they may come out
+> clumped for some users.
 
 Various text effects (like bold) are also available:
 
@@ -275,8 +277,9 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-text-ex-4.png)
 
-***Note:** Italics functionality is not currently exposed, as it is not a standard feature and is inconsistently
-supported across terminals.*
+> [!NOTE]
+> Italics functionality is not currently exposed, as it is not a standard feature and is inconsistently supported across
+> terminals.
 
 You can also define links:
 
@@ -329,7 +332,8 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-scope-ex-2.png)
 
-***Note:** Scoped text effect methods (like `red { ... }`) work by calling `scopedState` for you under the hood.*
+> [!NOTE]
+> Scoped text effect methods (like `red { ... }`) work by calling `scopedState` for you under the hood.
 
 ### 🎬 Rerendering sections
 
@@ -396,8 +400,9 @@ session {
 }
 ```
 
-***Note:** The `liveVarOf` method is provided by the `session` block. For many remaining examples, we'll elide the
-`session` boilerplate, but that doesn't mean you can omit it in your own program!*
+> [!IMPORTANT]
+> The `liveVarOf` method is provided by the `session` block. For many remaining examples, we'll elide the
+> `session` boilerplate, but that doesn't mean you can omit it in your own program!
 
 Let's apply `liveVarOf` to our earlier example in order to remove the `rerender` call:
 
@@ -490,8 +495,9 @@ section {
 The general rule of thumb is: use `withWriteLock` if you want to modify more than one property from the list at the same
 time within your `run` block.
 
-Note that you don't have to worry about locking within a `section { ... }` block. Data access is already locked for you
-in that context.
+> [!NOTE]
+> You don't have to worry about locking within a `section { ... }` block. Data access is already locked for you in that
+> context.
 
 #### Other Collections
 
@@ -532,8 +538,10 @@ section {
 }
 ```
 
-These methods are enough in most cases. Note that if you call `signal` before you reach `waitForSignal`, then
-`waitForSignal` will just pass through without stopping.
+These methods are enough in most cases.
+
+> [!NOTE]
+> If you call `signal` before you reach `waitForSignal`, then `waitForSignal` will just pass through without stopping.
 
 There's also a convenience `runUntilSignal` method you can use, within which you don't need to call `waitForSignal`
 yourself, since this case is so common:
@@ -722,10 +730,11 @@ intentionally doesn't allow newlines. That's because pressing ENTER fires the `o
 If you need longer form input, you can reach to `multilineInput`. Users must terminate their input by sending an EOF
 signal (generated by pressing CTRL-D), since ENTER is now used for newlines. 
 
-***NOTE**: Unfortunately, SHIFT+ENTER, although it is more commonly used for handling newlines in text areas in most
-modern situations, is unavailable here as consoles don't reveal meta-key states in any standard way. As console
-application developers, we're essentially blind to those key combinations. This is why CTRL-D is the traditional way
-CLIs terminate multiline inputs.*
+> [!NOTE]
+> Unfortunately, SHIFT+ENTER, although it is commonly used for handling newlines in most modern editors, is unavailable
+> to us as consoles don't reveal meta-key (e.g. CTRL, SHIFT) states. As console application developers, we're
+> essentially blind to them. CTRL-D is the traditional way to close input streams in many CLIs, because the system
+> translates those keystrokes into an EOF signal, which is all the applications see.
 
 Multiline inputs allow the user to navigate text typed in by pressing the arrow, home, end, page up, and page down keys.
 In order to support this feature, multiline inputs always start on a new line and any text following it will also appear
@@ -838,9 +847,10 @@ section {
 }
 ```
 
-***Note:** Unlike all the other events we discussed earlier, `onFinishing` is registered directly against the underlying
-`section` and not inside the `run` block, because it is actually triggered AFTER the run pass is finished but before the
-block is torn down.*
+> [!IMPORTANT]
+> Unlike all the other events we discussed earlier, `onFinishing` is registered directly against the underlying
+> `section` and not inside the `run` block, because it is actually triggered AFTER the run pass is finished but before
+> the block is torn down.
 
 `onFinishing` will only run after all timers are stopped, so you don't have to worry about setting a value that an
 errant timer will clobber later.
@@ -982,8 +992,9 @@ section {
 
 ![Offscreen header example](https://github.com/varabyte/media/raw/main/kotter/images/offscreen-header-example.png)
 
-***Note:** Although you usually won't need to, you can create multiple renderers per offscreen buffer, each which
-manages its own state for what row to render out next.*
+> [!NOTE]
+> Although you usually won't need to, you can create multiple renderers per offscreen buffer, each which manages its own
+> state for what row to render out next.
 
 One nice thing about the offscreen buffer is it manages its own local state, and while it originally inherits its parent
 scope's state, any changes you make within the offscreen buffer will be remembered to its end.
@@ -1358,8 +1369,9 @@ always be released when some parent lifecycle ends, unless you remove it yoursel
 Kotter itself manages four lifecycles: `Session.Lifecycle`, `Section.Lifecycle`, `MainRenderScope.Lifecycle`, and
 `Run.Lifecycle` (each associated with the scopes discussed above).
 
-***Note:** No lifecycles are provided for `offscreen` or `aside` blocks at the moment. Feel free to open up an issue
-with a use-case requiring additional lifecycles if you run into one.*
+> [!NOTE]
+> No lifecycles are provided for `offscreen` or `aside` blocks at the moment. Feel free to open up an issue with a
+> use-case requiring additional lifecycles if you run into one.
 
 Keep in mind that the `MainRenderScope.Lifecycle` dies after a *single* render pass. Almost always you want to tie data
 to `Section.Lifecycle`, as it survives across multiple runs.
@@ -1448,7 +1460,8 @@ pattern (just calling `section`s one after another on a single thread) is powerf
 
 ### 🖥️  Virtual Terminal
 
-*NOTE: The virtual terminal is only supported for JVM targets. Kotlin/Native targets don't implement this feature.*
+> [!IMPORTANT]
+> The virtual terminal is only supported for JVM targets. Kotlin/Native targets don't implement this feature.
 
 It's not guaranteed that your program will be run in an interactive way, or even that you won't be called in a legacy
 terminal (e.g. on Windows) that doesn't support ANSI virtual codes.
@@ -1596,10 +1609,11 @@ Once set up, a user can install / update your software simply by running: `brew 
 Notice how that manifest declares JDK11 as a dependency. You'll need to figure out how to do that with each package
 manager you decide to support.
 
-**Pro-tip:** I have a project that uses [JReleaser](https://jreleaser.org/guide/latest/reference/packagers/index.html)
-to publish my program to several package managers with a single Gradle publish task. If you decide to try JReleaser in
-your own project, you can review
-[my jreleaser block in this build.gradle.kts](https://github.com/varabyte/kobweb/blob/a8910bf5168a3e27be88ab49fce8b0a86322caac/cli/kobweb/build.gradle.kts#L49).
+> [!NOTE]
+> I have a project that uses [JReleaser](https://jreleaser.org/guide/latest/reference/packagers/index.html)
+> to publish my program to several package managers with a single Gradle publish task. If you decide to try JReleaser in
+> your own project, you can review
+> [my jreleaser block in this build.gradle.kts](https://github.com/varabyte/kobweb/blob/a8910bf5168a3e27be88ab49fce8b0a86322caac/cli/kobweb/build.gradle.kts#L49).
 
 ---
 
@@ -1633,9 +1647,10 @@ the main branch. You could then use the [upload artifact](https://github.com/act
 binaries to [a location you can download from](https://github.com/actions/upload-artifact#where-does-the-upload-go)
 later.
 
-*NOTE: For reference, you may wish to refer to [Kotter's publishing workflow script.](https://github.com/varabyte/kotter/blob/main/.github/workflows/publish.yml)
-It doesn't use the upload action, but you can see how we run multiple target hosts in order to build all the different
-flavors of artifacts.*
+> [!NOTE]
+> For reference, you may wish to refer to [Kotter's publishing workflow script.](https://github.com/varabyte/kotter/blob/main/.github/workflows/publish.yml)
+> It doesn't use the upload action, but you can see how we run multiple target hosts in order to build all the different
+> flavors of artifacts.
 
 Once built, you can share your binaries with your users, either from cloud storage somewhere or by publishing it via a
 package manager (as [discussed above ▲](#publish-your-jvm-application-to-a-package-manager)).
@@ -1655,8 +1670,9 @@ package manager (as [discussed above ▲](#publish-your-jvm-application-to-a-pac
 * May require your CI have access to two different JDKs, one for compiling your code and one for running the jpackage
   step, in case you are intentionally compiling your code with an older JDK version.
 
-*This section is incomplete as I have not found time to try out these tools yet. However, any readers familiar with them
-are welcome to [contact me](mailto:bitspittle@gmail.com) with information so that I can update this section.*
+> [!WARNING]
+> This section is incomplete as I have not found time to try out these tools yet. However, any readers familiar with
+> them are welcome to [contact me](mailto:bitspittle@gmail.com) with information so that I can update this section.
 
 `jlink`, introduced in Java 9, allows you to assemble modules into a custom runtime image, which can significantly
 reduce the final size of a runtime you'd want to ship (as you'd be excluding a bunch of standard library code you don't
@@ -1680,15 +1696,16 @@ easier.
 * Great flexibility. User can use the entire JVM library ecosystem while still producing a binary that can run anywhere.
 * Potentially small final binary size (after using UPX).
 
-* **Cons:**
+**Cons:**
 * Will require multiple host machines if you want to build binaries for all platform targets.
 * GraalVM can be annoying to install.
 * GraalVM can be very fussy.
 * Can be frustrating to chase down runtime exceptions caused by a misconfigured compile.
 
-*This section is incomplete as my own experimentation fell a bit short with it. However, GraalVM is a very promising
-technology, so if anyone reading this knows how to get this solution to work, please [contact me](mailto:bitspittle@gmail.com)
-and I can update this section.*
+> [!WARNING]
+> This section is incomplete as my own experimentation fell a bit short with it. However, GraalVM is a very promising
+> technology, so if anyone reading this knows how to get this solution to work, please [contact me](mailto:bitspittle@gmail.com)
+> and I can update this section.
 
 [GraalVM](https://www.graalvm.org/) is a high-performance JDK distribution, while
 [GraalVM Native Image](https://www.graalvm.org/latest/reference-manual/native-image/) is an ahead-of-time compiler for
@@ -1698,14 +1715,15 @@ to convert it into a standalone binary.
 You may be able to further minify your GraalVM output with [UPX](https://upx.github.io/), which may be able to shrink
 your final binary size dramatically.
 
-**Pro-tip**: If you decide to try using GraalVM on your project, you should strongly consider excluding the virtual
-terminal by overriding the default `terminal` parameter when creating a session:
-
-```kotlin
-session(terminal = SystemTerminal.create()) { /* ... */ }
-```
-
-This allows GraalVM to strip out all Swing code, which is otherwise very tricky to configure.
+> [!IMPORTANT]
+> If you decide to try using GraalVM on your project, you should strongly consider excluding the virtual terminal by
+> overriding the default `terminal` parameter when creating a session:
+>
+> ```kotlin
+> session(terminal = SystemTerminal.create()) { /* ... */ }
+> ```
+>
+> This allows GraalVM to strip out all Swing code, which is otherwise very tricky to configure.
 
 ---
 
