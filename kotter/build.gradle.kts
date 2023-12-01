@@ -16,7 +16,7 @@ version = libs.versions.kotter.get()
 sealed interface HostOs {
     object Linux : HostOs
     object Win : HostOs
-    class Mac(val m1: Boolean) : HostOs
+    class Mac(val isAppleSilicon: Boolean) : HostOs
 }
 
 kotlin {
@@ -256,8 +256,8 @@ if (shouldSign()) {
             useInMemoryPgpKeys(signingKey, signingPassword)
         }
 
-        // Signing requires following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
-        // and adding singatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
+        // Signing requires the following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
+        // and adding signatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
         sign(publishing.publications)
     }
 }
