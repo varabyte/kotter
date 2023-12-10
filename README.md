@@ -58,7 +58,7 @@ The next sections deal with setting Kotter up, but you may wish to jump straight
 
 Kotter supports JVM and native targets.
 
-> [!IMPORTANT]
+> [!TIP]
 > If you're not sure what you want, start with a JVM project. That target is far easier to distribute. It also means
 > your project will have access to a very broad ecosystem of Kotlin and Java libraries.
 >
