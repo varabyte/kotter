@@ -256,8 +256,8 @@ if (shouldSign()) {
             useInMemoryPgpKeys(signingKey, signingPassword)
         }
 
-        // Signing requires following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
-        // and adding singatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
+        // Signing requires the following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
+        // and adding signatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
         sign(publishing.publications)
     }
 }
