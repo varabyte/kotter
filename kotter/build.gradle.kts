@@ -13,12 +13,6 @@ plugins {
 group = "com.varabyte.kotter"
 version = libs.versions.kotter.get()
 
-sealed interface HostOs {
-    object Linux : HostOs
-    object Win : HostOs
-    class Mac(val isAppleSilicon: Boolean) : HostOs
-}
-
 kotlin {
     jvm {
         jvmToolchain(8)
