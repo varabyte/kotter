@@ -78,9 +78,10 @@ fun RenderScope.cell(render: OffscreenRenderScope.() -> Unit) {
 }
 
 /**
- * Once a row of cells is filled, the entire row is rendered all together in interleaving all the offscreen buffers
+ * Once a row of cells is filled, the entire row is rendered all together, interleaving all the offscreen buffers
  * together into one line, one line at a time. This enables an arbitrary number of cells to append their text
- * one after another to the offscreen buffer before newlines are inserted. This is what allows the grid to
+ * one after another to the offscreen buffer before newlines are inserted. This is what allows the grid to to
+ * draw a grid of distinct cells.
  *
  * We assume a `grid` parent was called. If not, this function will silently fail, as without a `grid` parent
  * there is no `GridContext` to define the behavior of a cell.
