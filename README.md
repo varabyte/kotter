@@ -1032,6 +1032,33 @@ If you want to implement your own utility method that uses `offscreen` under the
 [bordered's implementation](https://github.com/varabyte/kotter/blob/main/kotter/src/main/kotlin/com/varabyte/kotterx/decorations/BorderSupport.kt)
 yourself to see how it delegates to `offscreen`, padding each row with the right number of spaces so that the border sides all line up.
 
+### Grids
+To understand more about Grids, see: [Grid README](https://github.com/varabyte/kotter/tree/main/kotter/src/commonMain/kotlin/com/varabyte/kotterx/grid/README.md)
+
+### Simple Example
+
+```kotlin
+session {
+    section {
+        grid(width = 6, columns = 2, GridStyle(leftRightWalls = true, topBottomWalls = true, leftRightPadding = 1)) {
+            cell {
+                textLine("Cell1")
+            }
+            cell {
+                textLine("Cell2")
+            }
+
+            cell {
+                // empty cell needed for padding
+            }
+            cell {
+                textLine("Cell4")
+            }
+        }
+    }.run()
+}
+```
+
 ### 📤 Aside
 
 You can actually make one-off render requests directly inside a `run` block:
