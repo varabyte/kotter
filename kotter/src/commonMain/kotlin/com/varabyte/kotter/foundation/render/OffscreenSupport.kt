@@ -26,6 +26,7 @@ typealias OffscreenRenderScope = com.varabyte.kotter.runtime.render.OffscreenRen
  */
 class OffscreenBuffer internal constructor(
     internal val parentScope: RenderScope,
+    maxWidth: Int,
     render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit
 ) {
     private val commands = run {
@@ -42,7 +43,7 @@ class OffscreenBuffer internal constructor(
         // we want to remove both of them!
         check(offscreenRenderer.commands.takeLast(2).containsAll(listOf(NEWLINE_COMMAND, RESET_COMMAND)))
         offscreenRenderer.commands.dropLast(2)
-    }
+    }.withExplicitNewlines(maxWidth)
 
     /**
      * A property which provides access to the lengths of each line in the buffer.
@@ -61,8 +62,11 @@ class OffscreenBuffer internal constructor(
         return OffscreenCommandRenderer(parentScope, commands)
     }
 
+    fun isEmpty() = commands.isEmpty()
+
     internal fun toText() = commands.toText()
 }
+fun OffscreenBuffer.isNotEmpty() = !isEmpty()
 
 /** How many lines of text were generated within this offscreen buffer. */
 val OffscreenBuffer.numLines get() = lineLengths.size
@@ -188,5 +192,9 @@ class OffscreenCommandRenderer internal constructor(
  * See also: [justified], [bordered]
  */
 fun RenderScope.offscreen(render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit): OffscreenBuffer {
-    return OffscreenBuffer(this, render)
+    return offscreen(Int.MAX_VALUE, render)
+}
+
+fun RenderScope.offscreen(maxWidth: Int, render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit): OffscreenBuffer {
+    return OffscreenBuffer(this, maxWidth, render)
 }
