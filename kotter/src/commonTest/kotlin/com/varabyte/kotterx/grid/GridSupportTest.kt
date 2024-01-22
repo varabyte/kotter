@@ -12,41 +12,6 @@ import kotlin.test.assertFailsWith
 
 class GridSupportTest {
     @Test
-    fun `you can set cell row and col values explicitly`() = testSession { terminal ->
-        section {
-            grid(Cols(1, 1)) {
-                cell { textLine("X") }
-                cell { textLine("Y") }
-                // Out of order
-                cell(1, 1) { textLine("Z") }
-                cell(1, 0) { textLine("A") }
-                // Next cell automatically finds next slot after last filled in cell
-                cell { textLine("B") }
-                cell { textLine("C") }
-                // You can skip multiple rows
-                cell(5, 1) { textLine("!") }
-            }
-        }.run()
-
-        assertThat(terminal.lines()).containsExactly(
-            "+-+-+",
-            "|X|Y|",
-            "+-+-+",
-            "|A|Z|",
-            "+-+-+",
-            "|B|C|",
-            "+-+-+",
-            "| | |",
-            "+-+-+",
-            "| | |",
-            "+-+-+",
-            "| |!|",
-            "+-+-+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
-        ).inOrder()
-    }
-
-    @Test
     fun `col size larger than width works`() = testSession { terminal ->
         section {
             grid(Cols(6)) {
@@ -108,6 +73,41 @@ class GridSupportTest {
             "+-------+-------+",
             "|Test 21|       |",
             "+-------+-------+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `you can set cell row and col values explicitly`() = testSession { terminal ->
+        section {
+            grid(Cols(1, 1)) {
+                cell { textLine("X") }
+                cell { textLine("Y") }
+                // Out of order
+                cell(1, 1) { textLine("Z") }
+                cell(1, 0) { textLine("A") }
+                // Next cell automatically finds next slot after last filled in cell
+                cell { textLine("B") }
+                cell { textLine("C") }
+                // You can skip multiple rows
+                cell(5, 1) { textLine("!") }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+-+-+",
+            "|X|Y|",
+            "+-+-+",
+            "|A|Z|",
+            "+-+-+",
+            "|B|C|",
+            "+-+-+",
+            "| | |",
+            "+-+-+",
+            "| | |",
+            "+-+-+",
+            "| |!|",
+            "+-+-+",
             Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
         ).inOrder()
     }
@@ -256,7 +256,7 @@ class GridSupportTest {
     @Test
     fun `non-integer star widths fails`() = testSession { terminal ->
         section {
-            grid(Cols.fromStr("*sdf")) {
+            grid(Cols.fromStr("x*")) {
                 cell { textLine("A") }
                 cell { textLine("B") }
             }
