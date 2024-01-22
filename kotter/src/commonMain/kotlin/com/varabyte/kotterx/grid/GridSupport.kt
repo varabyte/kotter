@@ -75,10 +75,16 @@ class GridCharacters(
          */
         val CURVED get() = GridCharacters('─', '│', '╭', '┬', '╮', '├', '┼', '┤', '╰', '┴', '╯')
 
+        /**
+         * A blank border, where cell elements float separated by space.
+         */
         val INVISIBLE get() = GridCharacters(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ')
     }
 }
 
+/**
+ * A column specification for a grid.
+ */
 class Cols(vararg val widths: Int) {
     private sealed class ColSpec {
         class Fixed(val width: Int) : ColSpec()
@@ -86,6 +92,9 @@ class Cols(vararg val widths: Int) {
     }
 
     companion object {
+        /**
+         * Create a column spec where all columns are the same width.
+         */
         fun uniform(count: Int, width: Int) = Cols(*IntArray(count) { width })
 
         /**
@@ -146,6 +155,18 @@ class GridScope(internal val renderScope: RenderScope, private val paddingLeftRi
 
     private fun cellIndex(row: Int, col: Int) = row * cols.widths.size + col
 
+    /**
+     * Declare a grid cell.
+     *
+     * It automatically lays out the cell using a fairly straightforward flow algorithm. You can use `cell(row, col)` if
+     * you need more control about where it shows up.
+     *
+     * Note that the cell will always be positioned after the last cell in the entire grid. That is, if you have a
+     * two-column grid, then add a cell explicitly at (2, 0) and a second at (0, 0), calling `cell` again will add a
+     * new cell at (2, 1), not (0, 1).
+     *
+     * See the header docs for [grid] for more information.
+     */
     fun cell(justification: Justification? = null, render: OffscreenRenderScope.() -> Unit = {}) {
         val cellIndex = cellIndex(nextRow, nextCol)
         while (cellIndex >= cellBuffers.size) {
@@ -167,6 +188,13 @@ class GridScope(internal val renderScope: RenderScope, private val paddingLeftRi
         nextCol = cellBuffers.size % cols.widths.size
     }
 
+    /**
+     * Declare a grid cell at a specific row and column.
+     *
+     * Note that this will throw an exception if that cell position is already filled.
+     *
+     * See the header docs for [grid] for more information.
+     */
     fun cell(row: Int, col: Int, justification: Justification? = null, render: OffscreenRenderScope.() -> Unit = {}) {
         nextRow = row
         nextCol = col
@@ -174,6 +202,72 @@ class GridScope(internal val renderScope: RenderScope, private val paddingLeftRi
     }
 }
 
+/**
+ * Declare a grid of cells.
+ *
+ * With grids, you define columns explicitly; rows are added automatically as needed.
+ *
+ * Here, we create a grid of two 10-width columns:
+ * ```
+ * grid(Cols.uniform(2, 10), paddingLeftRight = 1) {
+ *   cell { textLine("Cell 1a") }
+ *   cell { textLine("Cell 1b") }
+ *   cell { textLine("Cell 2a") }
+ *   cell { textLine("Cell 2b") }
+ * }
+ * ```
+ *
+ * which renders:
+ * ```
+ * +----------+----------+
+ * | Cell 1a  | Cell 1b  |
+ * +----------+----------+
+ * | Cell 2a  | Cell 2b  |
+ * +----------+----------+
+ * ```
+ *
+ * It's worth noting that the width of the grid above will actually be 23, not 20, because of the border characters,
+ * which are not included in the cell width calculations.
+ *
+ * You can also specify the specific row and column you want a cell to apply to:
+ * ```
+ * grid(Cols.uniform(2, 10), paddingLeftRight = 1) {
+ *   cell { textLine("Cell 1a") }
+ *   cell(row = 1, col = 1) { textLine("Cell 2b") }
+ * }
+ * ```
+ *
+ * which renders:
+ * ```
+ * +----------+----------+
+ * | Cell 1a  |          |
+ * +----------+----------+
+ * |          | Cell 2b  |
+ * +----------+----------+
+ * ```
+ *
+ * If the contents of a cell can't fit, it will insert newlines:
+ * ```
+ * grid(Cols(6)) {
+ *   cell { textLine("Hello grid!") }
+ * }
+ * ```
+ *
+ * which renders:
+ * ```
+ * +------+
+ * |Hello |
+ * |grid! |
+ * +------+
+ * ```
+ *
+ * @param cols The column specification for the grid.
+ * @param characters The characters used to render the grid's border.
+ * @param paddingLeftRight If set, adds some additional padding at the start and end of every line.
+ * @param paddingTopBottom If set, adds some newlines before and after the entire grid.
+ * @param defaultJustification The default justification to use for all cells. You can override this value on a case-by
+ *   case basis by passing in a value to the `justification` parameter of `cell` call.
+ */
 fun RenderScope.grid(
     cols: Cols,
     characters: GridCharacters = GridCharacters.ASCII,
