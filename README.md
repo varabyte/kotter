@@ -1033,29 +1033,29 @@ If you want to implement your own utility method that uses `offscreen` under the
 yourself to see how it delegates to `offscreen`, padding each row with the right number of spaces so that the border sides all line up.
 
 ### Grids
-To understand more about Grids, see: [Grid README](https://github.com/varabyte/kotter/tree/main/kotter/src/commonMain/kotlin/com/varabyte/kotterx/grid/README.md)
-
-### Simple Example
+### Simple Examples
 
 ```kotlin
-session {
-    section {
-        grid(width = 6, columns = 2, GridStyle(leftRightWalls = true, topBottomWalls = true, leftRightPadding = 1)) {
-            cell {
-                textLine("Cell1")
-            }
-            cell {
-                textLine("Cell2")
-            }
+grid(characters = GridCharacters.BOX_THIN, Cols.uniform(2, width = 6)) {
+  cell {
+    textLine("Cell1")
+  }
+  cell {
+    textLine("Cell2")
+  }
+  
+  cell {
+    // empty cell needed for padding
+  }
+  cell {
+    textLine("Cell4")
+  }
+}
 
-            cell {
-                // empty cell needed for padding
-            }
-            cell {
-                textLine("Cell4")
-            }
-        }
-    }.run()
+grid(Cols.uniform(3, 10), paddingLeftRight = 1, defaultJustification = Justification.CENTER) {
+  cell(justification = Justification.LEFT) { textLine("Test") }
+  cell { textLine("Test") }
+  cell(justification = Justification.RIGHT) { textLine("Test") }
 }
 ```
 

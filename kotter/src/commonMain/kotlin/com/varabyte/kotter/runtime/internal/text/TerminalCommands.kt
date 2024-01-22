@@ -20,14 +20,9 @@ internal val List<TerminalCommand>.lineLengths: List<Int>
         }
     }
 
-/**
- * Manually insert newlines commands that would normally be auto-added by the terminal due to the limited window width.
- *
- * While this may seem redundant, as the terminal would have added the newlines for us anyway, it can be useful for us
- * to know where the newlines are explicitly which we can use when repainting the screen.
- */
-internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<TerminalCommand> {
+private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: TerminalCommand, width: Int): List<TerminalCommand> {
     val commands = this
+
     return buildList {
         var currLineWidth = 0
         for (command in commands) {
@@ -44,7 +39,7 @@ internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<Termin
                         val remainingWidth = width - currLineWidth
                         if (charWidth > remainingWidth) {
                             add(TextCommand(buffer.toString()))
-                            add(IMPLICIT_NEWLINE_COMMAND)
+                            add(commandToInsert)
                             buffer.clear()
                             currLineWidth = 0
                         }
@@ -60,6 +55,25 @@ internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<Termin
             }
         }
     }
+}
+
+/**
+ * Manually insert implicit newlines where lines should break.
+ *
+ * These mark where newlines will get added but don't actually cause newlines to occur. This can be useful for being
+ * able to keep track of how many lines need to be repainted, taking terminal auto-newline wrapping into account.
+ */
+internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<TerminalCommand> {
+    return insertCommandAtLineBreaks(IMPLICIT_NEWLINE_COMMAND, width)
+}
+
+/**
+ * Manually insert newlines into text that would go over some width.
+ *
+ * This can be useful for rendering text into constrained spaces, e.g. when rendering into a grid cell.
+ */
+internal fun List<TerminalCommand>.withExplicitNewlines(width: Int): List<TerminalCommand> {
+    return insertCommandAtLineBreaks(NEWLINE_COMMAND, width)
 }
 
 /**
