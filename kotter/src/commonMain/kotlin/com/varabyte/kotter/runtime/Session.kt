@@ -19,7 +19,10 @@ import kotlinx.coroutines.runBlocking
  *
  * You cannot create an instance manually. Instead, use [session].
  */
-class Session internal constructor(internal val terminal: Terminal) {
+class Session internal constructor(
+    internal val terminal: Terminal,
+    internal val sectionExceptionHandler: (Throwable) -> Unit
+) {
     /**
      * A long-lived lifecycle that sticks around for the length of the entire session.
      *

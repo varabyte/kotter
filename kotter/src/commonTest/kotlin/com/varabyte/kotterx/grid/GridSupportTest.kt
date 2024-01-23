@@ -6,8 +6,8 @@ import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.kotterx.text.*
 import com.varabyte.truthish.assertThat
+import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
-import kotlin.test.assertFailsWith
 
 
 class GridSupportTest {
@@ -230,38 +230,45 @@ class GridSupportTest {
     }
 
     @Test
-    fun `padding with smaller col widths fails`() = testSession { terminal ->
+    fun `padding with smaller col widths fails`() = testSession {
         section {
-            grid(Cols(2, 2), paddingLeftRight = 4) {
-                cell { textLine("A") }
-                cell { textLine("B") }
+            assertThrows<IllegalArgumentException> {
+                grid(Cols(8, 4), paddingLeftRight = 3) {
+                    cell { textLine("A") }
+                    cell { textLine("B") }
+                }
+            }.also { ex ->
+                assertThat(ex.message!!).contains("4") // min width == 4
+                assertThat(ex.message!!).contains("6") // total padding == 6
             }
         }.run()
-
-        assertThat(terminal.lines()).containsExactly("").inOrder()
     }
 
     @Test
-    fun `invalid star widths fails`() = testSession { terminal ->
+    fun `invalid star widths fails`() = testSession {
         section {
-            grid(Cols.fromStr("*")) {
-                cell { textLine("A") }
-                cell { textLine("B") }
+            assertThrows<IllegalArgumentException> {
+                grid(Cols.fromStr("*, 10")) {
+                    cell { textLine("A") }
+                    cell { textLine("B") }
+                }
+            }.also { ex ->
+                assertThat(ex.message!!).contains("*")
             }
         }.run()
-
-        assertThat(terminal.lines()).containsExactly("").inOrder()
     }
 
     @Test
-    fun `non-integer star widths fails`() = testSession { terminal ->
+    fun `non-integer star widths fails`() = testSession {
         section {
-            grid(Cols.fromStr("x*")) {
-                cell { textLine("A") }
-                cell { textLine("B") }
+            assertThrows<IllegalArgumentException> {
+                grid(Cols.fromStr("1.5*")) {
+                    cell { textLine("A") }
+                    cell { textLine("B") }
+                }
+            }.also { ex ->
+                assertThat(ex.message!!).contains("1.5*")
             }
         }.run()
-
-        assertThat(terminal.lines()).containsExactly("").inOrder()
     }
 }

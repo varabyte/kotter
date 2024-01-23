@@ -74,7 +74,7 @@ class SectionTest {
     }
 
     @Test
-    fun `exceptions in section blocks are swallowed`() = testSession {
+    fun `exceptions in section blocks are swallowed`() = testSession(suppressSectionExceptions = true) {
         var sectionWasCalled = false
         section {
             sectionWasCalled = true

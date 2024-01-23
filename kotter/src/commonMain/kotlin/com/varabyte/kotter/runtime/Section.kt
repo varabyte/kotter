@@ -227,7 +227,8 @@ class Section internal constructor(val session: Session, private val render: Mai
 
                 try {
                     renderer.render(render)
-                } catch (ignored: Throwable) {
+                } catch (t: Throwable) {
+                    session.sectionExceptionHandler(t)
                 }
 
                 lastCommandsRendered = renderer.commands.withImplicitNewlines(session.terminal.width)

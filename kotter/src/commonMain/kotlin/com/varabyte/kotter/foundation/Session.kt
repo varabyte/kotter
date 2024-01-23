@@ -59,16 +59,21 @@ internal expect val defaultTerminalProviders: List<() -> Terminal>
  * @param terminal The terminal implementation backing this session.
  * @param clearTerminal Set to true if this program should clear the terminal on startup. Defaulted to false since that
  *   might be surprising behavior for simple utility terminal applications.
+ * @param sectionExceptionHandler Normally, sections swallow any exceptions thrown within their block, because they are
+ *   often triggered asynchronously. Furthermore, logging the error to console often isn't possible as that would
+ *   interfere with other text that Kotter is rendering. However, if you want to be notified of any exceptions thrown by
+ *   a section, you can pass in a handler to provide custom behavior.
  */
 fun session(
     terminal: Terminal = defaultTerminalProviders.firstSuccess(),
     clearTerminal: Boolean = false,
+    sectionExceptionHandler: (Throwable) -> Unit = {},
     block: Session.() -> Unit
 ) {
 
     if (clearTerminal) terminal.clear()
 
-    val session = Session(terminal)
+    val session = Session(terminal, sectionExceptionHandler)
 
     // Clean-up even if the user presses control-C
     onShutdown { session.shutdown() }

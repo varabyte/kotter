@@ -130,7 +130,7 @@ class Cols(vararg val widths: Int) {
                 }
 
             val starTotal = specs.sumOf { if (it is ColSpec.Star) it.ratio else 0 }
-            require(targetWidth != null || starTotal == 0) { "You must pass in a target width to `Cols.fromStr` if you use star sizing (col str = $str)" }
+            require(targetWidth != null || starTotal == 0) { "You must pass in a target width to `Cols.fromStr` if you use star sizing (e.g. `Cols.fromStr(\"*\")`)" }
             val finalWidth = targetWidth?.let {
                 it - specs.sumOf { spec -> if (spec is ColSpec.Fixed) spec.width else 0 }
             } ?: 0
@@ -276,10 +276,11 @@ fun RenderScope.grid(
     defaultJustification: Justification = Justification.LEFT,
     render: GridScope.() -> Unit
 ) {
-
-    require(paddingLeftRight < cols.widths.min()) {
-        "Invalid LeftRight Padding or Column Spec: padding can't be wider than columns. " +
-                "Min Column: ${cols.widths.min()}, LeftRight Padding: $paddingLeftRight"
+    val totalPadding = paddingLeftRight * 2
+    val minWidth = cols.widths.min()
+    require((paddingLeftRight * 2) < minWidth) {
+        "Invalid column spec: padding can't be wider than columns. " +
+                "Min column width: $minWidth, horizontal padding: $totalPadding"
     }
 
     val gridScope = GridScope(this, paddingLeftRight, cols)
