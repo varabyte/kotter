@@ -79,6 +79,8 @@ actual class NativeTerminal : Terminal {
             winsize.ws_row.toInt()
         }
 
+    private var closed = false
+
     override fun write(text: String) {
         print(text)
     }
@@ -91,15 +93,19 @@ actual class NativeTerminal : Terminal {
                 val cVar = alloc<IntVar>()
                 while (!quit && context.isActive) {
                     val readResult = read(STDIN_FILENO, cVar.ptr, 1u)
-                    if (readResult > 0L) {
-                        emit(cVar.value)
-                    } else {
-                        quit = (readResult == -1L)
+                    if (closed) {
+                        // terminal was just closed between this read and last read
+                        quit = true
+                    } else
+                        if (readResult > 0L) {
+                            emit(cVar.value)
+                        } else {
+                            quit = (readResult == -1L)
+                        }
                     }
                 }
             }
         }
-    }
 
     override fun read(): Flow<Int> = charFlow
 
@@ -112,5 +118,6 @@ actual class NativeTerminal : Terminal {
         fflush(stdout)
         tcsetattr(STDIN_FILENO, TCSAFLUSH, origTermios.ptr)
         nativeHeap.free(origTermios)
+        closed = true
     }
 }

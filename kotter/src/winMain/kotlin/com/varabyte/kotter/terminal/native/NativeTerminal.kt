@@ -91,6 +91,8 @@ actual class NativeTerminal : Terminal {
             (csbi.srWindow.Bottom - csbi.srWindow.Top)
         }
 
+    private var closed = false
+
     override fun write(text: String) {
         print(text)
     }
@@ -158,14 +160,19 @@ actual class NativeTerminal : Terminal {
                 val numEventsRead = alloc<DWORDVar>()
                 while (!quit && context.isActive) {
                     val readResult = ReadConsoleInput!!(stdInHandle, inputRecord.ptr, 1.convert(), numEventsRead.ptr)
-                    if (readResult != 0) {
-                        for (i in 0 until numEventsRead.value.toInt()) {
-                            if (inputRecord.EventType.toInt() == KEY_EVENT) {
-                                processKeyEvent(inputRecord.Event.KeyEvent)
-                            }
-                        }
-                    } else {
+                    if (closed) {
+                        // terminal was just closed between this read and last read
                         quit = true
+                    } else {
+                        if (readResult != 0) {
+                            for (i in 0 until numEventsRead.value.toInt()) {
+                                if (inputRecord.EventType.toInt() == KEY_EVENT) {
+                                    processKeyEvent(inputRecord.Event.KeyEvent)
+                                }
+                            }
+                        } else {
+                            quit = true
+                        }
                     }
                 }
             }
@@ -184,5 +191,7 @@ actual class NativeTerminal : Terminal {
         SetConsoleMode(stdInHandle, origModeInVar.value)
         SetConsoleMode(stdOutHandle, origModeOutVar.value)
         arena.clear()
+
+        closed = true
     }
 }

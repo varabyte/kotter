@@ -20,6 +20,7 @@ class SystemTerminal : Terminal {
     private var previousCursorSetting: InfoCmp.Capability
     private val previousOut = System.out
     private val previousErr = System.err
+    private var closed = false
 
     private val terminal = TerminalBuilder.builder()
         .system(true)
@@ -75,10 +76,15 @@ class SystemTerminal : Terminal {
             while (!quit && context.isActive) {
                 try {
                     val c = terminal.reader().read(16)
-                    if (c >= 0) {
-                        emit(c)
+                    if (closed) {
+                        // terminal was just closed between this read and last read
+                        quit = true
                     } else {
-                        quit = (c == -1)
+                        if (c >= 0) {
+                            emit(c)
+                        } else if (c == -1) {
+                            quit = true
+                        }
                     }
                 } catch (ex: IOException) {
                     break
@@ -96,6 +102,8 @@ class SystemTerminal : Terminal {
 
         System.setOut(previousOut)
         System.setErr(previousErr)
+
+        closed = true
     }
 
     override fun clear() {
