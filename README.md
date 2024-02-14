@@ -1185,8 +1185,8 @@ wide as the second. If you have two star-sized columns both set to "2" then they
 ![Star grid example](https://github.com/varabyte/media/raw/main/kotter/images/kotter-grid-star-sized.png)
 
 To determine "remaining space", the `grid` method accepts a `targetWidth` parameter. If you don't have any star-sized
-columns, the value does nothing. If you do, then the grid will subtract all fixed and fit width values from it and share
-any remaining space between the star-sized columns.
+columns, the `targetWidth` value does nothing. If you do, then the grid will subtract all fixed and fit width values
+from it and share any remaining space between the star-sized columns.
 
 For a trivial example, say you have a two-column grid with `targetWidth` set to 10. The first column is fixed to 4, and
 the second column is set to star-sized. The star-sized column will then receive 6 characters of space.
@@ -1196,46 +1196,36 @@ automatically adjust to the remaining space.
 
 If you do not set the `targetWidth` at all, then all star-sized columns will shrink to size 1.
 
-#### Column specs and Cols.fromStr
+#### Column builder
 
 Earlier, we used `Cols(6, 6)`, a convenience constructor that accepted only integer values indicated fixed widths. But
-for more control, you can construct the `Cols` class passing in multiple `Cols.Spec` instances:
+for more control, you can construct the `Cols` class using a builder block:
 
 ```kotlin
-grid(Cols(Cols.Spec.Fit(), Cols.Spec.Fixed(10), Cols.Spec.Star()), targetWidth = 80) {
+grid(Cols { fit(); fixed(10); star() }, targetWidth = 80) {
   /* ... */
 }
 ```
-
-This works fine but is a bit verbose, so Kotter provides a convenient shortcut using a string value:
-
-```kotlin
-grid(Cols.fromStr("fit, 10, *"), targetWidth = 80) {
-  /* ... */
-}
-```
-
-The string format is more fragile in that specifying it wrong will result in a runtime exception instead of a
-compile-time one. However, it is more concise and easier to read.
 
 #### Column properties
 
-In addition to their base type, columns have a few properties you can set: *minimum value*, *maximum value*, and
+In addition to their base value, columns have a few properties you can set: *minimum value*, *maximum value*, and
 *justification*.
-
-If you construct a `Cols.Spec` directly, you can set these properties just by passing them in as constructor parameters.
-However, if you use the `fromStr` format, you can specify them using a `key:value` (no spaces!) syntax.
 
 Here's an example of setting all three properties:
 
 ```kotlin
-grid(Cols.fromStr("fit max:10, 10 just:center, * min:5"), targetWidth = 80) {
+grid(
+  Cols {
+    fit(maxValue = 10); fixed(10, justification = Justification.CENTER); star(minValue = 5)
+  }, targetWidth = 80
+) {
   /* ... */
 }
 ```
 
 The above means that the first column will be fit-sized, but will never exceed 10 characters. The second column is fixed
-to 10 characters, and its contents will be centered. The final column is star-sized, but will never be less than 5
+to 10 characters, and its contents will be centered. The final column is star-sized, but it will never be less than 5
 characters.
 
 ### 🪝 Shutdown Hook

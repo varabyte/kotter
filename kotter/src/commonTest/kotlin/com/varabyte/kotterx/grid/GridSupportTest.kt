@@ -155,7 +155,7 @@ class GridSupportTest {
     @Test
     fun `Cols fromStr works with dynamic sizing`() = testSession { terminal ->
         section {
-            grid(cols = Cols.fromStr("3*, 4, 1*"), targetWidth = 12) {
+            grid(cols = Cols { star(3); fixed(4); star(1) }, targetWidth = 12) {
                 cell {
                     textLine("A")
                 }
@@ -184,7 +184,7 @@ class GridSupportTest {
             // ... plus padding of 1 on each side -> padded size (8, 5, 11)
             // ... plus border walls (4 of them)  -> final total width = 8 + 5 + 11 + 4 = 28
 
-            grid(cols = Cols.fromStr("2*, *, 3*"), paddingLeftRight = 1, targetWidth = 18) {
+            grid(cols = Cols { star(2); star(); star(3) }, paddingLeftRight = 1, targetWidth = 18) {
                 cell {
                     textLine("A")
                 }
@@ -208,7 +208,7 @@ class GridSupportTest {
     @Test
     fun `fit sizing works`() = testSession { terminal ->
         section {
-            grid(cols = Cols.fromStr("fit, fit, fit")) {
+            grid(cols = Cols { fit(); fit(); fit() }) {
                 cell {
                     textLine("A")
                 }
@@ -250,7 +250,7 @@ class GridSupportTest {
     @Test
     fun `fit sizing takes newlines into account`() = testSession { terminal ->
         section {
-            grid(cols = Cols.fromStr("fit")) {
+            grid(cols = Cols { fit() }) {
                 cell {
                     textLine("X")
                 }
@@ -281,7 +281,7 @@ class GridSupportTest {
             // - Grid default
 
             grid(
-                Cols.fromStr("8, 8, 8 just:right"),
+                Cols { fixed(8); fixed(8); fixed(8, justification = Justification.RIGHT) },
                 paddingLeftRight = 1,
                 defaultJustification = Justification.CENTER
             ) {
@@ -354,7 +354,7 @@ class GridSupportTest {
     @Test
     fun `star widths without target width shrink to size 1`() = testSession { terminal ->
         section {
-            grid(Cols.fromStr("*, 10*")) {
+            grid(Cols { star(); star(10) }) {
                 cell { textLine("AA") }
                 cell { textLine("BB") }
             }
@@ -372,7 +372,7 @@ class GridSupportTest {
     @Test
     fun `maxCellHeight can be used to limit number of cell rows`() = testSession { terminal ->
         section {
-            grid(Cols.fromStr("1, 1, 1, 1"), maxCellHeight = 2) {
+            grid(Cols.uniform(4, width = 1), maxCellHeight = 2) {
                 cell { textLine("A") }
                 cell { textLine("BB") }
                 cell { textLine("CCC") }
@@ -397,9 +397,9 @@ class GridSupportTest {
     }
 
     @Test
-    fun `columns can set min and max widths`() = testSession { terminal ->
+    fun `non-fixed columns can set min and max widths`() = testSession { terminal ->
         section {
-            grid(cols = Cols.fromStr("* min:5, fit max:5"), targetWidth = 1) {
+            grid(cols = Cols { star(minWidth = 5); fit(maxWidth = 5) }, targetWidth = 1) {
                 cell {
                     textLine("A")
                 }
@@ -416,20 +416,5 @@ class GridSupportTest {
             "+-----+-----+",
             Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
         ).inOrder()
-    }
-
-
-    @Test
-    fun `non-integer star widths fails`() = testSession {
-        section {
-            assertThrows<IllegalArgumentException> {
-                grid(Cols.fromStr("1.5*")) {
-                    cell { textLine("A") }
-                    cell { textLine("B") }
-                }
-            }.also { ex ->
-                assertThat(ex.message!!).contains("1.5*")
-            }
-        }.run()
     }
 }

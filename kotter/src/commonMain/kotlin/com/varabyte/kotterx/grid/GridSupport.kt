@@ -85,7 +85,7 @@ class GridCharacters(
 /**
  * A column specification for a grid.
  */
-class Cols(vararg val specs: Spec) {
+class Cols private constructor(internal vararg val specs: Spec) {
     init {
         fun assertPositive(value: Int?, name: String) {
             if (value != null) require(value > 0) { "$name must be positive" }
@@ -117,7 +117,7 @@ class Cols(vararg val specs: Spec) {
 
     constructor(vararg widths: Int) : this(*widths.map { Spec.Fixed(it) }.toTypedArray())
 
-    sealed class Spec(val justification: Justification?) {
+    internal sealed class Spec(val justification: Justification?) {
         class Fit(justification: Justification? = null, val minWidth: Int? = null, val maxWidth: Int? = null) :
             Spec(justification)
 
@@ -131,6 +131,24 @@ class Cols(vararg val specs: Spec) {
         ) : Spec(justification)
     }
 
+    class BuilderScope {
+        private val specs = mutableListOf<Spec>()
+
+        fun fit(justification: Justification? = null, minWidth: Int? = null, maxWidth: Int? = null) {
+            specs.add(Spec.Fit(justification, minWidth, maxWidth))
+        }
+
+        fun fixed(width: Int, justification: Justification? = null) {
+            specs.add(Spec.Fixed(width, justification))
+        }
+
+        fun star(ratio: Int = 1, justification: Justification? = null, minWidth: Int? = null, maxWidth: Int? = null) {
+            specs.add(Spec.Star(ratio, justification, minWidth, maxWidth))
+        }
+
+        fun build() = Cols(*specs.toTypedArray())
+    }
+
     companion object {
         /**
          * Create a column spec where all columns are the same width.
@@ -138,110 +156,12 @@ class Cols(vararg val specs: Spec) {
         fun uniform(count: Int, width: Int) = Cols(*IntArray(count) { width })
 
         /**
-         * Parse a string which represents [Cols.Spec] values and use it to create a [Cols] instance.
-         *
-         * In other words, this is an efficient (but less type-safe) way to create a list of grid column specs, with
-         * concise syntax for fixed-, fit-, and star-sized columns.
-         *
-         * For example: `Cols.fromStr("fit, 2*, 20, *")`
-         *
-         * Fit-sizing means that the column will take up exactly the space it needs to contain the largest item in that
-         * column. Use the "fit" keyword to specify this.
-         *
-         * Star-sizing means that the column will take up the remaining space in the grid. If multiple different star
-         * sections exist, they will be divided up evenly based on their ratio. For example, with "2*, *", the first
-         * column will be twice as wide as the second.
-         *
-         * And fixed-sizing means that the column will take up exactly the specified width. Use a raw integer value to
-         * specify this.
-         *
-         * You can mix and match types. So "fit, 2*, 20, *" means: subtract the fit size of the first column and the
-         * fixed size of the third column, then divide any remaining space up between the star-sized columns. Let's say
-         * the target width of the grid is 50, and the fit column ended up getting calculated as 6, then the final sizes
-         * would be: [6, 16, 20, 8].
-         *
-         * Additional properties can also be specified, using a `key:value` syntax. For example, `fit min:5 max:10`
-         * means calculate a fit value for this column, but go no lower than 5 and no higher than 10. Fit and star-sized
-         * columns can both have min- and max-width properties. All columns can specify a `just` property which can be
-         * set to `left`, `center`, or `right`.
-         *
-         * | Name | Values | Applies to |
-         * | ---- | ------ | ---------- |
-         * | min  | int    | fit, star   |
-         * | max  | int    | fit, star   |
-         * | just | left, center, right | all |
-         *
-         * For example: `Cols.fromStr("fit min:5, 20 just: center, * max: 30")`
+         * Convenience method for constructing a [Cols] instance using a builder pattern.
          */
-        fun fromStr(str: String): Cols {
-            fun invalidPartMessage(part: String, extra: String? = null) =
-                "Invalid column spec: $part" + (extra?.let { " ($it)" } ?: "")
-
-            class ParsedPart(val value: String, val properties: Map<String, String>) {
-                private val part get() = "$value ${properties.entries.joinToString(" ") { (k, v) -> "$k:$v" }}"
-
-                val maxWidth = properties["max"]?.toIntOrNull()
-                val minWidth = properties["min"]?.toIntOrNull()
-                val justification = properties["just"]?.let { justStr ->
-                    Justification.values().find { it.name.equals(justStr, ignoreCase = true) }
-                        ?: error(invalidPartMessage(
-                            part,
-                            "Invalid justification value \"$justStr\", should be one of [${
-                                Justification.values().joinToString(", ") { it.name.lowercase() }
-                            }]"
-                        ))
-                }
-            }
-
-            fun parsePart(part: String): ParsedPart {
-                val parts = part.split(" ")
-                val value = parts.first()
-                val properties = parts.drop(1).map { it.split(":") }.associate { it[0] to it[1] }
-                return ParsedPart(value, properties)
-            }
-
-            val specs: List<Spec> = str
-                .split(",")
-                .map { it.trim() }
-                .map { part ->
-                    val parsedPart = parsePart(part)
-
-                    when {
-                        parsedPart.value.equals("fit", ignoreCase = true) -> {
-                            Spec.Fit(
-                                parsedPart.justification,
-                                parsedPart.minWidth,
-                                parsedPart.maxWidth
-                            )
-                        }
-
-                        parsedPart.value.endsWith("*") -> {
-                            val ratio = parsedPart.value.dropLast(1).let {
-                                if (it.isEmpty()) 1 else it.toIntOrNull()
-                            }
-                            require(ratio != null) { invalidPartMessage(part, "Invalid star size") }
-                            Spec.Star(
-                                ratio,
-                                parsedPart.justification,
-                                parsedPart.minWidth,
-                                parsedPart.maxWidth
-                            )
-                        }
-
-                        else -> {
-                            val width = parsedPart.value.toIntOrNull()
-                            require(width != null && width > 0) {
-                                invalidPartMessage(
-                                    part,
-                                    "Column width must be positive"
-                                )
-                            }
-                            Spec.Fixed(width, parsedPart.justification)
-                        }
-                    }
-                }
-
-            return Cols(*specs.toTypedArray())
+        operator fun invoke(builder: BuilderScope.() -> Unit): Cols {
+            val scope = BuilderScope()
+            scope.builder()
+            return scope.build()
         }
     }
 }

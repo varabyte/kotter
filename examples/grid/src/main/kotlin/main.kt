@@ -2,8 +2,9 @@ import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotterx.grid.*
+import com.varabyte.kotterx.text.*
 
-private const val MIN_TABLE_WIDTH = 20
+private const val MIN_TABLE_WIDTH = 25
 private const val MAX_TABLE_WIDTH = 40
 private const val DEFAULT_TABLE_WIDTH = 30
 
@@ -26,7 +27,7 @@ fun main() = session {
 
         textLine("Target width: $tableWidth")
         grid(
-            Cols.fromStr("fit, 7 just:center, * min:5"),
+            Cols { fit(); fixed(10, Justification.CENTER); star(minWidth = 5)},
             targetWidth = tableWidth,
             characters = GridCharacters.CURVED,
             paddingLeftRight = if (usePadding) 1 else 0,
