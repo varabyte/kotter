@@ -12,7 +12,7 @@ import kotlin.test.Test
 
 class GridSupportTest {
     @Test
-    fun `col size larger than width works`() = testSession { terminal ->
+    fun `col width larger than actual content`() = testSession { terminal ->
         section {
             grid(Cols(6)) {
                 cell {
@@ -27,6 +27,17 @@ class GridSupportTest {
             "+------+",
             Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
         ).inOrder()
+    }
+
+    @Test
+    fun `col width must be greater than 0`() = testSession {
+        section {
+            assertThrows<IllegalArgumentException> {
+                grid(Cols(0)) {
+                    cell {}
+                }
+            }
+        }.run()
     }
 
     @Test
@@ -142,9 +153,9 @@ class GridSupportTest {
     }
 
     @Test
-    fun `Cols fromStr can create column widths`() = testSession { terminal ->
+    fun `Cols fromStr works with dynamic sizing`() = testSession { terminal ->
         section {
-            grid(cols = Cols.fromStr("3*, 4, 1*", 12)) {
+            grid(cols = Cols.fromStr("3*, 4, 1*"), targetWidth = 12) {
                 cell {
                     textLine("A")
                 }
@@ -166,18 +177,129 @@ class GridSupportTest {
     }
 
     @Test
+    fun `Star sized target width calculations ignore padding`() = testSession { terminal ->
+        section {
+            // targetWidth 18
+            // ... plus col specs (2*, *, 3*) -> calculated size (6, 3, 9)
+            // ... plus padding of 1 on each side -> padded size (8, 5, 11)
+            // ... plus border walls (4 of them)  -> final total width = 8 + 5 + 11 + 4 = 28
+
+            grid(cols = Cols.fromStr("2*, *, 3*"), paddingLeftRight = 1, targetWidth = 18) {
+                cell {
+                    textLine("A")
+                }
+                cell {
+                    textLine("B")
+                }
+                cell {
+                    textLine("C")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+--------+-----+-----------+",
+            "| A      | B   | C         |",
+            "+--------+-----+-----------+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `fit sizing works`() = testSession { terminal ->
+        section {
+            grid(cols = Cols.fromStr("fit, fit, fit")) {
+                cell {
+                    textLine("A")
+                }
+                cell {
+                    textLine("BB")
+                }
+                cell {
+                    textLine("C")
+                }
+
+                cell {
+                    textLine("DD")
+                }
+                cell {
+                    textLine("E")
+                }
+                cell {
+                    textLine("FFFF")
+                }
+
+                cell {
+                    textLine("GGG")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+---+--+----+",
+            "|A  |BB|C   |",
+            "+---+--+----+",
+            "|DD |E |FFFF|",
+            "+---+--+----+",
+            "|GGG|  |    |",
+            "+---+--+----+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `fit sizing takes newlines into account`() = testSession { terminal ->
+        section {
+            grid(cols = Cols.fromStr("fit")) {
+                cell {
+                    textLine("X")
+                }
+                cell {
+                    textLine("Hello")
+                    textLine("World!")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+------+",
+            "|X     |",
+            "+------+",
+            "|Hello |",
+            "|World!|",
+            "+------+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
     fun `justification works`() = testSession { terminal ->
         section {
-            grid(Cols.uniform(3, 10), paddingLeftRight = 1, defaultJustification = Justification.CENTER) {
+            // Precedence:
+            // - Specific cell overrides
+            // - Col overrides
+            // - Grid default
+
+            grid(
+                Cols.fromStr("8, 8, 8 just:right"),
+                paddingLeftRight = 1,
+                defaultJustification = Justification.CENTER
+            ) {
                 cell(justification = Justification.LEFT) { textLine("Test") }
                 cell { textLine("Test") }
-                cell(justification = Justification.RIGHT) { textLine("Test") }
+                cell { textLine("Test") }
+
+                cell { textLine("Test") }
+                cell(justification = Justification.LEFT) { textLine("Test") }
+                cell { textLine("Test") }
             }
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
             "+----------+----------+----------+",
             "| Test     |   Test   |     Test |",
+            "+----------+----------+----------+",
+            "|   Test   | Test     |     Test |",
             "+----------+----------+----------+",
             Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
         ).inOrder()
@@ -212,7 +334,7 @@ class GridSupportTest {
     @Test
     fun `padding works`() = testSession { terminal ->
         section {
-            grid(Cols(5, 5), paddingLeftRight = 2, paddingTopBottom = 1) {
+            grid(Cols(1, 1), paddingLeftRight = 2, paddingTopBottom = 1) {
                 cell { textLine("X") }
                 cell { textLine("YZ") }
             }
@@ -230,33 +352,72 @@ class GridSupportTest {
     }
 
     @Test
-    fun `padding with smaller col widths fails`() = testSession {
+    fun `star widths without target width shrink to size 1`() = testSession { terminal ->
         section {
-            assertThrows<IllegalArgumentException> {
-                grid(Cols(8, 4), paddingLeftRight = 3) {
-                    cell { textLine("A") }
-                    cell { textLine("B") }
-                }
-            }.also { ex ->
-                assertThat(ex.message!!).contains("4") // min width == 4
-                assertThat(ex.message!!).contains("6") // total padding == 6
+            grid(Cols.fromStr("*, 10*")) {
+                cell { textLine("AA") }
+                cell { textLine("BB") }
             }
         }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+-+-+",
+            "|A|B|",
+            "|A|B|",
+            "+-+-+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
     }
 
     @Test
-    fun `invalid star widths fails`() = testSession {
+    fun `maxCellHeight can be used to limit number of cell rows`() = testSession { terminal ->
         section {
-            assertThrows<IllegalArgumentException> {
-                grid(Cols.fromStr("*, 10")) {
-                    cell { textLine("A") }
-                    cell { textLine("B") }
-                }
-            }.also { ex ->
-                assertThat(ex.message!!).contains("*")
+            grid(Cols.fromStr("1, 1, 1, 1"), maxCellHeight = 2) {
+                cell { textLine("A") }
+                cell { textLine("BB") }
+                cell { textLine("CCC") }
+                cell { textLine("DDDD") }
+                cell { textLine("EEEE") }
+                cell { textLine("FFF") }
+                cell { textLine("GG") }
+                cell { textLine("H") }
             }
         }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+-+-+-+-+",
+            "|A|B|C|D|",
+            "| |B|C|D|",
+            "+-+-+-+-+",
+            "|E|F|G|H|",
+            "|E|F|G| |",
+            "+-+-+-+-+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
     }
+
+    @Test
+    fun `columns can set min and max widths`() = testSession { terminal ->
+        section {
+            grid(cols = Cols.fromStr("* min:5, fit max:5"), targetWidth = 1) {
+                cell {
+                    textLine("A")
+                }
+                cell {
+                    textLine("123456")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+-----+-----+",
+            "|A    |12345|",
+            "|     |6    |",
+            "+-----+-----+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
 
     @Test
     fun `non-integer star widths fails`() = testSession {
