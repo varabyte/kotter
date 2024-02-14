@@ -1051,33 +1051,6 @@ If you want to implement your own utility method that uses `offscreen` under the
 [bordered's implementation](https://github.com/varabyte/kotter/blob/main/kotter/src/main/kotlin/com/varabyte/kotterx/decorations/BorderSupport.kt)
 yourself to see how it delegates to `offscreen`, padding each row with the right number of spaces so that the border sides all line up.
 
-### Grids
-### Simple Examples
-
-```kotlin
-grid(characters = GridCharacters.BOX_THIN, Cols.uniform(2, width = 6)) {
-  cell {
-    textLine("Cell1")
-  }
-  cell {
-    textLine("Cell2")
-  }
-  
-  cell {
-    // empty cell needed for padding
-  }
-  cell {
-    textLine("Cell4")
-  }
-}
-
-grid(Cols.uniform(3, 10), paddingLeftRight = 1, defaultJustification = Justification.CENTER) {
-  cell(justification = Justification.LEFT) { textLine("Test") }
-  cell { textLine("Test") }
-  cell(justification = Justification.RIGHT) { textLine("Test") }
-}
-```
-
 ### 📤 Aside
 
 You can actually make one-off render requests directly inside a `run` block:
@@ -1157,6 +1130,113 @@ Asides are very useful if you have some long-running process that generates text
 a compiler spitting out warnings and errors as it continues to process more code, or a test runner reporting failures
 as it continues to run more tests. In fact, Kotter provides a [fake compiler example](examples/compiler) that you can
 reference.
+
+### 🪟 Grids
+
+Kotter provides support for creating arbitrary sized grids with multiple rows and columns.
+
+With Kotter's approach to grids, you specify the number of columns explicitly; rows are auto added as you declare new
+grid cells.
+
+```kotlin
+section {
+  grid(Cols(6, 6)) {
+    cell { // Auto set to row=0, col=0
+      textLine("Cell1")
+    }
+    cell { // Auto set to row=0, col=1
+      textLine("Cell2")
+    }
+
+    // Third cell in a grid with two columns creates a new row
+    cell { // Auto set to row=1, col=0
+      textLine("Cell3")
+    }
+    cell { // Auto set to row=1, col=1
+      textLine("Cell4")
+    }
+
+    // You can explicitly set the row and column if you want. Row and columns
+    // are 0-indexed.
+    cell(row = 2, col = 1) { // Jump over cell row=2,col=0
+      textLine("Cell6")
+    }
+  }
+}.run()
+```
+
+![Simple grid example](https://github.com/varabyte/media/raw/main/kotter/images/kotter-grid-simple.png)
+
+You can check out the [grid example](examples/grid) for a more comprehensive example.
+
+#### Fit- and star-sized columns
+
+Fixed width columns are useful, but Kotter also provides even more functionality via fit- and star-sized columns.
+
+A **fit-sized column** will check all cells it contains and choose a width that fits all of them.
+
+![Fit grid example](https://github.com/varabyte/media/raw/main/kotter/images/kotter-grid-fit-sized.png)
+
+A **star-sized column** will be sized dynamically based on how much space is remaining (more on this in a bit). If you
+have multiple star-sized columns, then space will be divided between them based on their ratio with each other. For
+example, if you have one star-sized column set to "2" and another set to "1", then the first column will be twice as
+wide as the second. If you have two star-sized columns both set to "2" then they will share the remaining space equally.
+
+![Star grid example](https://github.com/varabyte/media/raw/main/kotter/images/kotter-grid-star-sized.png)
+
+To determine "remaining space", the `grid` method accepts a `targetWidth` parameter. If you don't have any star-sized
+columns, the value does nothing. If you do, then the grid will subtract all fixed and fit width values from it and share
+any remaining space between the star-sized columns.
+
+For a trivial example, say you have a two-column grid with `targetWidth` set to 10. The first column is fixed to 4, and
+the second column is set to star-sized. The star-sized column will then receive 6 characters of space.
+
+Later, you can just update the fixed width column's value, and the next time Kotter runs, the star-sized column will
+automatically adjust to the remaining space.
+
+If you do not set the `targetWidth` at all, then all star-sized columns will shrink to size 1.
+
+#### Column specs and Cols.fromStr
+
+Earlier, we used `Cols(6, 6)`, a convenience constructor that accepted only integer values indicated fixed widths. But
+for more control, you can construct the `Cols` class passing in multiple `Cols.Spec` instances:
+
+```kotlin
+grid(Cols(Cols.Spec.Fit(), Cols.Spec.Fixed(10), Cols.Spec.Star()), targetWidth = 80) {
+  /* ... */
+}
+```
+
+This works fine but is a bit verbose, so Kotter provides a convenient shortcut using a string value:
+
+```kotlin
+grid(Cols.fromStr("fit, 10, *"), targetWidth = 80) {
+  /* ... */
+}
+```
+
+The string format is more fragile in that specifying it wrong will result in a runtime exception instead of a
+compile-time one. However, it is more concise and easier to read.
+
+#### Column properties
+
+In addition to their base type, columns have a few properties you can set: *minimum value*, *maximum value*, and
+*justification*.
+
+If you construct a `Cols.Spec` directly, you can set these properties just by passing them in as constructor parameters.
+However, if you use the `fromStr` format, you can specify them using a `key:value` (no spaces!) syntax.
+
+Here's an example of setting all three properties:
+
+```kotlin
+grid(Cols.fromStr("fit max:10, 10 just:center, * min:5"), targetWidth = 80) {
+  /* ... */
+}
+```
+
+The above means that the first column will be fit-sized, but will never exceed 10 characters. The second column is fixed
+to 10 characters, and its contents will be centered. The final column is star-sized, but will never be less than 5
+characters.
 
 ### 🪝 Shutdown Hook
 
