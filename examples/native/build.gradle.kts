@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "com.varabyte.kotter"
+group = "com.varabyte.kotter.examples"
 version = "1.0-SNAPSHOT"
 
 
@@ -32,7 +32,7 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation(project(":kotter"))
+                implementation("com.varabyte.kotter:kotter")
                 implementation(libs.kotlinx.coroutines)
             }
         }

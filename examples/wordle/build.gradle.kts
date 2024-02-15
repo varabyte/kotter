@@ -3,7 +3,7 @@ plugins {
     application
 }
 
-group = "com.varabyte.kotter"
+group = "com.varabyte.kotter.examples"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation(project(":kotter"))
+    implementation("com.varabyte.kotter:kotter")
     implementation(libs.okhttp)
     implementation(libs.kotlinx.coroutines)
 }

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="kotter-jvm-1.1.2-SNAPSHOT">
+    <output-path>$PROJECT_DIR$/../kotter/build/libs</output-path>
+    <root id="archive" name="kotter-jvm-1.1.2-SNAPSHOT.jar">
+      <element id="module-output" name="kotter.kotter.jvmMain" />
+    </root>
+  </artifact>
+</component>
