@@ -80,7 +80,9 @@ internal fun AnsiColor.toSwingColor(): Color = ANSI_TO_SWING_COLORS.getValue(thi
  *
  * An instance cannot be created manually. See [VirtualTerminal.create] instead.
  */
-class VirtualTerminal private constructor(private val pane: SwingTerminalPane) : Terminal {
+class VirtualTerminal private constructor(
+    private val pane: SwingTerminalPane, override val width: Int, override val height: Int
+) : Terminal {
     companion object {
         /**
          * Factory method for constructing a [VirtualTerminal].
@@ -131,7 +133,7 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
                 }
             }
 
-            val terminal = VirtualTerminal(pane)
+            val terminal = VirtualTerminal(pane, terminalSize.width, terminalSize.height)
             SwingUtilities.invokeAndWait {
                 val frame = JFrame(title)
                 frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
@@ -211,9 +213,6 @@ class VirtualTerminal private constructor(private val pane: SwingTerminalPane) :
     private var listenersAdded = false
     private var userVScrollPos: Int? = null
     private var userHScrollPos: Int? = null
-
-    override val width = Int.MAX_VALUE // Virtual terminals can scroll horizontally forever
-    override val height = Int.MAX_VALUE // Virtual terminals can scroll vertically forever
 
     override fun write(text: String) {
         SwingUtilities.invokeLater {
