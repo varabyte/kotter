@@ -8,12 +8,6 @@ import com.varabyte.kotter.runtime.render.*
 import com.varabyte.kotterx.decorations.*
 import com.varabyte.kotterx.text.*
 
-@Deprecated(
-    "OffscreenRenderScope should have been declared under the runtime package originally. Please change `foundation` to `runtime` in the import.",
-    replaceWith = ReplaceWith("com.varabyte.kotter.runtime.render.OffscreenRenderScope")
-)
-typealias OffscreenRenderScope = com.varabyte.kotter.runtime.render.OffscreenRenderScope
-
 /**
  * An internal buffer that stores commands without actively rendering them.
  *
@@ -27,11 +21,11 @@ typealias OffscreenRenderScope = com.varabyte.kotter.runtime.render.OffscreenRen
 class OffscreenBuffer internal constructor(
     internal val parentScope: RenderScope,
     maxWidth: Int,
-    render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit
+    render: OffscreenRenderScope.() -> Unit
 ) {
     private val commands = run {
         val offscreenRenderer =
-            Renderer(parentScope.renderer.session) { com.varabyte.kotter.runtime.render.OffscreenRenderScope(it) }.apply {
+            Renderer(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
                 render(render)
             }
         // The renderer normally makes sure that a command block ends with a trailing newline and a state reset, but we
@@ -191,10 +185,10 @@ class OffscreenCommandRenderer internal constructor(
  *
  * See also: [justified], [bordered]
  */
-fun RenderScope.offscreen(render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit): OffscreenBuffer {
+fun RenderScope.offscreen(render: OffscreenRenderScope.() -> Unit): OffscreenBuffer {
     return offscreen(Int.MAX_VALUE, render)
 }
 
-fun RenderScope.offscreen(maxWidth: Int, render: com.varabyte.kotter.runtime.render.OffscreenRenderScope.() -> Unit): OffscreenBuffer {
+fun RenderScope.offscreen(maxWidth: Int, render: OffscreenRenderScope.() -> Unit): OffscreenBuffer {
     return OffscreenBuffer(this, maxWidth, render)
 }

@@ -3,12 +3,6 @@ package com.varabyte.kotter.foundation.render
 import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.render.*
 
-@Deprecated(
-    "AsideRenderScope should have been declared under the runtime package originally. Please change `foundation` to `runtime` in the import.",
-    replaceWith = ReplaceWith("com.varabyte.kotter.runtime.render.AsideRenderScope")
-)
-typealias AsideRenderScope = com.varabyte.kotter.runtime.render.AsideRenderScope
-
 /**
  * A one-off render block that can be triggered within a [RenderScope.run] block.
  *
@@ -75,11 +69,11 @@ typealias AsideRenderScope = com.varabyte.kotter.runtime.render.AsideRenderScope
  * A compiler program could be another good example of this -- you might have a spinner plus some text saying which
  * file is currently being compiled, with finished files output using asides.
  */
-fun RunScope.aside(render: com.varabyte.kotter.runtime.render.AsideRenderScope.() -> Unit) {
+fun RunScope.aside(render: AsideRenderScope.() -> Unit) {
     val session = section.session
 
     val asideRenderer =
-        Renderer(session) { com.varabyte.kotter.runtime.render.AsideRenderScope(it) }.apply { render(render) }
+        Renderer(session) { AsideRenderScope(it) }.apply { render(render) }
     session.data.putIfAbsent(AsideRendersKey, { mutableListOf() }) {
         add(asideRenderer)
         section.requestRerender()
