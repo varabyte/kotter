@@ -3,8 +3,8 @@ package com.varabyte.kotterx.grid
 import com.varabyte.kotter.foundation.render.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.render.*
-import com.varabyte.kotter.runtime.render.OffscreenRenderScope
 import com.varabyte.kotterx.decorations.BorderCharacters.Companion.BOX_THIN
+import com.varabyte.kotterx.grid.GridScope.*
 import com.varabyte.kotterx.text.*
 import kotlin.math.min
 
@@ -157,6 +157,13 @@ class Cols private constructor(internal vararg val specs: Spec) {
 
         /**
          * Convenience method for constructing a [Cols] instance using a builder pattern.
+         *
+         * For example:
+         * ```
+         * Cols { fit(); fixed(10); star() }
+         * ```
+         *
+         * @see BuilderScope
          */
         operator fun invoke(builder: BuilderScope.() -> Unit): Cols {
             val scope = BuilderScope()
@@ -169,58 +176,105 @@ class Cols private constructor(internal vararg val specs: Spec) {
 private typealias OffscreenRenderBlock = (OffscreenRenderScope.() -> Unit)
 
 class GridScope(private val cols: Cols) {
-    internal class Data(
-        val cellBlock: OffscreenRenderBlock,
-        var justificationOverride: Justification?
-    )
+    internal sealed interface CellData {
+        val justification: Justification?
 
-    private val _cellData = mutableListOf<Data?>()
-    internal val cellData: List<Data?> = _cellData
+        class Item(val cellBlock: OffscreenRenderBlock, override val justification: Justification?, val width: Int, val height: Int) : CellData
+        class Ptr(val target: Item, val offsetX: Int, val offsetY: Int) : CellData {
+            override val justification = target.justification
+        }
+    }
 
-    private var nextRow = 0
-    private var nextCol = 0
+    private val _cellData = mutableListOf<CellData?>()
+    internal val cellData: List<CellData?> = _cellData
 
-    private fun cellIndex(row: Int, col: Int) = row * cols.specs.size + col
+    /**
+     * The next row that a cell will be placed into, assuming the user doesn't specify it explicitly.
+     *
+     * This value is exposed so that a user can write:
+     * ```
+     * cell(row = nextEmptyCellRow + 1)
+     * ```
+     * to skip adding elements to the current row and instead start on the next row.
+     *
+     * @see nextEmptyCellCol
+     */
+    var nextEmptyCellRow = 0
+        private set
+
+    /**
+     * The next column that a cell will be placed into, assuming the user doesn't specify it explicitly.
+     *
+     * @see nextEmptyCellRow
+     */
+    var nextEmptyCellCol = 0
+        private set
+
+    internal fun cellIndex(row: Int, col: Int) = row * cols.specs.size + col
 
     /**
      * Declare a grid cell.
      *
-     * It automatically lays out the cell using a fairly straightforward flow algorithm. You can use `cell(row, col)` if
-     * you need more control about where it shows up.
+     * If row and/or column aren't specified, the cell is automatically placed using a fairly straightforward flow
+     * algorithm (next available column on the current row, or first column of the next row if at the end).
      *
-     * Note that the cell will always be positioned after the last cell in the entire grid. That is, if you have a
-     * two-column grid, then add a cell explicitly at (2, 0) and a second at (0, 0), calling `cell` again will add a
-     * new cell at (2, 1), not (0, 1).
+     * You can specify the row and column values if you need more control about where it shows up.
      *
-     * See the header docs for [grid] for more information.
+     * If row and cell aren't specified, the next cell will always be placed into the next available empty cell.
+     * That is, if you have a two-column grid, then add a cell explicitly at (2, 0) and a second at (0, 0), calling
+     * `cell` again will add a new cell at (0, 1). If you keep calling `cell`, it will skip over the item at (2, 0)
+     * and add a new cell at (2, 1).
+     *
+     * @throws IllegalArgumentException if the cell is being placed in a spot that's already taken.
      */
-    fun cell(justification: Justification? = null, render: OffscreenRenderScope.() -> Unit = {}) {
-        val cellIndex = cellIndex(nextRow, nextCol)
-        while (cellIndex >= _cellData.size) {
-            _cellData.add(null)
+    fun cell(row: Int? = null, col: Int? = null, rowSpan: Int = 1, colSpan: Int = 1, justification: Justification? = null, render: OffscreenRenderScope.() -> Unit = {}) {
+        // If last cell is on (row 1, col 1) and user specified `cell(row = 2)`, we should start at col 0 on that new
+        // row, not whatever the random next column would be.
+        @Suppress("NAME_SHADOWING") val col = col ?: if (row == null) nextEmptyCellCol else 0
+        @Suppress("NAME_SHADOWING") val row = row ?: nextEmptyCellRow
+
+
+        require(row >= 0) { "row must be non-negative" }
+        require(col >= 0) { "col must be non-negative" }
+        require(rowSpan > 0) { "rowSpan must be positive" }
+        require(colSpan > 0) { "colSpan must be positive" }
+        require(col + colSpan <= cols.specs.size) { "`colSpan` must not push `col` over the number of columns." }
+
+        (cellIndex(row + rowSpan - 1, col + colSpan - 1)).let { botRightCellIndex ->
+            while (botRightCellIndex >= _cellData.size) {
+                _cellData.add(null)
+            }
         }
 
-        require(cellIndex > _cellData.lastIndex || _cellData[cellIndex] == null) {
-            "Attempting to declare a grid cell in a spot that's already taken: ($nextRow, $nextCol)"
+        for (deltaX in 0 until colSpan) {
+            for (deltaY in 0 until rowSpan) {
+                val cellIndex = cellIndex(row + deltaY, col + deltaX)
+                require(cellIndex > _cellData.lastIndex || _cellData[cellIndex] == null) {
+                    "Attempting to declare a grid cell over a spot that's already taken: ($row, $col, rowSpan=$rowSpan, colSpan=$colSpan)"
+                }
+            }
         }
 
-        _cellData[cellIndex] = Data(render, justification)
+        cellIndex(row, col).let { topLeftCellIndex ->
+            val topLeftData = CellData.Item(render, justification, width = colSpan, height = rowSpan)
+            _cellData[topLeftCellIndex] = topLeftData
 
-        nextRow = _cellData.size / cols.specs.size
-        nextCol = _cellData.size % cols.specs.size
-    }
+            for (deltaX in 0 until colSpan) {
+                for (deltaY in 0 until rowSpan) {
+                    if (deltaX != 0 || deltaY != 0) {
+                        _cellData[cellIndex(row + deltaY, col + deltaX)] = CellData.Ptr(topLeftData, deltaX, deltaY)
+                    }
+                }
+            }
 
-    /**
-     * Declare a grid cell at a specific row and column.
-     *
-     * Note that this will throw an exception if that cell position is already filled.
-     *
-     * See the header docs for [grid] for more information.
-     */
-    fun cell(row: Int, col: Int, justification: Justification? = null, render: OffscreenRenderScope.() -> Unit = {}) {
-        nextRow = row
-        nextCol = col
-        cell(justification, render)
+            // Find the next empty cell
+            var emptyCellIndex = topLeftCellIndex
+            while (emptyCellIndex < _cellData.size && _cellData[emptyCellIndex] != null) {
+                emptyCellIndex++
+            }
+            nextEmptyCellRow = emptyCellIndex / cols.specs.size
+            nextEmptyCellCol = emptyCellIndex % cols.specs.size
+        }
     }
 }
 
@@ -292,8 +346,7 @@ class GridScope(private val cols: Cols) {
  * @param paddingLeftRight If set, adds some additional padding at the start and end of every cell. This space will be
  *   added in addition to the width of the cell, so e.g. `Cols(1)` with `paddingLeftRight = 2` will actually render as
  *   width 5.
- * @param paddingTopBottom If set, adds some extra blank lines to the top and bottom of each cell.
- * @param defaultJustification The default justification to use for all cells. You can override this value on a case-by
+ * @param justification The default justification to use for all cells. You can override this value on a case-by
  *   case basis by passing in a value to the `justification` parameter of `cell` call, or for the entire column by
  *   passing in a justification value to the [Cols.Spec] class.
  * @param maxCellHeight The maximum height to allow cells to grow to, which can happen if a cell contains many newlines
@@ -304,32 +357,40 @@ fun RenderScope.grid(
     targetWidth: Int? = null,
     characters: GridCharacters = GridCharacters.ASCII,
     paddingLeftRight: Int = 0,
-    paddingTopBottom: Int = 0,
-    defaultJustification: Justification = Justification.LEFT,
+    justification: Justification = Justification.LEFT,
     maxCellHeight: Int = Int.MAX_VALUE,
     render: GridScope.() -> Unit
 ) {
+    require(targetWidth == null || targetWidth > 0) { "targetWidth, if set, must be positive" }
+    require(paddingLeftRight >= 0) { "paddingLeftRight must be non-negative" }
+    require(maxCellHeight > 0) { "maxCellHeight must be positive" }
+
     val gridScope = GridScope(cols)
     gridScope.render()
+
+    if (gridScope.cellData.isEmpty()) return
 
     val colWidthsWithoutPadding = run {
         val colMinWidths = cols.specs.mapIndexed { x, spec ->
             when (spec) {
                 is Cols.Spec.Fit -> {
-                    var maxWidth = 0
+                    var fitWidth = 1
                     var cellIndex = x
                     while (cellIndex < gridScope.cellData.size) {
-                        val cellBlock = gridScope.cellData.getOrNull(cellIndex)?.cellBlock
+                        val cellBlock =
+                            (gridScope.cellData.getOrNull(cellIndex) as? CellData.Item)
+                                ?.takeIf { it.width == 1 } // Don't include mutli-column cells in this calculation
+                                ?.cellBlock
                         if (cellBlock != null) {
                             val cellRenderer = this.offscreen(Int.MAX_VALUE, cellBlock)
                             cellRenderer.lineLengths.maxOrNull()?.let { cellWidth ->
-                                maxWidth = maxOf(maxWidth, cellWidth)
+                                fitWidth = maxOf(fitWidth, cellWidth)
                             }
                         }
                         cellIndex += cols.specs.size
                     }
 
-                    maxWidth.coerceIn(spec.minWidth ?: 0, spec.maxWidth ?: Int.MAX_VALUE)
+                    fitWidth.coerceIn(spec.minWidth ?: 1, spec.maxWidth ?: Int.MAX_VALUE)
                 }
 
                 is Cols.Spec.Fixed -> spec.width
@@ -357,10 +418,27 @@ fun RenderScope.grid(
     }
     val colWidthsWithPadding = colWidthsWithoutPadding.map { it + paddingLeftRight * 2 }
 
+    fun CellData?.isExtendedHorizontalSpan() = this is CellData.Ptr && this.offsetX > 0
+    fun CellData?.isVerticalSpan() =
+        (this is CellData.Item && this.height > 1) || (this is CellData.Ptr && this.target.height > 1)
+
+    fun CellData?.isLastVerticalCell() = this is CellData.Ptr && this.offsetY == this.target.height - 1
+
+    // A useful way to test if we're in a vertical (row) span that hasn't terminated yet. This is important for
+    // figuring out what horizontal borders we should be using.
+    fun CellData?.isNonTerminatedVerticalCell() = this.isVerticalSpan() && !this.isLastVerticalCell()
+
     // Render top
     text(characters.topLeft)
     colWidthsWithPadding.forEachIndexed { i, width ->
-        if (i > 0) text(characters.topCross)
+        if (i > 0) {
+            // Only create an interaction border piece if we're starting a new grid cell
+            text(
+                if (gridScope.cellData.getOrNull(i)
+                        .isExtendedHorizontalSpan()
+                ) characters.horiz else characters.topCross
+            )
+        }
         text(characters.horiz.toString().repeat(width))
     }
     textLine(characters.topRight)
@@ -369,12 +447,40 @@ fun RenderScope.grid(
         gridScope.cellData.size / cols.specs.size + if (gridScope.cellData.size % cols.specs.size > 0) 1 else 0
     val lastRowIndex = rowCount - 1
 
-    val cellBuffers = gridScope.cellData.mapIndexed { i, data ->
-        val x = i % cols.specs.size
-        if (data != null) {
-            this.offscreen(colWidthsWithoutPadding[x], data.cellBlock)
-        } else null
+    val cellBuffers: Map<CellData, OffscreenBuffer> = run {
+        @Suppress("LocalVariableName") val _cellBuffers = mutableMapOf<CellData, OffscreenBuffer>()
+        gridScope.cellData.forEachIndexed { i, data ->
+            val x = i % cols.specs.size
+            when (data) {
+                is CellData.Item -> {
+                    // `data.width - 1` represents intermediate vertical borders that we can use as rendering space
+                    // instead, e.g. `|12|345|67` vs. |123456789|` In the same way, we can stomp over intermediate
+                    // padding, e.g. `| 12 | 345 |` vs. `| 12345678 |`
+                    val totalSpace = (0 until data.width).sumOf {
+                        colWidthsWithoutPadding[x + it]
+                    } + (data.width - 1) + ((data.width - 1) * paddingLeftRight * 2)
+                    _cellBuffers[data] = this.offscreen(totalSpace, data.cellBlock)
+                }
+
+                is CellData.Ptr -> _cellBuffers[data] = _cellBuffers.getValue(data.target)
+                else -> Unit
+            }
+        }
+        _cellBuffers
     }
+
+    val cellRenderers: Map<CellData, OffscreenCommandRenderer> = run {
+        @Suppress("LocalVariableName") val _cellRenderers = mutableMapOf<CellData, OffscreenCommandRenderer>()
+        gridScope.cellData.forEach { data ->
+            when (data) {
+                is CellData.Item -> _cellRenderers[data] = cellBuffers.getValue(data).createRenderer()
+                is CellData.Ptr -> _cellRenderers[data] = _cellRenderers.getValue(data.target)
+                else -> Unit
+            }
+        }
+        _cellRenderers
+    }
+    fun CellData?.hasMoreToRender() = if (this != null) cellRenderers[this]?.hasNextRow() == true else false
 
     for (y in 0 until rowCount) {
         // Renderers can generate multiple lines. We need to render each line of each cell one at a time, so we create
@@ -396,54 +502,74 @@ fun RenderScope.grid(
             textLine(characters.vert)
         }
 
-        repeat(paddingTopBottom) {
-            renderEmptyRow()
+        // Render cell contents if we have any. Return true if this should be considered handled, false if the caller
+        // should do the rendering themselves.
+        fun CellData?.renderCellContents(leadingChar: Char, colIndex: Int): Boolean {
+            if (this == null) return false
+            if (this.isExtendedHorizontalSpan()) return true // This cell was already rendered by its initial cell
+
+            text(leadingChar)
+            val buffer = cellBuffers.getValue(this)
+            val renderer = cellRenderers.getValue(this)
+
+            val extraSpace = buffer.maxWidth - buffer.lineLengths.getOrElse(renderer.nextRowIndex) { 0 }
+            val finalJustification =
+                this.justification
+                    ?: cols.specs[colIndex].justification
+                    ?: justification
+            repeat(paddingLeftRight) { text(" ") }
+            when (finalJustification) {
+                Justification.LEFT -> {
+                    renderer.renderNextRow()
+                    repeat(extraSpace) { text(" ") }
+                }
+
+                Justification.CENTER -> {
+                    val leftSpace = extraSpace / 2
+                    val rightSpace = extraSpace - leftSpace
+                    repeat(leftSpace) { text(" ") }
+                    renderer.renderNextRow()
+                    repeat(rightSpace) { text(" ") }
+                }
+
+                Justification.RIGHT -> {
+                    repeat(extraSpace) { text(" ") }
+                    renderer.renderNextRow()
+                }
+            }
+            repeat(paddingLeftRight) { text(" ") }
+
+            return true
         }
 
-        val renderers = cellBuffers
-            .subList(y * cols.specs.size, min((y + 1) * cols.specs.size, gridScope.cellData.size))
-            .map { it?.createRenderer() }
+        val cells =
+            gridScope.cellData.subList(y * cols.specs.size, min((y + 1) * cols.specs.size, gridScope.cellData.size))
 
-        if (renderers.all { it == null }) {
+        if (cells.all { it == null }) {
             // This happens if users used `cell(row, col)` to completely skip one or more rows
             renderEmptyRow()
         } else {
+            // Cells that span multiple rows do NOT contribute to the height of the current row (except for the very
+            // last row). For example, a long vertically spanning cell looks like this:
+            // ┌─────┬─────┐
+            // │Test1│TestA│
+            // │Test2├─────┤
+            // │Test3│TestB│
+            // │Test4├─────┤
+            // │Test5│TestC│
+            // │Test6│     │
+            // │Test7│     │
+            // └─────┴─────┘
+            val heightContributingCells = cells.mapNotNull { if (it.isNonTerminatedVerticalCell()) null else it }
+
             var lineIndex = 0
-            while (lineIndex < maxCellHeight && renderers.any { it?.hasNextRow() == true }) {
+            // Always render at least one line, even if all cells are empty
+            while (lineIndex < maxCellHeight && (lineIndex == 0 || heightContributingCells.any { it.hasMoreToRender() })) {
                 for (x in cols.specs.indices) {
-                    text(characters.vert)
-
-                    val buffer = cellBuffers.getOrNull(y * cols.specs.size + x)?.takeIf { it.isNotEmpty() }
-                    if (buffer != null) {
-                        val extraSpace = colWidthsWithoutPadding[x] - buffer.lineLengths.getOrElse(lineIndex) { 0 }
-                        val renderer = renderers.getOrNull(x)
-                        val justification =
-                            gridScope.cellData[y * cols.specs.size + x]?.justificationOverride
-                                ?: cols.specs[x].justification
-                                ?: defaultJustification
-                        repeat(paddingLeftRight) { text(" ") }
-                        when (justification) {
-                            Justification.LEFT -> {
-                                renderer?.renderNextRow()
-                                repeat(extraSpace) { text(" ") }
-                            }
-
-                            Justification.CENTER -> {
-                                val leftSpace = extraSpace / 2
-                                val rightSpace = extraSpace - leftSpace
-                                repeat(leftSpace) { text(" ") }
-                                renderer?.renderNextRow()
-                                repeat(rightSpace) { text(" ") }
-                            }
-
-                            Justification.RIGHT -> {
-                                repeat(extraSpace) { text(" ") }
-                                renderer?.renderNextRow()
-                            }
-                        }
-                        repeat(paddingLeftRight) { text(" ") }
-                    } else {
-                        repeat(colWidthsWithPadding[x]) { text(" ") }
+                    val cellData = gridScope.cellData.getOrNull(gridScope.cellIndex(y, x))
+                    if (!cellData.renderCellContents(characters.vert, x)) {
+                        text(characters.vert)
+                        text(" ".repeat(colWidthsWithPadding[x]))
                     }
                 }
                 textLine(characters.vert)
@@ -451,24 +577,91 @@ fun RenderScope.grid(
             }
         }
 
-        repeat(paddingTopBottom) {
-            renderEmptyRow()
-        }
-
+        // Here, we are rendering the lines between rows. Note that spanning rows will render as normal
         if (y < lastRowIndex) {
-            text(characters.leftCross)
-            colWidthsWithPadding.forEachIndexed { i, width ->
-                if (i > 0) text(characters.cross)
-                text(characters.horiz.toString().repeat(width))
+            colWidthsWithPadding.forEachIndexed { x, width ->
+                fun fillWithDashes() {
+                    text(characters.horiz.toString().repeat(width))
+                }
+
+                val currCellData = gridScope.cellData.getOrNull(gridScope.cellIndex(y, x))
+
+                // For the next part, imagine we are rendering the row border between 0 and 1 (indicated by `->` in the
+                // comment below). The most difficult part is choosing the appropriate intersection cross pieces. Here
+                // are all the possible cases:
+                //
+                //    A. no span     B. col 0 span  C. col 1 span  D. both cols
+                //    ┌─────┬─────┐  ┌─────┬─────┐  ┌─────┬─────┐  ┌─────┬─────┐
+                //    │     │     │  │     │     │  │     │     │  │     │     │
+                // -> ├─────┼─────┤  │     ├─────┤  ├─────┤     │  │     │     │
+                //    │     │     │  │     │     │  │     │     │  │     │     │
+                //    └─────┴─────┘  └─────┴─────┘  └─────┴─────┘  └─────┴─────┘
+                //
+                //    E. row 0 span  F. row 1 span  G. both rows
+                //    ┌───────────┐  ┌─────┬─────┐  ┌───────────┐
+                //    │           │  │     │     │  │           │
+                // -> ├─────┬─────┤  ├─────┴─────┤  ├───────────┤
+                //    │     │     │  │           │  │           │
+                //    └─────┴─────┘  └───────────┘  └───────────┘
+
+                val spanColCurr = currCellData.isNonTerminatedVerticalCell()
+                val leadingChar = when {
+                    x == 0 -> when {
+                        spanColCurr -> characters.vert
+                        else -> characters.leftCross
+                    }
+
+                    else -> {
+                        val spanColLeft =
+                            gridScope.cellData.getOrNull(gridScope.cellIndex(y, x - 1)).isNonTerminatedVerticalCell()
+                        when {
+                            !spanColLeft && spanColCurr -> characters.rightCross
+                            spanColLeft && !spanColCurr -> characters.leftCross
+                            spanColLeft && spanColCurr -> characters.vert
+                            else -> {
+                                val nextRow = y + 1
+                                val spanRowAbove = currCellData.isExtendedHorizontalSpan()
+                                val spanRowBelow =
+                                    gridScope.cellData.getOrNull(gridScope.cellIndex(nextRow, x))
+                                        .isExtendedHorizontalSpan()
+
+                                when {
+                                    spanRowAbove && spanRowBelow -> characters.horiz
+                                    spanRowAbove -> characters.topCross
+                                    spanRowBelow -> characters.botCross
+                                    else -> characters.cross
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!spanColCurr || !currCellData.renderCellContents(leadingChar, x)) {
+                    text(leadingChar)
+                    fillWithDashes()
+                }
             }
-            textLine(characters.rightCross)
+            val lastCellData = gridScope.cellData.getOrNull(gridScope.cellIndex(y, cols.specs.lastIndex))
+            val trailingChar = when {
+                lastCellData.isNonTerminatedVerticalCell() -> characters.vert
+                else -> characters.rightCross
+            }
+            textLine(trailingChar)
+
         }
     }
 
     // Render bottom
     text(characters.botLeft)
     colWidthsWithPadding.forEachIndexed { i, width ->
-        if (i > 0) text(characters.botCross)
+        if (i > 0) {
+            // Only create an interaction border piece if we're starting a new grid cell
+            text(
+                if (gridScope.cellData.getOrNull(gridScope.cellIndex(lastRowIndex, i))
+                        .isExtendedHorizontalSpan()
+                ) characters.horiz else characters.botCross
+            )
+        }
         text(characters.horiz.toString().repeat(width))
     }
     textLine(characters.botRight)

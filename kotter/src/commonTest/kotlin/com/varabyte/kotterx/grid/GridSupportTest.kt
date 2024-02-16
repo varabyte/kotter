@@ -12,6 +12,72 @@ import kotlin.test.Test
 
 class GridSupportTest {
     @Test
+    fun `empty grids do not render`() = testSession { terminal ->
+        section {
+            grid(Cols(1, 2, 3)) {
+
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            "",
+        ).inOrder()
+    }
+
+    @Test
+    fun `blank cells still have height of 1`() = testSession { terminal ->
+        section {
+            grid(Cols(1, 2, 3)) {
+                cell()
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+-+--+---+",
+            "| |  |   |",
+            "+-+--+---+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `invalid cell row and col values throw exceptions`() = testSession {
+        section {
+            assertThrows<IllegalArgumentException> {
+                grid(Cols(1, 2, 3)) {
+                    cell(row = -1) {  }
+                }
+            }
+            assertThrows<IllegalArgumentException> {
+                grid(Cols(1, 2, 3)) {
+                    cell(col = -1) {  }
+                }
+            }
+            assertThrows<IllegalArgumentException> {
+                grid(Cols(1, 2, 3)) {
+                    cell(col = 3) {  }
+                }
+            }
+            assertThrows<IllegalArgumentException> {
+                grid(Cols(1, 2, 3)) {
+                    cell(rowSpan = 0) {  }
+                }
+            }
+            assertThrows<IllegalArgumentException> {
+                grid(Cols(1, 2, 3)) {
+                    cell(colSpan = 0) {  }
+                }
+            }
+            assertThrows<IllegalArgumentException> {
+                grid(Cols(1, 2, 3)) {
+                    cell(col = 1, colSpan = 3) {  }
+                }
+            }
+        }.run()
+    }
+
+    @Test
     fun `col width larger than actual content`() = testSession { terminal ->
         section {
             grid(Cols(6)) {
@@ -34,7 +100,7 @@ class GridSupportTest {
         section {
             assertThrows<IllegalArgumentException> {
                 grid(Cols(0)) {
-                    cell {}
+                    cell()
                 }
             }
         }.run()
@@ -119,6 +185,582 @@ class GridSupportTest {
             "+-+-+",
             "| |!|",
             "+-+-+",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `can span content across rows or columns`() = testSession { terminal ->
+        // NOTE: We use BOX_THIN characters for this test, so we can tell that the algorithm
+        // is picking the right wall pieces
+
+        // Span across cols
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(col = 1, colSpan = 2) {
+                    textLine("Test")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───────┬───┐",
+            "│   │ Test  │   │",
+            "└───┴───────┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across rows
+        terminal.clear()
+        section {
+            grid(Cols(1, 5, 1), characters = GridCharacters.BOX_THIN) {
+                cell(col = 1, rowSpan = 2) {
+                    textLine("Test1")
+                    textLine("Test2")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌─┬─────┬─┐",
+            "│ │Test1│ │",
+            "├─┤Test2├─┤",
+            "│ │     │ │",
+            "└─┴─────┴─┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+
+        // Span across full cols (top)
+        terminal.clear()
+        section {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+                cell(colSpan = 3)
+                cell(row = 2)
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───────────┐",
+            "│           │",
+            "├───┬───┬───┤",
+            "│   │   │   │",
+            "├───┼───┼───┤",
+            "│   │   │   │",
+            "└───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across full cols (mid)
+        terminal.clear()
+        section {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+                cell(row = 1, colSpan = 3)
+                cell(row = 2)
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┐",
+            "│   │   │   │",
+            "├───┴───┴───┤",
+            "│           │",
+            "├───┬───┬───┤",
+            "│   │   │   │",
+            "└───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across full cols (bottom)
+        terminal.clear()
+        section {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+                cell(row = 2, colSpan = 3)
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┐",
+            "│   │   │   │",
+            "├───┼───┼───┤",
+            "│   │   │   │",
+            "├───┴───┴───┤",
+            "│           │",
+            "└───────────┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across full rows (left)
+        terminal.clear()
+        section {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+                cell(rowSpan = 3)
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┐",
+            "│   │   │   │",
+            "│   ├───┼───┤",
+            "│   │   │   │",
+            "│   ├───┼───┤",
+            "│   │   │   │",
+            "└───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across full rows (mid)
+        terminal.clear()
+        section {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+                cell(col = 1, rowSpan = 3)
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┐",
+            "│   │   │   │",
+            "├───┤   ├───┤",
+            "│   │   │   │",
+            "├───┤   ├───┤",
+            "│   │   │   │",
+            "└───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across full rows (right)
+        terminal.clear()
+        section {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+                cell(col = 2, rowSpan = 3)
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┐",
+            "│   │   │   │",
+            "├───┼───┤   │",
+            "│   │   │   │",
+            "├───┼───┤   │",
+            "│   │   │   │",
+            "└───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Horizontal staircase
+        terminal.clear()
+        section {
+            grid(Cols.uniform(4, width = 3), characters = GridCharacters.BOX_THIN) {
+                cell(row = 1, col = 2, colSpan = 2)
+                cell(row = 2, col = 1, colSpan = 3)
+                cell(row = 3, col = 0, colSpan = 4)
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┬───┐",
+            "│   │   │   │   │",
+            "├───┼───┼───┴───┤",
+            "│   │   │       │",
+            "├───┼───┴───────┤",
+            "│   │           │",
+            "├───┴───────────┤",
+            "│               │",
+            "└───────────────┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Vertical staircase
+        terminal.clear()
+        section {
+            grid(Cols.uniform(4, width = 3), characters = GridCharacters.BOX_THIN) {
+                cell(row = 3)
+                cell(row = 2, col = 1, rowSpan = 2)
+                cell(row = 1, col = 2, rowSpan = 3)
+                cell(row = 0, col = 3, rowSpan = 4)
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┬───┐",
+            "│   │   │   │   │",
+            "├───┼───┼───┤   │",
+            "│   │   │   │   │",
+            "├───┼───┤   │   │",
+            "│   │   │   │   │",
+            "├───┤   │   │   │",
+            "│   │   │   │   │",
+            "└───┴───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `can span content across rows and columns`() = testSession { terminal ->
+        // Span across both rows and cols (top left)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(0, 0, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+                // Create an empty cell to force a final row
+                cell(row = 3) { }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───────┬───┬───┐",
+            "│ Test  │   │   │",
+            "│       ├───┼───┤",
+            "│ Test  │   │   │",
+            "├───┬───┼───┼───┤",
+            "│   │   │   │   │",
+            "├───┼───┼───┼───┤",
+            "│   │   │   │   │",
+            "└───┴───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across both rows and cols (top)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(0, 1, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+                // Create an empty cell to force a final row
+                cell(row = 3) { }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───────┬───┐",
+            "│   │ Test  │   │",
+            "├───┤       ├───┤",
+            "│   │ Test  │   │",
+            "├───┼───┬───┼───┤",
+            "│   │   │   │   │",
+            "├───┼───┼───┼───┤",
+            "│   │   │   │   │",
+            "└───┴───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across both rows and cols (top-right)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(0, 2, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+                // Create an empty cell to force a final row
+                cell(row = 3) { }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───────┐",
+            "│   │   │ Test  │",
+            "├───┼───┤       │",
+            "│   │   │ Test  │",
+            "├───┼───┼───┬───┤",
+            "│   │   │   │   │",
+            "├───┼───┼───┼───┤",
+            "│   │   │   │   │",
+            "└───┴───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across both rows and cols (left)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(1, 0, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+                // Create an empty cell to force a final row
+                cell(row = 3) { }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┬───┐",
+            "│   │   │   │   │",
+            "├───┴───┼───┼───┤",
+            "│ Test  │   │   │",
+            "│       ├───┼───┤",
+            "│ Test  │   │   │",
+            "├───┬───┼───┼───┤",
+            "│   │   │   │   │",
+            "└───┴───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across both rows and cols (center)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(1, 1, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+                // Create an empty cell to force a final row
+                cell(row = 3) { }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┬───┐",
+            "│   │   │   │   │",
+            "├───┼───┴───┼───┤",
+            "│   │ Test  │   │",
+            "├───┤       ├───┤",
+            "│   │ Test  │   │",
+            "├───┼───┬───┼───┤",
+            "│   │   │   │   │",
+            "└───┴───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across both rows and cols (right)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(1, 2, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+                // Create an empty cell to force a final row
+                cell(row = 3) { }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┬───┐",
+            "│   │   │   │   │",
+            "├───┼───┼───┴───┤",
+            "│   │   │ Test  │",
+            "├───┼───┤       │",
+            "│   │   │ Test  │",
+            "├───┼───┼───┬───┤",
+            "│   │   │   │   │",
+            "└───┴───┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across both rows and cols (bottom left)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(2, 0, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┬───┐",
+            "│   │   │   │   │",
+            "├───┼───┼───┼───┤",
+            "│   │   │   │   │",
+            "├───┴───┼───┼───┤",
+            "│ Test  │   │   │",
+            "│       ├───┼───┤",
+            "│ Test  │   │   │",
+            "└───────┴───┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across both rows and cols (bottom)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(2, 1, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┬───┐",
+            "│   │   │   │   │",
+            "├───┼───┼───┼───┤",
+            "│   │   │   │   │",
+            "├───┼───┴───┼───┤",
+            "│   │ Test  │   │",
+            "├───┤       ├───┤",
+            "│   │ Test  │   │",
+            "└───┴───────┴───┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Span across both rows and cols (bottom right)
+        terminal.clear()
+        section {
+            grid(
+                Cols.uniform(4, width = 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(2, 2, rowSpan = 2, colSpan = 2) {
+                    textLine("Test")
+                    textLine()
+                    textLine("Test")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌───┬───┬───┬───┐",
+            "│   │   │   │   │",
+            "├───┼───┼───┼───┤",
+            "│   │   │   │   │",
+            "├───┼───┼───┴───┤",
+            "│   │   │ Test  │",
+            "├───┼───┤       │",
+            "│   │   │ Test  │",
+            "└───┴───┴───────┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+
+        // Can span across whole grid
+        // NOTE: It's weird to set rowSpan when you don't even have multiple rows, but we should at least verify it
+        // doesn't crash!
+        terminal.clear()
+        section {
+            grid(
+                Cols(1, 2, 3),
+                characters = GridCharacters.BOX_THIN,
+                justification = Justification.CENTER
+            ) {
+                cell(rowSpan = 2, colSpan = 3) {
+                    textLine("Test")
+                }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌────────┐",
+            "│  Test  │", // row 1
+            "│        │", // row border (stomped over by rowspan)
+            "│        │", // row 2
+            "└────────┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `tall cell spanning multiple rows only pushes last row cells down`() = testSession { terminal ->
+        section {
+            grid(
+                Cols.uniform(2, width = 5),
+                characters = GridCharacters.BOX_THIN,
+            ) {
+                cell(row = 1, rowSpan = 2) {
+                    for (i in 1..6) {
+                        textLine("Test$i")
+                    }
+                }
+                // Put some content in the right side just for comparison
+                cell { textLine("TestA") }
+                cell { textLine("TestB") }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌─────┬─────┐",
+            "│     │     │",
+            "├─────┼─────┤",
+            "│Test1│TestA│",
+            "│Test2├─────┤",
+            "│Test3│TestB│",
+            "│Test4│     │",
+            "│Test5│     │",
+            "│Test6│     │",
+            "└─────┴─────┘",
+            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `tall cell spanning multiple rows respects maxCellHeight`() = testSession { terminal ->
+        section {
+            grid(
+                Cols(5, 6),
+                characters = GridCharacters.BOX_THIN,
+                maxCellHeight = 2
+            ) {
+                cell(rowSpan = 2) {
+                    for (i in 1..9) {
+                        textLine("Test$i")
+                    }
+                }
+                // Put some content in the right side just for comparison
+                cell { textLine("TestA1"); textLine("TestA2"); textLine("TestA3") }
+                cell { textLine("TestB1"); textLine("TestB2"); textLine("TestB3") }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "┌─────┬──────┐",
+            "│Test1│TestA1│",
+            "│Test2│TestA2│",
+            "│Test3├──────┤",
+            "│Test4│TestB1│",
+            "│Test5│TestB2│",
+            "└─────┴──────┘",
             Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
         ).inOrder()
     }
@@ -283,7 +925,7 @@ class GridSupportTest {
             grid(
                 Cols { fixed(8); fixed(8); fixed(8, justification = Justification.RIGHT) },
                 paddingLeftRight = 1,
-                defaultJustification = Justification.CENTER
+                justification = Justification.CENTER
             ) {
                 cell(justification = Justification.LEFT) { textLine("Test") }
                 cell { textLine("Test") }
@@ -332,9 +974,9 @@ class GridSupportTest {
     }
 
     @Test
-    fun `padding works`() = testSession { terminal ->
+    fun `paddingLeftRight works`() = testSession { terminal ->
         section {
-            grid(Cols(1, 1), paddingLeftRight = 2, paddingTopBottom = 1) {
+            grid(Cols(1, 1), paddingLeftRight = 2) {
                 cell { textLine("X") }
                 cell { textLine("YZ") }
             }
@@ -342,10 +984,8 @@ class GridSupportTest {
 
         assertThat(terminal.lines()).containsExactly(
             "+-----+-----+",
-            "|     |     |",
             "|  X  |  Y  |",
             "|     |  Z  |",
-            "|     |     |",
             "+-----+-----+",
             Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
         ).inOrder()

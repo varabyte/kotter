@@ -33,12 +33,13 @@ fun main() = session {
             paddingLeftRight = if (usePadding) 1 else 0,
             maxCellHeight = 1
         ) {
+            cell(colSpan = 3, justification = Justification.CENTER) { bold(); text("Grocery List") }
             cell { bold(); text("Item") }
             cell { bold(); text("Price / lb.") }
             cell { bold(); text("Notes") }
             cell { text("Butter") }
             cell { text("$4.50") }
-            cell(2, 0) { text("Tomatoes") }
+            cell(row = nextEmptyCellRow + 1) { text("Tomatoes") }
             cell { text("$0.99") }
             cell { text("Skip if overripe") }
             cell { text("Beef") }

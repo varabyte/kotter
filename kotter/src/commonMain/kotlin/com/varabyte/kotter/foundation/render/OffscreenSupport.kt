@@ -20,7 +20,7 @@ import com.varabyte.kotterx.text.*
  */
 class OffscreenBuffer internal constructor(
     internal val parentScope: RenderScope,
-    maxWidth: Int,
+    val maxWidth: Int,
     render: OffscreenRenderScope.() -> Unit
 ) {
     private val commands = run {
@@ -72,6 +72,9 @@ class OffscreenCommandRenderer internal constructor(
     private val targetScope: RenderScope,
     private val commands: List<TerminalCommand>
 ) {
+    var nextRowIndex = 0
+        private set
+
     private var commandIndex = 0
     private var lastState: SectionState? = null
 
@@ -109,6 +112,7 @@ class OffscreenCommandRenderer internal constructor(
             lastState = targetScope.state
         }
 
+        ++nextRowIndex
         return true
     }
 }
