@@ -1196,9 +1196,6 @@ from it and share any remaining space between the star-sized columns.
 For a trivial example, say you have a two-column grid with `targetWidth` set to 10. The first column is fixed to 4, and
 the second column is set to star-sized. The star-sized column will then receive 6 characters of space.
 
-Later, you can just update the fixed width column's value, and the next time Kotter runs, the star-sized column will
-automatically adjust to the remaining space.
-
 If you do not set the `targetWidth` at all, then all star-sized columns will shrink to size 1.
 
 #### Column builder
