@@ -81,6 +81,8 @@ fun RenderScope.bordered(
     paddingTopBottom: Int = 0,
     render: OffscreenRenderScope.() -> Unit
 ) {
+    addNewlinesIfNecessary(1)
+
     val content = offscreen(render)
     val maxWidth = (content.lineLengths.maxOrNull() ?: 0)
     val maxWidthWithPadding = maxWidth + paddingLeftRight * 2

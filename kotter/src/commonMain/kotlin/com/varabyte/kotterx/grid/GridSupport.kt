@@ -370,6 +370,7 @@ fun RenderScope.grid(
 
     if (gridScope.cellData.isEmpty()) return
 
+    addNewlinesIfNecessary(1)
     val colWidthsWithoutPadding = run {
         val colMinWidths = cols.specs.mapIndexed { x, spec ->
             when (spec) {
