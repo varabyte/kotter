@@ -1172,7 +1172,7 @@ section {
 > instead of `Cols(6, 6)` which we used above, you could also call `Cols.uniform(2, width = 6)`. It is a bit more
 > verbose may express intention more clearly.
 
-You can check out the [grid example](examples/grid) for a more comprehensive example.
+You can check out the [grid example](examples/grid/src/main/kotlin/main.kt) for a more comprehensive example.
 
 #### Fit- and star-sized columns
 
