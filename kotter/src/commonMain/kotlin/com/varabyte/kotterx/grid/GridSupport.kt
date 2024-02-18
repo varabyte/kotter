@@ -8,6 +8,9 @@ import com.varabyte.kotterx.grid.GridScope.*
 import com.varabyte.kotterx.text.*
 import kotlin.math.min
 
+/**
+ * A list of ASCII characters which define a grid's borders.
+ */
 class GridCharacters(
     val horiz: Char,
     val vert: Char,
@@ -115,6 +118,9 @@ class Cols private constructor(internal vararg val specs: Spec) {
         }
     }
 
+    /**
+     * A convenience constructor for creating a [Cols] instance where all columns are fixed widths.
+     */
     constructor(vararg widths: Int) : this(*widths.map { Spec.Fixed(it) }.toTypedArray())
 
     internal sealed class Spec(val justification: Justification?) {
@@ -131,6 +137,11 @@ class Cols private constructor(internal vararg val specs: Spec) {
         ) : Spec(justification)
     }
 
+    /**
+     * Scope used as the receiver for the block when creating a grid column specification using the builder pattern.
+     *
+     * @see Cols.invoke
+     */
     class BuilderScope {
         private val specs = mutableListOf<Spec>()
 
@@ -146,7 +157,7 @@ class Cols private constructor(internal vararg val specs: Spec) {
             specs.add(Spec.Star(ratio, justification, minWidth, maxWidth))
         }
 
-        fun build() = Cols(*specs.toTypedArray())
+        internal fun build() = Cols(*specs.toTypedArray())
     }
 
     companion object {
@@ -175,6 +186,9 @@ class Cols private constructor(internal vararg val specs: Spec) {
 
 private typealias OffscreenRenderBlock = (OffscreenRenderScope.() -> Unit)
 
+/**
+ * A scope used when constructing a grid, allowing the user to declare cells.
+ */
 class GridScope(private val cols: Cols) {
     internal sealed interface CellData {
         val justification: Justification?
@@ -281,11 +295,11 @@ class GridScope(private val cols: Cols) {
 /**
  * Declare a grid of cells.
  *
- * With grids, you define columns explicitly; rows are added automatically as needed.
+ * With grids, you define columns explicitly. Rows are added automatically as needed.
  *
- * Here, we create a grid of two 10-width columns:
+ * Here, we create a grid of two 7-width columns:
  * ```
- * grid(Cols.uniform(2, 10), paddingLeftRight = 1) {
+ * grid(Cols(7, 7), paddingLeftRight = 1) {
  *   cell { textLine("Cell 1a") }
  *   cell { textLine("Cell 1b") }
  *   cell { textLine("Cell 2a") }
@@ -295,19 +309,22 @@ class GridScope(private val cols: Cols) {
  *
  * which renders:
  * ```
- * +----------+----------+
- * | Cell 1a  | Cell 1b  |
- * +----------+----------+
- * | Cell 2a  | Cell 2b  |
- * +----------+----------+
+ * +---------+---------+
+ * | Cell 1a | Cell 1b |
+ * +---------+---------+
+ * | Cell 2a | Cell 2b |
+ * +---------+---------+
  * ```
  *
- * It's worth noting that the width of the grid above will actually be 23, not 20, because of the border characters,
- * which are not included in the cell width calculations.
+ * It's worth noting that the final width of the grid above is actually 21, not 14, because of the extra border
+ * characters (3) and padding (4). When declaring column widths, you are describing the widths for the non-padded
+ * contents of the cells *only*.
  *
- * You can also specify the specific row and column you want a cell to apply to:
+ * By default, a newly declared cell will search from left-to-right then top-to-bottom for the next empty slot *after*
+ * the last cell you declared. You can also specify the specific row and column you want a cell to apply to, especially
+ * useful for skipping over cells you want to leave empty:
  * ```
- * grid(Cols.uniform(2, 10), paddingLeftRight = 1) {
+ * grid(Cols(7, 7), paddingLeftRight = 1) {
  *   cell { textLine("Cell 1a") }
  *   cell(row = 1, col = 1) { textLine("Cell 2b") }
  * }
@@ -315,26 +332,84 @@ class GridScope(private val cols: Cols) {
  *
  * which renders:
  * ```
- * +----------+----------+
- * | Cell 1a  |          |
- * +----------+----------+
- * |          | Cell 2b  |
- * +----------+----------+
+ * +---------+---------+
+ * | Cell 1a |         |
+ * +---------+---------+
+ * |         | Cell 2b |
+ * +---------+---------+
  * ```
+ *
+ * Note in the above example that the `row` and `col` parameters are 0-indexed.
  *
  * If the contents of a cell can't fit, it will insert newlines:
  * ```
- * grid(Cols(6)) {
+ * grid(Cols(6, 3)) {
  *   cell { textLine("Hello grid!") }
+ *   cell { textLine("Hi!") }
  * }
  * ```
  *
  * which renders:
  * ```
- * +------+
- * |Hello |
- * |grid! |
- * +------+
+ * +------+---+
+ * |Hello |Hi!|
+ * |grid! |   |
+ * +------+---+
+ * ```
+ *
+ * Another thing demonstrated above is that the height of the whole row is determined by the tallest one. You can pass
+ * in [maxCellHeight] to limit how tall this can get.
+ *
+ * There are also **fit-sized** columns (which calculate their size based on the longest element in the column) and
+ * **star-sized** columns (which take up the remaining space after all other columns have been calculated). If you
+ * declare one or more star-sized columns, you should also be sure to set the [targetWidth] parameter which is used in
+ * calculating their widths.
+ *
+ * ```
+ * // Fit, 4, * (targetWidth=15, padding=1)
+ * // Fit here is 3, so * is 15 - 4 - 3 = 8
+ * +-----+------+----------+
+ * | 1   | 1234 | 12345678 |
+ * +-----+------+----------+
+ * | 23  |      |          |
+ * +-----+------+----------+
+ * | 456 |      |          |
+ * +-----+------+----------+
+ * ```
+ *
+ * For grids with only fixed-width columns, using the convenience constructor that takes widths directly (as we did in
+ * the examples above) is recommended. Otherwise, users should leverage the builder constructor, which offers more
+ * control and is the only way to declare star and fit columns.
+ *
+ * Using the builder constructor, the declaration for the above table is:
+ * ```
+ * grid(Cols { fit(); fixed(4); star() }, targetWidth = 15, paddingLeftRight = 1) {
+ *   // ...
+ * }
+ * ```
+ *
+ * Finally, cells take optional `rowSpan` and `colSpan` parameters so the user can declare that they should cover
+ * multiple spaces:
+ * ```
+ * grid(Cols(4, 4, 4)) {
+ *   cell(rowSpan = 2, colSpan = 2) {
+ *     textLine("Top"); textLine("left"); textLine("cell")
+ *   }
+ *   // Declare a third row for this example to demonstrate how
+ *   // rowSpan in this case stops on the second row.
+ *   cell(row = 2)
+ * }
+ * ```
+ *
+ * which renders:
+ * ```
+ * +----+----+----+
+ * |Top      |    |
+ * |left     +----+
+ * |cell     |    |
+ * +----+----+----+
+ * |    |    |    |
+ * +----+----+----+
  * ```
  *
  * @param cols The column specification for the grid.
@@ -348,7 +423,8 @@ class GridScope(private val cols: Cols) {
  *   width 5.
  * @param justification The default justification to use for all cells. You can override this value on a case-by
  *   case basis by passing in a value to the `justification` parameter of `cell` call, or for the entire column by
- *   passing in a justification value to the [Cols.Spec] class.
+ *   passing in a justification value when building the columns specification (e.g.
+ *   `Cols { fit(justification = CENTER) }`)
  * @param maxCellHeight The maximum height to allow cells to grow to, which can happen if a cell contains many newlines
  *   or a "*" column gets squished a lot, forcing newlines to be inserted.
  */
