@@ -1,5 +1,5 @@
 [versions]
-dokka = "1.7.20"
+dokka = "1.9.10"
 jline = "3.21.0"
 kotlin = "1.7.20" # Don't increase! We're intentionally using an old a version as possible for better compatibility
 kotlinx-coroutines = "1.6.4"
