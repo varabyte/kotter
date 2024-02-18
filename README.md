@@ -1133,13 +1133,14 @@ reference.
 
 ### 🪟 Grids
 
-Kotter provides support for creating arbitrary sized grids with multiple rows and columns.
+Kotter provides support for creating arbitrarily sized grids with multiple rows and columns.
 
 With Kotter's approach to grids, you specify the number of columns explicitly; rows are auto added as you declare new
 grid cells.
 
 ```kotlin
 section {
+  // A grid with two columns, each with space for 6 characters
   grid(Cols(6, 6), characters = GridCharacters.CURVED) {
     cell { // Auto set to row=0, col=0
       textLine("Cell1")
@@ -1156,7 +1157,7 @@ section {
       textLine("Cell4")
     }
 
-    // You can explicitly set the row and column if you want. Row and columns
+    // You can explicitly set the row and column if you want. Rows and columns
     // are 0-indexed.
     cell(row = 2, col = 1) { // Jump over cell row=2,col=0
       textLine("Cell6")
@@ -1170,7 +1171,7 @@ section {
 > [!TIP]
 > There is also a `Cols.uniform` method for when you want to create multiple columns of the same width. For example,
 > instead of `Cols(6, 6)` which we used above, you could also call `Cols.uniform(2, width = 6)`. It is a bit more
-> verbose may express intention more clearly.
+> verbose but may express intention more clearly.
 
 You can check out the [grid example](examples/grid/src/main/kotlin/main.kt) for a more comprehensive example.
 
@@ -1183,8 +1184,9 @@ A **fit-sized column** will check all cells it contains and choose a width that 
 ![Fit grid example](https://github.com/varabyte/media/raw/main/kotter/images/kotter-grid-fit-sized.png)
 
 A **star-sized column** will be sized dynamically based on how much space is remaining (more on this in a bit). If you
-have multiple star-sized columns, then space will be divided between them based on their ratio with each other. For
-example, if you have one star-sized column set to "2" and another set to "1", then the first column will be twice as
+have multiple star-sized columns, then space will be divided between them based on their ratio with each other.
+
+For example, if you have one star-sized column set to "2" and another set to "1", then the first column will be twice as
 wide as the second. If you have two star-sized columns both set to "2" then they will share the remaining space equally.
 
 ![Star grid example](https://github.com/varabyte/media/raw/main/kotter/images/kotter-grid-star-sized.png)
@@ -1198,10 +1200,10 @@ the second column is set to star-sized. The star-sized column will then receive 
 
 If you do not set the `targetWidth` at all, then all star-sized columns will shrink to size 1.
 
-#### Column builder
+#### Building column specifications
 
-Earlier, we used `Cols(6, 6)`, a convenience constructor that accepted only integer values indicating fixed widths. But
-for more control, you can construct the `Cols` class using a builder block:
+Earlier, we used `Cols(6, 6)`, a convenience constructor that accepts only integer values indicating fixed column
+widths. But for more control, you can construct the `Cols` class using a builder block:
 
 ```kotlin
 grid(Cols { fit(); fixed(10); star() }, targetWidth = 80) {
@@ -1219,14 +1221,17 @@ Here's an example of setting all three properties:
 ```kotlin
 grid(
   Cols {
-    fit(maxValue = 10); fixed(10, justification = Justification.CENTER); star(minValue = 5)
-  }, targetWidth = 80
+    fit(maxValue = 10)
+    fixed(10, justification = Justification.CENTER)
+    star(minValue = 5)
+  },
+  targetWidth = 80
 ) {
   /* ... */
 }
 ```
 
-The above means that the first column will be fit-sized, but will never exceed 10 characters. The second column is fixed
+The above means that the first column will be fit-sized but will never exceed 10 characters. The second column is fixed
 to 10 characters, and its contents will be centered. The final column is star-sized, but it will never be less than 5
 characters.
 
@@ -1234,6 +1239,10 @@ characters.
 
 You can declare that a cell should span multiple rows and/or columns by setting the `rowSpan` and `colSpan` parameters.
 If either `rowSpan` or `colSpan` are not specified, then they default to 1.
+
+> [!CAUTION]
+> If `colSpan` is set to a value that would cause the cell to go out of bounds of the number of columns in this grid, an
+> exception is thrown.
 
 A few examples should help illustrate this:
 
@@ -1276,42 +1285,45 @@ grid(Cols(3, 3, 3, 3), characters = GridCharacters.CURVED) {
 #### Auto-layout of cells
 
 When you declare a `cell` block without specifying a row or column, it will automatically be placed in the next empty
-slot after the last cell that was declared.
+slot after the last cell that was declared. This goes from left-to-right, top-to-bottom.
 
 For example:
 
 ```kotlin
-grid(Cols(1, 1)) {
-  cell(row = 1) { text("1") }
-  cell(row = 0) { text("2") }
+grid(Cols(1, 1, 1)) {
+  cell(row = 1) { text("1") } // declared cell at row=1, col=0
+  cell(row = 0) { text("2") } // declared cell at row=0, col=0
+  cell { text("3") } // next empty slot is row=0, col=1
+  cell { text("4") }
+  cell { text("5") }
+}
+
+// +-+-+-+
+// |2|3|4|
+// +-+-+-+
+// |1|5| |
+// +-+-+-+
+```
+
+While the above example feels forced (it should be pretty rare to intentionally register cells out of order), the way
+cells flow is intuitive when used in conjunction with row spans:
+
+```kotlin
+grid(Cols(1, 1, 1)) {
+  cell(rowSpan = 2) { text("1") } // declared cell at row=0, col=0
+  cell { text("2") }
   cell { text("3") }
   cell { text("4") }
 }
 
-// +-+-+
-// |2|3|
-// +-+-+
-// |1|4|
-// +-+-+
+// +-+-+-+
+// |1|2|3|
+// | +-+-+
+// | |4| |
+// +-+-+-+
 ```
 
-This algorithm is particularly intuitive when used in conjunction with row spans:
-
-```kotlin
-grid(Cols(1, 1)) {
-  cell(rowSpan = 2) { text("1") }
-  cell { text("2") }
-  cell { text("3") }
-}
-
-// +-+-+
-// |1|2|
-// | +-+
-// | |3|
-// +-+-+
-```
-
-And for completion, here's an example of a cell layout following a cell spanning multiple columns:
+Finally, here's an example of how cells flow following a cell spanning multiple columns:
 
 ```kotlin
 grid(Cols(1, 1, 1)) {
