@@ -82,19 +82,15 @@ class InputSupportTest {
 
     @Test
     fun `cursor blinks off and on`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
+        var testTimerReady by liveVarOf(false)
         section {
-            // Timer must be set before input is called the first time
-            if (timer == null) {
-                timer = data.useTestTimer()
-            }
-
+            if (!testTimerReady) return@section
             text("> ")
             input(initialText = "Hello")
             text("<")
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
 
             // Run a few times just to verify that the blinking continues in a cycle
             for (i in 0 until 3) {

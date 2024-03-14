@@ -69,7 +69,7 @@ fun RunScope.blockUntilRenderWhen(timeout: Duration? = null, condition: () -> Bo
  * testSession { terminal ->
  *   section { ... }.run {
  *     // do some stuff and then...
- *     blockUntilRenderWhenMatches {
+ *     blockUntilRenderMatches(terminal) {
  *       red { textLine("expected line 1") }
  *       green { textLine("expected line 2") }
  *     }

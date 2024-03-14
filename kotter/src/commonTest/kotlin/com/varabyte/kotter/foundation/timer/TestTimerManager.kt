@@ -32,7 +32,23 @@ class TestTimer internal constructor(private val timerManager: TestTimerManager)
 /**
  * Create a fake timer that can control the time used by Kotter's [addTimer] functionality.
  *
- * This function MUST be declared in a run block and will fail if not set up before
+ * This function MUST be declared in a run block and will fail if not set up before a real timer already ran once.
+ *
+ * Note that the section block will run immediately, so if it references any feature that uses timers under the hood
+ * (like inputs, which have a blinking cursor, or animations), that can be a problem. Therefore, when using test timers,
+ * it is generally recommended to follow a pattern where the section is early-aborted before the test timer is ready:
+ *
+ * ```
+ * var testTimerReady by liveVarOf(false)
+ * section {
+ *   if (!testTimerReady) return@section
+ *   // ... `section` code here ...
+ * }.run {
+ *   val timer = data.useTestTimer()
+ *   testTimerReady = true
+ *   // ... `run` code here ...
+ * }
+ * ```
  */
 fun ConcurrentScopedData.useTestTimer(): TestTimer {
     require(isActive(RunScope.Lifecycle)) {

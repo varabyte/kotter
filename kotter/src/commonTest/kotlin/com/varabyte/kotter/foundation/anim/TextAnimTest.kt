@@ -1,11 +1,10 @@
 package com.varabyte.kotter.foundation.anim
 
+import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.*
-import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.kotterx.test.runtime.*
-import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
@@ -13,20 +12,18 @@ import kotlin.test.Test
 class TextAnimTest {
     @Test
     fun `simple text anim loops`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
         val anim = textAnimOf(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS)
         assertThat(anim.totalDuration).isEqualTo(Anim.ONE_FRAME_60FPS.times(3))
         assertThat(anim.isRunning).isTrue()
 
+        var testTimerReady by liveVarOf(false)
         section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
+            if (!testTimerReady) return@section
             text("> $anim <")
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
+
             blockUntilRenderMatches(terminal) {
                 text("> 1 <")
             }
@@ -50,17 +47,15 @@ class TextAnimTest {
 
     @Test
     fun `can create non-looping text anim`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
         val anim = textAnimOf(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS, looping = false)
+        var testTimerReady by liveVarOf(false)
         section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
+            if (!testTimerReady) return@section
             text("> $anim <")
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
+
             blockUntilRenderMatches(terminal) {
                 text("> 1 <")
             }
@@ -92,20 +87,18 @@ class TextAnimTest {
 
     @Test
     fun `anim timer paused while anim isn't rendered`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
         val anim = textAnimOf(listOf("1", "2", "3", "4", "5", "6", "7", "8"), Anim.ONE_FRAME_60FPS)
         var skipAnim = false
+        var testTimerReady by liveVarOf(false)
         section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
+            if (!testTimerReady) return@section
             if (!skipAnim) {
                 text("> $anim <")
             }
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
+
             blockUntilRenderMatches(terminal) {
                 text("> 1 <")
             }
@@ -137,17 +130,15 @@ class TextAnimTest {
 
     @Test
     fun `can pause anim`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
         val anim = textAnimOf(listOf("1", "2", "3", "4", "5", "6", "7", "8"), Anim.ONE_FRAME_60FPS)
+        var testTimerReady by liveVarOf(false)
         section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
+            if (!testTimerReady) return@section
             text("> $anim <")
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
+
             blockUntilRenderMatches(terminal) {
                 text("> 1 <")
             }
@@ -178,17 +169,15 @@ class TextAnimTest {
 
     @Test
     fun `can set anim frame directly`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
         val anim = textAnimOf(listOf("1", "2", "3", "4", "5", "6", "7", "8"), Anim.ONE_FRAME_60FPS)
+        var testTimerReady by liveVarOf(false)
         section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
+            if (!testTimerReady) return@section
             text("> $anim <")
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
+
             blockUntilRenderMatches(terminal) {
                 text("> 1 <")
             }
@@ -231,26 +220,22 @@ class TextAnimTest {
 
     @Test
     fun `can instantiate text anims via template`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
         val animTemplate = TextAnim.Template(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS)
         val anim1 = textAnimOf(animTemplate)
         val anim2 = textAnimOf(animTemplate)
         // Run tests at different times, to show they each own their own internal timer state
         var startRunningAnim2 = false
+        var testTimerReady by liveVarOf(false)
         section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
-
+            if (!testTimerReady) return@section
             text("> $anim1 <")
             if (startRunningAnim2) {
                 textLine()
                 text("~ $anim2 ~")
             }
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
 
             blockUntilRenderMatches(terminal) {
                 text("> 1 <")
@@ -285,18 +270,15 @@ class TextAnimTest {
 
     @Test
     fun `two anims with different rates can run at the same time`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
         val anim1 = textAnimOf(listOf("1", "2", "3"), Anim.ONE_FRAME_60FPS)
         val anim2 = textAnimOf(listOf("a", "b"), Anim.ONE_FRAME_60FPS.times(2))
+        var testTimerReady by liveVarOf(false)
         section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
+            if (!testTimerReady) return@section
             text("> $anim1:$anim2 <")
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
 
             blockUntilRenderMatches(terminal) {
                 text("> 1:a <")
@@ -327,19 +309,15 @@ class TextAnimTest {
 
     @Test
     fun `can use extension text methods for appending the animation directly`() = testSession { terminal ->
-        var timer: TestTimer? = null
-
         val anim1 = textAnimOf(listOf("1", "2"), Anim.ONE_FRAME_60FPS)
         val anim2 = textAnimOf(listOf("a", "b"), Anim.ONE_FRAME_60FPS)
+        var testTimerReady by liveVarOf(false)
         section {
-            if (timer == null) {
-                // Need to initialize a test timer BEFORE we reference $anim for the first time
-                timer = data.useTestTimer()
-            }
-
+            if (!testTimerReady) return@section
             text("> "); text(anim1); text(':'); text(anim2); text(" <")
         }.run {
-            @Suppress("NAME_SHADOWING") val timer = timer!!
+            val timer = data.useTestTimer()
+            testTimerReady = true
 
             blockUntilRenderMatches(terminal) {
                 text("> 1:a <")
