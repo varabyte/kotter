@@ -79,6 +79,7 @@ repositories {
 
 dependencies {
     implementation("com.varabyte.kotter:kotter-jvm:1.1.3")
+    testImplementation("com.varabyte.kotterx:kotter-test-support-jvm:1.1.3")
 }
 ```
 
@@ -119,6 +120,11 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation("com.varabyte.kotter:kotter:1.1.3")
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation("com.varabyte.kotterx:kotter-test-support:1.1.3")
             }
         }
     }
@@ -1651,6 +1657,14 @@ baked inside `Section`, `MainRenderScope`, etc., with access to some private sta
 `ConcurrentScopedData` plus extension methods ensured that we were using the same tools as users.
 
 So go forth, and extend Kotter!
+
+### 🧪 Testing
+
+Kotter includes a separate library that provides useful testing utilities, called `kotter-test-support`. You can review
+the [Gradle section▲](#-gradle) from earlier to see how to include it in your project.
+
+The library comes with its [own README](kotterx/kotter-test-support/README.md) which goes into more detail about how
+to write Kotter unit tests.
 
 ### 🧵 Thread Affinity
 
