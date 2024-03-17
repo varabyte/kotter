@@ -94,6 +94,27 @@ This·is·a·test...
 > sections always clear all styles upon exiting, so you'll see this particular escape code a lot if you start printing
 > stuff out.
 
+You can also apply `stripFormatting` to the buffer (or the `lines()` output), at which point, it could be a quick way to
+assert expected output, for example in a test like this:
+
+```kotlin
+section {
+    bold { textLine("Instructions") }
+    text("Press "); cyan { text("ARROW KEYS") }; textLine(" to move")
+    text("Press "); cyan { text("SPACE") }; textLine(" to fire")
+    text("Press "); cyan { text("Q") }; textLine(" to quit")
+}.run()
+
+assertThat(terminal.lines().stripFormatting())
+    .containsExactly(
+        "Instructions",
+        "Press ARROW KEYS to move",
+        "Press SPACE to fire",
+        "Press Q to quit",
+        ""
+    ).inOrder()
+```
+
 ### Resolving rerenders
 
 Kotter sections can run multiple times. In a normal Kotter application, each time a new render happens, the output of
