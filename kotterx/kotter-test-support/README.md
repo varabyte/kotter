@@ -323,6 +323,31 @@ object CtrlChars {
 }
 ```
 
+### Pressing keys
+
+Perhaps the easiest way to simulate a key press is to use the convenience `terminal.press` method, which takes Kotter
+`Key`s:
+
+```kotlin
+section { /* ... */ }.runUntilInputEntered {
+    terminal.press(Keys.H, Keys.E, Keys.L)
+    terminal.press(Keys.RIGHT) // Autocomplete "hello"
+    terminal.press(Keys.ENTER)
+}
+```
+
+This is probably the method most people will want to use for their tests -- there's no need to worry about typing vs
+codes, or remembering if you should be using `Ansi.CtrlChars` or `Ansi.Csi.Codes.Sgr.Keys`.
+
+> [!NOTE]
+> Pressing `Key`s is technically an inverted approach, because Kotter `Key`s are really the final result of transforming
+> raw ASCII values and sequence codes into a simple enum. They represent the terminating end of an input pipeline, in
+> other words! However, as a mental model, most users of the Kotter library aren't don't really need to be aware of
+> that.
+>
+> The `press` method, under the hood, actually figures out whether to call `type`, `sendCode`, or `sendKey` for you,
+> based on the key you are pressing.
+
 ## ⏳ Testing timers
 
 Real timers can be the bane of instant unit tests and the source of many a flaky test. As a result, test timers, which
@@ -527,9 +552,12 @@ fun `user can navigate to an answer using arrow keys`() {
             "Choose a color",
             listOf("Red", "Orange", "Yellow", "Green", "Blue", "Purple"),
             onInputReady = {
-                terminal.sendCode(Ansi.Csi.Codes.Keys.DOWN)
-                terminal.sendCode(Ansi.Csi.Codes.Keys.DOWN)
-                terminal.type(Ansi.CtrlChars.ENTER)
+                terminal.press(Keys.DOWN)
+                terminal.press(Keys.DOWN)
+                terminal.press(Keys.ENTER)
+
+                // Or, if you prefer a one-liner:
+                // press(Keys.DOWN, Keys.DOWN, Keys.ENTER)
             }
         )
     }
@@ -618,9 +646,9 @@ fun `user can navigate to an answer using arrow keys`() = testSession { terminal
             setSelectedIndex = { selectedIndex = it }
         )
 
-        terminal.sendCode(Ansi.Csi.Codes.Keys.DOWN)
-        terminal.sendCode(Ansi.Csi.Codes.Keys.DOWN)
-        terminal.type(Ansi.CtrlChars.ENTER)
+        terminal.press(Keys.DOWN)
+        terminal.press(Keys.DOWN)
+        terminal.press(Keys.ENTER)
     }
 
     assertThat(colorChoices[selectedIndex]).isEqualTo("Yellow")
