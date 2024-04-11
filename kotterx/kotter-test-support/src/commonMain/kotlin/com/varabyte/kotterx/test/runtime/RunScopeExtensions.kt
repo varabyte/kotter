@@ -57,7 +57,15 @@ fun RunScope.blockUntilRenderWhen(timeout: Duration? = null, condition: () -> Bo
         }
     }
 
-    runBlocking { withTimeout(timeout ?: 1.seconds) { latch.await() } }
+    runBlocking {
+        try {
+            withTimeout(timeout ?: 1.seconds) { latch.await() }
+        } catch (ex: TimeoutCancellationException) {
+            // rethrow the timeout cancellation exception so that it doesn't get silently swallowed by coroutine
+            // machinery.
+            throw IllegalStateException(ex)
+        }
+    }
 }
 
 /**
