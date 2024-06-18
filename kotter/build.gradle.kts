@@ -99,8 +99,8 @@ val SONATYPE_SNAPSHOT_REPO_URL = uri("https://s01.oss.sonatype.org/content/repos
 fun MavenArtifactRepository.sonatypeAuth() {
     url = if (!version.toString().endsWith("SNAPSHOT")) SONATYPE_RELEASE_REPO_URL else SONATYPE_SNAPSHOT_REPO_URL
     credentials {
-        username = findProperty("ossrhUsername") as String
-        password = findProperty("ossrhPassword") as String
+        username = findProperty("ossrhToken") as String
+        password = findProperty("ossrhTokenPassword") as String
     }
     authentication {
         create<BasicAuthentication>("basic")
