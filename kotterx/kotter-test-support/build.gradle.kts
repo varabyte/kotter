@@ -53,7 +53,7 @@ fun shouldPublishToGCloud(): Boolean {
 
 fun shouldPublishToMavenCentral(): Boolean {
     return (findProperty("kotterx.test.maven.publish") as? String).toBoolean()
-            && findProperty("ossrhUsername") != null && findProperty("ossrhPassword") != null
+            && findProperty("ossrhToken") != null && findProperty("ossrhTokenPassword") != null
 }
 
 val VARABYTE_REPO_URL = uri("https://us-central1-maven.pkg.dev/varabyte-repos/public")
@@ -73,8 +73,8 @@ val SONATYPE_SNAPSHOT_REPO_URL = uri("https://s01.oss.sonatype.org/content/repos
 fun MavenArtifactRepository.sonatypeAuth() {
     url = if (!version.toString().endsWith("SNAPSHOT")) SONATYPE_RELEASE_REPO_URL else SONATYPE_SNAPSHOT_REPO_URL
     credentials {
-        username = findProperty("ossrhUsername") as String
-        password = findProperty("ossrhPassword") as String
+        username = findProperty("ossrhToken") as String
+        password = findProperty("ossrhTokenPassword") as String
     }
     authentication {
         create<BasicAuthentication>("basic")
