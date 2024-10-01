@@ -4,6 +4,7 @@ import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.render.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
+import com.varabyte.kotter.runtime.terminal.mock.*
 import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat
@@ -17,10 +18,10 @@ import kotlin.test.Test
 class SectionTest {
     @Test
     fun `section always ends with a reset code and newline`() = testSession { terminal ->
-        assertThat(terminal.buffer).isEmpty()
+        assertThat(terminal.buffer.toString()).isEmpty()
         section {}.run()
 
-        assertThat(terminal.buffer).isEqualTo("${Codes.Sgr.RESET}\n")
+        assertThat(terminal.buffer.toString()).isEqualTo("${Codes.Sgr.RESET}\n")
     }
 
     @Test
@@ -86,12 +87,12 @@ class SectionTest {
 
     @Test
     fun `multiple sections all append to the same buffer`() = testSession { terminal ->
-        assertThat(terminal.buffer).isEmpty()
+        assertThat(terminal.buffer.toString()).isEmpty()
         section {}.run()
         section {}.run()
         section {}.run()
 
-        assertThat(terminal.buffer).isEqualTo(
+        assertThat(terminal.buffer.toString()).isEqualTo(
             "${Codes.Sgr.RESET}\n".repeat(3)
         )
     }

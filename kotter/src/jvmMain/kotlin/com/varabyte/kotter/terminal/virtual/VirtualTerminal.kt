@@ -39,17 +39,8 @@ import javax.swing.text.StyleConstants
 import kotlin.io.path.exists
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
-/**
- * The size of the virtual terminal text area, where [width] and [height] represent the number of characters that can
- * fit within it.
- *
- * In other words, 80x32 means 80 characters wide by 32 lines tall, as opposed to 80 pixels by 32 pixels.
- */
-class TerminalSize(val width: Int, val height: Int) {
-    init {
-        require(width >= 1 && height >= 1) { "TerminalSize values must both be positive. Got: $width, $height" }
-    }
-}
+@Deprecated("Use com.varabyte.kotter.runtime.terminal.TerminalSize instead")
+typealias TerminalSize = com.varabyte.kotter.runtime.terminal.TerminalSize
 
 private val ANSI_TO_SWING_COLORS = mapOf(
     AnsiColor.BLACK to Color.BLACK,
@@ -101,9 +92,10 @@ class VirtualTerminal private constructor(
          *   truncation to happen.
          * @param handleInterrupt If true, handle CTRL-C by closing the window.
          */
+        @Suppress("DEPRECATION")
         fun create(
             title: String = "Virtual Terminal",
-            terminalSize: TerminalSize = TerminalSize(100, 40),
+            terminalSize: TerminalSize = com.varabyte.kotter.runtime.terminal.TerminalSize.Default,
             fontSize: Int = 16,
             fontOverride: Path? = null,
             fgColor: AnsiColor = AnsiColor.WHITE,

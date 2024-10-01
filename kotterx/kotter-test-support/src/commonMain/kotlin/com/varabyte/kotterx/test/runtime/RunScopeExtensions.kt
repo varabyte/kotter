@@ -3,7 +3,9 @@ package com.varabyte.kotterx.test.runtime
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.runtime.terminal.mock.*
 import com.varabyte.kotterx.test.terminal.*
+import com.varabyte.kotterx.util.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.runBlocking
@@ -89,11 +91,11 @@ fun RunScope.blockUntilRenderWhen(timeout: Duration? = null, condition: () -> Bo
  * out.
  */
 fun RunScope.blockUntilRenderMatches(
-    terminal: TestTerminal,
+    terminal: MockTerminal,
     timeout: Duration? = null,
     expected: RenderScope.() -> Unit
 ) {
-    val expectedOutput = TestTerminal.consoleOutputFor(expected)
+    val expectedOutput = consoleLinesFor(expected)
     try {
         blockUntilRenderWhen(timeout) {
             terminal.resolveRerenders() == expectedOutput

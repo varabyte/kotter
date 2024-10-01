@@ -5,6 +5,7 @@ import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.text.ColorLayer.*
 import com.varabyte.kotter.foundation.timer.*
 import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.runtime.terminal.TerminalSize
 import com.varabyte.kotter.terminal.system.*
 import com.varabyte.kotter.terminal.virtual.*
 import kotlin.random.Random

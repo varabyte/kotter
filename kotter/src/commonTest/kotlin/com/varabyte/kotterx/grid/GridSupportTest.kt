@@ -2,13 +2,12 @@ package com.varabyte.kotterx.grid
 
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.internal.ansi.*
+import com.varabyte.kotter.runtime.terminal.mock.*
 import com.varabyte.kotterx.test.foundation.*
-import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.kotterx.text.*
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
-
 
 class GridSupportTest {
     @Test

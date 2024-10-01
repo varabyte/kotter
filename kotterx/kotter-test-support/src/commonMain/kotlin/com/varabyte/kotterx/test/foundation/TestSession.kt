@@ -3,7 +3,8 @@ package com.varabyte.kotterx.test.foundation
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.runtime.*
-import com.varabyte.kotterx.test.terminal.*
+import com.varabyte.kotter.runtime.terminal.*
+import com.varabyte.kotter.runtime.terminal.mock.*
 
 /**
  * A thread safe channel-like class which collects any exceptions thrown by a Kotter section block.
@@ -20,18 +21,19 @@ internal class RenderExceptions {
 }
 
 /**
- * Like a [session] block but backed by a [TestTerminal], which is provides as a lambda argument.
+ * Like a [session] block but backed by a [MockTerminal], which is provides as a lambda argument.
  *
- * The [TestTerminal] is a useful way to assert that various Kotter commands resulted in expected behavior.
+ * The [MockTerminal] is a useful way to assert that various Kotter commands resulted in expected behavior.
  *
  * @param suppressSectionExceptions If true (the default), then this function will assert that no render exceptions were
  *   thrown during the session.
  */
 fun testSession(
+    size: TerminalSize = TerminalSize.Default,
     suppressSectionExceptions: Boolean = false,
-    block: Session.(TestTerminal) -> Unit
+    block: Session.(MockTerminal) -> Unit
 ) {
-    val terminal = TestTerminal()
+    val terminal = MockTerminal(size)
     val renderExceptions = RenderExceptions()
     session(terminal, sectionExceptionHandler = { renderExceptions.send(it) }) {
         this.block(terminal)
