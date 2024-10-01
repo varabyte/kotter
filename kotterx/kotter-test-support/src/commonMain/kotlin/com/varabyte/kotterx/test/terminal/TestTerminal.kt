@@ -15,8 +15,7 @@ import kotlin.math.min
 /**
  * A fake terminal, built for tests, which stores data written to it in memory that can then be queried.
  */
-class TestTerminal(private val provideWidth: (() -> Int)? = null, private val provideHeight: (() -> Int)? = null) :
-    Terminal {
+class TestTerminal : Terminal {
     companion object {
         /**
          * Helper function that generates the final console output for a given, simple Kotter block.
@@ -48,8 +47,7 @@ class TestTerminal(private val provideWidth: (() -> Int)? = null, private val pr
         }
     }
 
-    var closed = false
-        private set
+    private var closed = false
 
     private val _buffer = StringBuilder()
     val buffer get() = _buffer.toString()
@@ -61,8 +59,9 @@ class TestTerminal(private val provideWidth: (() -> Int)? = null, private val pr
         keys.forEach { keysChannel.send(it) }
     }
 
-    override val width get() = provideWidth?.invoke() ?: Int.MAX_VALUE // In memory text doesn't have a width limit
-    override val height get() = provideHeight?.invoke() ?: Int.MAX_VALUE // In memory text doesn't have a height limit
+    // In memory text doesn't have a size limit
+    override val width = Int.MAX_VALUE
+    override val height = Int.MAX_VALUE
 
     override fun write(text: String) {
         assertNotClosed()

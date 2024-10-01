@@ -28,12 +28,10 @@ internal class RenderExceptions {
  *   thrown during the session.
  */
 fun testSession(
-    provideWidth: (() -> Int)? = null,
-    provideHeight: (() -> Int)? = null,
     suppressSectionExceptions: Boolean = false,
     block: Session.(TestTerminal) -> Unit
 ) {
-    val terminal = TestTerminal(provideWidth, provideHeight)
+    val terminal = TestTerminal()
     val renderExceptions = RenderExceptions()
     session(terminal, sectionExceptionHandler = { renderExceptions.send(it) }) {
         this.block(terminal)
