@@ -1,4 +1,5 @@
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 @Suppress("DSL_SCOPE_VIOLATION")
 plugins {
@@ -18,6 +19,18 @@ kotlin {
         val main by compilations.getting {
             kotlinOptions {
                 jvmTarget = "11"
+            }
+        }
+    }
+
+    targets.withType<KotlinNativeTarget> {
+        compilations.all {
+            kotlinOptions {
+                // Posix APIs are experimental (but hopefully we're not using anything too controversial)
+                freeCompilerArgs += listOf(
+                    "-opt-in=kotlin.experimental.ExperimentalNativeApi",
+                    "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
+                )
             }
         }
     }

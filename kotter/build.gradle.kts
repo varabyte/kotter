@@ -28,7 +28,10 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 // Posix APIs are experimental (but hopefully we're not using anything too controversial)
-                freeCompilerArgs += listOf("-opt-in=kotlinx.cinterop.ExperimentalForeignApi")
+                freeCompilerArgs += listOf(
+                    "-opt-in=kotlin.experimental.ExperimentalNativeApi",
+                    "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
+                )
             }
         }
     }
