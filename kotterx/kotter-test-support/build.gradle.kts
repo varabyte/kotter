@@ -13,11 +13,11 @@ version = libs.versions.kotter.get()
 
 kotlin {
     jvm {
-        jvmToolchain(8)
+        jvmToolchain(11)
 
         val main by compilations.getting {
             kotlinOptions {
-                jvmTarget = "1.8"
+                jvmTarget = "11"
             }
         }
     }
