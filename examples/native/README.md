@@ -11,9 +11,15 @@ $ ./gradlew linkDebugExecutableLinux64 && ./build/bin/linux64/debugExecutable/na
 
 # Windows
 $ ./gradlew linkDebugExecutableMingw64 && ./build/bin/mingw64/debugExecutable/native.exe
+
+# Mac (M series)
+$ ./gradlew linkDebugExecutableMacosArm64 && ./build/bin/macosArm64/debugExecutable/native.kexe
+# For intel, use linkDebugExecutableMacosX64
+# Getting this to work will require setting up Xcode on your machine, which is outside the scope
+# of this README
 ```
 
-*Currently, Kotter supports Linux, Windows, Mac M1, and Mac Intel. Visit [this issue](https://github.com/varabyte/kotter/issues/93)
+*Currently, Kotter supports Linux, Windows, Mac M series, and Mac Intel. Visit [this issue](https://github.com/varabyte/kotter/issues/93)
 if you have suggestions for other native targets.*
 
 To build a production binary, call:
