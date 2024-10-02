@@ -117,15 +117,20 @@ fun MavenArtifactRepository.sonatypeAuth() {
 }
 
 kover {
-    filters {
-        classes {
-            excludes += listOf(
-                "com.varabyte.kotter.foundation.SessionKt*", // Untested session code is related to terminals
-                // ANSI codes are not worth testing exhaustively. If we ever get a report that one of them is broken, we
-                // can add new tests elsewhere to cover them indirectly.
-                "com.varabyte.kotter.runtime.internal.ansi.Ansi*",
-                "com.varabyte.kotter.terminal.*", // Virtual terminal implementations are UI, not important to cover
-            )
+    reports {
+        filters {
+            excludes {
+                classes(
+                    // Untested session code is related to terminals
+                    "com.varabyte.kotter.foundation.SessionKt*",
+                    "com.varabyte.kotter.foundation.SessionSupportKt*",
+                    // ANSI codes are not worth testing exhaustively. If we ever get a report that one of them is broken, we
+                    // can add new tests elsewhere to cover them indirectly.
+                    "com.varabyte.kotter.runtime.internal.ansi.Ansi*",
+                    // Virtual terminal implementations are UI, not important to cover
+                    "com.varabyte.kotter.terminal.*",
+                )
+            }
         }
     }
 }
@@ -141,7 +146,7 @@ tasks.register("printLineCoverage") {
     group = "verification"
     dependsOn("koverXmlReport")
     doLast {
-        val report = layout.buildDirectory.file("reports/kover/xml/report.xml").get().asFile
+        val report = layout.buildDirectory.file("reports/kover/report.xml").get().asFile
 
         val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(report)
         val rootNode = doc.firstChild
