@@ -3,6 +3,8 @@ package com.varabyte.kotter.platform.concurrent.locks
 import com.varabyte.truthish.assertThat
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.newFixedThreadPoolContext
@@ -14,6 +16,7 @@ import kotlin.test.Test
 // to test really gnarly edge cases I want to make sure are working
 class ReentrantReadWriteLockTest {
 
+    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     @Test
     fun twoThreadsCanConvertReadToWriteLocksAtTheSameTime() {
         // If two threads both do this:
