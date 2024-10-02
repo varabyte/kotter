@@ -39,6 +39,10 @@ allprojects {
 
     tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions.jvmTarget = "11"
-        kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+        kotlinOptions.freeCompilerArgs += listOf(
+            "-opt-in=kotlin.RequiresOptIn",
+            // Posix APIs are experimental (but hopefully we're not using anything too controversial)
+            "-opt-in=kotlinx.cinterop.ExperimentalForeignApi",
+        )
     }
 }

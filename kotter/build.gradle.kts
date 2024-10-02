@@ -24,6 +24,15 @@ kotlin {
         }
     }
 
+    targets.all {
+        compilations.all {
+            kotlinOptions {
+                // Posix APIs are experimental (but hopefully we're not using anything too controversial)
+                freeCompilerArgs += listOf("-opt-in=kotlinx.cinterop.ExperimentalForeignApi")
+            }
+        }
+    }
+
     linuxX64()
     macosArm64()
     macosX64()
