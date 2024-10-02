@@ -1,7 +1,10 @@
 [versions]
+# Try not to increase! We're intentionally using as old a version as possible for better compatibility
+# 1.9.10 is required for publishing mac arftifacts. Otherwise, we run into https://youtrack.jetbrains.com/issue/KT-62113
+kotlin = "1.9.10"
+
 dokka = "1.9.10"
 jline = "3.21.0"
-kotlin = "1.7.20" # Don't increase! We're intentionally using an old a version as possible for better compatibility
 kotlinx-coroutines = "1.6.4"
 kotlinx-serialization = "1.5.0"
 kotter = "1.2.0-SNAPSHOT"

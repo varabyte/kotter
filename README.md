@@ -5,7 +5,7 @@
 ![kotter docs](https://img.shields.io/badge/docs-grey?logo=readthedocs)
 </a>
 <br>
-![kotlin version](https://img.shields.io/badge/kotlin_compatibility-1.6+-lightgray?logo=kotlin)
+![kotlin version](https://img.shields.io/badge/kotlin_compatibility-1.8+-lightgray?logo=kotlin)
 <br>
 <a href="https://discord.gg/5NZ2GKV5Cs">
   <img alt="Varabyte Discord" src="https://img.shields.io/discord/886036660767305799.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2" />
