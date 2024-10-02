@@ -1,6 +1,6 @@
 package com.varabyte.kotter.platform.internal.concurrent
 
-import kotlin.native.concurrent.AtomicReference as NativeAtomicReference
+import kotlin.concurrent.AtomicReference as NativeAtomicReference
 
 internal actual class AtomicReference<T> actual constructor(initialValue: T) {
     private val delegate = NativeAtomicReference(initialValue)
