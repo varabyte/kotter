@@ -31,7 +31,7 @@ import kotlin.math.min
  * representations:
  *
  * ```kotlin
- * println(terminal.buffer.toString(replaceEscapeChars = true, replaceSpaces = true))
+ * println(terminal.buffer.toString(highlightEscapeChars = true, highlightSpaces = true))
  * // Output: "Hello·\e[31mWorld\e[0m"
  * ```
  */
@@ -42,12 +42,12 @@ class MockTerminal(val size: TerminalSize = TerminalSize.Default) : Terminal {
         }
 
         fun toString(
-            replaceEscapeChars: Boolean = false,
-            replaceSpaces: Boolean = false,
+            highlightEscapeChars: Boolean = false,
+            highlightSpaces: Boolean = false,
         ): String {
             return this.toString()
-                .let { if (replaceSpaces) it.replace(" ", "·") else it }
-                .let { if (replaceEscapeChars) it.replace(Ansi.CtrlChars.ESC.toString(), "\\e") else it }
+                .let { if (highlightSpaces) it.replace(" ", "·") else it }
+                .let { if (highlightEscapeChars) it.replace(Ansi.CtrlChars.ESC.toString(), "\\e") else it }
         }
     }
 

@@ -10,12 +10,12 @@ import com.varabyte.kotter.runtime.internal.text.*
  * help you understand why you're getting a `"test string" does not match "test string"` error, for example -- one of
  * those strings might have a control character that's not visible.
  */
-fun String.replaceControlCharacters(): String {
+fun String.highlightControlCharacters(): String {
     return this.replace(Ansi.CtrlChars.ESC.toString(), "\\e").replace(" ", "·")
 }
 
-fun Iterable<String>.replaceControlCharacters(): List<String> {
-    return this.map { it.replaceControlCharacters() }
+fun Iterable<String>.highlightControlCharacters(): List<String> {
+    return this.map { it.highlightControlCharacters() }
 }
 
 

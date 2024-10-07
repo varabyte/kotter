@@ -32,10 +32,10 @@ fun MockTerminal.assertMatches(expected: RenderScope.() -> Unit) {
             appendLine("Text render output does not match.")
             appendLine()
             appendLine("Ours:")
-            oursResolved.forEach { line -> appendLine("\t${line.replaceControlCharacters()}") }
+            oursResolved.forEach { line -> appendLine("\t${line.highlightControlCharacters()}") }
             appendLine()
             appendLine("Expected:")
-            theirsResolved.forEach { line -> appendLine("\t${line.replaceControlCharacters()}") }
+            theirsResolved.forEach { line -> appendLine("\t${line.highlightControlCharacters()}") }
         })
     }
 }
