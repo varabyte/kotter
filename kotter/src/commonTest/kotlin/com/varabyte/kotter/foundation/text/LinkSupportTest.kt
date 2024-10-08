@@ -2,7 +2,7 @@ package com.varabyte.kotter.foundation.text
 
 import com.varabyte.kotter.platform.net.*
 import com.varabyte.kotter.runtime.internal.ansi.*
-import com.varabyte.kotter.runtime.terminal.mock.*
+import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows

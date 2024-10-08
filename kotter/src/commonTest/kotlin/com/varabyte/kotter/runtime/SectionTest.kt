@@ -4,7 +4,7 @@ import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.render.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotter.runtime.terminal.mock.*
+import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat

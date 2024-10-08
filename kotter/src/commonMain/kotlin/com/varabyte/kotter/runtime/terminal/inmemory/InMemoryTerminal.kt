@@ -1,4 +1,4 @@
-package com.varabyte.kotter.runtime.terminal.mock
+package com.varabyte.kotter.runtime.terminal.inmemory
 
 import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.runtime.internal.ansi.*
@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlin.math.min
 
 /**
- * A mock, in-memory terminal implementation.
+ * An in-memory terminal implementation.
  *
  * This implementation is useful both for testing and also for generating ANSI commands directly into a [Buffer] (which
  * you can then feed to a real console directly).
@@ -18,7 +18,7 @@ import kotlin.math.min
  * Using it looks like this:
  *
  * ```kotlin
- * val terminal = MockTerminal()
+ * val terminal = InMemoryTerminal()
  *
  * session(terminal) {
  *   /* ... do your Kotter stuff here ... */
@@ -35,7 +35,7 @@ import kotlin.math.min
  * // Output: "Hello·\e[31mWorld\e[0m"
  * ```
  */
-class MockTerminal(val size: TerminalSize = TerminalSize.Default) : Terminal {
+class InMemoryTerminal(val size: TerminalSize = TerminalSize.Default) : Terminal {
     class Buffer(private val builder: StringBuilder) {
         override fun toString(): String {
             return builder.toString()
@@ -93,14 +93,14 @@ class MockTerminal(val size: TerminalSize = TerminalSize.Default) : Terminal {
 }
 
 /** Convenience function for the common case of only sending a single key. */
-suspend fun MockTerminal.sendKey(key: Int) = sendKeys(key)
+suspend fun InMemoryTerminal.sendKey(key: Int) = sendKeys(key)
 
 /** Convenience function for the common case of sending an ANSI code. */
-suspend fun MockTerminal.sendCode(code: Ansi.Csi.Code) = type(*code.toFullEscapeCode().toCharArray())
+suspend fun InMemoryTerminal.sendCode(code: Ansi.Csi.Code) = type(*code.toFullEscapeCode().toCharArray())
 
 /** Convenience functions for typing characters (instead of sending their underlying codes) */
-suspend fun MockTerminal.type(vararg chars: Char) = sendKeys(*chars.map { it.code }.toIntArray())
-suspend fun MockTerminal.type(text: String) = type(*text.toCharArray())
+suspend fun InMemoryTerminal.type(vararg chars: Char) = sendKeys(*chars.map { it.code }.toIntArray())
+suspend fun InMemoryTerminal.type(text: String) = type(*text.toCharArray())
 
 /**
  * Press one or more [Key]s.
@@ -112,7 +112,7 @@ suspend fun MockTerminal.type(text: String) = type(*text.toCharArray())
  * This method works by converting the passed in keys into the actual terminal input that will just result in those keys
  * getting created again on the other end.
  */
-suspend fun MockTerminal.press(vararg keys: Key) {
+suspend fun InMemoryTerminal.press(vararg keys: Key) {
     keys.forEach { key ->
         when (key) {
             is CharKey -> sendKey(key.code.code)
@@ -141,16 +141,16 @@ suspend fun MockTerminal.press(vararg keys: Key) {
 }
 
 /**
- * Convenience method that returns this test terminal's [MockTerminal.buffer] as separate lines.
+ * Convenience method that returns this test terminal's [InMemoryTerminal.buffer] as separate lines.
  */
-fun MockTerminal.lines(): List<String> {
+fun InMemoryTerminal.lines(): List<String> {
     return buffer.toString().split("\n")
 }
 
 /**
  * Return the state of the terminal AFTER lines have been erased and repainted.
  */
-fun MockTerminal.resolveRerenders(): List<String> {
+fun InMemoryTerminal.resolveRerenders(): List<String> {
     val codeEraseToLineEnd = com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()
     val codeMoveToPrevLine = com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode()
 

@@ -3,7 +3,7 @@ package com.varabyte.kotterx.test.runtime
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.render.*
-import com.varabyte.kotter.runtime.terminal.mock.*
+import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.kotterx.util.*
 import kotlinx.coroutines.CompletableDeferred
@@ -91,7 +91,7 @@ fun RunScope.blockUntilRenderWhen(timeout: Duration? = null, condition: () -> Bo
  * out.
  */
 fun RunScope.blockUntilRenderMatches(
-    terminal: MockTerminal,
+    terminal: InMemoryTerminal,
     timeout: Duration? = null,
     expected: RenderScope.() -> Unit
 ) {
@@ -100,7 +100,7 @@ fun RunScope.blockUntilRenderMatches(
         blockUntilRenderWhen(timeout) {
             terminal.resolveRerenders() == expectedOutput
         }
-    } catch (ex: TimeoutCancellationException) {
+    } catch (_: TimeoutCancellationException) {
         // This will fail but at least it will give us an informative error message
         terminal.assertMatches { expected() }
     } catch (t: Throwable) {

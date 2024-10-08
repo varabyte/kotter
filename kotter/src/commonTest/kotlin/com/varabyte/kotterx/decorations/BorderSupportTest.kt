@@ -2,7 +2,7 @@ package com.varabyte.kotterx.decorations
 
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotter.runtime.terminal.mock.*
+import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.truthish.assertThat
 import kotlin.test.Test

@@ -1,12 +1,12 @@
 package com.varabyte.kotterx.test.terminal
 
 import com.varabyte.kotter.runtime.render.*
-import com.varabyte.kotter.runtime.terminal.mock.*
+import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.runtime.*
 import com.varabyte.kotterx.util.*
 
 /**
- * A way to assert that the current terminal's output matches that of another render block.
+ * A way to assert that the current test terminal's output matches that of another render block.
  *
  * This can be useful if the current terminal went through a bunch of complex rerenders and events, where you want to
  * now assert that is has settled onto some final state. For example:
@@ -23,7 +23,7 @@ import com.varabyte.kotterx.util.*
  *
  * This method will throw an [AssertionError] containing more information if the two renders don't match.
  */
-fun MockTerminal.assertMatches(expected: RenderScope.() -> Unit) {
+fun InMemoryTerminal.assertMatches(expected: RenderScope.() -> Unit) {
     val oursResolved = this.resolveRerenders()
     val theirsResolved = buildAnsiLines(expected)
 
@@ -43,6 +43,6 @@ fun MockTerminal.assertMatches(expected: RenderScope.() -> Unit) {
 /**
  * Similar to [assertMatches] but just returns a boolean value instead of throwing an assertion.
  */
-fun MockTerminal.matches(expected: RenderScope.() -> Unit): Boolean {
+fun InMemoryTerminal.matches(expected: RenderScope.() -> Unit): Boolean {
     return this.resolveRerenders() == buildAnsiLines(expected)
 }

@@ -2,7 +2,7 @@ package com.varabyte.kotterx.util
 
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.runtime.render.*
-import com.varabyte.kotter.runtime.terminal.mock.*
+import com.varabyte.kotter.runtime.terminal.inmemory.*
 
 /**
  * A helper method to generate ANSI output from a lambda block.
@@ -22,7 +22,7 @@ fun buildAnsiString(block: RenderScope.() -> Unit): String = buildAnsiLines(bloc
  * Like [buildAnsiString] but where each line is broken up into a list of strings.
  */
 fun buildAnsiLines(block: RenderScope.() -> Unit): List<String> {
-    val terminal = MockTerminal()
+    val terminal = InMemoryTerminal()
     session(terminal) {
         section {
             block()
