@@ -25,7 +25,7 @@ import com.varabyte.kotterx.util.*
  */
 fun MockTerminal.assertMatches(expected: RenderScope.() -> Unit) {
     val oursResolved = this.resolveRerenders()
-    val theirsResolved = consoleLinesFor(expected)
+    val theirsResolved = buildAnsiLines(expected)
 
     if (oursResolved != theirsResolved) {
         throw AssertionError(buildString {
@@ -44,5 +44,5 @@ fun MockTerminal.assertMatches(expected: RenderScope.() -> Unit) {
  * Similar to [assertMatches] but just returns a boolean value instead of throwing an assertion.
  */
 fun MockTerminal.matches(expected: RenderScope.() -> Unit): Boolean {
-    return this.resolveRerenders() == consoleLinesFor(expected)
+    return this.resolveRerenders() == buildAnsiLines(expected)
 }

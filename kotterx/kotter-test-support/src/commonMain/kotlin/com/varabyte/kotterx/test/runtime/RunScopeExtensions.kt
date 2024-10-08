@@ -95,7 +95,7 @@ fun RunScope.blockUntilRenderMatches(
     timeout: Duration? = null,
     expected: RenderScope.() -> Unit
 ) {
-    val expectedOutput = consoleLinesFor(expected)
+    val expectedOutput = buildAnsiLines(expected)
     try {
         blockUntilRenderWhen(timeout) {
             terminal.resolveRerenders() == expectedOutput

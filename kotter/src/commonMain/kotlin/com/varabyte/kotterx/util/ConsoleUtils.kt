@@ -10,15 +10,18 @@ import com.varabyte.kotter.runtime.terminal.mock.*
  * For example:
  *
  * ```kotlin
- * println(consoleOutputFor {
+ * println(buildAnsiString {
  *   red { text("Hello, ") }
  *   green { text("World!") }
  * })
  * ```
  */
-fun consoleOutputFor(block: RenderScope.() -> Unit): String = consoleLinesFor(block).joinToString("\n")
+fun buildAnsiString(block: RenderScope.() -> Unit): String = buildAnsiLines(block).joinToString("\n")
 
-fun consoleLinesFor(block: RenderScope.() -> Unit): List<String> {
+/**
+ * Like [buildAnsiString] but where each line is broken up into a list of strings.
+ */
+fun buildAnsiLines(block: RenderScope.() -> Unit): List<String> {
     val terminal = MockTerminal()
     session(terminal) {
         section {
