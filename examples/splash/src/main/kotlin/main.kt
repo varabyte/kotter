@@ -1,5 +1,6 @@
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.anim.*
+import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.*
 import com.varabyte.kotterx.text.*
@@ -37,14 +38,14 @@ fun main() = session {
 
     val versionLines =
         """
-              __       __
-             /' \     /' \
-            /\_, \   /\_, \
-            \/_/\ \  \/_/\ \
-               \ \ \  __\ \ \
-                \ \_\/\_\\ \_\
-                 \/_/\/_/ \/_/
-        """.trimIndent().split("\n")
+              _          ___     
+             /' \       /'___`\   
+            /\_, \     /\_\ /\ \  
+            \/_/\ \    \/_/// /__ 
+               \ \ \  __  // /_\ \
+                \ \_\/\_\/\______/
+                 \/_/\/_/\/_____/ 
+          """.trimIndent().split("\n")
 
     // 'length + 1' for num frames because we also include the empty string as a frame
     val wipeRightTextAnim =
