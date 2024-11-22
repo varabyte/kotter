@@ -144,14 +144,12 @@ fixes and new features will be available for testing for a short period before t
 If you ever file a bug with Kotter and are asked to test a fix using a snapshot, you must add an entry for the sonatype
 snapshots repository to your `repositories` block in order to allow Gradle to find it:
 
-```kotlin
+```diff
 // build.gradle.kts
 
 repositories {
   mavenCentral()
-  // ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-  maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-  // ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑
++ maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
 }
 ```
 
