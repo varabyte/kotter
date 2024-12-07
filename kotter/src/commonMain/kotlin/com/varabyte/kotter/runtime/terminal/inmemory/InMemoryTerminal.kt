@@ -151,8 +151,8 @@ fun InMemoryTerminal.lines(): List<String> {
  * Return the state of the terminal AFTER lines have been erased and repainted.
  */
 fun InMemoryTerminal.resolveRerenders(): List<String> {
-    val codeEraseToLineEnd = com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()
-    val codeMoveToPrevLine = com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode()
+    val codeEraseToLineEnd = Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()
+    val codeMoveToPrevLine = Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode()
 
     val resolved = mutableListOf<String>()
     val currLine = StringBuilder()
