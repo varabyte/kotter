@@ -3,7 +3,6 @@ package com.varabyte.kotterx.test.foundation
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.runtime.*
-import com.varabyte.kotter.runtime.terminal.*
 import com.varabyte.kotter.runtime.terminal.inmemory.*
 
 /**
@@ -29,11 +28,10 @@ internal class RenderExceptions {
  *   thrown during the session.
  */
 fun testSession(
-    size: TerminalSize = TerminalSize.Unbounded,
     suppressSectionExceptions: Boolean = false,
     block: Session.(InMemoryTerminal) -> Unit
 ) {
-    val terminal = InMemoryTerminal(size)
+    val terminal = InMemoryTerminal()
     val renderExceptions = RenderExceptions()
     session(terminal, sectionExceptionHandler = { renderExceptions.send(it) }) {
         this.block(terminal)
