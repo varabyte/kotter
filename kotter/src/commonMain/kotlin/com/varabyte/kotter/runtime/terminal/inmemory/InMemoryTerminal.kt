@@ -36,7 +36,7 @@ import kotlin.math.min
  * ```
  */
 class InMemoryTerminal(val size: TerminalSize = TerminalSize.Default) : Terminal {
-    class Buffer(private val builder: StringBuilder) {
+    class Buffer(private val builder: StringBuilder): CharSequence by builder {
         override fun toString(): String {
             return builder.toString()
         }
@@ -144,7 +144,7 @@ suspend fun InMemoryTerminal.press(vararg keys: Key) {
  * Convenience method that returns this test terminal's [InMemoryTerminal.buffer] as separate lines.
  */
 fun InMemoryTerminal.lines(): List<String> {
-    return buffer.toString().split("\n")
+    return buffer.split("\n")
 }
 
 /**
