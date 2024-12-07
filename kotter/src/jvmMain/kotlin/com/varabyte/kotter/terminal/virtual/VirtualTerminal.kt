@@ -95,7 +95,7 @@ class VirtualTerminal private constructor(
         @Suppress("DEPRECATION")
         fun create(
             title: String = "Virtual Terminal",
-            terminalSize: TerminalSize = com.varabyte.kotter.runtime.terminal.TerminalSize.Default,
+            terminalSize: TerminalSize = TerminalSize.Default,
             fontSize: Int = 16,
             fontOverride: Path? = null,
             fgColor: AnsiColor = AnsiColor.WHITE,

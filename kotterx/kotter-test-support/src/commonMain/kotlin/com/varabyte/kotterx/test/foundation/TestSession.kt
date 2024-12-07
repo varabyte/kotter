@@ -29,7 +29,7 @@ internal class RenderExceptions {
  *   thrown during the session.
  */
 fun testSession(
-    size: TerminalSize = TerminalSize.Default,
+    size: TerminalSize = TerminalSize.Unbounded,
     suppressSectionExceptions: Boolean = false,
     block: Session.(InMemoryTerminal) -> Unit
 ) {

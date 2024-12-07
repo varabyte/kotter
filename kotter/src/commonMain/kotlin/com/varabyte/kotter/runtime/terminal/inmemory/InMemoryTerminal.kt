@@ -35,7 +35,7 @@ import kotlin.math.min
  * // Output: "Hello·\e[31mWorld\e[0m"
  * ```
  */
-class InMemoryTerminal(val size: TerminalSize = TerminalSize.Default) : Terminal {
+class InMemoryTerminal(val size: TerminalSize = TerminalSize.Unbounded) : Terminal {
     class Buffer(private val builder: StringBuilder): CharSequence by builder {
         override fun toString(): String {
             return builder.toString()
