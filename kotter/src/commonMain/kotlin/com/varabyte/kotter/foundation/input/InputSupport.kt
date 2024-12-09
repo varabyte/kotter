@@ -24,18 +24,20 @@ import kotlinx.coroutines.launch
 import kotlin.math.min
 import kotlin.time.Duration
 
-// Once created, we keep it alive for the session, because Flow is designed to be collected multiple times, meaning
-// there's no reason for us to keep recreating it. It's pretty likely that if a session uses input in one block, it
-// will use input again in others. (We can always revisit this decision later and scope this to a Section lifecycle
-// instead)
+// All of the following data keys are scoped to the session lifecycle. While we'd normally want to scope them to the
+// section that actually needs them, this causes really sensitive timing issues to occur between when one section
+// shuts down and another starts up again.
+// See also: https://github.com/varabyte/kotter/issues/114
+
+// A flow that reads system input and converts them into Kotter `Key` instances.
 private val KeyFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
+// This job that consumes `KeyFlowKey`'s `Key` output and uses it to affect the active `input`, if any
+private val UpdateInputJobKey = Session.Lifecycle.createKey<Job>()
 
 // Kotter allows users to programmatically generate keypresses in addition to what is collected from the user
 // typing. See also `sendKeys`.
-// We expect the following feature to be used pretty rarely, so we'll tie it to the section lifecycle instead a session
-// one.
-private val SideInputKey = Section.Lifecycle.createKey<MutableList<Key>>()
-private val SideInputFlowKey = Section.Lifecycle.createKey<Flow<Key>>()
+private val SideInputKey = Session.Lifecycle.createKey<MutableList<Key>>()
+private val SideInputFlowKey = Session.Lifecycle.createKey<Flow<Key>>()
 
 private val DefaultPageSizeKey = Session.Lifecycle.createKey<Int>()
 
@@ -254,8 +256,6 @@ private class BlinkingCursorState {
 private val InputStatesKey = Section.Lifecycle.createKey<MutableMap<Any, InputState>>()
 private val BlinkingCursorStateKey = Section.Lifecycle.createKey<BlinkingCursorState>()
 private val InputStatesCalledThisRender = MainRenderScope.Lifecycle.createKey<MutableMap<Any, InputState>>()
-private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
-
 
 private fun ConcurrentScopedData.activate(state: InputState) {
     if (state.isActive) return
