@@ -1,11 +1,15 @@
 package com.varabyte.kotter.terminal.virtual
 
+import com.varabyte.kotter.runtime.coroutines.*
 import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.text.*
 import com.varabyte.kotter.runtime.terminal.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.shareIn
 import java.awt.*
 import java.awt.Cursor.HAND_CURSOR
 import java.awt.datatransfer.DataFlavor
@@ -248,7 +252,7 @@ class VirtualTerminal private constructor(
         }
     }
 
-    private val charFlow: Flow<Int> by lazy {
+    private val charFlow: SharedFlow<Int> by lazy {
         callbackFlow {
             pane.addKeyListener(object : KeyAdapter() {
                 override fun keyPressed(e: KeyEvent) {
@@ -292,10 +296,10 @@ class VirtualTerminal private constructor(
             })
 
             awaitClose()
-        }
+        }.shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
     }
 
-    override fun read(): Flow<Int> = charFlow
+    override fun read() = charFlow
 
     override fun close() {
         SwingUtilities.invokeLater {

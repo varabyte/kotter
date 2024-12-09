@@ -4,9 +4,10 @@ import com.varabyte.kotter.foundation.input.*
 import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.text.*
 import com.varabyte.kotter.runtime.terminal.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
+import com.varabyte.kotter.runtime.terminal.inmemory.InMemoryTerminal.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlin.math.min
 
 /**
@@ -56,11 +57,11 @@ class InMemoryTerminal : Terminal {
     private val builder = StringBuilder()
     val buffer = Buffer(builder)
 
-    private val keysChannel = Channel<Int>()
+    private val keysFlow = MutableSharedFlow<Int>()
 
     suspend fun sendKeys(vararg keys: Int) {
         assertNotClosed()
-        keys.forEach { keysChannel.send(it) }
+        keys.forEach { keysFlow.emit(it) }
     }
 
     override val width = TerminalSize.Unbounded.width
@@ -71,9 +72,9 @@ class InMemoryTerminal : Terminal {
         builder.append(text)
     }
 
-    override fun read(): Flow<Int> {
+    override fun read(): SharedFlow<Int> {
         assertNotClosed()
-        return keysChannel.consumeAsFlow()
+        return keysFlow.asSharedFlow()
     }
 
     override fun clear() {
@@ -83,7 +84,6 @@ class InMemoryTerminal : Terminal {
 
     override fun close() {
         assertNotClosed()
-        keysChannel.close()
         closed = true
     }
 

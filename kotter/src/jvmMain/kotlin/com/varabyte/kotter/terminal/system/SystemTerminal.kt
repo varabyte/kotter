@@ -1,10 +1,15 @@
 package com.varabyte.kotter.terminal.system
 
+import com.varabyte.kotter.runtime.coroutines.*
 import com.varabyte.kotter.runtime.terminal.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.yield
 import org.jline.terminal.Terminal.Signal
 import org.jline.terminal.TerminalBuilder
 import org.jline.utils.InfoCmp
@@ -69,7 +74,7 @@ class SystemTerminal : Terminal {
         terminal.writer().flush()
     }
 
-    private val charFlow: Flow<Int> by lazy {
+    private val charFlow: SharedFlow<Int> by lazy {
         flow {
             var quit = false
             val context = currentCoroutineContext()
@@ -89,11 +94,13 @@ class SystemTerminal : Terminal {
                 } catch (ex: IOException) {
                     break
                 }
+
+                yield()
             }
-        }
+        }.shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
     }
 
-    override fun read(): Flow<Int> = charFlow
+    override fun read() = charFlow
 
     override fun close() {
         terminal.puts(previousCursorSetting)

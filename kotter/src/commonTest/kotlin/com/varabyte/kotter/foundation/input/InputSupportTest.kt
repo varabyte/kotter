@@ -25,6 +25,16 @@ class InputSupportTest {
     }
 
     @Test
+    fun `simple input works`() = testSession { terminal ->
+        section { input() }.run {
+            terminal.type("hello")
+            blockUntilRenderMatches(terminal) {
+                text("hello ")
+            }
+        }
+    }
+
+    @Test
     fun `can type and enter input`() = testSession { terminal ->
         lateinit var typed: String
 
@@ -954,6 +964,35 @@ class InputSupportTest {
             multilineInput()
         }.runUntilInputEntered {
             enterInput()
+        }
+    }
+
+    // This test is not so much for verifying behavior that matters for users, but more for developers who want to write
+    // Kotter tests without flaking. Because tests can run at millisecond speeds, any tricky timing input issue between
+    // sections tearing down and starting up again can easily be triggered. Note that if you were a regular human using
+    // a Kotter app, you'd never run into this issue, and worst case, maybe it would have dropped your first keypress,
+    // at which point you'd probably just hit backspace and type things in again.
+    // See also: https://github.com/varabyte/kotter/issues/114
+    @Test
+    fun `input should not break across multiple sections`() = testSession { terminal ->
+        // 100 runs is arbitrary but in practice, when this was breaking, it would generally break within the first 20
+        // runs. We run tests enough that if we ever break this in the future, we'll probably be notified eventually.
+        for (testRun in 1 .. 100) {
+            terminal.clear()
+
+            val numCharsToType = testRun % 20
+            section {
+                input()
+            }.runUntilInputEntered {
+                terminal.type(testRun.toString())
+                terminal.type(": ")
+                for (i in 0 until numCharsToType) terminal.type('a')
+                terminal.press(Keys.ENTER)
+            }
+
+            terminal.assertMatches {
+                text("${testRun}: ${"a".repeat(numCharsToType)} ")
+            }
         }
     }
 }

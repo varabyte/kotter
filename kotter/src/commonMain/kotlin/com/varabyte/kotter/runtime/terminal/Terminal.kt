@@ -1,6 +1,7 @@
 package com.varabyte.kotter.runtime.terminal
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
 
 /**
  * An interface for abstracting input and output for various terminal implementations.
@@ -29,13 +30,13 @@ interface Terminal {
     fun write(text: String)
 
     /**
-     * Return a hot [Flow] which will get triggered with characters read in by the underlying terminal, often input
-     * typed in by a user.
+     * Return a hot [SharedFlow] which will get triggered with characters read in by the underlying terminal, often
+     * input typed in by a user.
      *
      * Note that these characters may represent encodings for actions, for example LEFT will be the character sequence
      * `ESC, [, D`.
      */
-    fun read(): Flow<Int>
+    fun read(): SharedFlow<Int>
 
     /**
      * Clear the current terminal, removing all text written there so far.

@@ -1,12 +1,17 @@
 package com.varabyte.kotter.terminal.native
 
+import com.varabyte.kotter.runtime.coroutines.*
 import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.terminal.*
 import kotlinx.cinterop.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.yield
 import platform.posix.ECHO
 import platform.posix.ICANON
 import platform.posix.ICRNL
@@ -85,7 +90,7 @@ actual class NativeTerminal : Terminal {
         print(text)
     }
 
-    private val charFlow: Flow<Int> by lazy {
+    private val charFlow: SharedFlow<Int> by lazy {
         flow {
             var quit = false
             val context = currentCoroutineContext()
@@ -96,18 +101,19 @@ actual class NativeTerminal : Terminal {
                     if (closed) {
                         // terminal was just closed between this read and last read
                         quit = true
-                    } else
-                        if (readResult > 0L) {
-                            emit(cVar.value)
-                        } else {
-                            quit = (readResult == -1L)
-                        }
+                    } else if (readResult > 0L) {
+                        emit(cVar.value)
+                    } else {
+                        quit = (readResult == -1L)
                     }
+
+                    yield()
                 }
             }
-        }
+        }.shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
+    }
 
-    override fun read(): Flow<Int> = charFlow
+    override fun read() = charFlow
 
     override fun clear() {
         system("clear")

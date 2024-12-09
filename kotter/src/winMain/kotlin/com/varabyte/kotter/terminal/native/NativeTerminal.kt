@@ -1,5 +1,6 @@
 package com.varabyte.kotter.terminal.native
 
+import com.varabyte.kotter.runtime.coroutines.*
 import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.terminal.*
 import kotlinx.cinterop.Arena
@@ -9,11 +10,15 @@ import kotlinx.cinterop.invoke
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.value
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.yield
 import platform.posix.printf
 import platform.windows.CONSOLE_SCREEN_BUFFER_INFO
 import platform.windows.DWORDVar
@@ -151,7 +156,7 @@ actual class NativeTerminal : Terminal {
         }
     }
 
-    private val charFlow: Flow<Int> by lazy {
+    private val charFlow: SharedFlow<Int> by lazy {
         flow {
             var quit = false
             val context = currentCoroutineContext()
@@ -174,12 +179,14 @@ actual class NativeTerminal : Terminal {
                             quit = true
                         }
                     }
+
+                    yield()
                 }
             }
-        }
+        }.shareIn(CoroutineScope(KotterDispatchers.IO), SharingStarted.Lazily)
     }
 
-    override fun read(): Flow<Int> = charFlow
+    override fun read() = charFlow
 
     override fun clear() {
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}2J") // Clear console

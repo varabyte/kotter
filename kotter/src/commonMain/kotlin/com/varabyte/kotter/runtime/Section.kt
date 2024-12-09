@@ -149,6 +149,16 @@ class Section internal constructor(val session: Session, private val render: Mai
         session.data.start(Lifecycle)
     }
 
+    private val supervisorJob = Job()
+
+    /**
+     * A [CoroutineScope] whose lifecycle is tied to this section.
+     *
+     * It can be useful for various components to use this to launch their own coroutines, knowing they'll be
+     * automatically cancelled after the section goes out of scope.
+     */
+    val coroutineScope = CoroutineScope(KotterDispatchers.IO + supervisorJob)
+
     internal val renderer = Renderer(session) { MainRenderScope(it) }
     private val renderLock = ReentrantLock()
 
@@ -347,6 +357,10 @@ class Section internal constructor(val session: Session, private val render: Mai
         runBlocking { allRendersFinished.await() }
 
         session.data.stop(Lifecycle)
+
+        supervisorJob.cancel()
+        runBlocking { supervisorJob.join() }
+
         deferredException?.let { throw it }
     }
 }
