@@ -398,7 +398,7 @@ private fun ConcurrentScopedData.prepareInput(
     }
 
     run {
-        tryPut(UpdateInputJobReadyKey) { CompletableDeferred() }
+        tryPut(UpdateInputJobReadyKey) { CompletableDeferred<Unit>().also { get(RunDelayersKey) { add(it) } } }
         tryPut(
             UpdateInputJobKey,
             provideInitialValue = {

@@ -18,6 +18,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -25,6 +26,22 @@ import kotlin.math.min
 
 internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
 internal val AsideRendersKey = Section.Lifecycle.createKey<MutableList<Renderer<AsideRenderScope>>>()
+
+/**
+ * A list of [CompletableDeferred] instances which, if present, will be awaited for when the `run` block first starts.
+ *
+ * This can be useful if you are supporting a feature which is initialized inside a section render block that may not
+ * complete initialization immediately, but you don't want the `run` block to start until that happens, especially in
+ * tests.
+ *
+ * For example, our input system uses this. If you declare an `input()` call, we want to make sure that initializes
+ * before starting the run block, where the user can start sending keys and expecting them not to get dropped on the
+ * floor.
+ *
+ * It is useless to set this key AFTER the run block starts, and in fact it will be removed from `data` at that point.
+ */
+// This is a sensitive API to use. We'll mark it internal for now but can make it public later if users want to
+internal val RunDelayersKey = Section.Lifecycle.createKey<MutableList<CompletableDeferred<Unit>>>()
 
 private val WIPE_CURRENT_LINE_COMMAND: String = "\r${Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()}"
 
@@ -147,6 +164,7 @@ class Section internal constructor(val session: Session, private val render: Mai
 
     init {
         session.data.start(Lifecycle)
+        session.data[RunDelayersKey] = mutableListOf()
     }
 
     private val supervisorJob = Job()
@@ -336,6 +354,9 @@ class Section internal constructor(val session: Session, private val render: Mai
             val self = this
             try {
                 runBlocking {
+                    session.data.getValue(RunDelayersKey).awaitAll()
+                    session.data.remove(RunDelayersKey)
+
                     val scope = RunScope(self, this)
                     scope.block()
                 }
