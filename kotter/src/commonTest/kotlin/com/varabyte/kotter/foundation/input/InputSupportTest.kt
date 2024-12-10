@@ -42,6 +42,14 @@ class InputSupportTest {
             }
             terminal.press(Keys.Q)
         }
+
+        // ESC requires intricate internal handling due to the fact that ESC is often used as a prefix for ANSI commands
+        section {}.runUntilSignal {
+            onKeyPressed {
+                if (key == Keys.ESC) signal()
+            }
+            terminal.press(Keys.ESC)
+        }
     }
 
     @Test
