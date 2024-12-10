@@ -43,7 +43,7 @@ fun testSession(
                 buildString {
                     append("${exceptions.size} exception(s) were thrown in this test's section block. Either fix the code, wrap the offending exception explicitly in a try/catch block, or pass `suppressSectionExceptions = true` to this test's `testSession`.\n\n")
                     exceptions.forEachIndexed { index, throwable ->
-                        append("Exception #${index + 1}: $throwable\n\n")
+                        append("Exception #${index + 1}: $throwable\n${throwable.printStackTrace()}\n\n")
                     }
                 }
             }
