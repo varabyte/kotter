@@ -106,7 +106,7 @@ internal abstract class TimerManager(private val lock: ReentrantReadWriteLock) {
 internal class SystemTimerManager(lock: ReentrantReadWriteLock) : TimerManager(lock) {
     private val job = CoroutineScope(KotterDispatchers.IO).launch {
         while (isActive) {
-            delay(16)
+            delay(16) // 60fps
             triggerTimers()
         }
     }
