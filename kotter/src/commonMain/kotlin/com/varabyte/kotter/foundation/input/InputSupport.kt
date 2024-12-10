@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.min
 import kotlin.time.Duration
 
@@ -27,11 +28,11 @@ import kotlin.time.Duration
 private val BufferedTerminalBytesChannelKey = Section.Lifecycle.createKey<Channel<Int>>()
 
 // Multiple input systems, when starting up, can request to be waited for before the system is considered "ready".
-private val InputSystemLockRequestKey = Section.Lifecycle.createKey<MutableSet<Any>>()
+private val InputSystemBlockRequestersKey = Section.Lifecycle.createKey<MutableSet<Any>>()
 
 // A deferred that is completed when all input systems have been started up. At this point, it will be safe to start
 // reading from `BufferedBytesChannelKey` without worrying about data getting dropped along the way.
-private val InputSystemReadyKey = Section.Lifecycle.createKey<CompletableDeferred<Unit>>()
+private val InputSystemBlockedKey = Section.Lifecycle.createKey<CompletableDeferred<Unit>>()
 
 // A channel of keys that any coroutine can write to or read from. Will be filled with bytes read from the terminal,
 // normally, but keys can also be added programmatically (see `sendKeys`)
@@ -46,30 +47,55 @@ private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
 
 private val DefaultPageSizeKey = Session.Lifecycle.createKey<Int>()
 
+/**
+ * Fields accessible within a callback triggered by [onKeyPressed].
+ *
+ * @property key The key that was pressed. See also: [Keys]
+ */
+class OnKeyPressedScope(val key: Key)
+
+private val KeyPressedJobKey = Section.Lifecycle.createKey<Job>()
+private val KeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+
+// Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
+// callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
+// result in the user callback not getting a chance to run.
+private val SystemKeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+
 private fun ConcurrentScopedData.startBufferingTerminalBytes(section: Section) {
-    this.tryPut(InputSystemLockRequestKey) { mutableSetOf() }
-    this.tryPut(InputSystemReadyKey) { CompletableDeferred() }
     this.tryPut(BufferedTerminalBytesChannelKey) {
+        // Block until our buffered channel is hooked up or else we may lose keys in that brief period
+        val channelSubscribed = CompletableDeferred<Unit>()
         Channel<Int>(capacity = Channel.UNLIMITED)
             .also { byteChannel ->
                 section.coroutineScope.launch {
                     section.session.terminal.read()
+                        .onSubscription { channelSubscribed.complete(Unit) }
                         .collect { byte -> byteChannel.send(byte) }
                 }
+
+                runBlocking { channelSubscribed.await() }
             }
     }
 }
 
-private fun ConcurrentScopedData.requestInputSystemLock(section: Section, holder: Any) {
-    startBufferingTerminalBytes(section)
-    get(InputSystemLockRequestKey) { add(holder) }
+private fun ConcurrentScopedData.requestBlockInputSystem(requester: Any) {
+    tryPut(InputSystemBlockRequestersKey) { mutableSetOf() }
+    tryPut(InputSystemBlockedKey) { CompletableDeferred() }
+    get(InputSystemBlockRequestersKey) {
+        if (getValue(InputSystemBlockedKey).isCompleted) {
+            set(InputSystemBlockedKey, CompletableDeferred())
+        }
+
+        add(requester)
+    }
 }
 
-private fun ConcurrentScopedData.releaseInputSystemLock(holder: Any) {
-    get(InputSystemLockRequestKey) {
-        remove(holder)
+private fun ConcurrentScopedData.releaseBlockInputSystem(requester: Any) {
+    get(InputSystemBlockRequestersKey) {
+        remove(requester)
         if (this.isEmpty()) {
-            getValue(InputSystemReadyKey).complete(Unit)
+            getValue(InputSystemBlockedKey).complete(Unit)
         }
     }
 }
@@ -79,8 +105,7 @@ private class ByteToKeyProcessor(private val section: Section) {
     private val escSeq = StringBuilder()
     private var lastKeyTime: Long = 0
 
-    suspend fun process(byte: Int) {
-        val data = section.session.data
+    suspend fun process(byte: Int, consumeKey: suspend (Key) -> Unit) {
         val c = byte.toChar()
         val key = keyLock.withLock {
             lastKeyTime = getCurrentTimeMs()
@@ -149,7 +174,7 @@ private class ByteToKeyProcessor(private val section: Section) {
                                         }
                                     }
                                 }
-                                if (sendEsc) data.getValue(KeyFlowKey).emit(Keys.ESC)
+                                if (sendEsc) consumeKey(Keys.ESC)
                             }
                             null
                         }
@@ -160,9 +185,7 @@ private class ByteToKeyProcessor(private val section: Section) {
             }
         }
 
-        if (key != null) {
-            data.getValue(KeyFlowKey).emit(key)
-        }
+        if (key != null) consumeKey(key)
     }
 }
 
@@ -171,22 +194,22 @@ private class ByteToKeyProcessor(private val section: Section) {
  * cases and smoothing over other inconsistent, historical legacy.
  */
 private fun ConcurrentScopedData.prepareKeyFlow(section: Section) {
-    run {
-        tryPut(KeyFlowKey) { MutableSharedFlow() }
-        tryPut(ReadBytesFromBufferJobKey, provideInitialValue = {
-            requestInputSystemLock(section, ReadBytesFromBufferJobKey)
-            val byteToKeyProcessor = ByteToKeyProcessor(section)
-            section.coroutineScope.launch {
-                getValue(BufferedTerminalBytesChannelKey)
-                    .receiveAsFlow()
-                    .onStart {
-                        releaseInputSystemLock(ReadBytesFromBufferJobKey)
-                        getValue(InputSystemReadyKey).await()
-                    }
-                    .collect { byte -> byteToKeyProcessor.process(byte) }
-            }
-        })
-    }
+    startBufferingTerminalBytes(section)
+
+    tryPut(KeyFlowKey) { MutableSharedFlow() }
+    tryPut(ReadBytesFromBufferJobKey, provideInitialValue = {
+        requestBlockInputSystem(ReadBytesFromBufferJobKey)
+        val byteToKeyProcessor = ByteToKeyProcessor(section)
+        section.coroutineScope.launch {
+            getValue(BufferedTerminalBytesChannelKey)
+                .receiveAsFlow()
+                .onStart { releaseBlockInputSystem(ReadBytesFromBufferJobKey) }
+                .collect { byte ->
+                    getValue(InputSystemBlockedKey).await()
+                    byteToKeyProcessor.process(byte) { key -> getValue(KeyFlowKey).emit(key) }
+                }
+        }
+    })
 }
 
 /**
@@ -434,171 +457,169 @@ private fun ConcurrentScopedData.prepareInput(
         }
     }
 
-    run {
-        tryPut(
-            UpdateInputJobKey,
-            provideInitialValue = {
-                requestInputSystemLock(section, UpdateInputJobKey)
-                section.coroutineScope.launch {
-                    getValue(KeyFlowKey)
-                        .onSubscription { releaseInputSystemLock(UpdateInputJobKey) }
-                        .collect { key ->
-                            withActiveInput {
-                                val prevText = text
-                                val prevCursorIndex = cursorIndex
-                                var proposedText: String? = null
-                                var proposedCursorIndex: Int? = null
+    tryPut(
+        UpdateInputJobKey,
+        provideInitialValue = {
+            requestBlockInputSystem(UpdateInputJobKey)
+            section.coroutineScope.launch {
+                getValue(KeyFlowKey)
+                    .onSubscription { releaseBlockInputSystem(UpdateInputJobKey) }
+                    .collect { key ->
+                        withActiveInput {
+                            val prevText = text
+                            val prevCursorIndex = cursorIndex
+                            var proposedText: String? = null
+                            var proposedCursorIndex: Int? = null
 
-                                fun moveCursorUp() {
-                                    if (multilineState == null) return
-                                    val prevLineEndCursorIndex = text.getLineStartCursorIndex(cursorIndex) - 1
-                                    if (prevLineEndCursorIndex >= 0) {
-                                        val prevLineEndIndex = text.getLineIndex(prevLineEndCursorIndex)
-                                        val diffToIdealLineIndex =
-                                            (prevLineEndIndex - multilineState.idealLineIndex).coerceAtLeast(0)
-                                        cursorIndex = prevLineEndCursorIndex - diffToIdealLineIndex
-                                    }
-                                }
-
-                                fun moveCursorDown() {
-                                    if (multilineState == null) return
-                                    val nextLineStartCursorIndex = text.getLineEndCursorIndex(cursorIndex) + 1
-                                    if (nextLineStartCursorIndex <= text.length) {
-                                        val nextLineEndCursorIndex =
-                                            text.getLineEndCursorIndex(nextLineStartCursorIndex)
-                                        val nextLineLength = nextLineEndCursorIndex - nextLineStartCursorIndex
-                                        cursorIndex =
-                                            nextLineStartCursorIndex + min(
-                                                multilineState.idealLineIndex,
-                                                nextLineLength
-                                            )
-                                    }
-                                }
-
-                                when (key) {
-                                    Keys.LEFT -> {
-                                        cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
-                                        multilineState?.updateIdealLineIndex()
-                                    }
-
-                                    Keys.RIGHT -> {
-                                        if (cursorIndex < text.length) {
-                                            cursorIndex++
-                                            multilineState?.updateIdealLineIndex()
-                                        } else {
-                                            get(CompleterKey) {
-                                                complete(text)?.let { completion ->
-                                                    val finalText = text + completion
-                                                    proposedText = finalText
-                                                    proposedCursorIndex = finalText.length
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    Keys.UP -> {
-                                        moveCursorUp()
-                                    }
-
-                                    Keys.DOWN -> {
-                                        moveCursorDown()
-                                    }
-
-                                    Keys.HOME -> {
-                                        cursorIndex = text.getLineStartCursorIndex(cursorIndex)
-                                        multilineState?.updateIdealLineIndex()
-                                    }
-
-                                    Keys.END -> {
-                                        cursorIndex = text.getLineEndCursorIndex(cursorIndex)
-                                        multilineState?.updateIdealLineIndex()
-                                    }
-
-                                    Keys.PAGE_UP -> {
-                                        if (multilineState == null) return@withActiveInput
-                                        repeat(multilineState.pageSize) { moveCursorUp() }
-                                    }
-
-                                    Keys.PAGE_DOWN -> {
-                                        if (multilineState == null) return@withActiveInput
-                                        repeat(multilineState.pageSize) { moveCursorDown() }
-                                    }
-
-                                    Keys.DELETE -> {
-                                        if (cursorIndex <= text.lastIndex) {
-                                            proposedText = text.removeRange(cursorIndex, cursorIndex + 1)
-                                            proposedCursorIndex = cursorIndex
-                                        }
-                                    }
-
-                                    Keys.BACKSPACE -> {
-                                        if (cursorIndex > 0) {
-                                            proposedText = text.removeRange(cursorIndex - 1, cursorIndex)
-                                            proposedCursorIndex = cursorIndex - 1
-                                        }
-                                    }
-
-                                    Keys.ENTER, Keys.EOF -> {
-                                        if ((multilineState == null && key == Keys.ENTER) || (multilineState != null && key == Keys.EOF)) {
-                                            var rejected = false
-                                            var cleared = false
-                                            get(InputEnteredCallbackKey) {
-                                                val onInputEnteredScope = OnInputEnteredScope(id, text)
-                                                this.invoke(onInputEnteredScope)
-                                                rejected = onInputEnteredScope.rejected
-                                                cleared = onInputEnteredScope.cleared
-                                            }
-                                            if (cleared) {
-                                                getValue(InputStatesKey).remove(id)
-                                            }
-                                            if (!rejected) {
-                                                get(SystemInputEnteredCallbackKey) { this.invoke() }
-                                            }
-                                        } else if (multilineState != null) {
-                                            check(key == Keys.ENTER)
-
-                                            proposedText = text.insertAtCursorIndex(cursorIndex, '\n')
-                                            proposedCursorIndex = cursorIndex + 1
-                                        }
-                                    }
-
-                                    else ->
-                                        if (key is CharKey) {
-                                            proposedText = text.insertAtCursorIndex(cursorIndex, key.code)
-                                            proposedCursorIndex = cursorIndex + 1
-                                        }
-                                }
-
-                                if (proposedText != null) {
-                                    get(InputChangedCallbackKey) {
-                                        val onInputChangedScope =
-                                            OnInputChangedScope(id, input = proposedText!!, prevInput = text)
-                                        this.invoke(onInputChangedScope)
-
-                                        if (!onInputChangedScope.rejected) {
-                                            proposedText = onInputChangedScope.input
-                                        } else {
-                                            proposedText = onInputChangedScope.prevInput
-                                            proposedCursorIndex = cursorIndex
-                                        }
-                                    }
-
-                                    text = proposedText!!
-                                    cursorIndex = (proposedCursorIndex ?: cursorIndex).coerceIn(0, text.length)
-                                    // If the user typed something that shifted the text, we should update the current
-                                    // line index as well
-                                    if (text != prevText) multilineState?.updateIdealLineIndex()
-                                }
-
-                                if (text != prevText || cursorIndex != prevCursorIndex) {
-                                    section.requestRerender()
+                            fun moveCursorUp() {
+                                if (multilineState == null) return
+                                val prevLineEndCursorIndex = text.getLineStartCursorIndex(cursorIndex) - 1
+                                if (prevLineEndCursorIndex >= 0) {
+                                    val prevLineEndIndex = text.getLineIndex(prevLineEndCursorIndex)
+                                    val diffToIdealLineIndex =
+                                        (prevLineEndIndex - multilineState.idealLineIndex).coerceAtLeast(0)
+                                    cursorIndex = prevLineEndCursorIndex - diffToIdealLineIndex
                                 }
                             }
+
+                            fun moveCursorDown() {
+                                if (multilineState == null) return
+                                val nextLineStartCursorIndex = text.getLineEndCursorIndex(cursorIndex) + 1
+                                if (nextLineStartCursorIndex <= text.length) {
+                                    val nextLineEndCursorIndex =
+                                        text.getLineEndCursorIndex(nextLineStartCursorIndex)
+                                    val nextLineLength = nextLineEndCursorIndex - nextLineStartCursorIndex
+                                    cursorIndex =
+                                        nextLineStartCursorIndex + min(
+                                            multilineState.idealLineIndex,
+                                            nextLineLength
+                                        )
+                                }
+                            }
+
+                            when (key) {
+                                Keys.LEFT -> {
+                                    cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
+                                    multilineState?.updateIdealLineIndex()
+                                }
+
+                                Keys.RIGHT -> {
+                                    if (cursorIndex < text.length) {
+                                        cursorIndex++
+                                        multilineState?.updateIdealLineIndex()
+                                    } else {
+                                        get(CompleterKey) {
+                                            complete(text)?.let { completion ->
+                                                val finalText = text + completion
+                                                proposedText = finalText
+                                                proposedCursorIndex = finalText.length
+                                            }
+                                        }
+                                    }
+                                }
+
+                                Keys.UP -> {
+                                    moveCursorUp()
+                                }
+
+                                Keys.DOWN -> {
+                                    moveCursorDown()
+                                }
+
+                                Keys.HOME -> {
+                                    cursorIndex = text.getLineStartCursorIndex(cursorIndex)
+                                    multilineState?.updateIdealLineIndex()
+                                }
+
+                                Keys.END -> {
+                                    cursorIndex = text.getLineEndCursorIndex(cursorIndex)
+                                    multilineState?.updateIdealLineIndex()
+                                }
+
+                                Keys.PAGE_UP -> {
+                                    if (multilineState == null) return@withActiveInput
+                                    repeat(multilineState.pageSize) { moveCursorUp() }
+                                }
+
+                                Keys.PAGE_DOWN -> {
+                                    if (multilineState == null) return@withActiveInput
+                                    repeat(multilineState.pageSize) { moveCursorDown() }
+                                }
+
+                                Keys.DELETE -> {
+                                    if (cursorIndex <= text.lastIndex) {
+                                        proposedText = text.removeRange(cursorIndex, cursorIndex + 1)
+                                        proposedCursorIndex = cursorIndex
+                                    }
+                                }
+
+                                Keys.BACKSPACE -> {
+                                    if (cursorIndex > 0) {
+                                        proposedText = text.removeRange(cursorIndex - 1, cursorIndex)
+                                        proposedCursorIndex = cursorIndex - 1
+                                    }
+                                }
+
+                                Keys.ENTER, Keys.EOF -> {
+                                    if ((multilineState == null && key == Keys.ENTER) || (multilineState != null && key == Keys.EOF)) {
+                                        var rejected = false
+                                        var cleared = false
+                                        get(InputEnteredCallbackKey) {
+                                            val onInputEnteredScope = OnInputEnteredScope(id, text)
+                                            this.invoke(onInputEnteredScope)
+                                            rejected = onInputEnteredScope.rejected
+                                            cleared = onInputEnteredScope.cleared
+                                        }
+                                        if (cleared) {
+                                            getValue(InputStatesKey).remove(id)
+                                        }
+                                        if (!rejected) {
+                                            get(SystemInputEnteredCallbackKey) { this.invoke() }
+                                        }
+                                    } else if (multilineState != null) {
+                                        check(key == Keys.ENTER)
+
+                                        proposedText = text.insertAtCursorIndex(cursorIndex, '\n')
+                                        proposedCursorIndex = cursorIndex + 1
+                                    }
+                                }
+
+                                else ->
+                                    if (key is CharKey) {
+                                        proposedText = text.insertAtCursorIndex(cursorIndex, key.code)
+                                        proposedCursorIndex = cursorIndex + 1
+                                    }
+                            }
+
+                            if (proposedText != null) {
+                                get(InputChangedCallbackKey) {
+                                    val onInputChangedScope =
+                                        OnInputChangedScope(id, input = proposedText!!, prevInput = text)
+                                    this.invoke(onInputChangedScope)
+
+                                    if (!onInputChangedScope.rejected) {
+                                        proposedText = onInputChangedScope.input
+                                    } else {
+                                        proposedText = onInputChangedScope.prevInput
+                                        proposedCursorIndex = cursorIndex
+                                    }
+                                }
+
+                                text = proposedText!!
+                                cursorIndex = (proposedCursorIndex ?: cursorIndex).coerceIn(0, text.length)
+                                // If the user typed something that shifted the text, we should update the current
+                                // line index as well
+                                if (text != prevText) multilineState?.updateIdealLineIndex()
+                            }
+
+                            if (text != prevText || cursorIndex != prevCursorIndex) {
+                                section.requestRerender()
+                            }
                         }
-                }
-            },
-        )
-    }
+                    }
+            }
+        },
+    )
 }
 
 /**
@@ -1051,21 +1072,6 @@ fun MainRenderScope.multilineInput(
 }
 
 /**
- * Fields accessible within a callback triggered by [onKeyPressed].
- *
- * @property key The key that was pressed. See also: [Keys]
- */
-class OnKeyPressedScope(val key: Key)
-
-private val KeyPressedJobKey = Section.Lifecycle.createKey<Job>()
-private val KeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
-
-// Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
-// callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
-// result in the user callback not getting a chance to run.
-private val SystemKeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
-
-/**
  * Start running a job that collects keypresses and sends them to callbacks.
  *
  * This is a no-op when called after the first time.
@@ -1075,10 +1081,10 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(section: Section) {
     tryPut(
         KeyPressedJobKey,
         provideInitialValue = {
-            requestInputSystemLock(section, KeyPressedJobKey)
+            requestBlockInputSystem(KeyPressedJobKey)
             section.coroutineScope.launch {
                 getValue(KeyFlowKey)
-                    .onSubscription { releaseInputSystemLock(KeyPressedJobKey) }
+                    .onSubscription { releaseBlockInputSystem(KeyPressedJobKey) }
                     .collect { key ->
                         val scope = OnKeyPressedScope(key)
                         get(KeyPressedCallbackKey) { this.invoke(scope) }

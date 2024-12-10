@@ -35,6 +35,16 @@ class InputSupportTest {
     }
 
     @Test
+    fun `onKeyPressed works`() = testSession { terminal ->
+        section {}.runUntilSignal {
+            onKeyPressed {
+                if (key == Keys.Q) signal()
+            }
+            terminal.press(Keys.Q)
+        }
+    }
+
+    @Test
     fun `can type and enter input`() = testSession { terminal ->
         lateinit var typed: String
 
