@@ -14,6 +14,14 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 /**
+ * Exception thrown when [blockUntilRenderWhen] times out.
+ *
+ * We wrap the [TimeoutCancellationException] because this is an exception that we want to not get swallowed by the
+ * coroutine machinery. This way, if a test fails due to a timeout, we can see the stack trace and debug it.
+ */
+class BlockUntilRenderTimeoutException(wrapped: TimeoutCancellationException) : Exception(wrapped)
+
+/**
  * Block the current run block until a render has occurred where the passed in [condition] is true.
  *
  * This can be useful to do because, due to the threading nature of Kotter (e.g. one thread gets notified, which
@@ -65,7 +73,7 @@ fun RunScope.blockUntilRenderWhen(timeout: Duration? = null, condition: () -> Bo
         } catch (ex: TimeoutCancellationException) {
             // rethrow the timeout cancellation exception so that it doesn't get silently swallowed by coroutine
             // machinery.
-            throw IllegalStateException(ex)
+            throw BlockUntilRenderTimeoutException(ex)
         }
     }
 }
@@ -100,7 +108,7 @@ fun RunScope.blockUntilRenderMatches(
         blockUntilRenderWhen(timeout) {
             terminal.resolveRerenders() == expectedOutput
         }
-    } catch (_: TimeoutCancellationException) {
+    } catch (_: BlockUntilRenderTimeoutException) {
         // This will fail but at least it will give us an informative error message
         terminal.assertMatches { expected() }
     } catch (t: Throwable) {
