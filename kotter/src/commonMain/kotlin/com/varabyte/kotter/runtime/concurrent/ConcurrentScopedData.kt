@@ -156,8 +156,8 @@ class ConcurrentScopedData {
      * Any keys that are added (e.g. with [tryPut] and [putIfAbsent]) when a lifecycle is not active will be silently
      * ignored.
      */
-    fun start(lifecycle: Lifecycle) {
-        lock.write {
+    fun start(lifecycle: Lifecycle): Boolean {
+        return lock.write {
             activeLifecycles.add(lifecycle)
         }
     }
@@ -226,9 +226,13 @@ class ConcurrentScopedData {
      *
      * This might silently do nothing if no data was found with the key. If you want to ensure the block always runs,
      * consider using [putIfAbsent] instead.
+     *
+     * Note: Even though this is a [get] method, the [block] will be called within a write lock, meaning you can safely
+     * modify the value inside the block without worrying about other parts of the code simultaneously also modifying it
+     * (for example, if the value stored is a mutable list).
      */
     fun <T : Any> get(key: Key<T>, block: T.() -> Unit) {
-        lock.read { this[key]?.let { value -> value.block() } }
+        lock.write { this[key]?.block() }
     }
 
     /**
@@ -320,7 +324,12 @@ class ConcurrentScopedData {
             var wasPut = false
             if (isActive(key.lifecycle)) {
                 lock.write {
-                    keyValues.computeIfAbsent(key) { wasPut = true; Value(provideInitialValue(), dispose) }
+                    // Add manually instead of using computeIfAbsent, as `provideInitialValue()` may itself register
+                    // additional keys, which is legal, but we don't want it to cause a ConcurrentModificationException
+                    if (!keyValues.containsKey(key)) {
+                        keyValues[key] = Value(provideInitialValue(), dispose)
+                        wasPut = true
+                    }
                 }
             }
             wasPut

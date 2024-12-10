@@ -11,128 +11,179 @@ import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.text.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.onSubscription
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlin.math.min
 import kotlin.time.Duration
 
-// A channel of keys that any coroutine can write to or read from.
+// A copy of the terminal key buffer, which we need to create to buffer incoming bytes while the input system starts up.
+// It takes a handful of milliseconds sometimes for our multi-layered flows to connect up, which is fine for human users
+// but leaves gaps in tests.
+private val BufferedTerminalBytesChannelKey = Section.Lifecycle.createKey<Channel<Int>>()
+
+// Multiple input systems, when starting up, can request to be waited for before the system is considered "ready".
+private val InputSystemLockRequestKey = Section.Lifecycle.createKey<MutableSet<Any>>()
+
+// A deferred that is completed when all input systems have been started up. At this point, it will be safe to start
+// reading from `BufferedBytesChannelKey` without worrying about data getting dropped along the way.
+private val InputSystemReadyKey = Section.Lifecycle.createKey<CompletableDeferred<Unit>>()
+
+// A channel of keys that any coroutine can write to or read from. Will be filled with bytes read from the terminal,
+// normally, but keys can also be added programmatically (see `sendKeys`)
 private val KeyFlowKey = Section.Lifecycle.createKey<MutableSharedFlow<Key>>()
 
 // A job that reads system input and converts incoming byte values into Kotter `Key` instances.
-private val ReadKeyJobKey = Section.Lifecycle.createKey<Job>()
-private val ReadKeyJobReadyKey = Section.Lifecycle.createKey<CompletableDeferred<Unit>>()
+private val ReadBytesFromBufferJobKey = Section.Lifecycle.createKey<Job>()
 
 // The job that consumes `KeyFlowKey`'s `Key` output and uses it to affect the active `input`, if any is declared in the
 // section block.
 private val UpdateInputJobKey = Section.Lifecycle.createKey<Job>()
-private val UpdateInputJobReadyKey = Section.Lifecycle.createKey<CompletableDeferred<Unit>>()
 
 private val DefaultPageSizeKey = Session.Lifecycle.createKey<Int>()
+
+private fun ConcurrentScopedData.startBufferingTerminalBytes(section: Section) {
+    this.tryPut(InputSystemLockRequestKey) { mutableSetOf() }
+    this.tryPut(InputSystemReadyKey) { CompletableDeferred() }
+    this.tryPut(BufferedTerminalBytesChannelKey) {
+        Channel<Int>(capacity = Channel.UNLIMITED)
+            .also { byteChannel ->
+                section.coroutineScope.launch {
+                    section.session.terminal.read()
+                        .collect { byte -> byteChannel.send(byte) }
+                }
+            }
+    }
+}
+
+private fun ConcurrentScopedData.requestInputSystemLock(section: Section, holder: Any) {
+    startBufferingTerminalBytes(section)
+    get(InputSystemLockRequestKey) { add(holder) }
+}
+
+private fun ConcurrentScopedData.releaseInputSystemLock(holder: Any) {
+    get(InputSystemLockRequestKey) {
+        remove(holder)
+        if (this.isEmpty()) {
+            getValue(InputSystemReadyKey).complete(Unit)
+        }
+    }
+}
+
+private class ByteToKeyProcessor(private val section: Section) {
+    private val keyLock = ReentrantLock()
+    private val escSeq = StringBuilder()
+    private var lastKeyTime: Long = 0
+
+    suspend fun process(byte: Int) {
+        val data = section.session.data
+        val c = byte.toChar()
+        val key = keyLock.withLock {
+            lastKeyTime = getCurrentTimeMs()
+            when {
+                escSeq.isNotEmpty() -> {
+                    // Normally, we get here if we're continuing an existing esc sequence, but if so
+                    // some reason a previous one was never consumed *and* we are starting a new ESC
+                    // sequence, just clear out anything left over from before. This could happen for
+                    // example if the user just pressed ESC (which puts an ESC in the escSeq queue and
+                    // waits a while before sending it out), but maybe also we end up getting an escape
+                    // sequence that we didn't know how to handle, and without doing this, that old
+                    // sequence would block us from working ever again.
+                    if (c == Ansi.CtrlChars.ESC) escSeq.clear()
+
+                    escSeq.append(c)
+                    val code = Ansi.EscSeq.toCsiCode(escSeq)
+                    if (code != null) {
+                        escSeq.clear()
+                        when (code) {
+                            Ansi.Csi.Codes.Keys.UP -> Keys.UP
+                            Ansi.Csi.Codes.Keys.DOWN -> Keys.DOWN
+                            Ansi.Csi.Codes.Keys.LEFT -> Keys.LEFT
+                            Ansi.Csi.Codes.Keys.RIGHT -> Keys.RIGHT
+                            Ansi.Csi.Codes.Keys.HOME, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_START -> Keys.HOME
+                            Ansi.Csi.Codes.Keys.INSERT -> Keys.INSERT
+                            Ansi.Csi.Codes.Keys.DELETE -> Keys.DELETE
+                            Ansi.Csi.Codes.Keys.END, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_END -> Keys.END
+                            Ansi.Csi.Codes.Keys.PG_UP -> Keys.PAGE_UP
+                            Ansi.Csi.Codes.Keys.PG_DOWN -> Keys.PAGE_DOWN
+                            else -> null
+                        }
+                    } else {
+                        null
+                    }
+                }
+
+                else -> {
+                    when (c) {
+                        Ansi.CtrlChars.EOF -> Keys.EOF
+                        // Windows uses BACKSPACE, *nix uses DELETE? Best to support both
+                        Ansi.CtrlChars.BACKSPACE, Ansi.CtrlChars.DELETE -> Keys.BACKSPACE
+                        Ansi.CtrlChars.TAB -> Keys.TAB
+                        Ansi.CtrlChars.ENTER -> Keys.ENTER
+                        Ansi.CtrlChars.ESC -> {
+                            escSeq.append(c)
+                            // This is kind of ugly, but we need to detect the difference between the
+                            // user pressing ESC on their own vs it being the first character in a chain
+                            // of an escape sequence generated by the terminal. If the terminal
+                            // generates an escape sequence, the whole thing is consumed sub
+                            // millisecond, so waiting a couple dozen ms to be sure we aren't getting
+                            // any followup characters. Note that a user can hold the keys down which
+                            // generates a bunch of key signals, so we additionally make sure there
+                            // hasn't been any other key pressed.
+                            section.coroutineScope.launch {
+                                val delayMs = 50L
+                                var doneWaiting = false
+                                var sendEsc = false
+                                while (!doneWaiting) {
+                                    delay(10L)
+                                    keyLock.withLock {
+                                        if (getCurrentTimeMs() - lastKeyTime > delayMs) {
+                                            sendEsc =
+                                                escSeq.length == 1 && escSeq.contains(Ansi.CtrlChars.ESC)
+                                            if (sendEsc) escSeq.clear()
+                                            doneWaiting = true
+                                        }
+                                    }
+                                }
+                                if (sendEsc) data.getValue(KeyFlowKey).emit(Keys.ESC)
+                            }
+                            null
+                        }
+
+                        else -> if (!c.isISOControl()) CharKey(c) else null
+                    }
+                }
+            }
+        }
+
+        if (key != null) {
+            data.getValue(KeyFlowKey).emit(key)
+        }
+    }
+}
 
 /**
  * Create a [Flow<Key>] value which converts bytes read from a terminal into keys, handling some gnarly multibyte
  * cases and smoothing over other inconsistent, historical legacy.
  */
 private fun ConcurrentScopedData.prepareKeyFlow(section: Section) {
-    val terminal = section.session.terminal
     run {
         tryPut(KeyFlowKey) { MutableSharedFlow() }
-        tryPut(ReadKeyJobReadyKey) { CompletableDeferred() }
-        tryPut(ReadKeyJobKey, provideInitialValue = {
-            val keyLock = ReentrantLock()
-            val escSeq = StringBuilder()
-            var lastKeyTime: Long
+        tryPut(ReadBytesFromBufferJobKey, provideInitialValue = {
+            requestInputSystemLock(section, ReadBytesFromBufferJobKey)
+            val byteToKeyProcessor = ByteToKeyProcessor(section)
             section.coroutineScope.launch {
-                terminal.read()
-                    .onSubscription { getValue(ReadKeyJobReadyKey).complete(Unit) }
-                    .collect { byte ->
-                        val c = byte.toChar()
-                        val key = keyLock.withLock {
-                            lastKeyTime = getCurrentTimeMs()
-                            when {
-                                escSeq.isNotEmpty() -> {
-                                    // Normally, we get here if we're continuing an existing esc sequence, but if so
-                                    // some reason a previous one was never consumed *and* we are starting a new ESC
-                                    // sequence, just clear out anything left over from before. This could happen for
-                                    // example if the user just pressed ESC (which puts an ESC in the escSeq queue and
-                                    // waits a while before sending it out), but maybe also we end up getting an escape
-                                    // sequence that we didn't know how to handle, and without doing this, that old
-                                    // sequence would block us from working ever again.
-                                    if (c == Ansi.CtrlChars.ESC) escSeq.clear()
-
-                                    escSeq.append(c)
-                                    val code = Ansi.EscSeq.toCsiCode(escSeq)
-                                    if (code != null) {
-                                        escSeq.clear()
-                                        when (code) {
-                                            Ansi.Csi.Codes.Keys.UP -> Keys.UP
-                                            Ansi.Csi.Codes.Keys.DOWN -> Keys.DOWN
-                                            Ansi.Csi.Codes.Keys.LEFT -> Keys.LEFT
-                                            Ansi.Csi.Codes.Keys.RIGHT -> Keys.RIGHT
-                                            Ansi.Csi.Codes.Keys.HOME, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_START -> Keys.HOME
-                                            Ansi.Csi.Codes.Keys.INSERT -> Keys.INSERT
-                                            Ansi.Csi.Codes.Keys.DELETE -> Keys.DELETE
-                                            Ansi.Csi.Codes.Keys.END, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_END -> Keys.END
-                                            Ansi.Csi.Codes.Keys.PG_UP -> Keys.PAGE_UP
-                                            Ansi.Csi.Codes.Keys.PG_DOWN -> Keys.PAGE_DOWN
-                                            else -> null
-                                        }
-                                    } else {
-                                        null
-                                    }
-                                }
-
-                                else -> {
-                                    when (c) {
-                                        Ansi.CtrlChars.EOF -> Keys.EOF
-                                        // Windows uses BACKSPACE, *nix uses DELETE? Best to support both
-                                        Ansi.CtrlChars.BACKSPACE, Ansi.CtrlChars.DELETE -> Keys.BACKSPACE
-                                        Ansi.CtrlChars.TAB -> Keys.TAB
-                                        Ansi.CtrlChars.ENTER -> Keys.ENTER
-                                        Ansi.CtrlChars.ESC -> {
-                                            escSeq.append(c)
-                                            // This is kind of ugly, but we need to detect the difference between the
-                                            // user pressing ESC on their own vs it being the first character in a chain
-                                            // of an escape sequence generated by the terminal. If the terminal
-                                            // generates an escape sequence, the whole thing is consumed sub
-                                            // millisecond, so waiting a couple dozen ms to be sure we aren't getting
-                                            // any followup characters. Note that a user can hold the keys down which
-                                            // generates a bunch of key signals, so we additionally make sure there
-                                            // hasn't been any other key pressed.
-                                            section.coroutineScope.launch {
-                                                val delayMs = 50L
-                                                var doneWaiting = false
-                                                var sendEsc = false
-                                                while (!doneWaiting) {
-                                                    delay(10L)
-                                                    keyLock.withLock {
-                                                        if (getCurrentTimeMs() - lastKeyTime > delayMs) {
-                                                            sendEsc =
-                                                                escSeq.length == 1 && escSeq.contains(Ansi.CtrlChars.ESC)
-                                                            if (sendEsc) escSeq.clear()
-                                                            doneWaiting = true
-                                                        }
-                                                    }
-                                                }
-                                                if (sendEsc) getValue(KeyFlowKey).emit(Keys.ESC)
-                                            }
-                                            null
-                                        }
-
-                                        else -> if (!c.isISOControl()) CharKey(c) else null
-                                    }
-                                }
-                            }
-                        }
-
-                        if (key != null) {
-                            getValue(KeyFlowKey).emit(key)
-                        }
+                getValue(BufferedTerminalBytesChannelKey)
+                    .receiveAsFlow()
+                    .onStart {
+                        releaseInputSystemLock(ReadBytesFromBufferJobKey)
+                        getValue(InputSystemReadyKey).await()
                     }
+                    .collect { byte -> byteToKeyProcessor.process(byte) }
             }
         })
     }
@@ -143,7 +194,6 @@ private fun ConcurrentScopedData.prepareKeyFlow(section: Section) {
  */
 fun RunScope.sendKeys(vararg keys: Key) {
     if (keys.isEmpty()) return
-    data.waitForInputReady()
     section.coroutineScope.launch {
         val keyFlow = data.getValue(KeyFlowKey)
         keys.forEach { keyFlow.emit(it) }
@@ -291,19 +341,6 @@ var Session.defaultPageSize: Int
         data[DefaultPageSizeKey] = value
     }
 
-// Semi hack alert: Input tests run too fast, meaning there's a good chance that they'll try to send keypresses before
-// we're ready. This method collects all the different completable deferred keys we use for the various systems. This
-// should be called liberally anywhere users might call functions to interact with our input system. After this is
-// called, it is guaranteed that the various flows behind these systems are hooked up.
-// There may be a better way than this but I haven't figured it out yet....
-private fun ConcurrentScopedData.waitForInputReady() {
-    runBlocking {
-        get(ReadKeyJobReadyKey)?.await()
-        get(UpdateInputJobReadyKey)?.await()
-        get(KeyPressedJobReadyKey)?.await()
-    }
-}
-
 /**
  * If necessary, instantiate data that the [input] method expects to exist.
  *
@@ -398,18 +435,13 @@ private fun ConcurrentScopedData.prepareInput(
     }
 
     run {
-        tryPut(UpdateInputJobReadyKey) { CompletableDeferred<Unit>().also { get(RunDelayersKey) { add(it) } } }
         tryPut(
             UpdateInputJobKey,
             provideInitialValue = {
+                requestInputSystemLock(section, UpdateInputJobKey)
                 section.coroutineScope.launch {
                     getValue(KeyFlowKey)
-                        .onSubscription {
-                            // Wait for the key flow to be hooked up before signaling to listeners that we are also
-                            // ready (since we'll miss keys that are sent before the "read key" job is also up).
-                            getValue(ReadKeyJobReadyKey).await()
-                            getValue(UpdateInputJobReadyKey).complete(Unit)
-                        }
+                        .onSubscription { releaseInputSystemLock(UpdateInputJobKey) }
                         .collect { key ->
                             withActiveInput {
                                 val prevText = text
@@ -1025,14 +1057,13 @@ fun MainRenderScope.multilineInput(
  */
 class OnKeyPressedScope(val key: Key)
 
-private val KeyPressedJobKey = RunScope.Lifecycle.createKey<Job>()
-private val KeyPressedJobReadyKey = RunScope.Lifecycle.createKey<CompletableDeferred<Unit>>()
-private val KeyPressedCallbackKey = RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+private val KeyPressedJobKey = Section.Lifecycle.createKey<Job>()
+private val KeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
 
 // Note: We create a separate key here from above to ensure we can trigger the system callback only AFTER the user
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
-private val SystemKeyPressedCallbackKey = RunScope.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
+private val SystemKeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
 
 /**
  * Start running a job that collects keypresses and sends them to callbacks.
@@ -1041,13 +1072,13 @@ private val SystemKeyPressedCallbackKey = RunScope.Lifecycle.createKey<OnKeyPres
  */
 private fun ConcurrentScopedData.prepareOnKeyPressed(section: Section) {
     prepareKeyFlow(section)
-    tryPut(KeyPressedJobReadyKey) { CompletableDeferred() }
     tryPut(
         KeyPressedJobKey,
         provideInitialValue = {
+            requestInputSystemLock(section, KeyPressedJobKey)
             section.coroutineScope.launch {
                 getValue(KeyFlowKey)
-                    .onSubscription { getValue(KeyPressedJobReadyKey).complete(Unit) }
+                    .onSubscription { releaseInputSystemLock(KeyPressedJobKey) }
                     .collect { key ->
                         val scope = OnKeyPressedScope(key)
                         get(KeyPressedCallbackKey) { this.invoke(scope) }
@@ -1076,7 +1107,6 @@ private fun ConcurrentScopedData.prepareOnKeyPressed(section: Section) {
  */
 fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
     data.prepareOnKeyPressed(section)
-    data.waitForInputReady()
 
     if (!data.tryPut(KeyPressedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onKeyPressed` callback at a time is supported.")
@@ -1098,9 +1128,8 @@ fun RunScope.onKeyPressed(listener: OnKeyPressedScope.() -> Unit) {
  * ```
  */
 fun Section.runUntilKeyPressed(vararg keys: Key, block: suspend RunScope.() -> Unit = {}) {
+    session.data.prepareOnKeyPressed(this@runUntilKeyPressed)
     run {
-        session.data.prepareOnKeyPressed(this@runUntilKeyPressed)
-        session.data.waitForInputReady()
         // We need to abort as even if the user puts a while(true) in their run block, we still want to exit
         data[SystemKeyPressedCallbackKey] = { if (keys.contains(key)) abort() }
         block()
@@ -1151,7 +1180,6 @@ private fun ConcurrentScopedData.withActiveInput(block: InputState.() -> Unit) {
  * ```
  */
 fun RunScope.onInputActivated(listener: OnInputActivatedScope.() -> Unit) {
-    data.waitForInputReady()
     if (!data.tryPut(InputActivatedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputActivated` callback at a time is supported.")
     } else {
@@ -1200,8 +1228,6 @@ private val InputDeactivatedCallbackKey = RunScope.Lifecycle.createKey<OnInputDe
  * ```
  */
 fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
-    data.waitForInputReady()
-
     if (!data.tryPut(
             InputDeactivatedCallbackKey,
             provideInitialValue = { listener },
@@ -1256,7 +1282,6 @@ private val InputChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputChange
  * ```
  */
 fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
-    data.waitForInputReady()
     if (!data.tryPut(InputChangedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputChanged` callback at a time is supported.")
     }
@@ -1321,7 +1346,6 @@ private object SystemInputEnteredCallbackKey : ConcurrentScopedData.Key<() -> Un
  * accepted.
  */
 fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
-    data.waitForInputReady()
     if (!data.tryPut(InputEnteredCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputEntered` callback at a time is supported.")
     }
@@ -1343,7 +1367,6 @@ fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
  */
 fun Section.runUntilInputEntered(block: suspend RunScope.() -> Unit = {}) {
     run {
-        session.data.waitForInputReady()
         // We need to abort as even if the user puts a while(true) in their run block, we still want to exit
         data[SystemInputEnteredCallbackKey] = { abort() }
         block()
