@@ -151,13 +151,12 @@ private fun ConcurrentScopedData.prepareKeyFlow(section: Section) {
         var jobConnected: CompletableDeferred<Unit>? = null
         tryPut(ReadBytesJobKey, provideInitialValue = {
             jobConnected = CompletableDeferred()
+            val keyFlow = getValue(KeyFlowKey) // Get now while we still have the lock
             val byteToKeyProcessor = ByteToKeyProcessor(section)
             section.coroutineScope.launch {
                 section.session.terminal.read()
                     .onSubscription { jobConnected!!.complete(Unit) }
-                    .collect { byte ->
-                        byteToKeyProcessor.process(byte) { key -> getValue(KeyFlowKey).emit(key) }
-                    }
+                    .collect { byte -> byteToKeyProcessor.process(byte) { key -> keyFlow.emit(key) } }
             }
         })
         jobConnected?.let { runBlocking { it.await() } }
