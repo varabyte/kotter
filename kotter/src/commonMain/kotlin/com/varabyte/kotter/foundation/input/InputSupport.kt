@@ -11,28 +11,22 @@ import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.text.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.onSubscription
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.min
 import kotlin.time.Duration
 
-// A copy of the terminal key buffer, which we need to create to buffer incoming bytes while the input system starts up.
-// It takes a handful of milliseconds sometimes for our multi-layered flows to connect up, which is fine for human users
-// but leaves gaps in tests.
-private val BufferedTerminalBytesChannelKey = Section.Lifecycle.createKey<Channel<Int>>()
-
-// A channel of keys that any coroutine can write to or read from. Will be filled with bytes read from the terminal,
-// normally, but keys can also be added programmatically (see `sendKeys`)
+// A flow of keys that any coroutine can write to or read from. Will be filled with bytes read from the terminal,
+// normally (see `ReadBytesJobKey`), but keys can also be added programmatically (see `sendKeys`)
 private val KeyFlowKey = Section.Lifecycle.createKey<MutableSharedFlow<Key>>()
 
-// A job that reads system input and converts incoming byte values into Kotter `Key` instances.
-private val ReadBytesFromBufferJobKey = Section.Lifecycle.createKey<Job>()
+// A job that reads system input and converts incoming byte values into Kotter `Key` instances (writing them into the
+// flow stored at `KeyFlowKey`
+private val ReadBytesJobKey = Section.Lifecycle.createKey<Job>()
 
 // The job that consumes `KeyFlowKey`'s `Key` output and uses it to affect the active `input`, if any is declared in the
 // section block.
@@ -54,23 +48,6 @@ private val KeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPressedScop
 // callback was triggered. That's because the system handler may fire a signal which, if sent out too early, could
 // result in the user callback not getting a chance to run.
 private val SystemKeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPressedScope.() -> Unit>()
-
-private fun ConcurrentScopedData.startBufferingTerminalBytes(section: Section) {
-    this.tryPut(BufferedTerminalBytesChannelKey) {
-        // Block until our buffered channel is hooked up or else we may lose keys in that brief period
-        val channelSubscribed = CompletableDeferred<Unit>()
-        Channel<Int>(capacity = Channel.UNLIMITED)
-            .also { byteChannel ->
-                section.coroutineScope.launch {
-                    section.session.terminal.read()
-                        .onSubscription { channelSubscribed.complete(Unit) }
-                        .collect { byte -> byteChannel.send(byte) }
-                }
-
-                runBlocking { channelSubscribed.await() }
-            }
-    }
-}
 
 private class ByteToKeyProcessor(private val section: Section) {
     private val keyLock = ReentrantLock()
@@ -166,19 +143,25 @@ private class ByteToKeyProcessor(private val section: Section) {
  * cases and smoothing over other inconsistent, historical legacy.
  */
 private fun ConcurrentScopedData.prepareKeyFlow(section: Section) {
-    startBufferingTerminalBytes(section)
-
     tryPut(KeyFlowKey) { MutableSharedFlow() }
-    tryPut(ReadBytesFromBufferJobKey, provideInitialValue = {
-        val byteToKeyProcessor = ByteToKeyProcessor(section)
-        section.coroutineScope.launch {
-            getValue(BufferedTerminalBytesChannelKey)
-                .receiveAsFlow()
-                .collect { byte ->
-                    byteToKeyProcessor.process(byte) { key -> getValue(KeyFlowKey).emit(key) }
-                }
-        }
-    })
+
+    run {
+        // Wait for the job to be connected before giving control back to the user. Otherwise, they might be able to
+        // type some keys that we will miss.
+        var jobConnected: CompletableDeferred<Unit>? = null
+        tryPut(ReadBytesJobKey, provideInitialValue = {
+            jobConnected = CompletableDeferred()
+            val byteToKeyProcessor = ByteToKeyProcessor(section)
+            section.coroutineScope.launch {
+                section.session.terminal.read()
+                    .onSubscription { jobConnected!!.complete(Unit) }
+                    .collect { byte ->
+                        byteToKeyProcessor.process(byte) { key -> getValue(KeyFlowKey).emit(key) }
+                    }
+            }
+        })
+        jobConnected?.let { runBlocking { it.await() } }
+    }
 }
 
 /**
@@ -427,17 +410,17 @@ private fun ConcurrentScopedData.prepareInput(
     }
 
     run {
-        // Wait for the job to be connected before giving control back to the user. Otherwise, they might be able to type
-        // some keys that we will miss.
-        var inputJobConnected: CompletableDeferred<Unit>? = null
+        // Wait for the job to be connected before giving control back to the user. Otherwise, they might be able to
+        // type some keys that we will miss.
+        var jobConnected: CompletableDeferred<Unit>? = null
         tryPut(
             UpdateInputJobKey,
             provideInitialValue = {
-                inputJobConnected = CompletableDeferred()
+                jobConnected = CompletableDeferred()
                 val keyFlow = getValue(KeyFlowKey).asSharedFlow() // Get now while we still have the lock
                 section.coroutineScope.launch {
                     keyFlow
-                        .onSubscription { inputJobConnected!!.complete(Unit) }
+                        .onSubscription { jobConnected!!.complete(Unit) }
                         .collect { key ->
                             withActiveInput {
                                 val prevText = text
@@ -594,7 +577,7 @@ private fun ConcurrentScopedData.prepareInput(
                 }
             },
         )
-        inputJobConnected?.let { runBlocking { it.await() } }
+        jobConnected?.let { runBlocking { it.await() } }
     }
 }
 
@@ -1055,27 +1038,29 @@ fun MainRenderScope.multilineInput(
 private fun ConcurrentScopedData.prepareOnKeyPressed(section: Section) {
     prepareKeyFlow(section)
 
-    // Wait for the job to be connected before giving control back to the user. Otherwise, they might be able to type
-    // some keys that we will miss.
-    var keyPressJobConnected: CompletableDeferred<Unit>? = null
-    tryPut(
-        KeyPressedJobKey,
-        provideInitialValue = {
-            keyPressJobConnected = CompletableDeferred()
-            val keyFlow = getValue(KeyFlowKey).asSharedFlow() // Get now while we still have the lock
-            section.coroutineScope.launch {
-                keyFlow
-                    .onSubscription { keyPressJobConnected!!.complete(Unit) }
-                    .collect { key ->
-                        val scope = OnKeyPressedScope(key)
-                        get(KeyPressedCallbackKey) { this.invoke(scope) }
-                        get(SystemKeyPressedCallbackKey) { this.invoke(scope) }
-                    }
-            }
-        },
-    )
+    run {
+        // Wait for the job to be connected before giving control back to the user. Otherwise, they might be able to
+        // type some keys that we will miss.
+        var jobConnected: CompletableDeferred<Unit>? = null
+        tryPut(
+            KeyPressedJobKey,
+            provideInitialValue = {
+                jobConnected = CompletableDeferred()
+                val keyFlow = getValue(KeyFlowKey).asSharedFlow() // Get now while we still have the lock
+                section.coroutineScope.launch {
+                    keyFlow
+                        .onSubscription { jobConnected!!.complete(Unit) }
+                        .collect { key ->
+                            val scope = OnKeyPressedScope(key)
+                            get(KeyPressedCallbackKey) { this.invoke(scope) }
+                            get(SystemKeyPressedCallbackKey) { this.invoke(scope) }
+                        }
+                }
+            },
+        )
 
-    keyPressJobConnected?.let { runBlocking { it.await() } }
+        jobConnected?.let { runBlocking { it.await() } }
+    }
 }
 
 /**
