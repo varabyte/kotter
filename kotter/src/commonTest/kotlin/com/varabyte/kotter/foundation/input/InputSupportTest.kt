@@ -985,6 +985,26 @@ class InputSupportTest {
         }
     }
 
+    @Test
+    fun `sendKeys works as a way to programmatically submit text`() = testSession { terminal ->
+        section {
+            input()
+        }.run {
+            terminal.type("Hello ")
+            blockUntilRenderMatches(terminal) {
+                text("Hello  ")
+            }
+            sendKeys(Keys.W_UPPER, Keys.O, Keys.R, Keys.L, Keys.D)
+            blockUntilRenderMatches(terminal) {
+                text("Hello World ")
+            }
+            terminal.type("!!!")
+            blockUntilRenderMatches(terminal) {
+                text("Hello World!!! ")
+            }
+        }
+    }
+
     // This test is not so much for verifying behavior that matters for users, but more for developers who want to write
     // Kotter tests without flaking. Because tests can run at millisecond speeds, any tricky timing input issue between
     // sections tearing down and starting up again can easily be triggered. Note that if you were a regular human using
