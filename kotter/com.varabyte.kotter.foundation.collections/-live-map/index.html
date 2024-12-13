@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>LiveMap</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            kotter
+                    </a>
+            </div>
+            <div class="library-version">
+1.2.1            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":kotter:dokkaHtml/commonMain">common</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="kotter::com.varabyte.kotter.foundation.collections/LiveMap///PointingToDeclaration//84325635">
+  <div class="breadcrumbs"><a href="../../../index.html">kotter</a><span class="delimiter">/</span><a href="../index.html">com.varabyte.kotter.foundation.collections</a><span class="delimiter">/</span><span class="current">LiveMap</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Live</span><wbr></wbr><span><span>Map</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><span data-unresolved-link="com.varabyte.kotter.platform.internal.concurrent.annotations/ThreadSafe///PointingToDeclaration/"><span class="token annotation builtin">ThreadSafe</span></span></div></div><span class="token keyword">class </span><a href="index.html">LiveMap</a><span class="token operator">&lt;</span><a href="index.html">K</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span> : <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-map/index.html">MutableMap</a><span class="token operator">&lt;</span><a href="index.html">K</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt; </span></div><p class="paragraph">Like <a href="../../com.varabyte.kotter.foundation/-live-var/index.html">LiveVar</a>, but for maps.</p><p class="paragraph">In other words, adding or removing to the map will cause the active section to rerender automatically.</p><p class="paragraph">For example:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">val num2Names = liveMapOf(1 to &quot;one&quot;, 2 to &quot;two&quot;, 3 to &quot;three&quot;)<br>section {<br>    num2Names.forEach { (num, name) -&gt; textLine(&quot;$num is spelled \&quot;$name\&quot;&quot;) }<br>}.run {<br>    num2Names.putAll(mapOf(4 to &quot;four&quot;, 5 to &quot;five&quot;, 6 to &quot;six&quot;))<br>}</code></pre><span class="top-right-position"><span class="copy-icon"></span><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div></span></div><p class="paragraph">This class is thread safe and expected to be accessed across different threads.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-540986429%2FProperties%2F84325635" anchor-label="entries" id="-540986429%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="entries.html"><span><span>entries</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-540986429%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="entries.html">entries</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-set/index.html">MutableSet</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-map/-mutable-entry/index.html">MutableMap.MutableEntry</a><span class="token operator">&lt;</span><a href="index.html">K</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1655081613%2FProperties%2F84325635" anchor-label="keys" id="-1655081613%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="keys.html"><span><span>keys</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1655081613%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="keys.html">keys</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-set/index.html">MutableSet</a><span class="token operator">&lt;</span><a href="index.html">K</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-896844794%2FProperties%2F84325635" anchor-label="size" id="-896844794%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="size.html"><span><span>size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-896844794%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="size.html">size</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-509004923%2FProperties%2F84325635" anchor-label="values" id="-509004923%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="values.html"><span><span>values</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-509004923%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="values.html">values</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-mutable-collection/index.html">MutableCollection</a><span class="token operator">&lt;</span><a href="index.html">V</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-1390858714%2FFunctions%2F84325635" anchor-label="clear" id="-1390858714%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clear.html"><span><span>clear</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1390858714%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="clear.html"><span class="token function">clear</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1281949707%2FFunctions%2F84325635" anchor-label="containsKey" id="1281949707%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="contains-key.html"><span>contains</span><wbr></wbr><span><span>Key</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1281949707%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="contains-key.html"><span class="token function">containsKey</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="index.html">K</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1538637405%2FFunctions%2F84325635" anchor-label="containsValue" id="1538637405%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="contains-value.html"><span>contains</span><wbr></wbr><span><span>Value</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1538637405%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="contains-value.html"><span class="token function">containsValue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="index.html">V</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1312942175%2FFunctions%2F84325635" anchor-label="get" id="-1312942175%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get.html"><span><span>get</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1312942175%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">operator override </span><span class="token keyword">fun </span><a href="get.html"><span class="token function">get</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="index.html">K</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">V</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2002404720%2FFunctions%2F84325635" anchor-label="isEmpty" id="2002404720%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-empty.html"><span>is</span><wbr></wbr><span><span>Empty</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2002404720%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="is-empty.html"><span class="token function">isEmpty</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-221221895%2FFunctions%2F84325635" anchor-label="put" id="-221221895%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="put.html"><span><span>put</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-221221895%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="put.html"><span class="token function">put</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="index.html">K</a><span class="token punctuation">, </span></span><span class="parameter ">value<span class="token operator">: </span><a href="index.html">V</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">V</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-515860569%2FFunctions%2F84325635" anchor-label="putAll" id="-515860569%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="put-all.html"><span>put</span><wbr></wbr><span><span>All</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-515860569%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="put-all.html"><span class="token function">putAll</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">from<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-map/index.html">Map</a><span class="token operator">&lt;</span><span class="token keyword">out </span><a href="index.html">K</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="383158075%2FFunctions%2F84325635" anchor-label="remove" id="383158075%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="remove.html"><span><span>remove</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="383158075%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="remove.html"><span class="token function">remove</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">key<span class="token operator">: </span><a href="index.html">K</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">V</a><span class="token operator">?</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-226343504%2FFunctions%2F84325635" anchor-label="withReadLock" id="-226343504%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="with-read-lock.html"><span>with</span><wbr></wbr><span>Read</span><wbr></wbr><span><span>Lock</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-226343504%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="with-read-lock.html">R</a><span class="token operator">&gt; </span><a href="with-read-lock.html"><span class="token function">withReadLock</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><a href="index.html">LiveMap</a><span class="token operator">&lt;</span><a href="index.html">K</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="with-read-lock.html">R</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="with-read-lock.html">R</a></div><div class="brief "><p class="paragraph">Allow calls to lock the map for a longer time than just a single field at a time, useful if reading many fields at once.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1330774463%2FFunctions%2F84325635" anchor-label="withWriteLock" id="-1330774463%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="with-write-lock.html"><span>with</span><wbr></wbr><span>Write</span><wbr></wbr><span><span>Lock</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1330774463%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="with-write-lock.html">R</a><span class="token operator">&gt; </span><a href="with-write-lock.html"><span class="token function">withWriteLock</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><a href="index.html">LiveMap</a><span class="token operator">&lt;</span><a href="index.html">K</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="with-write-lock.html">R</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="with-write-lock.html">R</a></div><div class="brief "><p class="paragraph">Allow calls to write lock the map for a longer time than just a single field at a time, useful if updating many fields at once.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

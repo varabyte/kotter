@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Section</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            kotter
+                    </a>
+            </div>
+            <div class="library-version">
+1.2.1            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":kotter:dokkaHtml/commonMain">common</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="kotter::com.varabyte.kotter.runtime/Section///PointingToDeclaration//84325635">
+  <div class="breadcrumbs"><a href="../../../index.html">kotter</a><span class="delimiter">/</span><a href="../index.html">com.varabyte.kotter.runtime</a><span class="delimiter">/</span><span class="current">Section</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Section</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Section</a></div><p class="paragraph">The class which represents the state of a <code class="lang-kotlin">section</code> block and its registered event handlers (e.g. <a href="run.html">run</a> and <a href="on-finishing.html">onFinishing</a>).</p><p class="paragraph">A user cannot instantiate this directly. Instead, use <a href="../-session/section.html">Session.section</a>.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="1956911557%2FClasslikes%2F84325635" anchor-label="Lifecycle" id="1956911557%2FClasslikes%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-lifecycle/index.html"><span><span>Lifecycle</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1956911557%2FClasslikes%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-lifecycle/index.html">Lifecycle</a> : <a href="../../com.varabyte.kotter.runtime.concurrent/-concurrent-scoped-data/-lifecycle/index.html">ConcurrentScopedData.Lifecycle</a></div><div class="brief "><p class="paragraph">A moderately long lifecycle that lives as long as the block is running.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1544637329%2FClasslikes%2F84325635" anchor-label="OnRenderedScope" id="-1544637329%2FClasslikes%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-on-rendered-scope/index.html"><span>On</span><wbr></wbr><span>Rendered</span><wbr></wbr><span><span>Scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1544637329%2FClasslikes%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-on-rendered-scope/index.html">OnRenderedScope</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>removeListener<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="1150079202%2FProperties%2F84325635" anchor-label="coroutineScope" id="1150079202%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="coroutine-scope.html"><span>coroutine</span><wbr></wbr><span><span>Scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1150079202%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="coroutine-scope.html">coroutineScope</a><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines/CoroutineScope///PointingToDeclaration/">CoroutineScope</span></div><div class="brief "><p class="paragraph">A <span data-unresolved-link="kotlinx.coroutines/CoroutineScope///PointingToDeclaration/">CoroutineScope</span> whose lifecycle is tied to this section.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="492504326%2FProperties%2F84325635" anchor-label="session" id="492504326%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="session.html"><span><span>session</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="492504326%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="session.html">session</a><span class="token operator">: </span><a href="../-session/index.html">Session</a></div><div class="brief "><p class="paragraph">The parent session this section was created by.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-99885766%2FFunctions%2F84325635" anchor-label="onFinishing" id="-99885766%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-finishing.html"><span>on</span><wbr></wbr><span><span>Finishing</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-99885766%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="on-finishing.html"><span class="token function">onFinishing</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Section</a></div><div class="brief "><p class="paragraph">Add a callback which will get triggered after this block has just about finished running and is about to shut down.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2120740748%2FFunctions%2F84325635" anchor-label="onRendered" id="-2120740748%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="on-rendered.html"><span>on</span><wbr></wbr><span><span>Rendered</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2120740748%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="on-rendered.html"><span class="token function">onRendered</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><a href="-on-rendered-scope/index.html">Section.OnRenderedScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Section</a></div><div class="brief "><p class="paragraph">Add a callback which will get triggered after this block has just about finished running and is about to shut down.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1179180452%2FFunctions%2F84325635" anchor-label="requestRerender" id="1179180452%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="request-rerender.html"><span>request</span><wbr></wbr><span><span>Rerender</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1179180452%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="request-rerender.html"><span class="token function">requestRerender</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Let the block know we want to rerender an additional frame.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1361283883%2FFunctions%2F84325635" anchor-label="run" id="-1361283883%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="run.html"><span><span>run</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1361283883%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="run.html"><span class="token function">run</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><span class="token keyword">suspend </span><a href="../-run-scope/index.html">RunScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Run a section block, applying its commands, thereby rendering them.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1771975%2FFunctions%2F84325635" anchor-label="runFor" id="1771975%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.timer/run-for.html"><span>run</span><wbr></wbr><span><span>For</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1771975%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Section</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.timer/run-for.html"><span class="token function">runFor</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">duration<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token punctuation">, </span></span><span class="parameter ">onTimeElapsed<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}<span class="token punctuation">, </span></span><span class="parameter ">block<span class="token operator">: </span><span class="token keyword">suspend </span><a href="../-run-scope/index.html">RunScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A <code class="lang-kotlin">run</code> block which runs for an exact duration amount, before exiting.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1820068029%2FFunctions%2F84325635" anchor-label="runForAtLeast" id="1820068029%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.timer/run-for-at-least.html"><span>run</span><wbr></wbr><span>For</span><wbr></wbr><span>At</span><wbr></wbr><span><span>Least</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1820068029%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Section</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.timer/run-for-at-least.html"><span class="token function">runForAtLeast</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">duration<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token punctuation">, </span></span><span class="parameter ">onTimeElapsed<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}<span class="token punctuation">, </span></span><span class="parameter ">block<span class="token operator">: </span><span class="token keyword">suspend </span><a href="../-run-scope/index.html">RunScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Like <a href="../../com.varabyte.kotter.foundation.timer/run-for.html">runFor</a>, but won't violently exit the run block after the timer expires.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="647130129%2FFunctions%2F84325635" anchor-label="runForAtMost" id="647130129%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.timer/run-for-at-most.html"><span>run</span><wbr></wbr><span>For</span><wbr></wbr><span>At</span><wbr></wbr><span><span>Most</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="647130129%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Section</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.timer/run-for-at-most.html"><span class="token function">runForAtMost</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">duration<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token punctuation">, </span></span><span class="parameter ">onTimeElapsed<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}<span class="token punctuation">, </span></span><span class="parameter ">block<span class="token operator">: </span><span class="token keyword">suspend </span><a href="../-run-scope/index.html">RunScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A <code class="lang-kotlin">run</code> block which sets a maximum amount of time that it can run.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2123308166%2FFunctions%2F84325635" anchor-label="runUntilInputEntered" id="-2123308166%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.input/run-until-input-entered.html"><span>run</span><wbr></wbr><span>Until</span><wbr></wbr><span>Input</span><wbr></wbr><span><span>Entered</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2123308166%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Section</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.input/run-until-input-entered.html"><span class="token function">runUntilInputEntered</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><span class="token keyword">suspend </span><a href="../-run-scope/index.html">RunScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A <code class="lang-kotlin">run</code> block which runs until the user has pressed ENTER on some currently active <a href="../../com.varabyte.kotter.foundation.input/input.html">input</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1016068345%2FFunctions%2F84325635" anchor-label="runUntilKeyPressed" id="1016068345%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.input/run-until-key-pressed.html"><span>run</span><wbr></wbr><span>Until</span><wbr></wbr><span>Key</span><wbr></wbr><span><span>Pressed</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1016068345%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Section</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.input/run-until-key-pressed.html"><span class="token function">runUntilKeyPressed</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>keys<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.input/-key/index.html">Key</a><span class="token punctuation">, </span></span><span class="parameter ">block<span class="token operator">: </span><span class="token keyword">suspend </span><a href="../-run-scope/index.html">RunScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a><span class="token operator"> = </span>{}</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A <code class="lang-kotlin">run</code> block which runs until one of the specified keys is pressed by the user.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="723096121%2FFunctions%2F84325635" anchor-label="runUntilSignal" id="723096121%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation/run-until-signal.html"><span>run</span><wbr></wbr><span>Until</span><wbr></wbr><span><span>Signal</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="723096121%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Section</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation/run-until-signal.html"><span class="token function">runUntilSignal</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><span class="token keyword">suspend </span><a href="../-run-scope/index.html">RunScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A <a href="run.html">Section.run</a> block that won't finish running until <a href="../-run-scope/signal.html">RunScope.signal</a> is called.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

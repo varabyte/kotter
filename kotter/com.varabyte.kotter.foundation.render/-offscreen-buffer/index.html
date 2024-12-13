@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>OffscreenBuffer</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            kotter
+                    </a>
+            </div>
+            <div class="library-version">
+1.2.1            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":kotter:dokkaHtml/commonMain">common</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="kotter::com.varabyte.kotter.foundation.render/OffscreenBuffer///PointingToDeclaration//84325635">
+  <div class="breadcrumbs"><a href="../../../index.html">kotter</a><span class="delimiter">/</span><a href="../index.html">com.varabyte.kotter.foundation.render</a><span class="delimiter">/</span><span class="current">OffscreenBuffer</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Offscreen</span><wbr></wbr><span><span>Buffer</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">OffscreenBuffer</a></div><p class="paragraph">An internal buffer that stores commands without actively rendering them.</p><p class="paragraph">As a user, you won't create one yourself, but you'll use <a href="../offscreen.html">offscreen</a> to do so.</p><p class="paragraph">This class itself is inert, but you can use <a href="create-renderer.html">createRenderer</a> to create another class that can apply its commands to the current render scope.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="952554356%2FProperties%2F84325635" anchor-label="lineLengths" id="952554356%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="line-lengths.html"><span>line</span><wbr></wbr><span><span>Lengths</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="952554356%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="line-lengths.html">lineLengths</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">A property which provides access to the lengths of each line in the buffer.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1422221291%2FProperties%2F84325635" anchor-label="maxWidth" id="1422221291%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="max-width.html"><span>max</span><wbr></wbr><span><span>Width</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1422221291%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="max-width.html">maxWidth</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="433193995%2FProperties%2F84325635" anchor-label="numLines" id="433193995%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_PROPERTY" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../num-lines.html"><span>num</span><wbr></wbr><span><span>Lines</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="433193995%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="index.html">OffscreenBuffer</a><span class="token punctuation">.</span><a href="../num-lines.html">numLines</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">How many lines of text were generated within this offscreen buffer.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-2022984850%2FFunctions%2F84325635" anchor-label="createRenderer" id="-2022984850%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="create-renderer.html"><span>create</span><wbr></wbr><span><span>Renderer</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2022984850%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="create-renderer.html"><span class="token function">createRenderer</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-offscreen-command-renderer/index.html">OffscreenCommandRenderer</a></div><div class="brief "><p class="paragraph">Create an <a href="../-offscreen-command-renderer/index.html">OffscreenCommandRenderer</a> which can apply this buffer's commands into the current render scope.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="533121066%2FFunctions%2F84325635" anchor-label="isEmpty" id="533121066%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-empty.html"><span>is</span><wbr></wbr><span><span>Empty</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="533121066%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="is-empty.html"><span class="token function">isEmpty</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-908000650%2FFunctions%2F84325635" anchor-label="isNotEmpty" id="-908000650%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../is-not-empty.html"><span>is</span><wbr></wbr><span>Not</span><wbr></wbr><span><span>Empty</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-908000650%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">OffscreenBuffer</a><span class="token punctuation">.</span><a href="../is-not-empty.html"><span class="token function">isNotEmpty</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

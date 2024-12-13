@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>OneShotRenderScope</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            kotter
+                    </a>
+            </div>
+            <div class="library-version">
+1.2.1            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector common-like" data-active="" data-filter=":kotter:dokkaHtml/commonMain">common</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="kotter::com.varabyte.kotter.runtime.render/OneShotRenderScope///PointingToDeclaration//84325635">
+  <div class="breadcrumbs"><a href="../../../index.html">kotter</a><span class="delimiter">/</span><a href="../index.html">com.varabyte.kotter.runtime.render</a><span class="delimiter">/</span><span class="current">OneShotRenderScope</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>One</span><wbr></wbr><span>Shot</span><wbr></wbr><span>Render</span><wbr></wbr><span><span>Scope</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">class </span><a href="index.html">OneShotRenderScope</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">renderer<span class="token operator">: </span><a href="../-renderer/index.html">Renderer</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span> : <a href="../-render-scope/index.html">RenderScope</a></div><p class="paragraph">Marker base class for render scopes that are only ever meant to fire once</p><h4 class="">Inheritors</h4><div class="table"><div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-aside-render-scope/index.html">AsideRenderScope</a></div></span></div><div></div></div></div><div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><a href="../-offscreen-render-scope/index.html">OffscreenRenderScope</a></div></span></div><div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-565259380%2FConstructors%2F84325635" anchor-label="OneShotRenderScope" id="-565259380%2FConstructors%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-one-shot-render-scope.html"><span>One</span><wbr></wbr><span>Shot</span><wbr></wbr><span>Render</span><wbr></wbr><span><span>Scope</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-565259380%2FConstructors%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">renderer<span class="token operator">: </span><a href="../-renderer/index.html">Renderer</a><span class="token operator">&lt;</span><span class="token operator">*</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="-901085155%2FProperties%2F84325635" anchor-label="data" id="-901085155%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-render-scope/data.html"><span><span>data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-901085155%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="../-render-scope/data.html">data</a><span class="token operator">: </span><a href="../../com.varabyte.kotter.runtime.concurrent/-concurrent-scoped-data/index.html">ConcurrentScopedData</a></div><div class="brief "><p class="paragraph">Data store for this session.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-215526546%2FProperties%2F84325635" anchor-label="section" id="-215526546%2FProperties%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-render-scope/section.html"><span><span>section</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-215526546%2FProperties%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="../-render-scope/section.html">section</a><span class="token operator">: </span><a href="../../com.varabyte.kotter.runtime/-section/index.html">Section</a></div><div class="brief "><p class="paragraph">The current section this block is being rendered into.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="-1369848124%2FFunctions%2F84325635" anchor-label="black" id="-1369848124%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/black.html"><span><span>black</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1369848124%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/black.html"><span class="token function">black</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored black.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/black.html"><span class="token function">black</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored black.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1209975554%2FFunctions%2F84325635" anchor-label="blue" id="1209975554%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/blue.html"><span><span>blue</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1209975554%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/blue.html"><span class="token function">blue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored blue.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/blue.html"><span class="token function">blue</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored blue.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="401281173%2FFunctions%2F84325635" anchor-label="bold" id="401281173%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/bold.html"><span><span>bold</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="401281173%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/bold.html"><span class="token function">bold</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be bolded.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/bold.html"><span class="token function">bold</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Creates a new scope within which any text will be bolded.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="519421583%2FFunctions%2F84325635" anchor-label="bordered" id="519421583%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotterx.decorations/bordered.html"><span><span>bordered</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="519421583%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotterx.decorations/bordered.html"><span class="token function">bordered</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">borderCharacters<span class="token operator">: </span><a href="../../com.varabyte.kotterx.decorations/-border-characters/index.html">BorderCharacters</a><span class="token operator"> = </span>BorderCharacters.BOX_THIN<span class="token punctuation">, </span></span><span class="parameter ">paddingLeftRight<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">paddingTopBottom<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">render<span class="token operator">: </span><a href="../-offscreen-render-scope/index.html">OffscreenRenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Automatically render a border around some inner content.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-434138567%2FFunctions%2F84325635" anchor-label="clearAll" id="-434138567%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/clear-all.html"><span>clear</span><wbr></wbr><span><span>All</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-434138567%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-all.html"><span class="token function">clearAll</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clear all actively set text effects.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-490811345%2FFunctions%2F84325635" anchor-label="clearBold" id="-490811345%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/clear-bold.html"><span>clear</span><wbr></wbr><span><span>Bold</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-490811345%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-bold.html"><span class="token function">clearBold</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clears a previous call to <a href="../../com.varabyte.kotter.foundation.text/bold.html">bold</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1038588708%2FFunctions%2F84325635" anchor-label="clearColor" id="1038588708%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/clear-color.html"><span>clear</span><wbr></wbr><span><span>Color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1038588708%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-color.html"><span class="token function">clearColor</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clears any color set earlier in this scope on a particular <a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-color.html"><span class="token function">clearColor</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any color set earlier on a particular <a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a> will be cleared.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1146298787%2FFunctions%2F84325635" anchor-label="clearColors" id="-1146298787%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/clear-colors.html"><span>clear</span><wbr></wbr><span><span>Colors</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1146298787%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-colors.html"><span class="token function">clearColors</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clears any colors set earlier in this scope.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-colors.html"><span class="token function">clearColors</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any colors set earlier will be cleared.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1439367806%2FFunctions%2F84325635" anchor-label="clearInvert" id="1439367806%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/clear-invert.html"><span>clear</span><wbr></wbr><span><span>Invert</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1439367806%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-invert.html"><span class="token function">clearInvert</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clears a previous call to <a href="../../com.varabyte.kotter.foundation.text/invert.html">invert</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1331250937%2FFunctions%2F84325635" anchor-label="clearStrikethrough" id="-1331250937%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/clear-strikethrough.html"><span>clear</span><wbr></wbr><span><span>Strikethrough</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1331250937%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-strikethrough.html"><span class="token function">clearStrikethrough</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clears a previous call to <a href="../../com.varabyte.kotter.foundation.text/strikethrough.html">strikethrough</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1729341330%2FFunctions%2F84325635" anchor-label="clearUnderline" id="-1729341330%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/clear-underline.html"><span>clear</span><wbr></wbr><span><span>Underline</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1729341330%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/clear-underline.html"><span class="token function">clearUnderline</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clears a previous call to <a href="../../com.varabyte.kotter.foundation.text/underline.html">underline</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1891735204%2FFunctions%2F84325635" anchor-label="color" id="1891735204%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/color.html"><span><span>color</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1891735204%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/color.html"><span class="token function">color</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">color<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color/index.html">Color</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored with the specified <a href="../../com.varabyte.kotter.foundation.text/-color/index.html">Color</a> value.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/color.html"><span class="token function">color</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored by the color associated with the ANSI <a href="../../com.varabyte.kotter.foundation.text/color.html">color index</a>.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/color.html"><span class="token function">color</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">color<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color/index.html">Color</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored with the specified <a href="../../com.varabyte.kotter.foundation.text/-color/index.html">Color</a> value.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/color.html"><span class="token function">color</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">index<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored using a color associated with the ANSI <a href="../../com.varabyte.kotter.foundation.text/color.html">color index</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1098988564%2FFunctions%2F84325635" anchor-label="cyan" id="1098988564%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/cyan.html"><span><span>cyan</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1098988564%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/cyan.html"><span class="token function">cyan</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored cyan.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/cyan.html"><span class="token function">cyan</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored cyan.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-735752320%2FFunctions%2F84325635" anchor-label="getInput" id="-735752320%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.input/get-input.html"><span>get</span><wbr></wbr><span><span>Input</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-735752320%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../../com.varabyte.kotter.runtime/-section-scope/index.html">SectionScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.input/get-input.html"><span class="token function">getInput</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">id<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator"> = </span>Unit</span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Fetch the current value of some <a href="../../com.varabyte.kotter.foundation.input/input.html">input</a> call from anywhere within a <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/index.html">RunScope.run</a> block, if one is set.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-143456956%2FFunctions%2F84325635" anchor-label="green" id="-143456956%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/green.html"><span><span>green</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-143456956%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/green.html"><span class="token function">green</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored green.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/green.html"><span class="token function">green</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored green.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="474203219%2FFunctions%2F84325635" anchor-label="grid" id="474203219%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotterx.grid/grid.html"><span><span>grid</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="474203219%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotterx.grid/grid.html"><span class="token function">grid</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cols<span class="token operator">: </span><a href="../../com.varabyte.kotterx.grid/-cols/index.html">Cols</a><span class="token punctuation">, </span></span><span class="parameter ">targetWidth<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">characters<span class="token operator">: </span><a href="../../com.varabyte.kotterx.grid/-grid-characters/index.html">GridCharacters</a><span class="token operator"> = </span>GridCharacters.ASCII<span class="token punctuation">, </span></span><span class="parameter ">paddingLeftRight<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">justification<span class="token operator">: </span><a href="../../com.varabyte.kotterx.text/-justification/index.html">Justification</a><span class="token operator"> = </span>Justification.LEFT<span class="token punctuation">, </span></span><span class="parameter ">maxCellHeight<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>Int.MAX_VALUE<span class="token punctuation">, </span></span><span class="parameter ">render<span class="token operator">: </span><a href="../../com.varabyte.kotterx.grid/-grid-scope/index.html">GridScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Declare a grid of cells.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-408282844%2FFunctions%2F84325635" anchor-label="hsv" id="-408282844%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/hsv.html"><span><span>hsv</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-408282844%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/hsv.html"><span class="token function">hsv</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">color<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-h-s-v/index.html">HSV</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG</span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/hsv.html"><span class="token function">hsv</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">hsv<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-h-s-v/index.html">HSV</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><br><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/hsv.html"><span class="token function">hsv</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">h<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">s<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a><span class="token punctuation">, </span></span><span class="parameter ">v<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored by the input HSV value.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/hsv.html"><span class="token function">hsv</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">h<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">s<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a><span class="token punctuation">, </span></span><span class="parameter ">v<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-float/index.html">Float</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored by the input HSV value.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="258911027%2FFunctions%2F84325635" anchor-label="invert" id="258911027%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/invert.html"><span><span>invert</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="258911027%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/invert.html"><span class="token function">invert</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope as inverted, so that any text after this point will be rendered with its background and foreground color layers switched.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/invert.html"><span class="token function">invert</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be rendered with its background and foreground color layers switched.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1606714506%2FFunctions%2F84325635" anchor-label="justified" id="1606714506%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotterx.text/justified.html"><span><span>justified</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1606714506%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotterx.text/justified.html"><span class="token function">justified</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">justification<span class="token operator">: </span><a href="../../com.varabyte.kotterx.text/-justification/index.html">Justification</a><span class="token punctuation">, </span></span><span class="parameter ">minWidth<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">padRight<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span>justification != Justification.RIGHT<span class="token punctuation">, </span></span><span class="parameter ">render<span class="token operator">: </span><a href="../-offscreen-render-scope/index.html">OffscreenRenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Adds spacing around lines to support justification across a block of text.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2057732062%2FFunctions%2F84325635" anchor-label="link" id="-2057732062%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/link.html"><span><span>link</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2057732062%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/link.html"><span class="token function">link</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uri<span class="token operator">: </span><a href="../../com.varabyte.kotter.platform.net/-uri/index.html">Uri</a><span class="token punctuation">, </span></span><span class="parameter ">displayText<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-char-sequence/index.html">CharSequence</a><span class="token operator"> = </span>uri.toString()</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Render text backed by a link, so it can be clicked to navigate to some URI.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/link.html"><span class="token function">link</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">uri<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-char-sequence/index.html">CharSequence</a><span class="token punctuation">, </span></span><span class="parameter ">displayText<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-char-sequence/index.html">CharSequence</a><span class="token operator"> = </span>uri</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1151079812%2FFunctions%2F84325635" anchor-label="magenta" id="1151079812%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/magenta.html"><span><span>magenta</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1151079812%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/magenta.html"><span class="token function">magenta</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored magenta.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/magenta.html"><span class="token function">magenta</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored magenta.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1227163561%2FFunctions%2F84325635" anchor-label="offscreen" id="1227163561%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.render/offscreen.html"><span><span>offscreen</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1227163561%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.render/offscreen.html"><span class="token function">offscreen</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">render<span class="token operator">: </span><a href="../-offscreen-render-scope/index.html">OffscreenRenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.render/-offscreen-buffer/index.html">OffscreenBuffer</a></div><div class="brief "><p class="paragraph">An offscreen block lets you create a temporary internal section that doesn't render until you're ready for it to.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.render/offscreen.html"><span class="token function">offscreen</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">maxWidth<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">render<span class="token operator">: </span><a href="../-offscreen-render-scope/index.html">OffscreenRenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.render/-offscreen-buffer/index.html">OffscreenBuffer</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="817845442%2FFunctions%2F84325635" anchor-label="p" id="817845442%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/p.html"><span><span>p</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="817845442%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/p.html"><span class="token function">p</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">block<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a &quot;paragraph&quot; for text.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2047728327%2FFunctions%2F84325635" anchor-label="popState" id="2047728327%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-render-scope/pop-state.html"><span>pop</span><wbr></wbr><span><span>State</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2047728327%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/pop-state.html"><span class="token function">popState</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Pop a state section added by <a href="../-render-scope/push-state.html">pushState</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-993660036%2FFunctions%2F84325635" anchor-label="pushState" id="-993660036%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-render-scope/push-state.html"><span>push</span><wbr></wbr><span><span>State</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-993660036%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/push-state.html"><span class="token function">pushState</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Push a new state section onto the stack.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1924540292%2FFunctions%2F84325635" anchor-label="red" id="1924540292%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/red.html"><span><span>red</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1924540292%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/red.html"><span class="token function">red</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored red.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/red.html"><span class="token function">red</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored red.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1991462796%2FFunctions%2F84325635" anchor-label="rgb" id="1991462796%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/rgb.html"><span><span>rgb</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1991462796%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">color<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-r-g-b/index.html">RGB</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG</span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">rgb<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-r-g-b/index.html">RGB</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><br><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored by the RGB hex value.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored by the input hex value.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">r<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">g<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">b<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG</span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored by the input RGB value.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/rgb.html"><span class="token function">rgb</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">r<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">g<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">b<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored by the input RGB value.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1762376253%2FFunctions%2F84325635" anchor-label="scopedState" id="-1762376253%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../-render-scope/scoped-state.html"><span>scoped</span><wbr></wbr><span><span>State</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1762376253%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/scoped-state.html"><span class="token function">scopedState</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Run the <a href="../-render-scope/scoped-state.html">scopedBlock</a> within a new context within which any state changes will be cleared after it exits.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1864344363%2FFunctions%2F84325635" anchor-label="shiftRight" id="1864344363%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotterx.text/shift-right.html"><span>shift</span><wbr></wbr><span><span>Right</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1864344363%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotterx.text/shift-right.html"><span class="token function">shiftRight</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">amount<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">render<span class="token operator">: </span><a href="../-offscreen-render-scope/index.html">OffscreenRenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Shift the contents of this buffer over to the right by some <a href="../../com.varabyte.kotterx.text/shift-right.html">amount</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="832955933%2FFunctions%2F84325635" anchor-label="strikethrough" id="832955933%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/strikethrough.html"><span><span>strikethrough</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="832955933%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/strikethrough.html"><span class="token function">strikethrough</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be struck-through.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/strikethrough.html"><span class="token function">strikethrough</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Creates a new scope within which any text will be struck-through.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1838244675%2FFunctions%2F84325635" anchor-label="text" id="-1838244675%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.anim/text.html"><span><span>text</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1838244675%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.anim/text.html"><span class="token function">text</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">anim<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.anim/-text-anim/index.html">TextAnim</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Append the current frame of text animation to the current section.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/text.html"><span class="token function">text</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">c<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-char/index.html">Char</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Append a character to the current section.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/text.html"><span class="token function">text</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">text<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-char-sequence/index.html">CharSequence</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Append some text to the current section.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="134268809%2FFunctions%2F84325635" anchor-label="textLine" id="134268809%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.anim/text-line.html"><span>text</span><wbr></wbr><span><span>Line</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="134268809%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.anim/text-line.html"><span class="token function">textLine</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">anim<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.anim/-text-anim/index.html">TextAnim</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Append the current frame of text animation to the current section, followed by a newline.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/text-line.html"><span class="token function">textLine</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Append a newline to the current section.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/text-line.html"><span class="token function">textLine</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">c<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-char/index.html">Char</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Append a character to the current section, followed by a newline.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/text-line.html"><span class="token function">textLine</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">text<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-char-sequence/index.html">CharSequence</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Append some text to the current section, followed by a newline.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="661747005%2FFunctions%2F84325635" anchor-label="underline" id="661747005%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/underline.html"><span><span>underline</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="661747005%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/underline.html"><span class="token function">underline</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be underlined.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/underline.html"><span class="token function">underline</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Creates a new scope within which any text will be underlined.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2057279740%2FFunctions%2F84325635" anchor-label="white" id="-2057279740%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/white.html"><span><span>white</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2057279740%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/white.html"><span class="token function">white</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored white.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/white.html"><span class="token function">white</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored white.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-900190474%2FFunctions%2F84325635" anchor-label="yellow" id="-900190474%2FFunctions%2F84325635" data-filterable-set=":kotter:dokkaHtml/commonMain"></a>
+          <div class="table-row" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter:dokkaHtml/commonMain" data-filterable-set=":kotter:dokkaHtml/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.text/yellow.html"><span><span>yellow</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-900190474%2FFunctions%2F84325635"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter:dokkaHtml/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/yellow.html"><span class="token function">yellow</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Marks the current scope so that any text after this point will be colored yellow.</p></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.text/yellow.html"><span class="token function">yellow</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">layer<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.text/-color-layer/index.html">ColorLayer</a><span class="token operator"> = </span>ColorLayer.FG<span class="token punctuation">, </span></span><span class="parameter ">isBright<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">false</span><span class="token punctuation">, </span></span><span class="parameter ">scopedBlock<span class="token operator">: </span><a href="../-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Create a new scope within which any text will be colored yellow.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
