@@ -21,7 +21,7 @@ import kotlin.system.exitProcess
 /**
  * A [Terminal] implementation which interacts directly with the underlying system terminal.
  */
-class SystemTerminal : Terminal {
+class SystemTerminal(private val onCtrlC: () -> Unit = { exitProcess(130) }) : Terminal {
     private var previousCursorSetting: InfoCmp.Capability
     private val previousOut = System.out
     private val previousErr = System.err
@@ -42,7 +42,7 @@ class SystemTerminal : Terminal {
 
             // Handle Ctrl-C ourselves, because Windows otherwise swallows it
             // See also: https://github.com/jline/jline3/issues/822
-            handle(Signal.INT) { exitProcess(130) } // 130 == 128+2, where 2 == SIGINT
+            handle(Signal.INT) { onCtrlC() } // 130 == 128+2, where 2 == SIGINT
 
             val disabledPrintStream = PrintStream(object : OutputStream() {
                 override fun write(b: Int) = Unit
