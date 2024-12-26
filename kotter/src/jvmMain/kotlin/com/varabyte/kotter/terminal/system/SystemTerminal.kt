@@ -74,6 +74,8 @@ class SystemTerminal : Terminal {
         terminal.writer().flush()
     }
 
+    fun read(timeout: Long) = terminal.reader().read(timeout)
+
     private val charFlow: SharedFlow<Int> by lazy {
         flow {
             var quit = false
