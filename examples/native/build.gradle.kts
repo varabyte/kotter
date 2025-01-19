@@ -1,11 +1,9 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    application
 }
 
 group = "com.varabyte.kotter"
 version = "1.0-SNAPSHOT"
-
 
 kotlin {
     // List of supported binary targets
@@ -26,16 +24,9 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(project(":kotter"))
-                implementation(libs.kotlinx.coroutines)
-            }
+        commonMain.dependencies {
+            implementation(project(":kotter"))
+            implementation(libs.kotlinx.coroutines)
         }
     }
-}
-
-
-application {
-    mainClass.set("MainKt")
 }
