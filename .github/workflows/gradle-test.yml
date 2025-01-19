@@ -59,4 +59,4 @@ jobs:
 
       - name: Test with Gradle
         if: steps.shouldrun.conclusion == 'success'
-        run: ./gradlew allTests --no-daemon
+        run: ./gradlew allTests
