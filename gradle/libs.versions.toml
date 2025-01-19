@@ -1,12 +1,9 @@
 [versions]
-# Try not to increase! We're intentionally using as old a version as possible for better compatibility
-# 1.9.10 is required for publishing mac arftifacts. Otherwise, we run into https://youtrack.jetbrains.com/issue/KT-62113
-kotlin = "1.9.10"
-
 dokka = "1.9.20"
 jline = "3.21.0"
 kotlinx-coroutines = "1.7.3"
 kotlinx-serialization = "1.7.3"
+kotlin = "2.1.0"
 kotter = "1.2.2-SNAPSHOT"
 kover = "0.9.0"
 nexus-publish = "2.0.0"
@@ -15,9 +12,11 @@ truthish = "1.0.2"
 
 [libraries]
 jcip-annotations = { module = "net.jcip:jcip-annotations", version = "1.0" }
+jetbrains-dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 jline-terminal-core = { module = "org.jline:jline-terminal", version.ref = "jline" }
 jline-terminal-jansi = { module = "org.jline:jline-terminal-jansi", version.ref = "jline" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-multiplatform-plugin = { module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
