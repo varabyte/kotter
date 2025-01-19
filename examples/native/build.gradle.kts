@@ -7,10 +7,6 @@ group = "com.varabyte.kotter"
 version = "1.0-SNAPSHOT"
 
 
-repositories {
-    mavenCentral()
-}
-
 kotlin {
     // List of supported binary targets
     // Note: You will need the right machine to build each one; otherwise, the target is disabled automatically
