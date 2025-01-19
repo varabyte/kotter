@@ -7,10 +7,6 @@ plugins {
 group = "com.varabyte.kotter"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation(project(":kotter"))
     implementation(libs.kotlinx.coroutines)

@@ -6,6 +6,15 @@ pluginManagement {
     }
 }
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+            mavenContent { includeGroup("com.varabyte.truthish") }
+        }
+    }
+}
+
 rootProject.name = "kotter"
 
 include(":kotter")

@@ -28,11 +28,6 @@ nexusPublishing {
 }
 
 allprojects {
-    repositories {
-        mavenCentral()
-        maven("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-    }
-
     tasks.withType<JavaCompile>().configureEach {
         sourceCompatibility = JavaVersion.VERSION_11.toString()
         targetCompatibility = JavaVersion.VERSION_11.toString()
