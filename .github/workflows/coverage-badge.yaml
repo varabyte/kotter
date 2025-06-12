@@ -3,6 +3,7 @@ name: Create coverage badge
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,8 +21,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Generate coverage output
+        # NOTE: Not sure why but extra output is sometimes getting included with our printline coverage output, so let's
+        # aggressively filter out everything that isn't a line number
         run: |
-          echo "COVERAGE=$(${{github.workspace}}/gradlew -q :kotter:printLineCoverage)" >> $GITHUB_ENV
+          COVERAGE=$(${{github.workspace}}/gradlew -q printLineCoverage | grep -E '^[0-9]+(\.[0-9]+)?$')
+          echo "COVERAGE=$COVERAGE" >> $GITHUB_ENV
 
       - name: Update dynamic badge gist
         uses: schneegans/dynamic-badges-action@v1.5.0
