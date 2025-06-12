@@ -150,7 +150,7 @@ snapshots repository to your `repositories` block in order to allow Gradle to fi
 
 repositories {
   mavenCentral()
-+ maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
++ maven("https://central.sonatype.com/repository/maven-snapshots/") {
 +   mavenContent { includeGroup("com.varabyte.kotter") }
 + }
 }

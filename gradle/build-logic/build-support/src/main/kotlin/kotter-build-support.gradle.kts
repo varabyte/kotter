@@ -1,4 +1,4 @@
-import org.jetbrains.dokka.gradle.DokkaTask
+import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonCompilerOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -7,8 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
-    `maven-publish`
-    signing
+    id("com.vanniktech.maven.publish")
     id("org.jetbrains.dokka")
 }
 
@@ -88,129 +87,61 @@ kotlin {
     }
 }
 
-fun shouldSign() = (findProperty("kotter.sign") as? String).toBoolean()
-fun shouldPublishToGCloud(): Boolean {
-    return (findProperty("kotter.gcloud.publish") as? String).toBoolean()
-            && findProperty("gcloud.artifact.registry.secret") != null
-}
-fun shouldPublishToMavenCentral(): Boolean {
-    return (findProperty("kotter.maven.publish") as? String).toBoolean()
-            && findProperty("ossrhToken") != null && findProperty("ossrhTokenPassword") != null
-}
+val gcloudSecret: String? = findProperty("gcloud.artifact.registry.secret") as? String
 
+// Hack: project.version is NOT set yet but needs to be for credentials to be set correctly for snapshot builds. Put
+// behind an `afterEvaluate` for now to ensure the calling build script has set the version.
+afterEvaluate {
+    mavenPublishing {
+        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+        signAllPublications()
 
-val VARABYTE_REPO_URL = uri("https://us-central1-maven.pkg.dev/varabyte-repos/public")
-fun MavenArtifactRepository.gcloudAuth() {
-    url = VARABYTE_REPO_URL
-    credentials {
-        username = "_json_key_base64"
-        password = findProperty("gcloud.artifact.registry.secret") as String
-    }
-    authentication {
-        create<BasicAuthentication>("basic")
-    }
-}
+        pom {
+            val githubPath = "https://github.com/varabyte/kotter"
+            name.set("Kotter")
+            description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")
+            url.set(githubPath)
+            scm {
+                url.set(githubPath)
+                val connectionPath = "scm:git:${githubPath}.git"
+                connection.set(connectionPath)
+                developerConnection.set(connectionPath)
+            }
+            developers {
+                developer {
+                    id.set("bitspittle")
+                    name.set("David Herman")
+                    email.set("bitspittle@gmail.com")
+                    url.set("https://github.com/bitspittle")
+                }
+            }
 
-val SONATYPE_RELEASE_REPO_URL = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-val SONATYPE_SNAPSHOT_REPO_URL = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-fun MavenArtifactRepository.sonatypeAuth() {
-    // Note: version is not set at the time this plugin is applied, so wait a bit before setting it
-    project.afterEvaluate {
-        url = if (!version.toString().endsWith("SNAPSHOT")) SONATYPE_RELEASE_REPO_URL else SONATYPE_SNAPSHOT_REPO_URL
+            licenses {
+                license {
+                    name.set("Apache-2.0")
+                    url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                }
+            }
+        }
     }
-    credentials {
-        username = findProperty("ossrhToken") as String
-        password = findProperty("ossrhTokenPassword") as String
-    }
-    authentication {
-        create<BasicAuthentication>("basic")
-    }
-}
-
-val dokkaHtml by tasks.getting(DokkaTask::class)
-
-val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(dokkaHtml.outputDirectory)
 }
 
 publishing {
     publications {
-        if (shouldPublishToGCloud()) {
+        gcloudSecret?.let { gcloudSecret ->
             repositories {
                 maven {
                     name = "GCloudMaven"
-                    gcloudAuth()
-                }
-            }
-        }
-        if (shouldPublishToMavenCentral()) {
-            repositories {
-                maven {
-                    name = "SonatypeMaven"
-                    sonatypeAuth()
-                }
-            }
-        }
-
-        withType<MavenPublication> {
-            artifact(javadocJar)
-            pom {
-                val githubPath = "https://github.com/varabyte/kotter"
-                name.set("Kotter")
-                description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")
-                url.set(githubPath)
-                scm {
-                    url.set(githubPath)
-                    val connectionPath = "scm:git:${githubPath}.git"
-                    connection.set(connectionPath)
-                    developerConnection.set(connectionPath)
-                }
-                developers {
-                    developer {
-                        id.set("bitspittle")
-                        name.set("David Herman")
-                        email.set("bitspittle@gmail.com")
-                        url.set("https://github.com/bitspittle")
+                    url = uri("https://us-central1-maven.pkg.dev/varabyte-repos/public")
+                    credentials {
+                        username = "_json_key_base64"
+                        password = gcloudSecret
                     }
-                }
-
-                licenses {
-                    license {
-                        name.set("Apache-2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    authentication {
+                        create<BasicAuthentication>("basic")
                     }
                 }
             }
         }
-    }
-}
-
-if (shouldSign()) {
-    // Workaround for https://youtrack.jetbrains.com/issue/KT-61858
-    val signingTasks = tasks.withType<Sign>()
-    tasks.withType<AbstractPublishToMaven>().configureEach {
-        mustRunAfter(signingTasks)
-    }
-
-    // If "shouldSign" returns true, then singing password should be set
-    val signingPassword = findProperty("signing.password") as String
-
-    signing {
-        // If here, we're on a CI. Check for the signing key which must be set in an environment variable.
-        // See also: https://docs.gradle.org/current/userguide/signing_plugin.html#sec:in-memory-keys
-        val secretKeyRingExists = (findProperty("signing.secretKeyRingFile") as? String)
-            ?.let { File(it).exists() }
-            ?: false
-
-        if (!secretKeyRingExists) {
-            val signingKey: String? by project
-            useInMemoryPgpKeys(signingKey, signingPassword)
-        }
-
-        // Signing requires the following steps at https://docs.gradle.org/current/userguide/signing_plugin.html#sec:signatory_credentials
-        // and adding signatory properties somewhere reachable, e.g. ~/.gradle/gradle.properties
-        sign(publishing.publications)
     }
 }

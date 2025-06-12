@@ -6,19 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlinx.kover) apply false
     alias(libs.plugins.jetbrains.dokka) apply false
-    alias(libs.plugins.nexus.publish)
+    alias(libs.plugins.vanniktech.publish) apply false
 }
 
 group = "com.varabyte.kotter"
 version = libs.versions.kotter.get()
-
-nexusPublishing {
-    repositories {
-        sonatype {  //only for users registered in Sonatype after 24 Feb 2021
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-            (findProperty("ossrhToken") as? String)?.let { username.set(it) }
-            (findProperty("ossrhTokenPassword") as? String)?.let { password.set(it) }
-        }
-    }
-}

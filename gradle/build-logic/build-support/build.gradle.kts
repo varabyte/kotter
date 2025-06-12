@@ -8,4 +8,5 @@ version = libs.versions.kotter.get()
 dependencies {
     implementation(libs.kotlin.multiplatform.plugin)
     implementation(libs.jetbrains.dokka.plugin)
+    implementation(libs.vanniktech.publish.plugin)
 }
