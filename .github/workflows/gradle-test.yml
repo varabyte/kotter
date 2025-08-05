@@ -44,7 +44,7 @@ jobs:
         if: steps.shouldrun.conclusion == 'success'
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 24
 
       - name: Setup Gradle
         if: steps.shouldrun.conclusion == 'success'
