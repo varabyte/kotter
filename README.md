@@ -1,11 +1,11 @@
-![version: 1.2.2](https://img.shields.io/badge/kotter-v1.2.2-blue)
+![version: 1.3.0](https://img.shields.io/badge/kotter-v1.3.0-blue)
 ![kotter tests](https://github.com/varabyte/kotter/actions/workflows/gradle-test.yml/badge.svg?branch=main)
 ![kotter coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bitspittle/1fab2b6fd23489bdea3f5d1f38e4dcb2/raw/kotter-coverage-badge.json)
 <a href="https://varabyte.github.io/kotter">
 ![kotter docs](https://img.shields.io/badge/docs-grey?logo=readthedocs)
 </a>
 <br>
-![kotlin compatibility jvm](https://img.shields.io/badge/kotlin_[jvm]-1.7+-lightgray?logo=kotlin)
+![kotlin compatibility jvm](https://img.shields.io/badge/kotlin_[jvm]-1.8+-lightgray?logo=kotlin)
 ![kotlin compatibility k/n](https://img.shields.io/badge/kotlin_[native]-1.9+-lightgray?logo=kotlin)
 <br>
 <a href="https://discord.gg/5NZ2GKV5Cs">
@@ -72,6 +72,7 @@ Kotter supports JVM and native targets.
 // build.gradle.kts (kotlin script)
 plugins {
     kotlin("jvm")
+    application
 }
 
 repositories {
@@ -79,8 +80,30 @@ repositories {
 }
 
 dependencies {
-    implementation("com.varabyte.kotter:kotter-jvm:1.2.2")
-    testImplementation("com.varabyte.kotterx:kotter-test-support-jvm:1.2.2")
+    implementation("com.varabyte.kotter:kotter-jvm:1.3.0")
+    testImplementation("com.varabyte.kotterx:kotter-test-support-jvm:1.3.0")
+}
+
+application {
+    applicationDefaultJvmArgs = listOf(
+        // JDK24 started reporting warnings for libraries that use restricted native methods, at least one which Kotter
+        // uses indirectly (via jline/jansi). It looks like this:
+        //
+        // WARNING: A restricted method in java.lang.System has been called
+        // WARNING: java.lang.System::loadLibrary has been called by ...
+        // WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+        // WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+        //
+        // The best solution we have for now is to disable the warning by explicitly enabling access.
+        // We also suggest the IgnoreUnrecognizedVMOptions flag here to allow kotter applications to be able to compile
+        // with JDKs older than JDK24. You can remove it if you are intentionally using JDK24+.
+        // See also: https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/doc-files/RestrictedMethods.html
+        // And also: https://github.com/jline/jline3/issues/1067
+        "-XX:+IgnoreUnrecognizedVMOptions",
+        "--enable-native-access=ALL-UNNAMED",
+    )
+    // The following assumes a top-level `main.kt` file in your project; adjust as needed otherwise
+    mainClass.set("MainKt")
 }
 ```
 
@@ -120,12 +143,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("com.varabyte.kotter:kotter:1.2.2")
+                implementation("com.varabyte.kotter:kotter:1.3.0")
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation("com.varabyte.kotterx:kotter-test-support:1.2.2")
+                implementation("com.varabyte.kotterx:kotter-test-support:1.3.0")
             }
         }
     }

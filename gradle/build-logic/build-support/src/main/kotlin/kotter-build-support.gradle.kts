@@ -11,7 +11,7 @@ plugins {
     id("org.jetbrains.dokka")
 }
 
-val defaultKotlinVersion = "1.7.22" // Improved lambda inference
+val defaultKotlinVersion = "1.8.22" // Improved lambda inference
 val nativeKotlinVersion = "1.9.25" // Time and Atomic system support
 
 fun KotlinCommonCompilerOptions.setToVersion(version: String) {
