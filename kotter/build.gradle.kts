@@ -26,7 +26,7 @@ kotlin {
 
         jvmMain.dependencies {
             // For system terminal implementation
-            implementation(libs.jline.terminal)
+            implementation(libs.bundles.jline)
             runtimeOnly(files("libs/jansi-2.4.0.jar"))
 
             // For GuardedBy concurrency annotation
