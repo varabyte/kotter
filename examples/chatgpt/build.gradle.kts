@@ -8,7 +8,7 @@ group = "com.varabyte.kotter"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    implementation(project(":kotter"))
+    implementation(libs.kotter)
     implementation(libs.kotlinx.coroutines)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)

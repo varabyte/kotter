@@ -11,7 +11,7 @@ To run any example project in your terminal, you can issue the following command
 
 ```bash
 $ cd $demo # e.g. "cd text"
-$ ../../gradlew installDist
+$ ../gradlew installDist
 $ ./build/install/$demo/bin/$demo 
 # e.g. "./build/install/text/bin/text"
 ```

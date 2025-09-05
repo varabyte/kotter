@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/.." name="kotter">
+                <projects>
+                  <project path="$PROJECT_DIR$/.." />
+                  <project path="$PROJECT_DIR$/../kotter" />
+                  <project path="$PROJECT_DIR$/../kotterx" />
+                  <project path="$PROJECT_DIR$/../kotterx/kotter-test-support" />
+                </projects>
+              </build>
+              <build path="$PROJECT_DIR$/../gradle/build-logic" name="build-logic">
+                <projects>
+                  <project path="$PROJECT_DIR$/../gradle/build-logic" />
+                  <project path="$PROJECT_DIR$/../gradle/build-logic/build-support" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/.." />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/anim" />
+            <option value="$PROJECT_DIR$/blink" />
+            <option value="$PROJECT_DIR$/border" />
+            <option value="$PROJECT_DIR$/chatgpt" />
+            <option value="$PROJECT_DIR$/clock" />
+            <option value="$PROJECT_DIR$/compiler" />
+            <option value="$PROJECT_DIR$/doomfire" />
+            <option value="$PROJECT_DIR$/extend" />
+            <option value="$PROJECT_DIR$/grid" />
+            <option value="$PROJECT_DIR$/input" />
+            <option value="$PROJECT_DIR$/keys" />
+            <option value="$PROJECT_DIR$/life" />
+            <option value="$PROJECT_DIR$/list" />
+            <option value="$PROJECT_DIR$/mandelbrot" />
+            <option value="$PROJECT_DIR$/mosaic" />
+            <option value="$PROJECT_DIR$/mosaic/counter" />
+            <option value="$PROJECT_DIR$/mosaic/jest" />
+            <option value="$PROJECT_DIR$/mosaic/robot" />
+            <option value="$PROJECT_DIR$/native" />
+            <option value="$PROJECT_DIR$/picker" />
+            <option value="$PROJECT_DIR$/sliding" />
+            <option value="$PROJECT_DIR$/snake" />
+            <option value="$PROJECT_DIR$/splash" />
+            <option value="$PROJECT_DIR$/text" />
+            <option value="$PROJECT_DIR$/wordle" />
+            <option value="$PROJECT_DIR$/../gradle/build-logic" />
+            <option value="$PROJECT_DIR$/../gradle/build-logic/build-support" />
+            <option value="$PROJECT_DIR$/../kotter" />
+            <option value="$PROJECT_DIR$/../kotterx" />
+            <option value="$PROJECT_DIR$/../kotterx/kotter-test-support" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+    </option>
+  </component>
+</project>

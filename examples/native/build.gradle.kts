@@ -25,7 +25,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":kotter"))
+            implementation(libs.kotter)
             implementation(libs.kotlinx.coroutines)
         }
     }

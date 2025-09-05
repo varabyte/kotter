@@ -7,7 +7,7 @@ group = "com.varabyte.kotter"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    implementation(project(":kotter"))
+    implementation(libs.kotter)
 }
 
 application {

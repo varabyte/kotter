@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="kotter-test-support-jvm-1.3.0-SNAPSHOT">
+    <output-path>$PROJECT_DIR$/../kotterx/kotter-test-support/build/libs</output-path>
+    <root id="archive" name="kotter-test-support-jvm-1.3.0-SNAPSHOT.jar">
+      <element id="module-output" name="kotter.kotterx.kotter-test-support.jvmMain" />
+    </root>
+  </artifact>
+</component>
