@@ -12,7 +12,7 @@ vanniktech-publish = "0.32.0"
 [libraries]
 jcip-annotations = { module = "net.jcip:jcip-annotations", version = "1.0" }
 jetbrains-dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
-jline-terminal-core = { module = "org.jline:jline-terminal", version.ref = "jline" }
+jline-terminal = { module = "org.jline:jline-terminal", version.ref = "jline" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-multiplatform-plugin = { module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
