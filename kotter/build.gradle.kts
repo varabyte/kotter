@@ -26,8 +26,7 @@ kotlin {
 
         jvmMain.dependencies {
             // For system terminal implementation
-            implementation(libs.jline.terminal.core)
-            runtimeOnly(files("libs/jansi-1.18.jar")) // Required for windows support
+            implementation(libs.bundles.jline)
 
             // For GuardedBy concurrency annotation
             implementation(libs.jcip.annotations)
