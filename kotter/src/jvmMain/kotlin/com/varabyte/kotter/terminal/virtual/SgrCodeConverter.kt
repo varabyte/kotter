@@ -61,147 +61,147 @@ private val IndexedColors by lazy {
 internal class SgrCodeConverter(private val defaultForeground: Color, private val defaultBackground: Color) {
     fun convert(code: Ansi.Csi.Code): (MutableAttributeSet.() -> Unit)? {
         return when (code) {
-            Ansi.Csi.Codes.Sgr.RESET -> {
+            Ansi.Csi.Codes.Sgr.Reset -> {
                 { removeAttributes(this) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.CLEAR -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.Clear -> {
                 { setInverseAwareForeground(defaultForeground) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.BLACK -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.Black -> {
                 { setInverseAwareForeground(AnsiColor.BLACK.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.RED -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.Red -> {
                 { setInverseAwareForeground(AnsiColor.RED.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.GREEN -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.Green -> {
                 { setInverseAwareForeground(AnsiColor.GREEN.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.YELLOW -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.Yellow -> {
                 { setInverseAwareForeground(AnsiColor.YELLOW.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.BLUE -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.Blue -> {
                 { setInverseAwareForeground(AnsiColor.BLUE.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.MAGENTA -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.Magenta -> {
                 { setInverseAwareForeground(AnsiColor.MAGENTA.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.CYAN -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.Cyan -> {
                 { setInverseAwareForeground(AnsiColor.CYAN.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.WHITE -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.White -> {
                 { setInverseAwareForeground(AnsiColor.WHITE.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.BLACK_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.BrightBlack -> {
                 { setInverseAwareForeground(AnsiColor.BRIGHT_BLACK.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.RED_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.BrightRed -> {
                 { setInverseAwareForeground(AnsiColor.BRIGHT_RED.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.GREEN_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.BrightGreen -> {
                 { setInverseAwareForeground(AnsiColor.BRIGHT_GREEN.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.YELLOW_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.BrightYellow -> {
                 { setInverseAwareForeground(AnsiColor.BRIGHT_YELLOW.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.BLUE_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.BrightBlue -> {
                 { setInverseAwareForeground(AnsiColor.BRIGHT_BLUE.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.MAGENTA_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.BrightMagenta -> {
                 { setInverseAwareForeground(AnsiColor.BRIGHT_MAGENTA.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.CYAN_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.BrightCyan -> {
                 { setInverseAwareForeground(AnsiColor.BRIGHT_CYAN.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Fg.WHITE_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Fg.BrightWhite -> {
                 { setInverseAwareForeground(AnsiColor.BRIGHT_WHITE.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.CLEAR -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.Clear -> {
                 { setInverseAwareBackground(defaultBackground) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.BLACK -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.Black -> {
                 { setInverseAwareBackground(AnsiColor.BLACK.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.RED -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.Red -> {
                 { setInverseAwareBackground(AnsiColor.RED.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.GREEN -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.Green -> {
                 { setInverseAwareBackground(AnsiColor.GREEN.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.YELLOW -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.Yellow -> {
                 { setInverseAwareBackground(AnsiColor.YELLOW.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.BLUE -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.Blue -> {
                 { setInverseAwareBackground(AnsiColor.BLUE.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.MAGENTA -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.Magenta -> {
                 { setInverseAwareBackground(AnsiColor.MAGENTA.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.CYAN -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.Cyan -> {
                 { setInverseAwareBackground(AnsiColor.CYAN.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.WHITE -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.White -> {
                 { setInverseAwareBackground(AnsiColor.WHITE.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.BLACK_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.BrightBlack -> {
                 { setInverseAwareBackground(AnsiColor.BRIGHT_BLACK.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.RED_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.BrightRed -> {
                 { setInverseAwareBackground(AnsiColor.BRIGHT_RED.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.GREEN_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.BrightGreen -> {
                 { setInverseAwareBackground(AnsiColor.BRIGHT_GREEN.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.YELLOW_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.BrightYellow -> {
                 { setInverseAwareBackground(AnsiColor.BRIGHT_YELLOW.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.BLUE_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.BrightBlue -> {
                 { setInverseAwareBackground(AnsiColor.BRIGHT_BLUE.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.MAGENTA_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.BrightMagenta -> {
                 { setInverseAwareBackground(AnsiColor.BRIGHT_MAGENTA.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.CYAN_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.BrightCyan -> {
                 { setInverseAwareBackground(AnsiColor.BRIGHT_CYAN.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.Bg.WHITE_BRIGHT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Bg.BrightWhite -> {
                 { setInverseAwareBackground(AnsiColor.BRIGHT_WHITE.toSwingColor()) }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.INVERT -> {
+            Ansi.Csi.Codes.Sgr.Colors.Invert -> {
                 {
                     if (getAttribute(Inverted) == null) {
                         invertColors()
@@ -210,7 +210,7 @@ internal class SgrCodeConverter(private val defaultForeground: Color, private va
                 }
             }
 
-            Ansi.Csi.Codes.Sgr.Colors.CLEAR_INVERT -> {
+            Ansi.Csi.Codes.Sgr.Colors.ClearInvert -> {
                 {
                     if (getAttribute(Inverted) != null) {
                         removeAttribute(Inverted)
@@ -219,27 +219,27 @@ internal class SgrCodeConverter(private val defaultForeground: Color, private va
                 }
             }
 
-            Ansi.Csi.Codes.Sgr.Decorations.BOLD -> {
+            Ansi.Csi.Codes.Sgr.Decorations.Bold -> {
                 { StyleConstants.setBold(this, true) }
             }
 
-            Ansi.Csi.Codes.Sgr.Decorations.CLEAR_BOLD -> {
+            Ansi.Csi.Codes.Sgr.Decorations.ClearBold -> {
                 { removeAttribute(StyleConstants.Bold) }
             }
 
-            Ansi.Csi.Codes.Sgr.Decorations.UNDERLINE -> {
+            Ansi.Csi.Codes.Sgr.Decorations.Underline -> {
                 { StyleConstants.setUnderline(this, true) }
             }
 
-            Ansi.Csi.Codes.Sgr.Decorations.CLEAR_UNDERLINE -> {
+            Ansi.Csi.Codes.Sgr.Decorations.ClearUnderline -> {
                 { removeAttribute(StyleConstants.Underline) }
             }
 
-            Ansi.Csi.Codes.Sgr.Decorations.STRIKETHROUGH -> {
+            Ansi.Csi.Codes.Sgr.Decorations.Strikethrough -> {
                 { StyleConstants.setStrikeThrough(this, true) }
             }
 
-            Ansi.Csi.Codes.Sgr.Decorations.CLEAR_STRIKETHROUGH -> {
+            Ansi.Csi.Codes.Sgr.Decorations.ClearStrikethrough -> {
                 { removeAttribute(StyleConstants.StrikeThrough) }
             }
 

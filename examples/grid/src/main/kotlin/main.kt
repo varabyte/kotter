@@ -49,11 +49,11 @@ fun main() = session {
     }.runUntilKeyPressed(Keys.Q) {
         onKeyPressed {
             when (key) {
-                Keys.LEFT -> if (tableWidth > MIN_TABLE_WIDTH) tableWidth--
-                Keys.RIGHT -> if (tableWidth < MAX_TABLE_WIDTH) tableWidth++
-                Keys.HOME -> tableWidth = MIN_TABLE_WIDTH
-                Keys.END -> tableWidth = MAX_TABLE_WIDTH
-                Keys.SPACE -> usePadding = !usePadding
+                Keys.Left -> if (tableWidth > MIN_TABLE_WIDTH) tableWidth--
+                Keys.Right -> if (tableWidth < MAX_TABLE_WIDTH) tableWidth++
+                Keys.Home -> tableWidth = MIN_TABLE_WIDTH
+                Keys.End -> tableWidth = MAX_TABLE_WIDTH
+                Keys.Space -> usePadding = !usePadding
             }
         }
     }

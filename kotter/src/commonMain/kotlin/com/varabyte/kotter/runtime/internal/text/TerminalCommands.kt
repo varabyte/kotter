@@ -10,7 +10,7 @@ internal val List<TerminalCommand>.lineLengths: List<Int>
     get() {
         return this.fold(mutableListOf(0)) { lengths, command ->
             if (command is TextCommand) {
-                if (command === NEWLINE_COMMAND) {
+                if (command === TextCommands.Newline) {
                     lengths.add(0)
                 } else {
                     lengths[lengths.lastIndex] += command.text.length
@@ -27,7 +27,7 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
         var currLineWidth = 0
         for (command in commands) {
             if (command is TextCommand) {
-                if (command === NEWLINE_COMMAND) {
+                if (command === TextCommands.Newline) {
                     currLineWidth = 0
                     add(command)
                 } else {
@@ -38,7 +38,7 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                         val charWidth = nextChar.toRenderWidth()
                         val remainingWidth = width - currLineWidth
                         if (charWidth > remainingWidth) {
-                            add(TextCommand(buffer.toString()))
+                            add(TextCommands.Text(buffer.toString()))
                             add(commandToInsert)
                             buffer.clear()
                             currLineWidth = 0
@@ -47,7 +47,7 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                         currLineWidth += charWidth
                     }
                     if (buffer.isNotEmpty()) {
-                        add(TextCommand(buffer.toString()))
+                        add(TextCommands.Text(buffer.toString()))
                     }
                 }
             } else {
@@ -64,7 +64,7 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
  * able to keep track of how many lines need to be repainted, taking terminal auto-newline wrapping into account.
  */
 internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<TerminalCommand> {
-    return insertCommandAtLineBreaks(IMPLICIT_NEWLINE_COMMAND, width)
+    return insertCommandAtLineBreaks(TextCommands.ImplicitNewline, width)
 }
 
 /**
@@ -73,7 +73,7 @@ internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<Termin
  * This can be useful for rendering text into constrained spaces, e.g. when rendering into a grid cell.
  */
 internal fun List<TerminalCommand>.withExplicitNewlines(width: Int): List<TerminalCommand> {
-    return insertCommandAtLineBreaks(NEWLINE_COMMAND, width)
+    return insertCommandAtLineBreaks(TextCommands.Newline, width)
 }
 
 /**

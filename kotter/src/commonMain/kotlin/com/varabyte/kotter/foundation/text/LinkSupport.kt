@@ -38,16 +38,16 @@ fun RenderScope.link(uri: CharSequence, displayText: CharSequence = uri) {
 // where people can request that we make this available in a future version.
 // If we ever make this public, then uncomment out the alternate convenience version below
 internal fun RenderScope.link(uri: Uri, block: RenderScope.() -> Unit) {
-    val lastOpen = section.renderer.commands.indexOfLast { command -> command is OpenLinkCommand }
-    val lastClose = section.renderer.commands.indexOfLast { command -> command === CloseLinkCommand }
+    val lastOpen = section.renderer.commands.indexOfLast { command -> command is LinkCommands.Open }
+    val lastClose = section.renderer.commands.indexOfLast { command -> command === LinkCommands.Close }
 
     check(lastOpen < 0 || lastOpen < lastClose) {
         "Attempted to open a link block within another link block"
     }
 
-    applyCommand(OpenLinkCommand(uri))
+    applyCommand(LinkCommands.Open(uri))
     block()
-    applyCommand(CloseLinkCommand)
+    applyCommand(LinkCommands.Close)
 }
 
 // Bug(#91): Uncomment me if the above method ever becomes public

@@ -86,7 +86,7 @@ class OffscreenSupportTest {
             "Line #3",
             "Line #3",
             "Line #3",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -103,7 +103,7 @@ class OffscreenSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Before offscreen",
             "After offscreen",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -123,7 +123,7 @@ class OffscreenSupportTest {
             "Before offscreen",
             "Test",
             "After offscreen",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -141,7 +141,7 @@ class OffscreenSupportTest {
             "Before offscreen",
             "Test", // renderDirectly adds a newline after the last line
             "After offscreen",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -159,7 +159,7 @@ class OffscreenSupportTest {
             "Before offscreen",
             "Test",
             "After offscreen",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -181,10 +181,10 @@ class OffscreenSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "${Codes.Sgr.Colors.Fg.RED}red -- Inherited color (red) -- red",
-            "red -- ${Codes.Sgr.Colors.Fg.CYAN}Local color (cyan)${Codes.Sgr.Colors.Fg.RED} -- red",
-            "red -- ${Codes.Sgr.Colors.Fg.CYAN}Still cyan${Codes.Sgr.Colors.Fg.RED} -- red",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            "${Codes.Sgr.Colors.Fg.Red}red -- Inherited color (red) -- red",
+            "red -- ${Codes.Sgr.Colors.Fg.Cyan}Local color (cyan)${Codes.Sgr.Colors.Fg.Red} -- red",
+            "red -- ${Codes.Sgr.Colors.Fg.Cyan}Still cyan${Codes.Sgr.Colors.Fg.Red} -- red",
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 

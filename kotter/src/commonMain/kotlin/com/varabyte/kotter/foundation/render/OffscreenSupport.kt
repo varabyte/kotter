@@ -35,7 +35,7 @@ class OffscreenBuffer internal constructor(
         // 2) `CommandRenderer` below handles its own state cleanup logic
         // Note: The order of the newline and reset depend on if the final row ended with a newline or not. Either way,
         // we want to remove both of them!
-        check(offscreenRenderer.commands.takeLast(2).containsAll(listOf(NEWLINE_COMMAND, RESET_COMMAND)))
+        check(offscreenRenderer.commands.takeLast(2).containsAll(listOf(TextCommands.Newline, ResetCommand)))
         offscreenRenderer.commands.dropLast(2)
     }.withExplicitNewlines(maxWidth)
 
@@ -99,12 +99,12 @@ class OffscreenCommandRenderer internal constructor(
         targetScope.scopedState {
             lastState?.let { targetScope.state = it }
             while (commandIndex < commands.size) {
-                if (commands[commandIndex] === NEWLINE_COMMAND) {
+                if (commands[commandIndex] === TextCommands.Newline) {
                     ++commandIndex
                     break
                 }
 
-                if (commands[commandIndex] !== NEWLINE_COMMAND) {
+                if (commands[commandIndex] !== TextCommands.Newline) {
                     targetScope.applyCommand(commands[commandIndex])
                     ++commandIndex
                 }

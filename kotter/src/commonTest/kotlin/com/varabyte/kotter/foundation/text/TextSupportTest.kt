@@ -17,7 +17,7 @@ class TextSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Line 1",
             "Line 2",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -29,7 +29,7 @@ class TextSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "Line 1Line 2${Codes.Sgr.RESET}",
+            "Line 1Line 2${Codes.Sgr.Reset}",
             "", // Newline always added at the end of a section
         ).inOrder()
     }
@@ -45,10 +45,10 @@ class TextSupportTest {
         assertThat(terminal.lines()).containsExactly(
             // Note: The order of the codes don't match the declaration above, because internally all states are
             // collected and applied in a somewhat arbitrary order that is implementation specific.
-            "${Codes.Sgr.Colors.Fg.RED}${Codes.Sgr.Decorations.BOLD}Bold red",
-            "${Codes.Sgr.Colors.Fg.GREEN}${Codes.Sgr.Decorations.UNDERLINE}${Codes.Sgr.Decorations.CLEAR_BOLD}Underline green",
-            "${Codes.Sgr.Colors.Fg.BLUE}${Codes.Sgr.Decorations.CLEAR_UNDERLINE}${Codes.Sgr.Decorations.STRIKETHROUGH}Strikethrough blue",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Colors.Fg.Red}${Codes.Sgr.Decorations.Bold}Bold red",
+            "${Codes.Sgr.Colors.Fg.Green}${Codes.Sgr.Decorations.Underline}${Codes.Sgr.Decorations.ClearBold}Underline green",
+            "${Codes.Sgr.Colors.Fg.Blue}${Codes.Sgr.Decorations.ClearUnderline}${Codes.Sgr.Decorations.Strikethrough}Strikethrough blue",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 
@@ -65,7 +65,7 @@ class TextSupportTest {
         assertThat(terminal.lines()).containsExactly(
             // Note: The order of the codes don't match the declaration above, because internally all states are
             // collected and applied in a somewhat arbitrary order that is implementation specific.
-            "${Codes.Sgr.Colors.Fg.CYAN_BRIGHT}${Codes.Sgr.Colors.Bg.YELLOW}Text${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Colors.Fg.BrightCyan}${Codes.Sgr.Colors.Bg.Yellow}Text${Codes.Sgr.Reset}",
             "", // Newline always added at the end of a section
         ).inOrder()
     }
@@ -77,7 +77,7 @@ class TextSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "${Codes.Sgr.Colors.Fg.lookup(55)}Text${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Colors.Fg.lookup(55)}Text${Codes.Sgr.Reset}",
             "", // Newline always added at the end of a section
         ).inOrder()
     }
@@ -95,7 +95,7 @@ class TextSupportTest {
             "${Codes.Sgr.Colors.Fg.truecolor(255, 0, 255)}RGB1",
             "${Codes.Sgr.Colors.Fg.truecolor(255, 255, 0)}RGB2",
             "${Codes.Sgr.Colors.Fg.truecolor(hsvToRgb.r, hsvToRgb.g, hsvToRgb.b)}HSV",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 
@@ -108,23 +108,23 @@ class TextSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "${Codes.Sgr.Colors.Fg.BLACK}BLACK",
-            "${Codes.Sgr.Colors.Fg.RED}RED",
-            "${Codes.Sgr.Colors.Fg.GREEN}GREEN",
-            "${Codes.Sgr.Colors.Fg.YELLOW}YELLOW",
-            "${Codes.Sgr.Colors.Fg.BLUE}BLUE",
-            "${Codes.Sgr.Colors.Fg.MAGENTA}MAGENTA",
-            "${Codes.Sgr.Colors.Fg.CYAN}CYAN",
-            "${Codes.Sgr.Colors.Fg.WHITE}WHITE",
-            "${Codes.Sgr.Colors.Fg.BLACK_BRIGHT}BRIGHT_BLACK",
-            "${Codes.Sgr.Colors.Fg.RED_BRIGHT}BRIGHT_RED",
-            "${Codes.Sgr.Colors.Fg.GREEN_BRIGHT}BRIGHT_GREEN",
-            "${Codes.Sgr.Colors.Fg.YELLOW_BRIGHT}BRIGHT_YELLOW",
-            "${Codes.Sgr.Colors.Fg.BLUE_BRIGHT}BRIGHT_BLUE",
-            "${Codes.Sgr.Colors.Fg.MAGENTA_BRIGHT}BRIGHT_MAGENTA",
-            "${Codes.Sgr.Colors.Fg.CYAN_BRIGHT}BRIGHT_CYAN",
-            "${Codes.Sgr.Colors.Fg.WHITE_BRIGHT}BRIGHT_WHITE",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Colors.Fg.Black}BLACK",
+            "${Codes.Sgr.Colors.Fg.Red}RED",
+            "${Codes.Sgr.Colors.Fg.Green}GREEN",
+            "${Codes.Sgr.Colors.Fg.Yellow}YELLOW",
+            "${Codes.Sgr.Colors.Fg.Blue}BLUE",
+            "${Codes.Sgr.Colors.Fg.Magenta}MAGENTA",
+            "${Codes.Sgr.Colors.Fg.Cyan}CYAN",
+            "${Codes.Sgr.Colors.Fg.White}WHITE",
+            "${Codes.Sgr.Colors.Fg.BrightBlack}BRIGHT_BLACK",
+            "${Codes.Sgr.Colors.Fg.BrightRed}BRIGHT_RED",
+            "${Codes.Sgr.Colors.Fg.BrightGreen}BRIGHT_GREEN",
+            "${Codes.Sgr.Colors.Fg.BrightYellow}BRIGHT_YELLOW",
+            "${Codes.Sgr.Colors.Fg.BrightBlue}BRIGHT_BLUE",
+            "${Codes.Sgr.Colors.Fg.BrightMagenta}BRIGHT_MAGENTA",
+            "${Codes.Sgr.Colors.Fg.BrightCyan}BRIGHT_CYAN",
+            "${Codes.Sgr.Colors.Fg.BrightWhite}BRIGHT_WHITE",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 
@@ -144,7 +144,7 @@ class TextSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "${Codes.Sgr.Colors.Fg.MAGENTA}Text${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Colors.Fg.Magenta}Text${Codes.Sgr.Reset}",
             "", // Newline always added at the end of a section
         ).inOrder()
     }
@@ -165,7 +165,7 @@ class TextSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "Text${Codes.Sgr.RESET}",
+            "Text${Codes.Sgr.Reset}",
             "", // Newline always added at the end of a section
         ).inOrder()
     }
@@ -199,7 +199,7 @@ class TextSupportTest {
             "",
             "Last paragraph",
             "",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 }

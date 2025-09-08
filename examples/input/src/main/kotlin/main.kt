@@ -126,9 +126,9 @@ fun main() = session {
             }
             onKeyPressed {
                 when (key) {
-                    Keys.UP -> selectedLine = (selectedLine + 3 - 1) % 3
-                    Keys.DOWN -> selectedLine = (selectedLine + 1) % 3
-                    Keys.ESC -> signal()
+                    Keys.Up -> selectedLine = (selectedLine + 3 - 1) % 3
+                    Keys.Down -> selectedLine = (selectedLine + 1) % 3
+                    Keys.Escape -> signal()
                 }
             }
         }
@@ -196,9 +196,9 @@ fun main() = session {
                 }
             }
             onKeyPressed {
-                if (key == Keys.TAB) {
+                if (key == Keys.Tab) {
                     maskPassword = !maskPassword
-                } else if (key == Keys.ESC) {
+                } else if (key == Keys.Escape) {
                     password = ""
                     signal()
                 }

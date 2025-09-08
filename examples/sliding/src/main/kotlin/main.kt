@@ -192,10 +192,10 @@ fun main() = session(clearTerminal = true) {
             var handled = true
             if (!board.isSolved()) {
                 when (key) {
-                    Keys.UP -> board.move(Dir.UP)
-                    Keys.DOWN -> board.move(Dir.DOWN)
-                    Keys.LEFT -> board.move(Dir.LEFT)
-                    Keys.RIGHT -> board.move(Dir.RIGHT)
+                    Keys.Up -> board.move(Dir.UP)
+                    Keys.Down -> board.move(Dir.DOWN)
+                    Keys.Left -> board.move(Dir.LEFT)
+                    Keys.Right -> board.move(Dir.RIGHT)
                     Keys.R -> board = createRandomizedBoard()
                     Keys.Q -> signal()
                     else -> handled = false

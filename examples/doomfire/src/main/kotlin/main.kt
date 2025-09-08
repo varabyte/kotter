@@ -105,7 +105,7 @@ fun main() = session(clearTerminal = true) {
         }
     }.runUntilKeyPressed(Keys.Q) {
         onKeyPressed {
-            if (key == Keys.SPACE) {
+            if (key == Keys.Space) {
                 doomFire.toggleFire()
             }
         }

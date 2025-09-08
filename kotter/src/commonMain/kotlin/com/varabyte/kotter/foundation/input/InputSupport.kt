@@ -74,16 +74,16 @@ private class ByteToKeyProcessor(private val section: Section) {
                     if (code != null) {
                         escSeq.clear()
                         when (code) {
-                            Ansi.Csi.Codes.Keys.UP -> Keys.UP
-                            Ansi.Csi.Codes.Keys.DOWN -> Keys.DOWN
-                            Ansi.Csi.Codes.Keys.LEFT -> Keys.LEFT
-                            Ansi.Csi.Codes.Keys.RIGHT -> Keys.RIGHT
-                            Ansi.Csi.Codes.Keys.HOME, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_START -> Keys.HOME
-                            Ansi.Csi.Codes.Keys.INSERT -> Keys.INSERT
-                            Ansi.Csi.Codes.Keys.DELETE -> Keys.DELETE
-                            Ansi.Csi.Codes.Keys.END, Ansi.Csi.Codes.Cursor.MOVE_TO_LINE_END -> Keys.END
-                            Ansi.Csi.Codes.Keys.PG_UP -> Keys.PAGE_UP
-                            Ansi.Csi.Codes.Keys.PG_DOWN -> Keys.PAGE_DOWN
+                            Ansi.Csi.Codes.Keys.Up -> Keys.Up
+                            Ansi.Csi.Codes.Keys.Down -> Keys.Down
+                            Ansi.Csi.Codes.Keys.Left -> Keys.Left
+                            Ansi.Csi.Codes.Keys.Right -> Keys.Right
+                            Ansi.Csi.Codes.Keys.Home, Ansi.Csi.Codes.Cursor.MoveToLineStart -> Keys.Home
+                            Ansi.Csi.Codes.Keys.Insert -> Keys.Insert
+                            Ansi.Csi.Codes.Keys.Delete -> Keys.Delete
+                            Ansi.Csi.Codes.Keys.End, Ansi.Csi.Codes.Cursor.MoveToLineEnd -> Keys.End
+                            Ansi.Csi.Codes.Keys.PgUp -> Keys.PageUp
+                            Ansi.Csi.Codes.Keys.PgDown -> Keys.PageDown
                             else -> null
                         }
                     } else {
@@ -93,11 +93,11 @@ private class ByteToKeyProcessor(private val section: Section) {
 
                 else -> {
                     when (c) {
-                        Ansi.CtrlChars.EOF -> Keys.EOF
+                        Ansi.CtrlChars.EOF -> Keys.Eof
                         // Windows uses BACKSPACE, *nix uses DELETE? Best to support both
-                        Ansi.CtrlChars.BACKSPACE, Ansi.CtrlChars.DELETE -> Keys.BACKSPACE
-                        Ansi.CtrlChars.TAB -> Keys.TAB
-                        Ansi.CtrlChars.ENTER -> Keys.ENTER
+                        Ansi.CtrlChars.BACKSPACE, Ansi.CtrlChars.DELETE -> Keys.Backspace
+                        Ansi.CtrlChars.TAB -> Keys.Tab
+                        Ansi.CtrlChars.ENTER -> Keys.Enter
                         Ansi.CtrlChars.ESC -> {
                             escSeq.append(c)
                             // This is kind of ugly, but we need to detect the difference between the
@@ -123,7 +123,7 @@ private class ByteToKeyProcessor(private val section: Section) {
                                         }
                                     }
                                 }
-                                if (sendEsc) consumeKey(Keys.ESC)
+                                if (sendEsc) consumeKey(Keys.Escape)
                             }
                             null
                         }
@@ -454,12 +454,12 @@ private fun ConcurrentScopedData.prepareInput(
                                 }
 
                                 when (key) {
-                                    Keys.LEFT -> {
+                                    Keys.Left -> {
                                         cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
                                         multilineState?.updateIdealLineIndex()
                                     }
 
-                                    Keys.RIGHT -> {
+                                    Keys.Right -> {
                                         if (cursorIndex < text.length) {
                                             cursorIndex++
                                             multilineState?.updateIdealLineIndex()
@@ -474,50 +474,50 @@ private fun ConcurrentScopedData.prepareInput(
                                         }
                                     }
 
-                                    Keys.UP -> {
+                                    Keys.Up -> {
                                         moveCursorUp()
                                     }
 
-                                    Keys.DOWN -> {
+                                    Keys.Down -> {
                                         moveCursorDown()
                                     }
 
-                                    Keys.HOME -> {
+                                    Keys.Home -> {
                                         cursorIndex = text.getLineStartCursorIndex(cursorIndex)
                                         multilineState?.updateIdealLineIndex()
                                     }
 
-                                    Keys.END -> {
+                                    Keys.End -> {
                                         cursorIndex = text.getLineEndCursorIndex(cursorIndex)
                                         multilineState?.updateIdealLineIndex()
                                     }
 
-                                    Keys.PAGE_UP -> {
+                                    Keys.PageUp -> {
                                         if (multilineState == null) return@withActiveInput
                                         repeat(multilineState.pageSize) { moveCursorUp() }
                                     }
 
-                                    Keys.PAGE_DOWN -> {
+                                    Keys.PageDown -> {
                                         if (multilineState == null) return@withActiveInput
                                         repeat(multilineState.pageSize) { moveCursorDown() }
                                     }
 
-                                    Keys.DELETE -> {
+                                    Keys.Delete -> {
                                         if (cursorIndex <= text.lastIndex) {
                                             proposedText = text.removeRange(cursorIndex, cursorIndex + 1)
                                             proposedCursorIndex = cursorIndex
                                         }
                                     }
 
-                                    Keys.BACKSPACE -> {
+                                    Keys.Backspace -> {
                                         if (cursorIndex > 0) {
                                             proposedText = text.removeRange(cursorIndex - 1, cursorIndex)
                                             proposedCursorIndex = cursorIndex - 1
                                         }
                                     }
 
-                                    Keys.ENTER, Keys.EOF -> {
-                                        if ((multilineState == null && key == Keys.ENTER) || (multilineState != null && key == Keys.EOF)) {
+                                    Keys.Enter, Keys.Eof -> {
+                                        if ((multilineState == null && key == Keys.Enter) || (multilineState != null && key == Keys.Eof)) {
                                             var rejected = false
                                             var cleared = false
                                             get(InputEnteredCallbackKey) {
@@ -533,7 +533,7 @@ private fun ConcurrentScopedData.prepareInput(
                                                 get(SystemInputEnteredCallbackKey) { this.invoke() }
                                             }
                                         } else if (multilineState != null) {
-                                            check(key == Keys.ENTER)
+                                            check(key == Keys.Enter)
 
                                             proposedText = text.insertAtCursorIndex(cursorIndex, '\n')
                                             proposedCursorIndex = cursorIndex + 1
@@ -644,9 +644,9 @@ fun RunScope.enterInput() {
     val runScope = this
     data.withActiveInput {
         if (this.multilineState == null) {
-            runScope.sendKeys(Keys.ENTER)
+            runScope.sendKeys(Keys.Enter)
         } else {
-            runScope.sendKeys(Keys.EOF)
+            runScope.sendKeys(Keys.Eof)
         }
     }
 }

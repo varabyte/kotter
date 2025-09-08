@@ -94,9 +94,9 @@ private fun Session.chooseDish(): Dish {
     }.runUntilSignal {
         onKeyPressed {
             when (key) {
-                Keys.UP -> cursorIndex -= 1
-                Keys.DOWN -> cursorIndex += 1
-                Keys.ENTER -> signal()
+                Keys.Up -> cursorIndex -= 1
+                Keys.Down -> cursorIndex += 1
+                Keys.Enter -> signal()
             }
 
             if (cursorIndex < 0) cursorIndex = Dish.values().lastIndex
@@ -139,11 +139,11 @@ private fun Session.chooseToppingsFor(dish: Dish): Set<Topping> {
     }.runUntilSignal {
         onKeyPressed {
             when (key) {
-                Keys.UP -> cursorIndex -= 1
-                Keys.DOWN -> cursorIndex += 1
-                Keys.HOME -> cursorIndex = 0
-                Keys.END -> cursorIndex = confirmIndex
-                Keys.SPACE -> {
+                Keys.Up -> cursorIndex -= 1
+                Keys.Down -> cursorIndex += 1
+                Keys.Home -> cursorIndex = 0
+                Keys.End -> cursorIndex = confirmIndex
+                Keys.Space -> {
                     if (cursorIndex in toppings.indices) {
                         val currTopping = toppings[cursorIndex]
                         if (selectedToppings.contains(currTopping)) {
@@ -154,7 +154,7 @@ private fun Session.chooseToppingsFor(dish: Dish): Set<Topping> {
                     }
                 }
 
-                Keys.ENTER -> {
+                Keys.Enter -> {
                     // Only finish if we press ENTER on the Confirm choice
                     if (cursorIndex !in toppings.indices) {
                         signal()

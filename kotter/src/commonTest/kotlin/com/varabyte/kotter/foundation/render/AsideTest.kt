@@ -17,8 +17,8 @@ class AsideTest {
         }
 
         assertThat(terminal.resolveRerenders()).containsExactly(
-            "Aside text${Ansi.Csi.Codes.Sgr.RESET}",
-            "Section text${Ansi.Csi.Codes.Sgr.RESET}",
+            "Aside text${Ansi.Csi.Codes.Sgr.Reset}",
+            "Section text${Ansi.Csi.Codes.Sgr.Reset}",
             "", // Newline added at the end of the section
         ).inOrder()
     }
@@ -33,7 +33,7 @@ class AsideTest {
 
         assertThat(terminal.resolveRerenders()).containsExactly(
             "Aside text",
-            "${Ansi.Csi.Codes.Sgr.RESET}Section text${Ansi.Csi.Codes.Sgr.RESET}",
+            "${Ansi.Csi.Codes.Sgr.Reset}Section text${Ansi.Csi.Codes.Sgr.Reset}",
             "", // Newline added at the end of the section
         ).inOrder()
 

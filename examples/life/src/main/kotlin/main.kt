@@ -13,7 +13,7 @@ private const val HEIGHT = 30
 // The rules of life: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 class Cells {
     companion object {
-        private val NEIGHBOR_DELTAS =
+        private val NeighborDeltas =
             (-1..1)
                 .flatMap { dx -> (-1..1).map { dy -> dx to dy } }
                 .filterNot { it.first == 0 && it.second == 0 }
@@ -54,7 +54,7 @@ class Cells {
 
     private fun Array<State>.countNeighbors(x: Int, y: Int): Int {
         var count = 0
-        for (deltas in NEIGHBOR_DELTAS) {
+        for (deltas in NeighborDeltas) {
             val neighborX = x + deltas.first
             val neighborY = y + deltas.second
             if (neighborX in 0 until WIDTH && neighborY in 0 until HEIGHT && this[neighborX, neighborY].isAlive()) {
@@ -141,9 +141,9 @@ fun main() = session(clearTerminal = true) {
 
         onKeyPressed {
             when (key) {
-                Keys.SPACE -> paused = !paused
+                Keys.Space -> paused = !paused
                 Keys.R -> cells.randomize()
-                Keys.RIGHT -> {
+                Keys.Right -> {
                     paused = true
                     cells.step()
                 }

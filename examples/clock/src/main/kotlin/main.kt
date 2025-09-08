@@ -61,7 +61,7 @@ fun main() = session {
             updateDate()
         }
         onKeyPressed {
-            if (key == Keys.SPACE) {
+            if (key == Keys.Space) {
                 isFormat12Hr = !isFormat12Hr
                 updateDate()
             }

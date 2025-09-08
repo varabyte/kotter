@@ -22,7 +22,7 @@ class ShiftSupportTest {
             "     1",
             "     23",
             "     456",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 }

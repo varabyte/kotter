@@ -23,15 +23,15 @@ class LiveSetTest {
             "1",
             "2",
             "3",
-            "${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}".repeat(3)
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}1",
+            "${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(3)
+                    + "\r${Codes.Erase.CursorToLineEnd}1",
             "2",
             "3",
             "4",
             "5",
             "6",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 
@@ -54,15 +54,15 @@ class LiveSetTest {
             "Contains: false",
             "Contains All: false",
             "Is empty: true",
-            "${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}".repeat(5)
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
+            "${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(5)
+                    + "\r${Codes.Erase.CursorToLineEnd}"
                     + "Set: [1, 2, 3]",
             "Size: 3",
             "Contains: true",
             "Contains All: true",
             "Is empty: false",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 
@@ -82,7 +82,7 @@ class LiveSetTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "Iterator: 1, 2, 3, 4, 5, 6${Codes.Sgr.RESET}",
+            "Iterator: 1, 2, 3, 4, 5, 6${Codes.Sgr.Reset}",
             "",
         ).inOrder()
     }

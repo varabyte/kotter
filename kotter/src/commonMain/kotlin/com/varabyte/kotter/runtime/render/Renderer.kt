@@ -25,10 +25,10 @@ class Renderer<R : RenderScope>(val session: Session, private val createScope: (
 
         createScope(this).render()
 
-        _commands.add(RESET_COMMAND)
+        _commands.add(ResetCommand)
 
-        if (commands.asSequence().filter { it is TextCommand }.lastOrNull() !== NEWLINE_COMMAND) {
-            _commands.add(NEWLINE_COMMAND)
+        if (commands.asSequence().filter { it is TextCommand }.lastOrNull() !== TextCommands.Newline) {
+            _commands.add(TextCommands.Newline)
         }
     }
 }

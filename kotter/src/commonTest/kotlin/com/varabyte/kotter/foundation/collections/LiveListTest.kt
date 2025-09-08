@@ -23,15 +23,15 @@ class LiveListTest {
             "1",
             "2",
             "3",
-            "${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}".repeat(3)
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}1",
+            "${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(3)
+                    + "\r${Codes.Erase.CursorToLineEnd}1",
             "2",
             "3",
             "4",
             "5",
             "6",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 
@@ -65,9 +65,9 @@ class LiveListTest {
             "Is empty: false",
             "Last index of: -1",
             "Sublist: [1, 2]",
-            "${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}".repeat(9)
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
+            "${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(9)
+                    + "\r${Codes.Erase.CursorToLineEnd}"
                     + "List: [1, 2, 3, 4, 5, 6, 3]",
             "Size: 7",
             "Contains: true",
@@ -77,7 +77,7 @@ class LiveListTest {
             "Is empty: false",
             "Last index of: 6",
             "Sublist: [1, 2]",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 
@@ -123,7 +123,7 @@ class LiveListTest {
             "Iterator: 1, 2, 3, 4, 5, 6",
             "List iterator (forward): 1, 2, 3, 4, 5, 6",
             "List iterator (reverse): 6, 5, 4, 3, 2, 1",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 

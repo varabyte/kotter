@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
@@ -258,7 +257,7 @@ fun main() = session {
                 }
 
                 when (key) {
-                    Keys.ENTER -> {
+                    Keys.Enter -> {
                         when (userOption) {
                             UserOption.REGENERATE -> {
                                 check(histories.size >= 2)
@@ -273,16 +272,16 @@ fun main() = session {
                         }
                     }
 
-                    Keys.LEFT -> {
+                    Keys.Left -> {
                         userOption =
                             UserOption.values()[(userOption.ordinal + UserOption.values().size - 1) % UserOption.values().size]
                     }
 
-                    Keys.RIGHT -> {
+                    Keys.Right -> {
                         userOption = UserOption.values()[(userOption.ordinal + 1) % UserOption.values().size]
                     }
 
-                    Keys.DOWN -> continueChatting()
+                    Keys.Down -> continueChatting()
                     is CharKey -> continueChatting((key as CharKey).code.toString())
                 }
             }

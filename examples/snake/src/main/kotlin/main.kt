@@ -206,10 +206,10 @@ fun main() = session(
         onKeyPressed {
             if (!isDead) {
                 when (key) {
-                    Keys.UP -> level.snake.move(Dir.N)
-                    Keys.DOWN -> level.snake.move(Dir.S)
-                    Keys.LEFT -> level.snake.move(Dir.W)
-                    Keys.RIGHT -> level.snake.move(Dir.E)
+                    Keys.Up -> level.snake.move(Dir.N)
+                    Keys.Down -> level.snake.move(Dir.S)
+                    Keys.Left -> level.snake.move(Dir.W)
+                    Keys.Right -> level.snake.move(Dir.E)
                 }
             } else {
                 if (key == Keys.R) {

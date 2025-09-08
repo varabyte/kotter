@@ -29,7 +29,7 @@ fun main() = session {
     }.runUntilKeyPressed(Keys.Q) {
         onKeyPressed {
             when (key) {
-                Keys.SPACE -> setNextTextorizeEffect()
+                Keys.Space -> setNextTextorizeEffect()
             }
         }
     }

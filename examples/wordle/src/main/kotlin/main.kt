@@ -17,7 +17,7 @@ import kotlin.time.Duration.Companion.milliseconds
 private const val URL_BASE = "https://raw.githubusercontent.com/varabyte/media/main/kotter/data/wordle"
 private const val WORD_LEN = 5
 private const val MAX_GUESSES = 6
-private val KEYBOARD_LETTERS = listOf(
+private val KeyboardLetters = listOf(
     "QWERTYUIOP".toList(),
     "ASDFGHJKL".toList(),
     " ZXCVBNM".toList(),
@@ -211,7 +211,7 @@ private fun RenderScope.renderKeyboard(board: Board) {
         }
     }
 
-    KEYBOARD_LETTERS.forEach { row ->
+    KeyboardLetters.forEach { row ->
         row.forEach { letter ->
             scopedState {
                 tileTypes[letter]?.let { setColorFor(it) }
@@ -366,10 +366,10 @@ fun main() = session(clearTerminal = true) {
 
         onKeyPressed {
             when (key) {
-                Keys.DIGIT_0 -> showStats = !showStats
-                Keys.DIGIT_1 -> gameMode = gameMode.toggle()
-                Keys.DIGIT_2 -> useHighContrast = !useHighContrast
-                Keys.QUESTION_MARK -> showInstructions = !showInstructions
+                Keys.Digit0 -> showStats = !showStats
+                Keys.Digit1 -> gameMode = gameMode.toggle()
+                Keys.Digit2 -> useHighContrast = !useHighContrast
+                Keys.QuestionMark -> showInstructions = !showInstructions
             }
 
             // Clear any error whenever the player interacts with the board

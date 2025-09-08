@@ -23,16 +23,16 @@ class LiveMapTest {
             "1 is spelled \"one\"",
             "2 is spelled \"two\"",
             "3 is spelled \"three\"",
-            "${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}".repeat(3)
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
+            "${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(3)
+                    + "\r${Codes.Erase.CursorToLineEnd}"
                     + "1 is spelled \"one\"",
             "2 is spelled \"two\"",
             "3 is spelled \"three\"",
             "4 is spelled \"four\"",
             "5 is spelled \"five\"",
             "6 is spelled \"six\"",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 
@@ -62,9 +62,9 @@ class LiveMapTest {
             "Contains key: false",
             "Contains value: false",
             "Square of 2: 4",
-            "${Codes.Sgr.RESET}"
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}${Codes.Cursor.MOVE_TO_PREV_LINE}".repeat(8)
-                    + "\r${Codes.Erase.CURSOR_TO_LINE_END}"
+            "${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(8)
+                    + "\r${Codes.Erase.CursorToLineEnd}"
                     + "Set: [1² = 1, 2² = 4, 3² = 9, 4² = 16, 5² = 25, 6² = 36]",
             "Keys: [1, 2, 3, 4, 5, 6]",
             "Values: [1, 4, 9, 16, 25, 36]",
@@ -73,7 +73,7 @@ class LiveMapTest {
             "Contains key: true",
             "Contains value: true",
             "Square of 2: 4",
-            "${Codes.Sgr.RESET}",
+            "${Codes.Sgr.Reset}",
         ).inOrder()
     }
 

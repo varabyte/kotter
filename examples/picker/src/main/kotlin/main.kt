@@ -85,21 +85,21 @@ fun main() = session {
         onKeyPressed {
             if (state == State.PICKING_COLOR) {
                 when (key) {
-                    Keys.LEFT -> xCurr = (xCurr - 1).coerceAtLeast(0)
-                    Keys.RIGHT -> xCurr = (xCurr + 1).coerceAtMost(W)
-                    Keys.UP -> yCurr = (yCurr - 1).coerceAtLeast(0)
-                    Keys.DOWN -> yCurr = (yCurr + 1).coerceAtMost(H)
-                    Keys.HOME -> xCurr = 0
-                    Keys.END -> xCurr = W
-                    Keys.PAGE_UP -> yCurr = 0
-                    Keys.PAGE_DOWN -> yCurr = H
+                    Keys.Left -> xCurr = (xCurr - 1).coerceAtLeast(0)
+                    Keys.Right -> xCurr = (xCurr + 1).coerceAtMost(W)
+                    Keys.Up -> yCurr = (yCurr - 1).coerceAtLeast(0)
+                    Keys.Down -> yCurr = (yCurr + 1).coerceAtMost(H)
+                    Keys.Home -> xCurr = 0
+                    Keys.End -> xCurr = W
+                    Keys.PageUp -> yCurr = 0
+                    Keys.PageDown -> yCurr = H
                     Keys.H -> state = State.ENTERING_HUE
                     Keys.S -> state = State.ENTERING_SAT
                     Keys.V -> state = State.ENTERING_VAL
                     Keys.Q -> signal()
                 }
             } else {
-                if (key == Keys.ESC) {
+                if (key == Keys.Escape) {
                     state = State.PICKING_COLOR
                 }
             }

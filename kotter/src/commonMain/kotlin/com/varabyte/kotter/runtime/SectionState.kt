@@ -56,27 +56,27 @@ internal class SectionState(val parent: SectionState? = null) {
     fun applyTo(renderer: Renderer<*>) {
         if (deferred.fgColor?.text !== applied.fgColor?.text) {
             applied.fgColor = deferred.fgColor
-            renderer.appendCommand(applied.fgColor ?: FG_CLEAR_COMMAND)
+            renderer.appendCommand(applied.fgColor ?: ColorCommands.Fg.Clear)
         }
         if (deferred.bgColor?.text !== applied.bgColor?.text) {
             applied.bgColor = deferred.bgColor
-            renderer.appendCommand(applied.bgColor ?: BG_CLEAR_COMMAND)
+            renderer.appendCommand(applied.bgColor ?: ColorCommands.Bg.Clear)
         }
         if (deferred.underlined?.text !== applied.underlined?.text) {
             applied.underlined = deferred.underlined
-            renderer.appendCommand(applied.underlined ?: CLEAR_UNDERLINE_COMMAND)
+            renderer.appendCommand(applied.underlined ?: DecorationCommands.ClearUnderline)
         }
         if (deferred.bolded?.text !== applied.bolded?.text) {
             applied.bolded = deferred.bolded
-            renderer.appendCommand(applied.bolded ?: CLEAR_BOLD_COMMAND)
+            renderer.appendCommand(applied.bolded ?: DecorationCommands.ClearBold)
         }
         if (deferred.struckThrough?.text !== applied.struckThrough?.text) {
             applied.struckThrough = deferred.struckThrough
-            renderer.appendCommand(applied.struckThrough ?: CLEAR_STRIKETHROUGH_COMMAND)
+            renderer.appendCommand(applied.struckThrough ?: DecorationCommands.ClearStrikethrough)
         }
         if (deferred.inverted?.text !== applied.inverted?.text) {
             applied.inverted = deferred.inverted
-            renderer.appendCommand(applied.inverted ?: CLEAR_INVERT_COMMAND)
+            renderer.appendCommand(applied.inverted ?: ColorCommands.ClearInvert)
         }
     }
 }

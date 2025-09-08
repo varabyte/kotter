@@ -46,9 +46,9 @@ class InputSupportTest {
         // ESC requires intricate internal handling due to the fact that ESC is often used as a prefix for ANSI commands
         section {}.runUntilSignal {
             onKeyPressed {
-                if (key == Keys.ESC) signal()
+                if (key == Keys.Escape) signal()
             }
-            terminal.press(Keys.ESC)
+            terminal.press(Keys.Escape)
         }
     }
 
@@ -171,9 +171,9 @@ class InputSupportTest {
             input(initialText = "Hello")
         }.run {
             // At this point, cursor is PAST the o
-            terminal.sendCode(Codes.Keys.LEFT) // o
-            terminal.sendCode(Codes.Keys.LEFT) // l (second)
-            terminal.sendCode(Codes.Keys.LEFT) // l (first)
+            terminal.sendCode(Codes.Keys.Left) // o
+            terminal.sendCode(Codes.Keys.Left) // l (second)
+            terminal.sendCode(Codes.Keys.Left) // l (first)
 
             blockUntilRenderMatches(terminal) {
                 text("He"); invert(); text('l'); clearInvert(); text("lo ")
@@ -187,7 +187,7 @@ class InputSupportTest {
             input(initialText = "Hello")
         }.run {
             // At this point, cursor is PAST the o
-            terminal.sendCode(Codes.Keys.HOME) // h
+            terminal.sendCode(Codes.Keys.Home) // h
 
             blockUntilRenderMatches(terminal) {
                 invert(); text('H'); clearInvert(); text("ello ")
@@ -200,8 +200,8 @@ class InputSupportTest {
         section {
             input(initialText = "Hello")
         }.run {
-            terminal.sendCode(Codes.Keys.HOME) // We know this puts the cursor at the beginning from the previous test
-            terminal.sendCode(Codes.Keys.END)
+            terminal.sendCode(Codes.Keys.Home) // We know this puts the cursor at the beginning from the previous test
+            terminal.sendCode(Codes.Keys.End)
 
             blockUntilRenderMatches(terminal) {
                 // No need to "clearInvert". It's merged into the "reset" command added at the end of the section.
@@ -223,11 +223,11 @@ class InputSupportTest {
             }
 
             // At this point, cursor is PAST the o
-            terminal.sendCode(Codes.Keys.LEFT) // o
-            terminal.sendCode(Codes.Keys.LEFT) // l (second)
-            terminal.sendCode(Codes.Keys.LEFT) // l (first)
-            terminal.sendCode(Codes.Keys.DELETE)
-            terminal.sendCode(Codes.Keys.DELETE)
+            terminal.sendCode(Codes.Keys.Left) // o
+            terminal.sendCode(Codes.Keys.Left) // l (second)
+            terminal.sendCode(Codes.Keys.Left) // l (first)
+            terminal.sendCode(Codes.Keys.Delete)
+            terminal.sendCode(Codes.Keys.Delete)
 
             terminal.type(Ansi.CtrlChars.ENTER)
         }
@@ -244,13 +244,13 @@ class InputSupportTest {
             }
 
             // At this point, cursor is PAST the o
-            terminal.sendCode(Codes.Keys.LEFT) // o
-            terminal.sendCode(Codes.Keys.LEFT) // l (second)
-            terminal.sendCode(Codes.Keys.LEFT) // l (first)
-            terminal.sendCode(Codes.Keys.LEFT) // e (first)
-            terminal.sendCode(Codes.Keys.DELETE) // Hllo
-            terminal.sendCode(Codes.Keys.DELETE) // Would be "Hlo", but rejected
-            terminal.sendCode(Codes.Keys.DELETE) // Would be "Hlo", but rejected again
+            terminal.sendCode(Codes.Keys.Left) // o
+            terminal.sendCode(Codes.Keys.Left) // l (second)
+            terminal.sendCode(Codes.Keys.Left) // l (first)
+            terminal.sendCode(Codes.Keys.Left) // e (first)
+            terminal.sendCode(Codes.Keys.Delete) // Hllo
+            terminal.sendCode(Codes.Keys.Delete) // Would be "Hlo", but rejected
+            terminal.sendCode(Codes.Keys.Delete) // Would be "Hlo", but rejected again
 
             blockUntilRenderMatches(terminal) {
                 text("H"); invert(); text('l'); clearInvert(); text("lo ")
@@ -270,8 +270,8 @@ class InputSupportTest {
             }
 
             // At this point, cursor is PAST the o
-            terminal.sendCode(Codes.Keys.LEFT) // o
-            terminal.sendCode(Codes.Keys.LEFT) // l (second)
+            terminal.sendCode(Codes.Keys.Left) // o
+            terminal.sendCode(Codes.Keys.Left) // l (second)
             // Both BACKSPACE and DELETE keys are interpreted as BACKSPACE due to different terminal behaviors
             terminal.type(Ansi.CtrlChars.BACKSPACE) // delete l (first)
             terminal.type(Ansi.CtrlChars.DELETE) // delete e
@@ -403,7 +403,7 @@ class InputSupportTest {
             input(Completions("Hello"))
         }.run {
             terminal.type('H', 'e')
-            terminal.sendCode(Codes.Keys.RIGHT)
+            terminal.sendCode(Codes.Keys.Right)
 
             blockUntilRenderMatches(terminal) {
                 text("Hello"); invert(); text(' ')
@@ -626,7 +626,7 @@ class InputSupportTest {
 
             // First, keep going up. Note that the cursor "sticks" to the end of each line when it is too short
 
-            terminal.sendCode(Codes.Keys.UP)
+            terminal.sendCode(Codes.Keys.Up)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 textLine("123456 ")
@@ -636,7 +636,7 @@ class InputSupportTest {
                 clearInvert(); textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.UP)
+            terminal.sendCode(Codes.Keys.Up)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 textLine("123456 ")
@@ -646,7 +646,7 @@ class InputSupportTest {
                 textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.UP)
+            terminal.sendCode(Codes.Keys.Up)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 textLine("123456 ")
@@ -656,7 +656,7 @@ class InputSupportTest {
                 textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.UP)
+            terminal.sendCode(Codes.Keys.Up)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 text("123456"); invert(); textLine(' ')
@@ -666,7 +666,7 @@ class InputSupportTest {
                 textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.UP)
+            terminal.sendCode(Codes.Keys.Up)
             blockUntilRenderMatches(terminal) {
                 text("123456789"); invert(); text('0'); clearInvert(); textLine(' ')
                 textLine("123456 ")
@@ -678,7 +678,7 @@ class InputSupportTest {
 
             // Now, let's go back down but on a different column that's somewhere in the middle of most lines
 
-            repeat(5) { terminal.sendCode(Codes.Keys.LEFT) }
+            repeat(5) { terminal.sendCode(Codes.Keys.Left) }
             blockUntilRenderMatches(terminal) {
                 text("1234"); invert(); text('5'); clearInvert(); textLine("67890 ")
                 textLine("123456 ")
@@ -688,7 +688,7 @@ class InputSupportTest {
                 textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.DOWN)
+            terminal.sendCode(Codes.Keys.Down)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 text("1234"); invert(); text('5'); clearInvert(); textLine("6 ")
@@ -698,7 +698,7 @@ class InputSupportTest {
                 textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.DOWN)
+            terminal.sendCode(Codes.Keys.Down)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 textLine("123456 ")
@@ -708,7 +708,7 @@ class InputSupportTest {
                 textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.DOWN)
+            terminal.sendCode(Codes.Keys.Down)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 textLine("123456 ")
@@ -718,7 +718,7 @@ class InputSupportTest {
                 textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.DOWN)
+            terminal.sendCode(Codes.Keys.Down)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 textLine("123456 ")
@@ -728,7 +728,7 @@ class InputSupportTest {
                 clearInvert(); textLine("123456789 ")
             }
 
-            terminal.sendCode(Codes.Keys.DOWN)
+            terminal.sendCode(Codes.Keys.Down)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 textLine("123456 ")
@@ -750,8 +750,8 @@ class InputSupportTest {
             terminal.type("123456")
             terminal.type(Ansi.CtrlChars.ENTER)
             terminal.type("1234567890")
-            repeat(6) { terminal.sendCode(Codes.Keys.LEFT) }
-            terminal.sendCode(Codes.Keys.UP)
+            repeat(6) { terminal.sendCode(Codes.Keys.Left) }
+            terminal.sendCode(Codes.Keys.Up)
 
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
@@ -759,14 +759,14 @@ class InputSupportTest {
                 textLine("1234567890 ")
             }
 
-            terminal.sendCode(Codes.Keys.HOME)
+            terminal.sendCode(Codes.Keys.Home)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 invert(); text('1'); clearInvert(); textLine("23456 ")
                 textLine("1234567890 ")
             }
 
-            terminal.sendCode(Codes.Keys.END)
+            terminal.sendCode(Codes.Keys.End)
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 text("123456"); invert(); textLine(' ')
@@ -785,8 +785,8 @@ class InputSupportTest {
             terminal.type("123456")
             terminal.type(Ansi.CtrlChars.ENTER)
             terminal.type("1234567890")
-            repeat(6) { terminal.sendCode(Codes.Keys.LEFT) }
-            terminal.sendCode(Codes.Keys.UP)
+            repeat(6) { terminal.sendCode(Codes.Keys.Left) }
+            terminal.sendCode(Codes.Keys.Up)
 
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
@@ -794,14 +794,14 @@ class InputSupportTest {
                 textLine("1234567890 ")
             }
 
-            repeat(7) { terminal.sendCode(Codes.Keys.RIGHT) }
+            repeat(7) { terminal.sendCode(Codes.Keys.Right) }
             blockUntilRenderMatches(terminal) {
                 textLine("1234567890 ")
                 textLine("123456 ")
                 text("1234"); invert(); text('5'); clearInvert(); textLine("67890 ")
             }
 
-            repeat(16) { terminal.sendCode(Codes.Keys.LEFT) }
+            repeat(16) { terminal.sendCode(Codes.Keys.Left) }
             blockUntilRenderMatches(terminal) {
                 text("123456"); invert(); text('7'); clearInvert(); textLine("890 ")
                 textLine("123456 ")
@@ -836,7 +836,7 @@ class InputSupportTest {
                 text("88888"); invert(); textLine(' ')
             }
 
-            terminal.sendCode(Codes.Keys.PG_UP)
+            terminal.sendCode(Codes.Keys.PgUp)
             blockUntilRenderMatches(terminal) {
                 textLine("00000 ")
                 textLine("11111 ")
@@ -849,7 +849,7 @@ class InputSupportTest {
                 textLine("88888 ")
             }
 
-            terminal.sendCode(Codes.Keys.PG_UP)
+            terminal.sendCode(Codes.Keys.PgUp)
             blockUntilRenderMatches(terminal) {
                 textLine("00000 ")
                 textLine("11111 ")
@@ -862,7 +862,7 @@ class InputSupportTest {
                 textLine("88888 ")
             }
 
-            terminal.sendCode(Codes.Keys.PG_UP)
+            terminal.sendCode(Codes.Keys.PgUp)
             blockUntilRenderMatches(terminal) {
                 text("00000"); invert(); textLine(' ')
                 clearInvert(); textLine("11111 ")
@@ -875,7 +875,7 @@ class InputSupportTest {
                 textLine("88888 ")
             }
 
-            terminal.sendCode(Codes.Keys.PG_DOWN)
+            terminal.sendCode(Codes.Keys.PgDown)
             blockUntilRenderMatches(terminal) {
                 textLine("00000 ")
                 textLine("11111 ")
@@ -898,14 +898,14 @@ class InputSupportTest {
             terminal.type("12345")
             terminal.type(Ansi.CtrlChars.ENTER)
             terminal.type("67890")
-            terminal.sendCode(Codes.Keys.UP)
+            terminal.sendCode(Codes.Keys.Up)
 
             blockUntilRenderMatches(terminal) {
                 text("12345"); invert(); textLine(' ')
                 clearInvert(); textLine("67890 ")
             }
 
-            terminal.sendCode(Codes.Keys.DELETE)
+            terminal.sendCode(Codes.Keys.Delete)
 
             blockUntilRenderMatches(terminal) {
                 text("12345"); invert(); text('6'); clearInvert(); textLine("7890 ")
@@ -921,7 +921,7 @@ class InputSupportTest {
             terminal.type("12345")
             terminal.type(Ansi.CtrlChars.ENTER)
             terminal.type("67890")
-            terminal.sendCode(Codes.Keys.HOME)
+            terminal.sendCode(Codes.Keys.Home)
 
             blockUntilRenderMatches(terminal) {
                 textLine("12345 ")
@@ -994,7 +994,7 @@ class InputSupportTest {
             blockUntilRenderMatches(terminal) {
                 text("Hello  ")
             }
-            sendKeys(Keys.W_UPPER, Keys.O, Keys.R, Keys.L, Keys.D)
+            sendKeys(Keys.UpperW, Keys.O, Keys.R, Keys.L, Keys.D)
             blockUntilRenderMatches(terminal) {
                 text("Hello World ")
             }
@@ -1025,7 +1025,7 @@ class InputSupportTest {
                 terminal.type(testRun.toString())
                 terminal.type(": ")
                 for (i in 0 until numCharsToType) terminal.type('a')
-                terminal.press(Keys.ENTER)
+                terminal.press(Keys.Enter)
             }
 
             terminal.assertMatches {

@@ -23,10 +23,10 @@ fun main() = session {
     }.runUntilKeyPressed(Keys.Q) {
         onKeyPressed {
             when (key) {
-                Keys.UP -> y = (y - 1).coerceAtLeast(0)
-                Keys.DOWN -> y = (y + 1).coerceAtMost(HEIGHT)
-                Keys.LEFT -> x = (x - 1).coerceAtLeast(0)
-                Keys.RIGHT -> x = (x + 1).coerceAtMost(WIDTH)
+                Keys.Up -> y = (y - 1).coerceAtLeast(0)
+                Keys.Down -> y = (y + 1).coerceAtMost(HEIGHT)
+                Keys.Left -> x = (x - 1).coerceAtLeast(0)
+                Keys.Right -> x = (x + 1).coerceAtMost(WIDTH)
             }
         }
     }

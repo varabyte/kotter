@@ -97,53 +97,53 @@ data class HSV(val h: Int, val s: Float, val v: Float) {
 }
 
 private fun toBlackCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
-    ColorLayer.FG -> if (isBright) FG_BLACK_BRIGHT_COMMAND else FG_BLACK_COMMAND
-    ColorLayer.BG -> if (isBright) BG_BLACK_BRIGHT_COMMAND else BG_BLACK_COMMAND
+    ColorLayer.FG -> if (isBright) ColorCommands.Fg.BrightBlack else ColorCommands.Fg.Black
+    ColorLayer.BG -> if (isBright) ColorCommands.Bg.BrightBlack else ColorCommands.Bg.Black
 }
 
 private fun toRedCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
-    ColorLayer.FG -> if (isBright) FG_RED_BRIGHT_COMMAND else FG_RED_COMMAND
-    ColorLayer.BG -> if (isBright) BG_RED_BRIGHT_COMMAND else BG_RED_COMMAND
+    ColorLayer.FG -> if (isBright) ColorCommands.Fg.BrightRed else ColorCommands.Fg.Red
+    ColorLayer.BG -> if (isBright) ColorCommands.Bg.BrightRed else ColorCommands.Bg.Red
 }
 
 private fun toGreenCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
-    ColorLayer.FG -> if (isBright) FG_GREEN_BRIGHT_COMMAND else FG_GREEN_COMMAND
-    ColorLayer.BG -> if (isBright) BG_GREEN_BRIGHT_COMMAND else BG_GREEN_COMMAND
+    ColorLayer.FG -> if (isBright) ColorCommands.Fg.BrightGreen else ColorCommands.Fg.Green
+    ColorLayer.BG -> if (isBright) ColorCommands.Bg.BrightGreen else ColorCommands.Bg.Green
 }
 
 private fun toYellowCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
-    ColorLayer.FG -> if (isBright) FG_YELLOW_BRIGHT_COMMAND else FG_YELLOW_COMMAND
-    ColorLayer.BG -> if (isBright) BG_YELLOW_BRIGHT_COMMAND else BG_YELLOW_COMMAND
+    ColorLayer.FG -> if (isBright) ColorCommands.Fg.BrightYellow else ColorCommands.Fg.Yellow
+    ColorLayer.BG -> if (isBright) ColorCommands.Bg.BrightYellow else ColorCommands.Bg.Yellow
 }
 
 private fun toBlueCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
-    ColorLayer.FG -> if (isBright) FG_BLUE_BRIGHT_COMMAND else FG_BLUE_COMMAND
-    ColorLayer.BG -> if (isBright) BG_BLUE_BRIGHT_COMMAND else BG_BLUE_COMMAND
+    ColorLayer.FG -> if (isBright) ColorCommands.Fg.BrightBlue else ColorCommands.Fg.Blue
+    ColorLayer.BG -> if (isBright) ColorCommands.Bg.BrightBlue else ColorCommands.Bg.Blue
 }
 
 private fun toMagentaCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
-    ColorLayer.FG -> if (isBright) FG_MAGENTA_BRIGHT_COMMAND else FG_MAGENTA_COMMAND
-    ColorLayer.BG -> if (isBright) BG_MAGENTA_BRIGHT_COMMAND else BG_MAGENTA_COMMAND
+    ColorLayer.FG -> if (isBright) ColorCommands.Fg.BrightMagenta else ColorCommands.Fg.Magenta
+    ColorLayer.BG -> if (isBright) ColorCommands.Bg.BrightMagenta else ColorCommands.Bg.Magenta
 }
 
 private fun toCyanCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
-    ColorLayer.FG -> if (isBright) FG_CYAN_BRIGHT_COMMAND else FG_CYAN_COMMAND
-    ColorLayer.BG -> if (isBright) BG_CYAN_BRIGHT_COMMAND else BG_CYAN_COMMAND
+    ColorLayer.FG -> if (isBright) ColorCommands.Fg.BrightCyan else ColorCommands.Fg.Cyan
+    ColorLayer.BG -> if (isBright) ColorCommands.Bg.BrightCyan else ColorCommands.Bg.Cyan
 }
 
 private fun toWhiteCommand(layer: ColorLayer, isBright: Boolean) = when (layer) {
-    ColorLayer.FG -> if (isBright) FG_WHITE_BRIGHT_COMMAND else FG_WHITE_COMMAND
-    ColorLayer.BG -> if (isBright) BG_WHITE_BRIGHT_COMMAND else BG_WHITE_COMMAND
+    ColorLayer.FG -> if (isBright) ColorCommands.Fg.BrightWhite else ColorCommands.Fg.White
+    ColorLayer.BG -> if (isBright) ColorCommands.Bg.BrightWhite else ColorCommands.Bg.White
 }
 
 private fun toLookupCommand(layer: ColorLayer, index: Int) = when (layer) {
-    ColorLayer.FG -> fgLookupCommand(index)
-    ColorLayer.BG -> bgLookupCommand(index)
+    ColorLayer.FG -> ColorCommands.Fg.Color.lookup(index)
+    ColorLayer.BG -> ColorCommands.Bg.Color.lookup(index)
 }
 
 private fun toTruecolorCommand(layer: ColorLayer, r: Int, g: Int, b: Int) = when (layer) {
-    ColorLayer.FG -> fgTruecolorCommand(r, g, b)
-    ColorLayer.BG -> bgTruecolorCommand(r, g, b)
+    ColorLayer.FG -> ColorCommands.Fg.Color.truecolor(r, g, b)
+    ColorLayer.BG -> ColorCommands.Bg.Color.truecolor(r, g, b)
 }
 
 /**
@@ -309,8 +309,8 @@ fun RenderScope.hsv(color: HSV, layer: ColorLayer = ColorLayer.FG) {
 fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG) {
     applyCommand(
         when (layer) {
-            ColorLayer.FG -> FG_CLEAR_COMMAND
-            ColorLayer.BG -> BG_CLEAR_COMMAND
+            ColorLayer.FG -> ColorCommands.Fg.Clear
+            ColorLayer.BG -> ColorCommands.Bg.Clear
         }
     )
 }
@@ -319,8 +319,8 @@ fun RenderScope.clearColor(layer: ColorLayer = ColorLayer.FG) {
  * Clears any colors set earlier in this scope.
  */
 fun RenderScope.clearColors() {
-    applyCommand(FG_CLEAR_COMMAND)
-    applyCommand(BG_CLEAR_COMMAND)
+    applyCommand(ColorCommands.Fg.Clear)
+    applyCommand(ColorCommands.Bg.Clear)
 }
 
 /**
@@ -330,14 +330,14 @@ fun RenderScope.clearColors() {
  * Note that calling invert twice in a row does *not* undo the original invert. Instead, call [clearInvert].
  */
 fun RenderScope.invert() {
-    applyCommand(INVERT_COMMAND)
+    applyCommand(ColorCommands.Invert)
 }
 
 /**
  * Clears a previous call to [invert].
  */
 fun RenderScope.clearInvert() {
-    applyCommand(CLEAR_INVERT_COMMAND)
+    applyCommand(ColorCommands.ClearInvert)
 }
 
 /**

@@ -122,16 +122,16 @@ actual class NativeTerminal : Terminal {
         }
 
         when (keyCode) {
-            0x21 -> emitCode(Ansi.Csi.Codes.Keys.PG_UP)
-            0x22 -> emitCode(Ansi.Csi.Codes.Keys.PG_DOWN)
-            0x23 -> emitCode(Ansi.Csi.Codes.Keys.END)
-            0x24 -> emitCode(Ansi.Csi.Codes.Keys.HOME)
-            0x25 -> emitCode(Ansi.Csi.Codes.Keys.LEFT)
-            0x26 -> emitCode(Ansi.Csi.Codes.Keys.UP)
-            0x27 -> emitCode(Ansi.Csi.Codes.Keys.RIGHT)
-            0x28 -> emitCode(Ansi.Csi.Codes.Keys.DOWN)
-            0x2D -> emitCode(Ansi.Csi.Codes.Keys.INSERT)
-            0x2E -> emitCode(Ansi.Csi.Codes.Keys.DELETE)
+            0x21 -> emitCode(Ansi.Csi.Codes.Keys.PgUp)
+            0x22 -> emitCode(Ansi.Csi.Codes.Keys.PgDown)
+            0x23 -> emitCode(Ansi.Csi.Codes.Keys.End)
+            0x24 -> emitCode(Ansi.Csi.Codes.Keys.Home)
+            0x25 -> emitCode(Ansi.Csi.Codes.Keys.Left)
+            0x26 -> emitCode(Ansi.Csi.Codes.Keys.Up)
+            0x27 -> emitCode(Ansi.Csi.Codes.Keys.Right)
+            0x28 -> emitCode(Ansi.Csi.Codes.Keys.Down)
+            0x2D -> emitCode(Ansi.Csi.Codes.Keys.Insert)
+            0x2E -> emitCode(Ansi.Csi.Codes.Keys.Delete)
 
             else -> return false
         }

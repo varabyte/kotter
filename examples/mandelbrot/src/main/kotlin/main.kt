@@ -151,7 +151,7 @@ fun main() = session(clearTerminal = true) {
     }.runUntilKeyPressed(Keys.Q) {
         var paused = true
         onKeyPressed {
-            if (key == Keys.SPACE) {
+            if (key == Keys.Space) {
                 paused = !paused
                 return@onKeyPressed
             }
@@ -165,19 +165,19 @@ fun main() = session(clearTerminal = true) {
                     zoom = (zoom / 1.1).coerceAtLeast(1.0)
                 }
 
-                Keys.LEFT -> {
+                Keys.Left -> {
                     cx -= (1.0 / zoom)
                 }
 
-                Keys.RIGHT -> {
+                Keys.Right -> {
                     cx += (1.0 / zoom)
                 }
 
-                Keys.UP -> {
+                Keys.Up -> {
                     cy -= (1.0 / zoom)
                 }
 
-                Keys.DOWN -> {
+                Keys.Down -> {
                     cy += (1.0 / zoom)
                 }
 

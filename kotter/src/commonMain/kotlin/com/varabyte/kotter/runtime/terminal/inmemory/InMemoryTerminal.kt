@@ -117,23 +117,23 @@ suspend fun InMemoryTerminal.press(vararg keys: Key) {
         when (key) {
             is CharKey -> sendKey(key.code.code)
 
-            Keys.ENTER -> type(Ansi.CtrlChars.ENTER)
-            Keys.ESC -> type(Ansi.CtrlChars.ESC)
-            Keys.BACKSPACE -> type(Ansi.CtrlChars.BACKSPACE)
-            Keys.DELETE -> type(Ansi.CtrlChars.DELETE)
-            Keys.EOF -> type(Ansi.CtrlChars.EOF)
-            Keys.TAB -> type(Ansi.CtrlChars.TAB)
+            Keys.Enter -> type(Ansi.CtrlChars.ENTER)
+            Keys.Escape -> type(Ansi.CtrlChars.ESC)
+            Keys.Backspace -> type(Ansi.CtrlChars.BACKSPACE)
+            Keys.Delete -> type(Ansi.CtrlChars.DELETE)
+            Keys.Eof -> type(Ansi.CtrlChars.EOF)
+            Keys.Tab -> type(Ansi.CtrlChars.TAB)
 
-            Keys.UP -> sendCode(Ansi.Csi.Codes.Keys.UP)
-            Keys.DOWN -> sendCode(Ansi.Csi.Codes.Keys.DOWN)
-            Keys.LEFT -> sendCode(Ansi.Csi.Codes.Keys.LEFT)
-            Keys.RIGHT -> sendCode(Ansi.Csi.Codes.Keys.RIGHT)
+            Keys.Up -> sendCode(Ansi.Csi.Codes.Keys.Up)
+            Keys.Down -> sendCode(Ansi.Csi.Codes.Keys.Down)
+            Keys.Left -> sendCode(Ansi.Csi.Codes.Keys.Left)
+            Keys.Right -> sendCode(Ansi.Csi.Codes.Keys.Right)
 
-            Keys.HOME -> sendCode(Ansi.Csi.Codes.Keys.HOME)
-            Keys.END -> sendCode(Ansi.Csi.Codes.Keys.END)
-            Keys.INSERT -> sendCode(Ansi.Csi.Codes.Keys.INSERT)
-            Keys.PAGE_UP -> sendCode(Ansi.Csi.Codes.Keys.PG_UP)
-            Keys.PAGE_DOWN -> sendCode(Ansi.Csi.Codes.Keys.PG_DOWN)
+            Keys.Home -> sendCode(Ansi.Csi.Codes.Keys.Home)
+            Keys.End -> sendCode(Ansi.Csi.Codes.Keys.End)
+            Keys.Insert -> sendCode(Ansi.Csi.Codes.Keys.Insert)
+            Keys.PageUp -> sendCode(Ansi.Csi.Codes.Keys.PgUp)
+            Keys.PageDown -> sendCode(Ansi.Csi.Codes.Keys.PgDown)
 
             else -> error("Unsupported key: $key")
         }
@@ -151,8 +151,8 @@ fun InMemoryTerminal.lines(): List<String> {
  * Return the state of the terminal AFTER lines have been erased and repainted.
  */
 fun InMemoryTerminal.resolveRerenders(): List<String> {
-    val codeEraseToLineEnd = Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()
-    val codeMoveToPrevLine = Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode()
+    val codeEraseToLineEnd = Ansi.Csi.Codes.Erase.CursorToLineEnd.toFullEscapeCode()
+    val codeMoveToPrevLine = Ansi.Csi.Codes.Cursor.MoveToPrevLine.toFullEscapeCode()
 
     val resolved = mutableListOf<String>()
     val currLine = StringBuilder()

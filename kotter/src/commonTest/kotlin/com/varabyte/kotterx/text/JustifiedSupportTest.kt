@@ -26,7 +26,7 @@ class JustifiedSupportTest {
             "12      ",
             "123     ",
             "1       ",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Run again, without right padding
@@ -48,7 +48,7 @@ class JustifiedSupportTest {
             "12",
             "123",
             "1",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -70,7 +70,7 @@ class JustifiedSupportTest {
             "   12   ",
             "  123   ",
             "   1    ",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Run again, without right padding
@@ -92,7 +92,7 @@ class JustifiedSupportTest {
             "   12",
             "  123",
             "   1",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -114,7 +114,7 @@ class JustifiedSupportTest {
             "      12",
             "     123",
             "       1",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Run again, without right padding (which is meaningless for right justified text but whatever!)
@@ -136,7 +136,7 @@ class JustifiedSupportTest {
             "      12",
             "     123",
             "       1",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -157,7 +157,7 @@ class JustifiedSupportTest {
                 "1    ",
                 "12   ",
                 "123  ",
-                Codes.Sgr.RESET.toFullEscapeCode(),
+                Codes.Sgr.Reset.toFullEscapeCode(),
             ).inOrder()
         }
 
@@ -176,7 +176,7 @@ class JustifiedSupportTest {
                 "1  ",
                 "12 ",
                 "123",
-                Codes.Sgr.RESET.toFullEscapeCode(),
+                Codes.Sgr.Reset.toFullEscapeCode(),
             ).inOrder()
         }
 
@@ -195,7 +195,7 @@ class JustifiedSupportTest {
                 "  1  ",
                 " 12  ",
                 " 123 ",
-                Codes.Sgr.RESET.toFullEscapeCode(),
+                Codes.Sgr.Reset.toFullEscapeCode(),
             ).inOrder()
         }
 
@@ -214,7 +214,7 @@ class JustifiedSupportTest {
                 " 1 ",
                 "12 ",
                 "123",
-                Codes.Sgr.RESET.toFullEscapeCode(),
+                Codes.Sgr.Reset.toFullEscapeCode(),
             ).inOrder()
         }
 
@@ -233,7 +233,7 @@ class JustifiedSupportTest {
                 "    1",
                 "   12",
                 "  123",
-                Codes.Sgr.RESET.toFullEscapeCode(),
+                Codes.Sgr.Reset.toFullEscapeCode(),
             ).inOrder()
         }
 
@@ -252,7 +252,7 @@ class JustifiedSupportTest {
                 "  1",
                 " 12",
                 "123",
-                Codes.Sgr.RESET.toFullEscapeCode(),
+                Codes.Sgr.Reset.toFullEscapeCode(),
             ).inOrder()
         }
     }

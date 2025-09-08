@@ -19,7 +19,7 @@ class GridSupportTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
             "",
         ).inOrder()
     }
@@ -36,7 +36,7 @@ class GridSupportTest {
             "+-+--+---+",
             "| |  |   |",
             "+-+--+---+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -90,7 +90,7 @@ class GridSupportTest {
             "+------+",
             "|Test  |",
             "+------+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -123,7 +123,7 @@ class GridSupportTest {
             "|Te|Test |",
             "|st|2    |",
             "+--+-----+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -149,7 +149,7 @@ class GridSupportTest {
             "+-------+-------+",
             "|Test 21|       |",
             "+-------+-------+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -184,7 +184,7 @@ class GridSupportTest {
             "+-+-+",
             "| |!|",
             "+-+-+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -211,7 +211,7 @@ class GridSupportTest {
             "┌───┬───────┬───┐",
             "│   │ Test  │   │",
             "└───┴───────┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across rows
@@ -231,7 +231,7 @@ class GridSupportTest {
             "├─┤Test2├─┤",
             "│ │     │ │",
             "└─┴─────┴─┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
 
@@ -252,7 +252,7 @@ class GridSupportTest {
             "├───┼───┼───┤",
             "│   │   │   │",
             "└───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across full cols (mid)
@@ -272,7 +272,7 @@ class GridSupportTest {
             "├───┬───┬───┤",
             "│   │   │   │",
             "└───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across full cols (bottom)
@@ -291,7 +291,7 @@ class GridSupportTest {
             "├───┴───┴───┤",
             "│           │",
             "└───────────┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across full rows (left)
@@ -310,7 +310,7 @@ class GridSupportTest {
             "│   ├───┼───┤",
             "│   │   │   │",
             "└───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across full rows (mid)
@@ -329,7 +329,7 @@ class GridSupportTest {
             "├───┤   ├───┤",
             "│   │   │   │",
             "└───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across full rows (right)
@@ -348,7 +348,7 @@ class GridSupportTest {
             "├───┼───┤   │",
             "│   │   │   │",
             "└───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Horizontal staircase
@@ -371,7 +371,7 @@ class GridSupportTest {
             "├───┴───────────┤",
             "│               │",
             "└───────────────┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Vertical staircase
@@ -395,7 +395,7 @@ class GridSupportTest {
             "├───┤   │   │   │",
             "│   │   │   │   │",
             "└───┴───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -429,7 +429,7 @@ class GridSupportTest {
             "├───┼───┼───┼───┤",
             "│   │   │   │   │",
             "└───┴───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across both rows and cols (top)
@@ -460,7 +460,7 @@ class GridSupportTest {
             "├───┼───┼───┼───┤",
             "│   │   │   │   │",
             "└───┴───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across both rows and cols (top-right)
@@ -491,7 +491,7 @@ class GridSupportTest {
             "├───┼───┼───┼───┤",
             "│   │   │   │   │",
             "└───┴───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across both rows and cols (left)
@@ -522,7 +522,7 @@ class GridSupportTest {
             "├───┬───┼───┼───┤",
             "│   │   │   │   │",
             "└───┴───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across both rows and cols (center)
@@ -553,7 +553,7 @@ class GridSupportTest {
             "├───┼───┬───┼───┤",
             "│   │   │   │   │",
             "└───┴───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across both rows and cols (right)
@@ -584,7 +584,7 @@ class GridSupportTest {
             "├───┼───┼───┬───┤",
             "│   │   │   │   │",
             "└───┴───┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across both rows and cols (bottom left)
@@ -613,7 +613,7 @@ class GridSupportTest {
             "│       ├───┼───┤",
             "│ Test  │   │   │",
             "└───────┴───┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across both rows and cols (bottom)
@@ -642,7 +642,7 @@ class GridSupportTest {
             "├───┤       ├───┤",
             "│   │ Test  │   │",
             "└───┴───────┴───┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Span across both rows and cols (bottom right)
@@ -671,7 +671,7 @@ class GridSupportTest {
             "├───┼───┤       │",
             "│   │   │ Test  │",
             "└───┴───┴───────┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
 
         // Can span across whole grid
@@ -696,7 +696,7 @@ class GridSupportTest {
             "│        │", // row border (stomped over by rowspan)
             "│        │", // row 2
             "└────────┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -729,7 +729,7 @@ class GridSupportTest {
             "│Test5│     │",
             "│Test6│     │",
             "└─────┴─────┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -760,7 +760,7 @@ class GridSupportTest {
             "│Test4│TestB1│",
             "│Test5│TestB2│",
             "└─────┴──────┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -789,7 +789,7 @@ class GridSupportTest {
             "├───────┼───────┤",
             "│Test 21│Test 22│",
             "└───────┴───────┘",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -813,7 +813,7 @@ class GridSupportTest {
             "+------+----+--+",
             "|A     |B   |C |",
             "+------+----+--+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -842,7 +842,7 @@ class GridSupportTest {
             "+--------+-----+-----------+",
             "| A      | B   | C         |",
             "+--------+-----+-----------+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -884,7 +884,7 @@ class GridSupportTest {
             "+---+--+----+",
             "|GGG|  |    |",
             "+---+--+----+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -909,7 +909,7 @@ class GridSupportTest {
             "|Hello |",
             "|World!|",
             "+------+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -942,7 +942,7 @@ class GridSupportTest {
             "+----------+----------+----------+",
             "|   Test   | Test     |     Test |",
             "+----------+----------+----------+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -968,7 +968,7 @@ class GridSupportTest {
             "|Test  |Test  |",
             "|Test  |      |",
             "+------+------+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -986,7 +986,7 @@ class GridSupportTest {
             "|  X  |  Y  |",
             "|     |  Z  |",
             "+-----+-----+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -1004,7 +1004,7 @@ class GridSupportTest {
             "|A|B|",
             "|A|B|",
             "+-+-+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -1031,7 +1031,7 @@ class GridSupportTest {
             "|E|F|G|H|",
             "|E|F|G| |",
             "+-+-+-+-+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -1053,7 +1053,7 @@ class GridSupportTest {
             "|A    |12345|",
             "|     |6    |",
             "+-----+-----+",
-            Ansi.Csi.Codes.Sgr.RESET.toFullEscapeCode(),
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 }

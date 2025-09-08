@@ -19,7 +19,7 @@ fun main() = session {
         }
     }.onFinishing {
         blinkOn = false
-    }.runUntilKeyPressed(Keys.SPACE) {
+    }.runUntilKeyPressed(Keys.Space) {
         addTimer(BLINK_LEN, repeat = true) { blinkOn = !blinkOn }
     }
 }

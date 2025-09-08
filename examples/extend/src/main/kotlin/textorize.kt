@@ -20,9 +20,9 @@ import kotlin.time.Duration.Companion.milliseconds
 // }.runUntilKeyPressed(Keys.Q) {
 //   onKeyPressed {
 //     when(key) {
-//       Keys.1 -> setTextorizeEffect(TextorizeEffect.RAINBOW)
-//       Keys.2 -> setTextorizeEffect(TextorizeEffect.BLINKING)
-//       Keys.3 -> setTextorizeEffect(TextorizeEffect.SCROLLING)
+//       Keys.Digit1 -> setTextorizeEffect(TextorizeEffect.RAINBOW)
+//       Keys.Digit2 -> setTextorizeEffect(TextorizeEffect.BLINKING)
+//       Keys.Digit3 -> setTextorizeEffect(TextorizeEffect.SCROLLING)
 //     }
 //   }
 // }

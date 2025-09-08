@@ -20,7 +20,7 @@ class BorderSupportTest {
             "┌────┐",
             "│Test│",
             "└────┘",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -36,7 +36,7 @@ class BorderSupportTest {
             "┌────┐",
             "│Test│",
             "└────┘",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -51,7 +51,7 @@ class BorderSupportTest {
             "┌┐",
             "││",
             "└┘",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -76,7 +76,7 @@ class BorderSupportTest {
             "│Loooooooooooooooooooooong line│",
             "│Short                         │",
             "└──────────────────────────────┘",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -92,7 +92,7 @@ class BorderSupportTest {
             "╔════╗",
             "║Test║",
             "╚════╝",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 
@@ -110,7 +110,7 @@ class BorderSupportTest {
             "│  Test  │",
             "│        │",
             "└────────┘",
-            Codes.Sgr.RESET.toFullEscapeCode(),
+            Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
 }

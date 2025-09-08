@@ -7,7 +7,7 @@ import com.varabyte.kotter.runtime.render.*
  * Append a newline to the current section.
  */
 fun RenderScope.textLine() {
-    applyCommand(NEWLINE_COMMAND)
+    applyCommand(TextCommands.Newline)
 }
 
 /**
@@ -18,7 +18,7 @@ fun RenderScope.text(text: CharSequence) {
 
     val lines = text.split('\n')
     lines.forEachIndexed { i, line ->
-        if (line.isNotEmpty()) applyCommand(CharSequenceCommand(line))
+        if (line.isNotEmpty()) applyCommand(TextCommands.Text(line))
         if (i < lines.size - 1) {
             textLine()
         }
@@ -30,7 +30,7 @@ fun RenderScope.text(text: CharSequence) {
  */
 fun RenderScope.text(c: Char) {
     if (c != '\n') {
-        applyCommand(CharCommand(c))
+        applyCommand(TextCommands.Text(c))
     } else {
         textLine()
     }
@@ -64,7 +64,7 @@ internal fun RenderScope.addNewlinesIfNecessary(count: Int) {
     var numNewlinesToAdd = count.coerceAtMost(renderer.commands.size)
     val commandsToCheck = renderer.commands.takeLast(count).toMutableList()
     while (numNewlinesToAdd > 0 && commandsToCheck.isNotEmpty()) {
-        if (commandsToCheck.removeLast() === NEWLINE_COMMAND) {
+        if (commandsToCheck.removeLast() === TextCommands.Newline) {
             --numNewlinesToAdd
         } else break
     }

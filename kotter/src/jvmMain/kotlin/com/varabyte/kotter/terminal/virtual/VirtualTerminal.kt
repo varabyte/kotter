@@ -257,16 +257,16 @@ class VirtualTerminal private constructor(
             pane.addKeyListener(object : KeyAdapter() {
                 override fun keyPressed(e: KeyEvent) {
                     val chars: CharSequence = when (e.keyCode) {
-                        KeyEvent.VK_UP -> Ansi.Csi.Codes.Keys.UP.toFullEscapeCode()
-                        KeyEvent.VK_DOWN -> Ansi.Csi.Codes.Keys.DOWN.toFullEscapeCode()
-                        KeyEvent.VK_LEFT -> Ansi.Csi.Codes.Keys.LEFT.toFullEscapeCode()
-                        KeyEvent.VK_RIGHT -> Ansi.Csi.Codes.Keys.RIGHT.toFullEscapeCode()
-                        KeyEvent.VK_HOME -> Ansi.Csi.Codes.Keys.HOME.toFullEscapeCode()
-                        KeyEvent.VK_INSERT -> Ansi.Csi.Codes.Keys.INSERT.toFullEscapeCode()
-                        KeyEvent.VK_DELETE -> Ansi.Csi.Codes.Keys.DELETE.toFullEscapeCode()
-                        KeyEvent.VK_END -> Ansi.Csi.Codes.Keys.END.toFullEscapeCode()
-                        KeyEvent.VK_PAGE_UP -> Ansi.Csi.Codes.Keys.PG_UP.toFullEscapeCode()
-                        KeyEvent.VK_PAGE_DOWN -> Ansi.Csi.Codes.Keys.PG_DOWN.toFullEscapeCode()
+                        KeyEvent.VK_UP -> Ansi.Csi.Codes.Keys.Up.toFullEscapeCode()
+                        KeyEvent.VK_DOWN -> Ansi.Csi.Codes.Keys.Down.toFullEscapeCode()
+                        KeyEvent.VK_LEFT -> Ansi.Csi.Codes.Keys.Left.toFullEscapeCode()
+                        KeyEvent.VK_RIGHT -> Ansi.Csi.Codes.Keys.Right.toFullEscapeCode()
+                        KeyEvent.VK_HOME -> Ansi.Csi.Codes.Keys.Home.toFullEscapeCode()
+                        KeyEvent.VK_INSERT -> Ansi.Csi.Codes.Keys.Insert.toFullEscapeCode()
+                        KeyEvent.VK_DELETE -> Ansi.Csi.Codes.Keys.Delete.toFullEscapeCode()
+                        KeyEvent.VK_END -> Ansi.Csi.Codes.Keys.End.toFullEscapeCode()
+                        KeyEvent.VK_PAGE_UP -> Ansi.Csi.Codes.Keys.PgUp.toFullEscapeCode()
+                        KeyEvent.VK_PAGE_DOWN -> Ansi.Csi.Codes.Keys.PgDown.toFullEscapeCode()
                         KeyEvent.VK_ENTER -> Ansi.CtrlChars.ENTER.toString()
                         KeyEvent.VK_BACK_SPACE -> Ansi.CtrlChars.BACKSPACE.toString()
                         KeyEvent.VK_TAB -> Ansi.CtrlChars.TAB.toString()
@@ -489,7 +489,7 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
 
         val identifier = Ansi.Csi.Identifier.fromCode(csiCode) ?: return false
         return when (identifier) {
-            Ansi.Csi.Identifiers.CURSOR_PREV_LINE -> {
+            Ansi.Csi.Identifiers.CursorPrevLine -> {
                 var numLines = csiCode.parts.numericCode ?: 1
                 with(TextPtr(doc.getText(), caretPosition)) {
                     // First, move to beginning of this line
@@ -513,9 +513,9 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
                 true
             }
 
-            Ansi.Csi.Identifiers.ERASE_LINE -> {
+            Ansi.Csi.Identifiers.EraseLine -> {
                 when (csiCode) {
-                    Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END -> {
+                    Ansi.Csi.Codes.Erase.CursorToLineEnd -> {
                         with(TextPtr(doc.getText(), caretPosition)) {
                             incrementUntil { it == '\n' }
                             doc.remove(caretPosition, charIndex - caretPosition)
@@ -527,7 +527,7 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
                 }
             }
 
-            Ansi.Csi.Identifiers.SGR -> {
+            Ansi.Csi.Identifiers.Sgr -> {
                 sgrCodeConverter.convert(csiCode)?.let { modifyAttributes ->
                     modifyAttributes(attrs)
                     true
@@ -546,7 +546,7 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
 
         val identifier = Ansi.Osc.Identifier.fromCode(oscCode) ?: return false
         return when (identifier) {
-            Ansi.Osc.Identifiers.ANCHOR -> {
+            Ansi.Osc.Identifiers.Anchor -> {
                 // Anchor spec is `;(anchor-params);(uri)` if starting a URI block or `;;` if finishing one
                 val uriPart = oscCode.parts.params[1].takeIf { it.isNotBlank() }
                 if (uriPart != null) {

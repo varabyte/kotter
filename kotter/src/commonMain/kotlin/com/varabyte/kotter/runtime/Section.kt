@@ -6,7 +6,6 @@ import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.platform.internal.collections.*
 import com.varabyte.kotter.platform.internal.concurrent.*
 import com.varabyte.kotter.platform.internal.concurrent.annotations.*
-import com.varabyte.kotter.runtime.RunScope.*
 import com.varabyte.kotter.runtime.concurrent.*
 import com.varabyte.kotter.runtime.coroutines.*
 import com.varabyte.kotter.runtime.internal.*
@@ -26,7 +25,7 @@ import kotlin.math.min
 internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
 internal val AsideRendersKey = Section.Lifecycle.createKey<MutableList<Renderer<AsideRenderScope>>>()
 
-private val WIPE_CURRENT_LINE_COMMAND: String = "\r${Ansi.Csi.Codes.Erase.CURSOR_TO_LINE_END.toFullEscapeCode()}"
+private val WIPE_CURRENT_LINE_COMMAND: String = "\r${Ansi.Csi.Codes.Erase.CursorToLineEnd.toFullEscapeCode()}"
 
 /**
  * Common interface used for scopes that can appear in both the render and run blocks.
@@ -215,7 +214,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                         for (i in 0 until numLinesToErase) {
                             append(WIPE_CURRENT_LINE_COMMAND)
                             if (i < numLinesToErase - 1) {
-                                append(Ansi.Csi.Codes.Cursor.MOVE_TO_PREV_LINE.toFullEscapeCode())
+                                append(Ansi.Csi.Codes.Cursor.MoveToPrevLine.toFullEscapeCode())
                             }
                         }
 

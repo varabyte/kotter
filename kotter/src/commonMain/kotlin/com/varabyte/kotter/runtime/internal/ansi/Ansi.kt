@@ -58,16 +58,16 @@ object Ansi {
         }
 
         object Identifiers {
-            val CURSOR_UP = Identifier('A')
-            val CURSOR_DOWN = Identifier('B')
-            val CURSOR_RIGHT = Identifier('C')
-            val CURSOR_LEFT = Identifier('D')
-            val CURSOR_PREV_LINE = Identifier('F')
-            val CURSOR_POSITION = Identifier('H')
+            val CursorUp = Identifier('A')
+            val CursorDown = Identifier('B')
+            val CursorRight = Identifier('C')
+            val CursorLeft = Identifier('D')
+            val CursorPrevLine = Identifier('F')
+            val CursorPosition = Identifier('H')
 
-            val ERASE_LINE = Identifier('K')
-            val SGR = Identifier('m')
-            val KEYCODE = Identifier('~')
+            val EraseLine = Identifier('K')
+            val Sgr = Identifier('m')
+            val Keycode = Identifier('~')
         }
 
         /** The full code for this command, e.g. the "31;1m" part of "ESC[31;1m" */
@@ -115,34 +115,34 @@ object Ansi {
 
         object Codes {
             object Cursor {
-                val MOVE_TO_PREV_LINE = Code("1${Identifiers.CURSOR_PREV_LINE}")
-                val MOVE_TO_LINE_START = Code("${Identifiers.CURSOR_POSITION}")
+                val MoveToPrevLine = Code("1${Identifiers.CursorPrevLine}")
+                val MoveToLineStart = Code("${Identifiers.CursorPosition}")
 
                 // Some terminals use "0 F" to mean to go the end of the current line??
-                val MOVE_TO_LINE_END = Code("${Identifiers.CURSOR_PREV_LINE}")
+                val MoveToLineEnd = Code("${Identifiers.CursorPrevLine}")
             }
 
             object Erase {
-                val CURSOR_TO_LINE_END = Code("0${Identifiers.ERASE_LINE}")
+                val CursorToLineEnd = Code("0${Identifiers.EraseLine}")
             }
 
             // https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
             object Sgr {
-                val RESET = Code("0${Identifiers.SGR}")
+                val Reset = Code("0${Identifiers.Sgr}")
 
                 object Decorations {
-                    val BOLD = Code("1${Identifiers.SGR}")
-                    val UNDERLINE = Code("4${Identifiers.SGR}")
-                    val STRIKETHROUGH = Code("9${Identifiers.SGR}")
+                    val Bold = Code("1${Identifiers.Sgr}")
+                    val Underline = Code("4${Identifiers.Sgr}")
+                    val Strikethrough = Code("9${Identifiers.Sgr}")
 
-                    val CLEAR_BOLD = Code("22${Identifiers.SGR}")
-                    val CLEAR_UNDERLINE = Code("24${Identifiers.SGR}")
-                    val CLEAR_STRIKETHROUGH = Code("29${Identifiers.SGR}")
+                    val ClearBold = Code("22${Identifiers.Sgr}")
+                    val ClearUnderline = Code("24${Identifiers.Sgr}")
+                    val ClearStrikethrough = Code("29${Identifiers.Sgr}")
                 }
 
                 object Colors {
-                    val INVERT = Code("7${Identifiers.SGR}")
-                    val CLEAR_INVERT = Code("27${Identifiers.SGR}")
+                    val Invert = Code("7${Identifiers.Sgr}")
+                    val ClearInvert = Code("27${Identifiers.Sgr}")
 
                     const val FG_NUMERIC = 38
                     const val BG_NUMERIC = 48
@@ -150,71 +150,71 @@ object Ansi {
                     const val TRUECOLOR_SUBCODE = 2 // See also: https://en.wikipedia.org/wiki/ANSI_escape_code#24-bit
 
                     object Fg {
-                        val BLACK = Code("30${Identifiers.SGR}")
-                        val RED = Code("31${Identifiers.SGR}")
-                        val GREEN = Code("32${Identifiers.SGR}")
-                        val YELLOW = Code("33${Identifiers.SGR}")
-                        val BLUE = Code("34${Identifiers.SGR}")
-                        val MAGENTA = Code("35${Identifiers.SGR}")
-                        val CYAN = Code("36${Identifiers.SGR}")
-                        val WHITE = Code("37${Identifiers.SGR}")
+                        val Black = Code("30${Identifiers.Sgr}")
+                        val Red = Code("31${Identifiers.Sgr}")
+                        val Green = Code("32${Identifiers.Sgr}")
+                        val Yellow = Code("33${Identifiers.Sgr}")
+                        val Blue = Code("34${Identifiers.Sgr}")
+                        val Magenta = Code("35${Identifiers.Sgr}")
+                        val Cyan = Code("36${Identifiers.Sgr}")
+                        val White = Code("37${Identifiers.Sgr}")
 
-                        val BLACK_BRIGHT = Code("90${Identifiers.SGR}")
-                        val RED_BRIGHT = Code("91${Identifiers.SGR}")
-                        val GREEN_BRIGHT = Code("92${Identifiers.SGR}")
-                        val YELLOW_BRIGHT = Code("93${Identifiers.SGR}")
-                        val BLUE_BRIGHT = Code("94${Identifiers.SGR}")
-                        val MAGENTA_BRIGHT = Code("95${Identifiers.SGR}")
-                        val CYAN_BRIGHT = Code("96${Identifiers.SGR}")
-                        val WHITE_BRIGHT = Code("97${Identifiers.SGR}")
+                        val BrightBlack = Code("90${Identifiers.Sgr}")
+                        val BrightRed = Code("91${Identifiers.Sgr}")
+                        val BrightGreen = Code("92${Identifiers.Sgr}")
+                        val BrightYellow = Code("93${Identifiers.Sgr}")
+                        val BrightBlue = Code("94${Identifiers.Sgr}")
+                        val BrightMagenta = Code("95${Identifiers.Sgr}")
+                        val BrightCyan = Code("96${Identifiers.Sgr}")
+                        val BrightWhite = Code("97${Identifiers.Sgr}")
 
-                        val CLEAR = Code("39${Identifiers.SGR}")
+                        val Clear = Code("39${Identifiers.Sgr}")
 
-                        fun lookup(index: Int) = Code("$FG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
+                        fun lookup(index: Int) = Code("$FG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.Sgr}")
                         fun truecolor(r: Int, g: Int, b: Int) =
-                            Code("$FG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
+                            Code("$FG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.Sgr}")
                     }
 
                     object Bg {
-                        val BLACK = Code("40${Identifiers.SGR}")
-                        val RED = Code("41${Identifiers.SGR}")
-                        val GREEN = Code("42${Identifiers.SGR}")
-                        val YELLOW = Code("43${Identifiers.SGR}")
-                        val BLUE = Code("44${Identifiers.SGR}")
-                        val MAGENTA = Code("45${Identifiers.SGR}")
-                        val CYAN = Code("46${Identifiers.SGR}")
-                        val WHITE = Code("47${Identifiers.SGR}")
+                        val Black = Code("40${Identifiers.Sgr}")
+                        val Red = Code("41${Identifiers.Sgr}")
+                        val Green = Code("42${Identifiers.Sgr}")
+                        val Yellow = Code("43${Identifiers.Sgr}")
+                        val Blue = Code("44${Identifiers.Sgr}")
+                        val Magenta = Code("45${Identifiers.Sgr}")
+                        val Cyan = Code("46${Identifiers.Sgr}")
+                        val White = Code("47${Identifiers.Sgr}")
 
-                        val BLACK_BRIGHT = Code("100${Identifiers.SGR}")
-                        val RED_BRIGHT = Code("101${Identifiers.SGR}")
-                        val GREEN_BRIGHT = Code("102${Identifiers.SGR}")
-                        val YELLOW_BRIGHT = Code("103${Identifiers.SGR}")
-                        val BLUE_BRIGHT = Code("104${Identifiers.SGR}")
-                        val MAGENTA_BRIGHT = Code("105${Identifiers.SGR}")
-                        val CYAN_BRIGHT = Code("106${Identifiers.SGR}")
-                        val WHITE_BRIGHT = Code("107${Identifiers.SGR}")
+                        val BrightBlack = Code("100${Identifiers.Sgr}")
+                        val BrightRed = Code("101${Identifiers.Sgr}")
+                        val BrightGreen = Code("102${Identifiers.Sgr}")
+                        val BrightYellow = Code("103${Identifiers.Sgr}")
+                        val BrightBlue = Code("104${Identifiers.Sgr}")
+                        val BrightMagenta = Code("105${Identifiers.Sgr}")
+                        val BrightCyan = Code("106${Identifiers.Sgr}")
+                        val BrightWhite = Code("107${Identifiers.Sgr}")
 
-                        val CLEAR = Code("49${Identifiers.SGR}")
+                        val Clear = Code("49${Identifiers.Sgr}")
 
-                        fun lookup(index: Int) = Code("$BG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.SGR}")
+                        fun lookup(index: Int) = Code("$BG_NUMERIC;$LOOKUP_SUBCODE;$index${Identifiers.Sgr}")
                         fun truecolor(r: Int, g: Int, b: Int) =
-                            Code("$BG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.SGR}")
+                            Code("$BG_NUMERIC;$TRUECOLOR_SUBCODE;$r;$g;$b${Identifiers.Sgr}")
                     }
                 }
             }
 
             object Keys {
-                val HOME = Code("1${Identifiers.KEYCODE}")
-                val INSERT = Code("2${Identifiers.KEYCODE}")
-                val DELETE = Code("3${Identifiers.KEYCODE}")
-                val END = Code("4${Identifiers.KEYCODE}")
-                val PG_UP = Code("5${Identifiers.KEYCODE}")
-                val PG_DOWN = Code("6${Identifiers.KEYCODE}")
+                val Home = Code("1${Identifiers.Keycode}")
+                val Insert = Code("2${Identifiers.Keycode}")
+                val Delete = Code("3${Identifiers.Keycode}")
+                val End = Code("4${Identifiers.Keycode}")
+                val PgUp = Code("5${Identifiers.Keycode}")
+                val PgDown = Code("6${Identifiers.Keycode}")
 
-                val UP = Code("${Identifiers.CURSOR_UP}")
-                val DOWN = Code("${Identifiers.CURSOR_DOWN}")
-                val LEFT = Code("${Identifiers.CURSOR_LEFT}")
-                val RIGHT = Code("${Identifiers.CURSOR_RIGHT}")
+                val Up = Code("${Identifiers.CursorUp}")
+                val Down = Code("${Identifiers.CursorDown}")
+                val Left = Code("${Identifiers.CursorLeft}")
+                val Right = Code("${Identifiers.CursorRight}")
             }
         }
     }
@@ -237,7 +237,7 @@ object Ansi {
         }
 
         object Identifiers {
-            val ANCHOR = Identifier(8)
+            val Anchor = Identifier(8)
         }
 
         /** The code for this OSC command, e.g. the "8;(params);(uri)ESC\" part of "ESC]8;(params);(uri)ESC\" */
@@ -291,9 +291,9 @@ object Ansi {
 
         object Codes {
             fun openLink(uri: Uri, params: Map<String, String> = emptyMap()) =
-                Code("${Identifiers.ANCHOR};${params.map { (k, v) -> "$k=$v" }.joinToString(":")};${uri}")
+                Code("${Identifiers.Anchor};${params.map { (k, v) -> "$k=$v" }.joinToString(":")};${uri}")
 
-            val CLOSE_LINK = Code("${Identifiers.ANCHOR};;")
+            val CloseLink = Code("${Identifiers.Anchor};;")
         }
     }
 }

@@ -7,14 +7,14 @@ import com.varabyte.kotter.runtime.render.*
  * Marks the current scope so that any text after this point will be bolded.
  */
 fun RenderScope.bold() {
-    applyCommand(BOLD_COMMAND)
+    applyCommand(DecorationCommands.Bold)
 }
 
 /**
  * Clears a previous call to [bold].
  */
 fun RenderScope.clearBold() {
-    applyCommand(CLEAR_BOLD_COMMAND)
+    applyCommand(DecorationCommands.ClearBold)
 }
 
 /**
@@ -31,14 +31,14 @@ fun RenderScope.bold(scopedBlock: RenderScope.() -> Unit) {
  * Marks the current scope so that any text after this point will be underlined.
  */
 fun RenderScope.underline() {
-    applyCommand(UNDERLINE_COMMAND)
+    applyCommand(DecorationCommands.Underline)
 }
 
 /**
  * Clears a previous call to [underline].
  */
 fun RenderScope.clearUnderline() {
-    applyCommand(CLEAR_UNDERLINE_COMMAND)
+    applyCommand(DecorationCommands.ClearUnderline)
 }
 
 /**
@@ -55,14 +55,14 @@ fun RenderScope.underline(scopedBlock: RenderScope.() -> Unit) {
  * Marks the current scope so that any text after this point will be struck-through.
  */
 fun RenderScope.strikethrough() {
-    applyCommand(STRIKETHROUGH_COMMAND)
+    applyCommand(DecorationCommands.Strikethrough)
 }
 
 /**
  * Clears a previous call to [strikethrough].
  */
 fun RenderScope.clearStrikethrough() {
-    applyCommand(CLEAR_STRIKETHROUGH_COMMAND)
+    applyCommand(DecorationCommands.ClearStrikethrough)
 }
 
 /**
