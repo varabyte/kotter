@@ -994,7 +994,7 @@ class InputSupportTest {
             blockUntilRenderMatches(terminal) {
                 text("Hello  ")
             }
-            sendKeys(Keys.UpperW, Keys.O, Keys.R, Keys.L, Keys.D)
+            sendKeys(Keys.W.upper(), Keys.O, Keys.R, Keys.L, Keys.D)
             blockUntilRenderMatches(terminal) {
                 text("Hello World ")
             }

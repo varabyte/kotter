@@ -542,7 +542,7 @@ private fun ConcurrentScopedData.prepareInput(
 
                                     else ->
                                         if (key is CharKey) {
-                                            proposedText = text.insertAtCursorIndex(cursorIndex, key.code)
+                                            proposedText = text.insertAtCursorIndex(cursorIndex, key.char)
                                             proposedCursorIndex = cursorIndex + 1
                                         }
                                 }

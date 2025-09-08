@@ -282,7 +282,7 @@ fun main() = session {
                     }
 
                     Keys.Down -> continueChatting()
-                    is CharKey -> continueChatting((key as CharKey).code.toString())
+                    is CharKey -> continueChatting((key as CharKey).char.toString())
                 }
             }
         }

@@ -24,13 +24,47 @@ class IsoControlKey(private val name: String) : Key {
 /**
  * Class for every key with a typeable value, e.g. 'a', '~', '7'
  *
- * Note that 'a' and 'A' are different CharKeys!
+ * This class is case-insensitive, meaning CharKey('q') will match CharKey('Q'). This allows us to have a DSL that
+ * defaults to matching any instance of that key, e.g.:
+ * ```
+ * when (key) {
+ *    // Handles 'q' and 'Q' both
+ *    Keys.Q -> quit()
+ * }
+ * ```
+ *
+ * If you need case-specific handling, you can check the [char] value:
+ * ```
+ * when (key) {
+ *    Keys.Q -> {
+ *       if (key.char == 'Q') quit() else confirmThenQuit()
+ *    }
+ * }
+ * ```
  */
-data class CharKey(val code: Char) : Key {
-    override fun toString() = code.toString()
+class CharKey(val char: Char) : Key {
+    @Deprecated("`code` has been renamed to `char`", ReplaceWith("char"))
+    inline val code: Char get() = char
+
+    override fun toString() = char.toString()
+
+    fun isUpper() = char.isUpperCase()
+    fun isLower() = char.isLowerCase()
+
+    fun upper() = if (isUpper()) this else CharKey(char.uppercaseChar())
+    fun lower() = if (isLower()) this else CharKey(char.lowercaseChar())
+
+    override fun equals(other: Any?): Boolean {
+        return other is CharKey && char.equals(other.char, ignoreCase = true)
+    }
+
+    override fun hashCode(): Int {
+        return char.uppercaseChar().hashCode()
+    }
 }
 
 private const val KEY_NAMING_CONVENTION_MESSAGE = "Name updated to reflect standard Kotlin naming conventions around singleton objects."
+private const val UPPER_KEY_REMOVED_MESSAGE = "We are removing the `_UPPER` keys. The regular letter keys now match both lower and upper case key presses (i.e. `Keys.A` matches 'a' and 'A'). If you explicitly care about case-sensitive matching, use `isUpper()` or `isLower()`, e.g. `if (key == Keys.A_UPPER`) -> `if (key == Keys.A && key.isUpper())`"
 
 // TODO(Bug #22): Add some way to check if two keys are the same (perhaps given a keyboard layout?)
 //  e.g. 'a' and 'A' are the same underlying key
@@ -83,33 +117,6 @@ object Keys {
     val X = CharKey('x')
     val Y = CharKey('y')
     val Z = CharKey('z')
-
-    val UpperA = CharKey('A')
-    val UpperB = CharKey('B')
-    val UpperC = CharKey('C')
-    val UpperD = CharKey('D')
-    val UpperE = CharKey('E')
-    val UpperF = CharKey('F')
-    val UpperG = CharKey('G')
-    val UpperH = CharKey('H')
-    val UpperI = CharKey('I')
-    val UpperJ = CharKey('J')
-    val UpperK = CharKey('K')
-    val UpperL = CharKey('L')
-    val UpperM = CharKey('M')
-    val UpperN = CharKey('N')
-    val UpperO = CharKey('O')
-    val UpperP = CharKey('P')
-    val UpperQ = CharKey('Q')
-    val UpperR = CharKey('R')
-    val UpperS = CharKey('S')
-    val UpperT = CharKey('T')
-    val UpperU = CharKey('U')
-    val UpperV = CharKey('V')
-    val UpperW = CharKey('W')
-    val UpperX = CharKey('X')
-    val UpperY = CharKey('Y')
-    val UpperZ = CharKey('Z')
 
     val Space = CharKey(' ')
 
@@ -298,57 +305,56 @@ object Keys {
     @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("Less"))
     val LESS get() = Less
 
-//    @Deprecated(UPPER_KEY_ERROR_MESSAGE, level = DeprecationLevel.ERROR)
-@Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("Upperv"))
-    val A_UPPER get() = UpperA
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperB"))
-    val B_UPPER get() = UpperB
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperC"))
-    val C_UPPER get() = UpperC
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperD"))
-    val D_UPPER get() = UpperD
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperE"))
-    val E_UPPER get() = UpperE
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperF"))
-    val F_UPPER get() = UpperF
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperG"))
-    val G_UPPER get() = UpperG
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperH"))
-    val H_UPPER get() = UpperH
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperI"))
-    val I_UPPER get() = UpperI
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperJ"))
-    val J_UPPER get() = UpperJ
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperK"))
-    val K_UPPER get() = UpperK
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperL"))
-    val L_UPPER get() = UpperL
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperM"))
-    val M_UPPER get() = UpperM
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperN"))
-    val N_UPPER get() = UpperN
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperO"))
-    val O_UPPER get() = UpperO
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperP"))
-    val P_UPPER get() = UpperP
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperQ"))
-    val Q_UPPER get() = UpperQ
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperR"))
-    val R_UPPER get() = UpperR
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperS"))
-    val S_UPPER get() = UpperS
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperT"))
-    val T_UPPER get() = UpperT
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperU"))
-    val U_UPPER get() = UpperU
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperV"))
-    val V_UPPER get() = UpperV
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperW"))
-    val W_UPPER get() = UpperW
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperX"))
-    val X_UPPER get() = UpperX
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperY"))
-    val Y_UPPER get() = UpperY
-    @Deprecated(KEY_NAMING_CONVENTION_MESSAGE, ReplaceWith("UpperZ"))
-    val Z_UPPER get() = UpperZ
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val A_UPPER get() = A.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val B_UPPER get() = B.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val C_UPPER get() = C.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val D_UPPER get() = D.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val E_UPPER get() = E.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val F_UPPER get() = F.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val G_UPPER get() = G.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val H_UPPER get() = H.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val I_UPPER get() = I.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val J_UPPER get() = J.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val K_UPPER get() = K.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val L_UPPER get() = L.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val M_UPPER get() = M.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val N_UPPER get() = N.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val O_UPPER get() = O.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val P_UPPER get() = P.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val Q_UPPER get() = Q.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val R_UPPER get() = R.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val S_UPPER get() = S.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val T_UPPER get() = T.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val U_UPPER get() = U.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val V_UPPER get() = V.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val W_UPPER get() = W.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val X_UPPER get() = X.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val Y_UPPER get() = Y.upper()
+    @Deprecated(UPPER_KEY_REMOVED_MESSAGE)
+    val Z_UPPER get() = Z.upper()
 }

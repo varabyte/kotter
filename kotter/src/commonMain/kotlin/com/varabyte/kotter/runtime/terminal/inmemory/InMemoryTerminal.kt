@@ -115,7 +115,7 @@ suspend fun InMemoryTerminal.type(text: String) = type(*text.toCharArray())
 suspend fun InMemoryTerminal.press(vararg keys: Key) {
     keys.forEach { key ->
         when (key) {
-            is CharKey -> sendKey(key.code.code)
+            is CharKey -> sendKey(key.char.code)
 
             Keys.Enter -> type(Ansi.CtrlChars.ENTER)
             Keys.Escape -> type(Ansi.CtrlChars.ESC)

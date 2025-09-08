@@ -27,7 +27,7 @@ fun main() = session {
                 Keys.PageDown -> "PAGE_DOWN"
                 Keys.Tab -> "TAB"
                 Keys.Space -> "SPACE"
-                is CharKey -> (key as CharKey).code.toString()
+                is CharKey -> (key as CharKey).char.toString()
                 else -> "Unhandled key. Please report a bug!"
             }
         }
