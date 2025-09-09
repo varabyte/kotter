@@ -1,4 +1,3 @@
-import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinCommonCompilerOptions
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -93,7 +92,7 @@ val gcloudSecret: String? = findProperty("gcloud.artifact.registry.secret") as? 
 // behind an `afterEvaluate` for now to ensure the calling build script has set the version.
 afterEvaluate {
     mavenPublishing {
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+        publishToMavenCentral(automaticRelease = true)
         signAllPublications()
 
         pom {

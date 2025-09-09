@@ -7,7 +7,7 @@ kotlinx-coroutines = "1.7.3"
 kotlin = "2.2.0"
 kover = "0.9.0"
 truthish = "1.0.3"
-vanniktech-publish = "0.32.0"
+vanniktech-publish = "0.34.0"
 
 [libraries]
 jcip-annotations = { module = "net.jcip:jcip-annotations", version = "1.0" }
