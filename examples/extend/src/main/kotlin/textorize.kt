@@ -71,7 +71,7 @@ private val RAINBOW_COLORS = listOf(
     0x9400D3,
 )
 
-fun RenderScope.textorize(text: String, initialEffect: TextorizeEffect = TextorizeEffect.values()[0]) {
+fun RenderScope.textorize(text: String, initialEffect: TextorizeEffect = TextorizeEffect.entries[0]) {
     data.putIfAbsent(TextorizeStateKey, provideInitialValue = { TextorizeState(this, initialEffect) }) {
         scopedState {
             when (currentEffect) {
@@ -124,5 +124,5 @@ fun RunScope.setTextorizeEffect(effect: TextorizeEffect) {
 }
 
 fun RunScope.setNextTextorizeEffect() {
-    setTextorizeEffect(TextorizeEffect.values()[(getTextorizeEffect().ordinal + 1) % TextorizeEffect.values().size])
+    setTextorizeEffect(TextorizeEffect.entries[(getTextorizeEffect().ordinal + 1) % TextorizeEffect.entries.size])
 }

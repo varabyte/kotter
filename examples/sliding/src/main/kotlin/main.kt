@@ -91,7 +91,7 @@ class Board(val sideLen: Int = 4) {
         while (isSolved()) {
             var remaining = numMoves
             while (remaining > 0) {
-                if (move(Dir.values().random())) {
+                if (move(Dir.entries.random())) {
                     remaining--
                 }
             }

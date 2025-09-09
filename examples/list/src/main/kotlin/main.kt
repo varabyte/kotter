@@ -84,7 +84,7 @@ private fun Session.chooseDish(): Dish {
     section {
         bold { textLine("Please choose a dish:") }
         textLine()
-        Dish.values().forEachIndexed { i, dish ->
+        Dish.entries.forEachIndexed { i, dish ->
             text(if (i == cursorIndex) '>' else ' '); text(' ')
             textLine(dish.toDisplayName(capitalized = true))
         }
@@ -99,12 +99,12 @@ private fun Session.chooseDish(): Dish {
                 Keys.Enter -> signal()
             }
 
-            if (cursorIndex < 0) cursorIndex = Dish.values().lastIndex
-            else if (cursorIndex > Dish.values().lastIndex) cursorIndex = 0
+            if (cursorIndex < 0) cursorIndex = Dish.entries.lastIndex
+            else if (cursorIndex > Dish.entries.lastIndex) cursorIndex = 0
         }
     }
 
-    return Dish.values()[cursorIndex]
+    return Dish.entries[cursorIndex]
 }
 
 private fun Session.chooseToppingsFor(dish: Dish): Set<Topping> {

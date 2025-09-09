@@ -274,11 +274,11 @@ fun main() = session {
 
                     Keys.Left -> {
                         userOption =
-                            UserOption.values()[(userOption.ordinal + UserOption.values().size - 1) % UserOption.values().size]
+                            UserOption.entries[(userOption.ordinal + UserOption.entries.size - 1) % UserOption.entries.size]
                     }
 
                     Keys.Right -> {
-                        userOption = UserOption.values()[(userOption.ordinal + 1) % UserOption.values().size]
+                        userOption = UserOption.entries[(userOption.ordinal + 1) % UserOption.entries.size]
                     }
 
                     Keys.Down -> continueChatting()
