@@ -88,7 +88,7 @@ class SystemTerminal : Terminal {
                             quit = true
                         }
                     }
-                } catch (ex: IOException) {
+                } catch (_: IOException) {
                     break
                 }
 

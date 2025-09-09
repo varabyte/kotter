@@ -338,7 +338,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                     val scope = RunScope(self, this)
                     scope.block()
                 }
-            } catch (ignored: CancellationException) {
+            } catch (_: CancellationException) {
                 // This is expected as it can happen when abort() is called in `run`
             } catch (ex: Exception) {
                 deferredException = ex

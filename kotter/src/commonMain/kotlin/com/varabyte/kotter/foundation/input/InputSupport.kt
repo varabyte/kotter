@@ -853,7 +853,7 @@ private fun MainRenderScope.handleInput(
         if (this.isActive) {
             val completion = try {
                 completer?.complete(text)
-            } catch (ex: Exception) {
+            } catch (_: Exception) {
                 null
             } ?: ""
 
