@@ -23,11 +23,11 @@ jobs:
 
       - name: Generate documentation via dokka
         run: |
-          ${{github.workspace}}/gradlew :kotter:dokkaHtml 
+          ${{github.workspace}}/gradlew :docs:dokkaGenerate 
 
       - name: Init temporary repo in docs folder
         run: |
-          cd kotter/build/dokka/html
+          cd kotter/docs/build/dokka/html
           git init
           git add -A
           git config --local user.email "action@github.com"

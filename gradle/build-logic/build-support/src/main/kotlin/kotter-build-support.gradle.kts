@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.vanniktech.maven.publish")
-    id("org.jetbrains.dokka")
+    id("dokka-convention")
 }
 
 val defaultKotlinVersion = "1.8.22" // Improved lambda inference
