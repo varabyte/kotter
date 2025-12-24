@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNamingStrategy
 import okhttp3.Interceptor
@@ -133,7 +132,7 @@ suspend fun sendMessageToChatGpt(
         val call = httpClient.newCall(request)
         val response = call.execute()
 
-        response.body?.takeIf { response.code == 200 }?.let { body ->
+        response.body.takeIf { response.code == 200 }?.let { body ->
             json.decodeFromString(body.string())
         }
     }

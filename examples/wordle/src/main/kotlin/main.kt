@@ -341,19 +341,19 @@ fun main() = session(clearTerminal = true) {
     }.runUntilSignal {
         // Wordle has a permissive list of words that the user can use and a more restrictive set that
         // it can choose solutions from.
-        val (allWords, commonWords) = withContext(CoroutineScope(Dispatchers.IO).coroutineContext) {
+        val (allWords, commonWords) = withContext(Dispatchers.IO) {
             val client = OkHttpClient()
             val allWords = async {
                 val request = Request.Builder().url("$URL_BASE/all-words.txt").build()
                 client.newCall(request).execute().use { response ->
-                    response.body!!.string().lines().toSet()
+                    response.body.string().lines().toSet()
                 }
             }
 
             val commonWords = async {
                 val request = Request.Builder().url("$URL_BASE/common-words.txt").build()
                 client.newCall(request).execute().use { response ->
-                    response.body!!.string().lines().toSet()
+                    response.body.string().lines().toSet()
                 }
             }
 

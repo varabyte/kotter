@@ -10,6 +10,7 @@
               <build path="$PROJECT_DIR$/.." name="kotter">
                 <projects>
                   <project path="$PROJECT_DIR$/.." />
+                  <project path="$PROJECT_DIR$/../docs" />
                   <project path="$PROJECT_DIR$/../kotter" />
                   <project path="$PROJECT_DIR$/../kotterx" />
                   <project path="$PROJECT_DIR$/../kotterx/kotter-test-support" />
@@ -29,6 +30,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/.." />
+            <option value="$PROJECT_DIR$/../docs" />
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/anim" />
             <option value="$PROJECT_DIR$/blink" />
