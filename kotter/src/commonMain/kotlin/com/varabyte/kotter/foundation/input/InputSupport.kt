@@ -1324,6 +1324,20 @@ fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
     }
 }
 
+private val DefaultAbortRunUntilInputEnteredOnEofKey = Session.Lifecycle.createKey<Boolean>()
+
+/**
+ * Set whether [runUntilInputEntered] should abort by default when the user presses Ctrl+D.
+ *
+ * This can be controlled on a case-by-case basis in [runUntilInputEntered] directly, but this property is provided in
+ * case you just want to set it once for all cases. By default, this is set to `false`.
+ */
+var Session.abortRunUntilInputEnteredOnEof: Boolean
+    get() = data[DefaultAbortRunUntilInputEnteredOnEofKey] ?: false
+    set(value) {
+        data[DefaultAbortRunUntilInputEnteredOnEofKey] = value
+    }
+
 /**
  * A `run` block which runs until the user has pressed ENTER on some currently active [input].
  *
@@ -1337,9 +1351,18 @@ fun RunScope.onInputEntered(listener: OnInputEnteredScope.() -> Unit) {
  *   onInputEntered { name = input }
  * }
  * ```
+ *
+ * @param abortOnEof If true, abort the section when the user presses EOF (Ctrl+D) instead of waiting for ENTER.
  */
-fun Section.runUntilInputEntered(block: suspend RunScope.() -> Unit = {}) {
+fun Section.runUntilInputEntered(
+    abortOnEof: Boolean = session.abortRunUntilInputEnteredOnEof,
+    block: suspend RunScope.() -> Unit = {}
+) {
     run {
+        if (abortOnEof) {
+            session.data.prepareOnKeyPressed(this@runUntilInputEntered)
+            data[SystemKeyPressedCallbackKey] = { if (key == Keys.Eof) abort() }
+        }
         // We need to abort as even if the user puts a while(true) in their run block, we still want to exit
         data[SystemInputEnteredCallbackKey] = { abort() }
         block()

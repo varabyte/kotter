@@ -12,6 +12,7 @@ import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.time.Duration.Companion.milliseconds
@@ -78,6 +79,70 @@ class InputSupportTest {
         terminal.assertMatches {
             // When section has exited, the blinking cursor is removed
             text("> Hello <")
+        }
+    }
+
+    @Test
+    fun `eof can be used to abort runUntilInputEntered blocks`() = testSession {
+        assertThat(abortRunUntilInputEnteredOnEof).isFalse()
+
+        // Confirm that EOF does nothing by default
+        run {
+            var enterPressed = false
+            section {
+                input()
+            }.runUntilInputEntered {
+                sendKeys(Keys.Eof)
+                delay(16)
+                enterPressed = true
+                sendKeys(Keys.Enter)
+            }
+            assertThat(enterPressed).isEqualTo(true)
+        }
+
+        // When abortOnEof == true, EOF can be used
+        run {
+            var enterPressed = false
+            section {
+                input()
+            }.runUntilInputEntered(abortOnEof = true) {
+                sendKeys(Keys.Eof)
+                delay(16)
+                enterPressed = true
+                sendKeys(Keys.Enter)
+            }
+            assertThat(enterPressed).isEqualTo(false)
+        }
+
+        // Change the default value for the whole session
+        abortRunUntilInputEnteredOnEof = true
+
+        section {
+            input()
+        }.runUntilInputEntered {
+            sendKeys(Keys.Eof)
+        }
+
+        section {
+            input()
+        }.runUntilInputEntered {
+            sendKeys(Keys.Eof)
+        }
+
+        // Change it back
+        abortRunUntilInputEnteredOnEof = false
+
+        run {
+            var enterPressed = false
+            section {
+                input()
+            }.runUntilInputEntered {
+                sendKeys(Keys.Eof)
+                delay(16)
+                enterPressed = true
+                sendKeys(Keys.Enter)
+            }
+            assertThat(enterPressed).isEqualTo(true)
         }
     }
 
