@@ -54,43 +54,32 @@ kover {
 }
 
 /**
- * A task which outputs *just* the line coverage value (as a percent) from the Kover report.
+ * Extract the line coverage calculation from a generated Kover XML report.
  *
- * For example, this might output just the text `65.3` for a project that is covering 653 out of 1000 lines.
- *
- * This is a useful value to expose for GitHub CI actions, allowing us to create a custom code coverage badge.
+ * It is expected that someone will call the `koverReportXml` task and set its output into [koverReportFile].
  */
-tasks.register("printLineCoverage") {
-    group = "verification"
-    dependsOn("koverXmlReport")
-    doLast {
-        val report = layout.buildDirectory.file("reports/kover/report.xml").get().asFile
+abstract class PrintLineCoverageFromKoverTask : DefaultTask() {
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val koverReportFile: RegularFileProperty
+
+    @TaskAction
+    fun run() {
+        val report = koverReportFile.get().asFile
 
         val doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(report)
         val rootNode = doc.firstChild
-        var topLevelNode = rootNode.firstChild
+        var childNode = rootNode.firstChild
 
         var coveragePercent = 0.0
 
-        // The example snippet of XML we want to parse:
-        //
-        // <?xml version="1.0" ?>
-        // <report name="Intellij Coverage Report">
-        //   ...
-        //   <counter type="INSTRUCTION" missed="6591" covered="5058"/>
-        //   <counter type="BRANCH" missed="565" covered="236"/>
-        //   <counter type="LINE" missed="809" covered="700"/>
-        //   <counter type="METHOD" missed="375" covered="386"/>
-        //   <counter type="CLASS" missed="194" covered="156"/>
-        // </report>
-        //
-        // Particularly, we want to extract the "missed" and "covered" LINE values.
-        while (topLevelNode != null) {
-            if (topLevelNode.nodeName == "counter") {
-                val typeAttr = topLevelNode.attributes.getNamedItem("type")
+        while (childNode != null) {
+            if (childNode.nodeName == "counter") {
+                val typeAttr = childNode.attributes.getNamedItem("type")
                 if (typeAttr.textContent == "LINE") {
-                    val missedAttr = topLevelNode.attributes.getNamedItem("missed")
-                    val coveredAttr = topLevelNode.attributes.getNamedItem("covered")
+                    val missedAttr = childNode.attributes.getNamedItem("missed")
+                    val coveredAttr = childNode.attributes.getNamedItem("covered")
 
                     val missed = missedAttr.textContent.toLong()
                     val covered = coveredAttr.textContent.toLong()
@@ -100,11 +89,18 @@ tasks.register("printLineCoverage") {
                     break
                 }
             }
-            topLevelNode = topLevelNode.nextSibling
+            childNode = childNode.nextSibling
         }
 
         println("%.1f".format(coveragePercent))
     }
+}
+
+val koverXmlReportTask = tasks.named("koverXmlReport")
+tasks.register<PrintLineCoverageFromKoverTask>("printLineCoverage") {
+    group = "verification"
+    dependsOn(koverXmlReportTask)
+    koverReportFile.set(layout.buildDirectory.file("reports/kover/report.xml"))
 }
 
 publishing {
