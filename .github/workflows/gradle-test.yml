@@ -65,6 +65,6 @@ jobs:
         if: ${{ always() && hashFiles('kotter/build/reports/tests/allTests/index.html') != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: test-report-${{ runner.OS }}
+          name: kotter-test-report-${{ runner.OS }}
           path: kotter/build/reports/tests/allTests/
           retention-days: 1
