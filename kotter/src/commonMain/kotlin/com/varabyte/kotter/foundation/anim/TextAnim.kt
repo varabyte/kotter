@@ -59,7 +59,7 @@ fun Session.textAnimOf(template: TextAnim.Template) = TextAnim(this, template)
  * @param frameDuration The length of each frame.
  * @param looping If true, this animation will play forever in a loop. Otherwise, it will stop when it reaches the end.
  */
-fun Session.textAnimOf(frames: List<String>, frameDuration: Duration, looping: Boolean = true) =
+fun Session.textAnimOf(frames: List<String>, frameDuration: Duration = defaults.animDuration, looping: Boolean = true) =
     TextAnim(this, TextAnim.Template(frames, frameDuration, looping))
 
 /**

@@ -63,7 +63,7 @@ fun Session.renderAnimOf(template: RenderAnim.Template) = RenderAnim(this, templ
  */
 fun Session.renderAnimOf(
     numFrames: Int,
-    frameDuration: Duration,
+    frameDuration: Duration = defaults.animDuration,
     looping: Boolean = true,
     handler: RenderScope.(Int) -> Unit
 ) =

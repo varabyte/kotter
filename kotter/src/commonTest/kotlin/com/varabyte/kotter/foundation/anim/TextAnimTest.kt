@@ -8,6 +8,7 @@ import com.varabyte.kotterx.test.runtime.*
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 class TextAnimTest {
     @Test
@@ -42,6 +43,21 @@ class TextAnimTest {
             blockUntilRenderMatches(terminal) {
                 text("> 1 <")
             }
+        }
+    }
+
+    @Test
+    fun `textAnimOf uses session default animation duration`() = testSession {
+        assertThat(defaults.animDuration).isEqualTo(Anim.ONE_FRAME_60FPS)
+        run {
+            val anim = textAnimOf(listOf("1", "2", "3"))
+            assertThat(anim.totalDuration).isEqualTo(Anim.ONE_FRAME_60FPS.times(3))
+        }
+
+        defaults.animDuration = 100.milliseconds
+        run {
+            val anim = textAnimOf(listOf("1", "2", "3"))
+            assertThat(anim.totalDuration).isEqualTo(300.milliseconds)
         }
     }
 

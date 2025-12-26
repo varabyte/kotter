@@ -7,6 +7,7 @@ import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.kotterx.test.runtime.*
 import com.varabyte.truthish.assertThat
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.milliseconds
 
 class RenderAnimTest {
     @Test
@@ -43,6 +44,21 @@ class RenderAnimTest {
             blockUntilRenderMatches(terminal) {
                 text("> 1 <")
             }
+        }
+    }
+
+    @Test
+    fun `renderAnimOf uses session default animation duration`() = testSession {
+        assertThat(defaults.animDuration).isEqualTo(Anim.ONE_FRAME_60FPS)
+        run {
+            val anim = renderAnimOf(3) {}
+            assertThat(anim.totalDuration).isEqualTo(Anim.ONE_FRAME_60FPS.times(3))
+        }
+
+        defaults.animDuration = 100.milliseconds
+        run {
+            val anim = renderAnimOf(3) {}
+            assertThat(anim.totalDuration).isEqualTo(300.milliseconds)
         }
     }
 

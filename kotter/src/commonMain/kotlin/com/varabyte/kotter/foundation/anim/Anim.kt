@@ -3,6 +3,7 @@ package com.varabyte.kotter.foundation.anim
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.timer.*
 import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.concurrent.createKey
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -148,3 +149,14 @@ abstract class Anim protected constructor(
         }
     }
 }
+
+private val DefaultAnimationDurationKey = Session.Lifecycle.createKey<Duration>()
+
+/**
+ * The default duration that text and render animations will run at if not explicitly specified.
+ */
+var Session.Defaults.animDuration: Duration
+    get() = data[DefaultAnimationDurationKey] ?: Anim.ONE_FRAME_60FPS
+    set(value) {
+        data[DefaultAnimationDurationKey] = value
+    }
