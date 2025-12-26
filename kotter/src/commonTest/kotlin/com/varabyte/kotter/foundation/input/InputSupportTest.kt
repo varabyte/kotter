@@ -477,6 +477,53 @@ class InputSupportTest {
     }
 
     @Test
+    fun `eof can be used to autocomplete inputs`() = testSession { terminal ->
+        // Eof sets input to special value if provided
+        section {
+            input(onEof = "Default")
+        }.run {
+            terminal.type("To be overwritten...")
+
+            blockUntilRenderMatches(terminal) {
+                text("To be overwritten..."); invert(); text(' ')
+            }
+
+            sendKeys(Keys.Eof)
+
+            blockUntilRenderMatches(terminal) {
+                text("Default"); invert(); text(' ')
+            }
+        }
+
+        // EOF is no-op otherwise
+        terminal.clear()
+        section {
+            input(initialText = "Test", onEof = null)
+        }.run {
+            sendKeys(Keys.Eof)
+
+            blockUntilRenderMatches(terminal) {
+                text("Test"); invert(); text(' ')
+            }
+        }
+
+        // Feature works in tandem with "abortOnEof = true"
+        run {
+            var inputOnEof: String? = null
+            terminal.clear()
+            section {
+                input(onEof = "EOF")
+            }.runUntilInputEntered(abortOnEof = true) {
+                onInputChanged {
+                    inputOnEof = input
+                }
+                sendKeys(Keys.Eof)
+            }
+            assertThat(inputOnEof).isEqualTo("EOF")
+        }
+    }
+
+    @Test
     fun `input rendering can be transformed with viewMap`() = testSession { terminal ->
         lateinit var typed: String
 

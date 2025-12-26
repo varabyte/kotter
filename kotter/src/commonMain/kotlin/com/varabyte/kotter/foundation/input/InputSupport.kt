@@ -200,10 +200,11 @@ private class MultilineState(
 }
 
 /** State needed to support the `input()` function */
-private class InputState(val id: Any, val cursorState: BlinkingCursorState, multilineConfig: MultilineConfig?) {
+private class InputState(val id: Any, val cursorState: BlinkingCursorState, inputConfig: InputConfig) {
     var isActive = false
 
-    val multilineState: MultilineState? = multilineConfig?.let { config -> MultilineState(this, config.pageSize) }
+    val multilineState: MultilineState? =
+        (inputConfig as? InputConfig.Multiline)?.let { config -> MultilineState(this, config.pageSize) }
 
     private var _text = ""
     private var _cursorIndex = 0
@@ -325,7 +326,7 @@ private fun ConcurrentScopedData.prepareInput(
     id: Any,
     initialText: String,
     isActive: Boolean,
-    multilineConfig: MultilineConfig?,
+    inputConfig: InputConfig,
 ) {
     val section = scope.section
     prepareKeyFlow(section)
@@ -378,10 +379,10 @@ private fun ConcurrentScopedData.prepareInput(
 
     putIfAbsent(InputStatesKey, provideInitialValue = { mutableMapOf() }) {
         val inputStates = this
-        val state = inputStates[id]?.also { multilineConfig?.update(it.multilineState!!) } ?: InputState(
+        val state = inputStates[id]?.also { (inputConfig as? InputConfig.Multiline)?.update(it.multilineState!!) } ?: InputState(
             id,
             cursorState,
-            multilineConfig
+            inputConfig
         ).apply {
             text = initialText
             cursorIndex = initialText.length
@@ -453,6 +454,8 @@ private fun ConcurrentScopedData.prepareInput(
                                     }
                                 }
 
+                                var fireTextEnteredCallback = false
+
                                 when (key) {
                                     Keys.Left -> {
                                         cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
@@ -518,25 +521,20 @@ private fun ConcurrentScopedData.prepareInput(
 
                                     Keys.Enter, Keys.Eof -> {
                                         if ((multilineState == null && key == Keys.Enter) || (multilineState != null && key == Keys.Eof)) {
-                                            var rejected = false
-                                            var cleared = false
-                                            get(InputEnteredCallbackKey) {
-                                                val onInputEnteredScope = OnInputEnteredScope(id, text)
-                                                this.invoke(onInputEnteredScope)
-                                                rejected = onInputEnteredScope.rejected
-                                                cleared = onInputEnteredScope.cleared
-                                            }
-                                            if (cleared) {
-                                                getValue(InputStatesKey).remove(id)
-                                            }
-                                            if (!rejected) {
-                                                get(SystemInputEnteredCallbackKey) { this.invoke() }
-                                            }
+                                            fireTextEnteredCallback = true
                                         } else if (multilineState != null) {
                                             check(key == Keys.Enter)
 
                                             proposedText = text.insertAtCursorIndex(cursorIndex, '\n')
                                             proposedCursorIndex = cursorIndex + 1
+                                        } else {
+                                            val basicConfig = inputConfig as InputConfig.Basic
+                                            if (key == Keys.Eof && basicConfig.onEof != null) {
+                                                proposedText = basicConfig.onEof
+                                                proposedCursorIndex = basicConfig.onEof.length
+
+                                                fireTextEnteredCallback = true
+                                            }
                                         }
                                     }
 
@@ -566,6 +564,23 @@ private fun ConcurrentScopedData.prepareInput(
                                     // If the user typed something that shifted the text, we should update the current
                                     // line index as well
                                     if (text != prevText) multilineState?.updateIdealLineIndex()
+                                }
+
+                                if (fireTextEnteredCallback) {
+                                    var rejected = false
+                                    var cleared = false
+                                    get(InputEnteredCallbackKey) {
+                                        val onInputEnteredScope = OnInputEnteredScope(id, text)
+                                        this.invoke(onInputEnteredScope)
+                                        rejected = onInputEnteredScope.rejected
+                                        cleared = onInputEnteredScope.cleared
+                                    }
+                                    if (cleared) {
+                                        getValue(InputStatesKey).remove(id)
+                                    }
+                                    if (!rejected) {
+                                        get(SystemInputEnteredCallbackKey) { this.invoke() }
+                                    }
                                 }
 
                                 if (text != prevText || cursorIndex != prevCursorIndex) {
@@ -819,11 +834,12 @@ fun CustomFormatScope.white(layer: ColorLayer = ColorLayer.FG, isBright: Boolean
     color(if (isBright) Color.BRIGHT_WHITE else Color.WHITE, layer)
 }
 
-private class MultilineConfig(
-    val pageSize: Int,
-) {
-    fun update(targetState: MultilineState) {
-        targetState.pageSize = pageSize
+private sealed interface InputConfig {
+    class Basic(val onEof: String?) : InputConfig
+    class Multiline(val pageSize: Int) : InputConfig {
+        fun update(targetState: MultilineState) {
+            targetState.pageSize = pageSize
+        }
     }
 }
 
@@ -834,9 +850,9 @@ private fun MainRenderScope.handleInput(
     viewMap: (ViewMapScope.() -> Char)?,
     customFormat: (CustomFormatScope.() -> Unit)?,
     isActive: Boolean,
-    multilineConfig: MultilineConfig?,
+    inputConfig: InputConfig,
 ) {
-    data.prepareInput(this, id, initialText, isActive, multilineConfig)
+    data.prepareInput(this, id, initialText, isActive, inputConfig)
     completer?.let { data[CompleterKey] = it }
 
     with(data.getValue(InputStatesKey)[id]!!) {
@@ -982,6 +998,7 @@ private fun MainRenderScope.handleInput(
  *   newlines are now allowed in single-line inputs, and any newlines in this value will be removed.
  * @param id See docs above for more details. The value of this parameter can be anything - this method simply does an
  *   equality check on it against a previous value.
+ * @param onEof If provided, this input will be set to this value if the user signifies EOF (i.e. by typing ctrl D).
  * @param viewMap If set, *visually* transform the text by specifying the target character each letter in the text
  *   should map to. This doesn't affect the input's actual value, just the value that is rendered on screen. This is
  *   particularly useful for password inputs, which would look like `viewMap = { '*' }`.
@@ -994,11 +1011,20 @@ fun MainRenderScope.input(
     completer: InputCompleter? = null,
     initialText: String = "",
     id: Any = Unit,
+    onEof: String? = null,
     viewMap: (ViewMapScope.() -> Char)? = null,
     customFormat: (CustomFormatScope.() -> Unit)? = null,
-    isActive: Boolean = true
+    isActive: Boolean = true,
 ) {
-    handleInput(completer, initialText.replace("\n", ""), id, viewMap, customFormat, isActive, multilineConfig = null)
+    handleInput(
+        completer,
+        initialText.replace("\n", ""),
+        id,
+        viewMap,
+        customFormat,
+        isActive,
+        inputConfig = InputConfig.Basic(onEof)
+    )
 }
 
 /**
@@ -1025,7 +1051,7 @@ fun MainRenderScope.multilineInput(
         viewMap,
         customFormat,
         isActive,
-        multilineConfig = MultilineConfig(pageSize ?: section.session.defaultPageSize)
+        inputConfig = InputConfig.Multiline(pageSize ?: section.session.defaultPageSize)
     )
 }
 
