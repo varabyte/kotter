@@ -60,3 +60,11 @@ jobs:
       - name: Test with Gradle
         if: steps.shouldrun.conclusion == 'success'
         run: ./gradlew allTests
+
+      - name: Upload test report if failure
+        if: ${{ always() && hashFiles('kotter/build/reports/tests/allTests/index.html') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ runner.OS }}
+          path: kotter/build/reports/tests/allTests/
+          retention-days: 1
