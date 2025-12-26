@@ -24,6 +24,18 @@ class Session internal constructor(
     internal val sectionExceptionHandler: (Throwable) -> Unit
 ) {
     /**
+     * A home for default values that will be shared across all sections.
+     *
+     * Users extending Kotter are encouraged to use this location for storing default values for their own features.
+     */
+    class Defaults(session: Session) {
+        /**
+         * Access to the session's [ConcurrentScopedData] which can be a useful place to store session-scoped values.
+         */
+        val data = session.data
+    }
+
+    /**
      * A long-lived lifecycle that sticks around for the length of the entire session.
      *
      * This lifecycle can be used for storing data that should live across multiple blocks.
@@ -31,6 +43,7 @@ class Session internal constructor(
     object Lifecycle : ConcurrentScopedData.Lifecycle
 
     val data = ConcurrentScopedData()
+    val defaults = Defaults(this)
 
     /**
      * A way to access the current active section, if any.

@@ -84,7 +84,7 @@ class InputSupportTest {
 
     @Test
     fun `eof can be used to abort runUntilInputEntered blocks`() = testSession {
-        assertThat(abortRunUntilInputEnteredOnEof).isFalse()
+        assertThat(defaults.abortRunUntilInputEnteredOnEof).isFalse()
 
         // Confirm that EOF does nothing by default
         run {
@@ -115,7 +115,7 @@ class InputSupportTest {
         }
 
         // Change the default value for the whole session
-        abortRunUntilInputEnteredOnEof = true
+        defaults.abortRunUntilInputEnteredOnEof = true
 
         section {
             input()
@@ -130,7 +130,7 @@ class InputSupportTest {
         }
 
         // Change it back
-        abortRunUntilInputEnteredOnEof = false
+        defaults.abortRunUntilInputEnteredOnEof = false
 
         run {
             var enterPressed = false

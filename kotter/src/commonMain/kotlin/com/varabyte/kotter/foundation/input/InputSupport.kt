@@ -1358,7 +1358,7 @@ private val DefaultAbortRunUntilInputEnteredOnEofKey = Session.Lifecycle.createK
  * This can be controlled on a case-by-case basis in [runUntilInputEntered] directly, but this property is provided in
  * case you just want to set it once for all cases. By default, this is set to `false`.
  */
-var Session.abortRunUntilInputEnteredOnEof: Boolean
+var Session.Defaults.abortRunUntilInputEnteredOnEof: Boolean
     get() = data[DefaultAbortRunUntilInputEnteredOnEofKey] ?: false
     set(value) {
         data[DefaultAbortRunUntilInputEnteredOnEofKey] = value
@@ -1381,7 +1381,7 @@ var Session.abortRunUntilInputEnteredOnEof: Boolean
  * @param abortOnEof If true, abort the section when the user presses EOF (Ctrl+D) instead of waiting for ENTER.
  */
 fun Section.runUntilInputEntered(
-    abortOnEof: Boolean = session.abortRunUntilInputEnteredOnEof,
+    abortOnEof: Boolean = session.defaults.abortRunUntilInputEnteredOnEof,
     block: suspend RunScope.() -> Unit = {}
 ) {
     run {
