@@ -41,14 +41,14 @@ section {
 }.run()
 
 assertThat(terminal.buffer).isEqualTo(
-    "This is a test...\n" + Codes.Sgr.RESET
+    "This is a test...\n" + Codes.Sgr.Reset
 )
 
 // Alternately:
 assertThat(terminal.lines())
     .containsExactly(
         "This is a test...",
-        Codes.Sgr.RESET.toString()
+        Codes.Sgr.Reset.toString()
     ).inOrder()
 ```
 
@@ -261,17 +261,17 @@ the `sendCode` method for this, which takes in one of the following values:
 ```kotlin
 // Full path: Ansi.Csi.Codes.Sgr.Keys
 object Keys {
-    val HOME: Code
-    val INSERT: Code
-    val DELETE: Code
-    val END: Code
-    val PG_UP: Code
-    val PG_DOWN: Code
+    val Home: Code
+    val Insert: Code
+    val Delete: Code
+    val End: Code
+    val PgUp: Code
+    val PgDown: Code
 
-    val UP: Code
-    val DOWN: Code
-    val LEFT: Code
-    val RIGHT: Code
+    val Up: Code
+    val Down: Code
+    val Left: Code
+    val Right: Code
 }
 ```
 
@@ -282,11 +282,11 @@ section {
     /* ... */
 }.runUntilSignal {
     onKeyPressed {
-        if (key == Keys.DOWN) { signal() }
+        if (key == Keys.Down) { signal() }
         /* ... other keys ... */
     }
 
-    terminal.sendCode(Ansi.Csi.Codes.Keys.DOWN)
+    terminal.sendCode(Ansi.Csi.Codes.Keys.Down)
 }
 ```
 
@@ -331,8 +331,8 @@ Perhaps the easiest way to simulate a key press is to use the convenience `termi
 ```kotlin
 section { /* ... */ }.runUntilInputEntered {
     terminal.press(Keys.H, Keys.E, Keys.L)
-    terminal.press(Keys.RIGHT) // Autocomplete "hello"
-    terminal.press(Keys.ENTER)
+    terminal.press(Keys.Right) // Autocomplete "hello"
+    terminal.press(Keys.Enter)
 }
 ```
 
@@ -460,10 +460,10 @@ fun Session.promptChoices(message: String, choices: List<String>): String {
     }.runUntilSignal {
         onKeyPressed {
             when (key) {
-                Keys.UP -> selectedIndex = (selectedIndex - 1).coerceAtLeast(0)
-                Keys.DOWN -> selectedIndex = (selectedIndex + 1).coerceAtMost(choices.size - 1)
-                Keys.ENTER -> signal()
-                Keys.DIGIT_1, Keys.DIGIT_2, Keys.DIGIT_3, Keys.DIGIT_4, Keys.DIGIT_5, Keys.DIGIT_6, Keys.DIGIT_7, Keys.DIGIT_8, Keys.DIGIT_9 -> {
+                Keys.Up -> selectedIndex = (selectedIndex - 1).coerceAtLeast(0)
+                Keys.Down -> selectedIndex = (selectedIndex + 1).coerceAtMost(choices.size - 1)
+                Keys.Enter -> signal()
+                Keys.Digit1, Keys.Digit2, Keys.Digit3, Keys.Digit4, Keys.Digit5, Keys.Digit6, Keys.Digit7, Keys.Digit8, Keys.Digit9 -> {
                     val digit = (key as CharKey).code.digitToInt()
                     val index = digit - 1
                     if (index < choices.size) {
@@ -552,12 +552,12 @@ fun `user can navigate to an answer using arrow keys`() {
             "Choose a color",
             listOf("Red", "Orange", "Yellow", "Green", "Blue", "Purple"),
             onInputReady = {
-                terminal.press(Keys.DOWN)
-                terminal.press(Keys.DOWN)
-                terminal.press(Keys.ENTER)
+                terminal.press(Keys.Down)
+                terminal.press(Keys.Down)
+                terminal.press(Keys.Enter)
 
                 // Or, if you prefer a one-liner:
-                // press(Keys.DOWN, Keys.DOWN, Keys.ENTER)
+                // press(Keys.Down, Keys.Down, Keys.Enter)
             }
         )
     }
@@ -596,10 +596,10 @@ internal fun RunScope.handleChoiceSelection(
 ) {
     onKeyPressed {
         when (key) {
-            Keys.UP -> setSelectedIndex((getSelectedIndex() - 1).coerceAtLeast(0))
-            Keys.DOWN -> setSelectedIndex((getSelectedIndex() + 1).coerceAtMost(maxIndex - 1))
-            Keys.ENTER -> signal()
-            Keys.DIGIT_1, Keys.DIGIT_2, Keys.DIGIT_3, Keys.DIGIT_4, Keys.DIGIT_5, Keys.DIGIT_6, Keys.DIGIT_7, Keys.DIGIT_8, Keys.DIGIT_9 -> {
+            Keys.Up -> setSelectedIndex((getSelectedIndex() - 1).coerceAtLeast(0))
+            Keys.Down -> setSelectedIndex((getSelectedIndex() + 1).coerceAtMost(maxIndex - 1))
+            Keys.Enter -> signal()
+            Keys.Digit1, Keys.Digit2, Keys.Digit3, Keys.Digit4, Keys.Digit5, Keys.Digit6, Keys.Digit7, Keys.Digit8, Keys.Digit9 -> {
                 val digit = (key as CharKey).code.digitToInt()
                 val index = digit - 1
                 if (index < maxIndex) {
@@ -646,9 +646,9 @@ fun `user can navigate to an answer using arrow keys`() = testSession { terminal
             setSelectedIndex = { selectedIndex = it }
         )
 
-        terminal.press(Keys.DOWN)
-        terminal.press(Keys.DOWN)
-        terminal.press(Keys.ENTER)
+        terminal.press(Keys.Down)
+        terminal.press(Keys.Down)
+        terminal.press(Keys.Enter)
     }
 
     assertThat(colorChoices[selectedIndex]).isEqualTo("Yellow")
