@@ -665,7 +665,7 @@ var name = ""
 section {
   text("Please enter your name: "); input()
 }.runUntilSignal {
-  onInputChanged { input = input.filter { it.isLetter() } }
+  onInputChanged { if (input.any { !it.isLetter() }) { rejectInput() } }
   onInputEntered { name = input; signal() }
 }
 ```
@@ -679,7 +679,7 @@ var name = ""
 section {
   text("Please enter your name: "); input()
 }.runUntilInputEntered {
-  onInputChanged { input = input.filter { it.isLetter() } }
+  onInputChanged { if (input.any { !it.isLetter() }) { rejectInput() } }
   onInputEntered { name = input }
 }
 ```
@@ -710,7 +710,7 @@ object : InputCompleter {
       return names
           .firstOrNull { it.startsWith(input) }
           ?.let { it.drop(input.length) }
-    //            ^^^^^^^^^^^^^^^^^^^^
+    // NOTE:      ^^^^^^^^^^^^^^^^^^^^
     // Don't return the whole word; just the part that comes after the user's input so far.
   }
 }
@@ -971,8 +971,8 @@ animation instead, giving us access to the `color(Color)` method:
 ```kotlin
 // Note: `Color` is a Kotter enum that enumerates all the standard colors it supports
 
-val colorAnim = renderAnimOf(Color.values().size, 250.milliseconds) { i ->
-  color(Color.values()[i])
+val colorAnim = renderAnimOf(Color.entries.size, 250.milliseconds) { i ->
+  color(Color.entries[i])
 }
 section {
   colorAnim(this) // Side-effect: sets the color for this section
@@ -1283,8 +1283,8 @@ A few examples should help illustrate this:
 // Spanning multiple columns
 
 grid(Cols(3, 3, 3), characters = GridCharacters.CURVED) {
-  cell(row = 2) // Force three rows to be created
   cell(row = 0, col = 0, colSpan = 3)
+  cell(row = 2) // Force three rows to be created
 }
 ```
 
@@ -1304,8 +1304,8 @@ grid(Cols(3, 3, 3), characters = GridCharacters.CURVED) {
 // Spanning both
 
 grid(Cols(3, 3, 3, 3), characters = GridCharacters.CURVED) {
-  cell(row = 3) // Force four rows to be created
   cell(row = 1, col = 1, rowSpan = 2, colSpan = 2)
+  cell(row = 3) // Force four rows to be created
 }
 ```
 
@@ -1614,7 +1614,7 @@ interface to both `RenderScope` AND a `RunScope`, and using it can allow you to 
 can be called from both of them.
 
 It's not expected that most users will ever use this, but it can be a way to write a common getter that both the render
-block and run block can use (perhaps for data that is also set by the run block elsewhere).
+block and run block can use (perhaps for data that is set by the run block elsewhere).
 
 #### ConcurrentScopedData
 
@@ -1625,11 +1625,12 @@ such keys are associated with a `ConcurrentScopedData.Lifecycle` (meaning that a
 always be released when some parent lifecycle ends, unless you remove it yourself manually first).
 
 Kotter itself manages four lifecycles: `Session.Lifecycle`, `Section.Lifecycle`, `MainRenderScope.Lifecycle`, and
-`Run.Lifecycle` (each associated with the scopes discussed above).
+`RunScope.Lifecycle` (each associated with the scopes discussed above).
 
 > [!NOTE]
 > No lifecycles are provided for `offscreen` or `aside` blocks at the moment. Feel free to open up an issue with a
-> use-case requiring additional lifecycles if you run into one.
+> use-case requiring additional lifecycles if you run into one. So far, the `RunScope.Lifecycle` has been effective
+> enough for our needs.
 
 Keep in mind that the `MainRenderScope.Lifecycle` dies after a *single* render pass. Almost always you want to tie data
 to `Section.Lifecycle`, as it survives across multiple runs.
@@ -1650,12 +1651,13 @@ it.
   }
 ```
 
-Lifecycles can be defined as subordinate to other lifecycles, so if you create a lifecycle that is tied to the `Run`
-lifecycle for example, then you don't need to explicitly call `stop` yourself (but you still need to call `start`).
+Lifecycles can be defined as subordinate to other lifecycles, so if you create a lifecycle that is tied to the
+`RunScope` lifecycle for example, then you don't need to explicitly call `stop` yourself (but you still need to call
+`start`).
 
 ```kotlin
   object MyLifecycle : ConcurrentScopedData.Lifecycle {
-    override val parent = Run.Lifecycle
+    override val parent = RunScope.Lifecycle
   }
 
   section { /* ... */ }.run {
@@ -1677,7 +1679,7 @@ add values to it are:
 By having a session own and expose such a data structure, it makes it possible for anyone to write their own extension
 methods on top of Kotter, using data as a way to manage long-lived state. For example, `input()`, which may get called
 many times in a row as the section rerenders, can distinguish the first time it is called from later calls based on
-whether some value is present in the data cache or not.
+whether some value is present in the data store or not.
 
 To close this section, we just wanted to say that it was very tempting at first to create a bunch of hardcoded functions
 baked inside `Section`, `MainRenderScope`, etc., with access to some private state, but implementing everything through
@@ -1729,18 +1731,17 @@ pattern (just calling `section`s one after another on a single thread) is powerf
 > [!IMPORTANT]
 > The virtual terminal is only supported for JVM targets. Kotlin/Native targets don't implement this feature.
 
-It's not guaranteed that your program will be run in an interactive way, or even that you won't be called in a legacy
-terminal (e.g. on Windows) that doesn't support ANSI virtual codes.
+It's not guaranteed that your program will be called in a terminal that allows interactivity. Kotter, when first run,
+requests a specific configuration from your system that may be rejected.
 
-For example, debugging this project with IntelliJ as well as running within Gradle are two such environments where
-interactivity isn't available! Since in that case, IntelliJ/Gradle are already consuming the interactivity themselves,
-and running your program in a more limited environment.
+For example, pressing the debug button on your project inside IntelliJ as well as calling `./gradlew run` are two very
+common scenarios! In those cases, IntelliJ/Gradle are already consuming the terminal's interactivity themselves, so when
+your program tries to run, it does so inside a more limited environment.
 
-Kotter will attempt to detect if your console does not support the features it uses, and if not, it will open up a
-virtual terminal instead. This fallback gives your application better cross-platform support.
+Kotter can (and by default is setup to) detect this case and open up a virtual terminal instead. This fallback gives
+your application better cross-platform support.
 
-To modify the logic to ALWAYS open the virtual terminal, you can set the `terminal` parameter in `session` like
-this:
+To modify your program to ALWAYS open the virtual terminal, you can set the `terminal` parameter in `session` like so:
 
 ```kotlin
 session(terminal = VirtualTerminal.create()) {
