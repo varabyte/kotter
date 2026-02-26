@@ -102,7 +102,7 @@ class TextSupportTest {
     @Test
     fun `can specify color by color enum`() = testSession { terminal ->
         section {
-            Color.entries.forEach { c ->
+            Color.values().forEach { c ->
                 color(c) { textLine(c.name) }
             }
         }.run()
