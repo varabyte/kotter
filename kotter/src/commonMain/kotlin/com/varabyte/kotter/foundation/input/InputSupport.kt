@@ -52,12 +52,19 @@ private val SystemKeyPressedCallbackKey = Section.Lifecycle.createKey<OnKeyPress
 private class ByteToKeyProcessor(private val section: Section) {
     private val keyLock = ReentrantLock()
     private val escSeq = StringBuilder()
-    private var lastKeyTime: Long = 0
+    private var escJob: Job? = null
+
+    private fun clearEscapeSequence() {
+        escSeq.clear()
+        // We're resetting the escape sequence in preparation for starting over, so if we have a thread running that is
+        // watching it, it should also be stopped.
+        escJob?.cancel()
+        escJob = null
+    }
 
     suspend fun process(byte: Int, consumeKey: suspend (Key) -> Unit) {
         val c = byte.toChar()
         val key = keyLock.withLock {
-            lastKeyTime = getCurrentTimeMs()
             when {
                 escSeq.isNotEmpty() -> {
                     // Normally, we get here if we're continuing an existing esc sequence, but if so
@@ -67,12 +74,13 @@ private class ByteToKeyProcessor(private val section: Section) {
                     // waits a while before sending it out), but maybe also we end up getting an escape
                     // sequence that we didn't know how to handle, and without doing this, that old
                     // sequence would block us from working ever again.
-                    if (c == Ansi.CtrlChars.ESC) escSeq.clear()
+                    if (c == Ansi.CtrlChars.ESC) clearEscapeSequence()
 
                     escSeq.append(c)
                     val code = Ansi.EscSeq.toCsiCode(escSeq)
                     if (code != null) {
-                        escSeq.clear()
+                        clearEscapeSequence()
+
                         when (code) {
                             Ansi.Csi.Codes.Keys.Up -> Keys.Up
                             Ansi.Csi.Codes.Keys.Down -> Keys.Down
@@ -108,14 +116,16 @@ private class ByteToKeyProcessor(private val section: Section) {
                             // any followup characters. Note that a user can hold the keys down which
                             // generates a bunch of key signals, so we additionally make sure there
                             // hasn't been any other key pressed.
-                            section.coroutineScope.launch {
+                            escJob = section.coroutineScope.launch {
+                                val pressedEscTime = getCurrentTimeMs()
                                 val delayMs = 50L
                                 var doneWaiting = false
                                 var sendEsc = false
                                 while (!doneWaiting) {
                                     delay(10L)
                                     keyLock.withLock {
-                                        if (getCurrentTimeMs() - lastKeyTime > delayMs) {
+                                        val now = getCurrentTimeMs()
+                                        if (now - pressedEscTime > delayMs) {
                                             sendEsc =
                                                 escSeq.length == 1 && escSeq.contains(Ansi.CtrlChars.ESC)
                                             if (sendEsc) escSeq.clear()
@@ -124,6 +134,7 @@ private class ByteToKeyProcessor(private val section: Section) {
                                     }
                                 }
                                 if (sendEsc) consumeKey(Keys.Escape)
+                                escJob = null
                             }
                             null
                         }
