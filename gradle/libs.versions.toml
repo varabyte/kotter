@@ -2,7 +2,7 @@
 kotter = "1.3.0-SNAPSHOT"
 #------------------------
 dokka = "2.0.0"
-jline = "3.30.4"
+jline = "3.30.6"
 kotlinx-coroutines = "1.7.3"
 kotlin = "2.2.0"
 kover = "0.9.4"
