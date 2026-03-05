@@ -37,7 +37,18 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                         val nextChar = command.text[currIndex++]
                         val charWidth = nextChar.toRenderWidth()
                         val remainingWidth = width - currLineWidth
-                        if (charWidth > remainingWidth) {
+
+
+                        // NOTE: We insert an implicit newline when text exceeds the available space. However,
+                        // we skip the newline if the render area is too narrow to fit even a single character.
+                        // In that case, the character is added anyway (overflowing the width), and any
+                        // necessary newline will be inserted on the subsequent iteration.
+                        //
+                        // For example, a 2-width character (e.g., a Chinese glyph) in a 1-width render area
+                        // will simply overflow rather than being omitted entirely. This graceful degradation
+                        // is preferable to dropping content, and in practice, text areas should always be
+                        // significantly wider than individual characters.
+                        if (buffer.isNotEmpty() && charWidth > remainingWidth) {
                             add(TextCommands.Text(buffer.toString()))
                             add(commandToInsert)
                             buffer.clear()

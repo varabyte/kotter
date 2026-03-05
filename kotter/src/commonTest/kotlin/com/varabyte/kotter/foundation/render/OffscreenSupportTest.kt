@@ -39,6 +39,27 @@ class OffscreenSupportTest {
     }
 
     @Test
+    fun `characters wider than the offscreen buffer don't cause a crash`() = testSession {
+        lateinit var buffer: OffscreenBuffer
+        section {
+            // Chinese characters are width 2; previously, this would confuse a thin offscreen buffer because it
+            // wouldn't know where to put them. Now, it just forces them into the current line, which is the best effort
+            // approach we can take given the situation.
+            buffer = offscreen(maxWidth = 1) {
+                textLine("我是美國人")
+            }
+        }.run()
+
+        assertThat(buffer.lines()).containsExactly(
+            "我",
+            "是",
+            "美",
+            "國",
+            "人",
+        ).inOrder()
+    }
+
+    @Test
     fun `offscreen buffer provides access to line lengths`() = testSession {
         lateinit var buffer: OffscreenBuffer
         section {
