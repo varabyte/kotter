@@ -64,6 +64,10 @@ class InMemoryTerminal : Terminal {
         keys.forEach { keysFlow.emit(it) }
     }
 
+    // NOTE: we don't support overriding test width (for now) because then we would need to add a ton of logic in
+    // `resolveRenderers` for skipping over non-text ANSI commands, which is a bit more than what I want to sign up for
+    // at this point. However, you can use offscreen buffers as a way to test width-bounded text rendering (see
+    // OffscreenSupportTest)
     override val width = TerminalSize.Unbounded.width
     override val height = TerminalSize.Unbounded.height
 

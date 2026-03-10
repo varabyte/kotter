@@ -4,6 +4,7 @@ import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotterx.test.terminal.assertMatches
 import com.varabyte.truthish.assertThat
 import kotlin.test.Test
 
@@ -21,7 +22,7 @@ class OffscreenSupportTest {
     private fun OffscreenBuffer.lines() = toText().split("\n")
 
     @Test
-    fun `offscreen produces lines without newlines`() = testSession {
+    fun `offscreen produces lines without trailing newline`() = testSession {
         lateinit var buffer: OffscreenBuffer
         section {
             buffer = offscreen {
@@ -36,6 +37,25 @@ class OffscreenSupportTest {
             "Line #2",
             "Line #3",
         ).inOrder()
+    }
+
+    @Test
+    fun `offscreen buffers will add newlines at width boundaries if maxWidth is set`() = testSession { terminal ->
+        section {
+            val buffer = offscreen(maxWidth = 10) {
+                textLine("0123456789".repeat(3))
+            }
+
+            val renderer = buffer.createRenderer()
+            while (renderer.hasNextRow()) {
+                renderer.renderNextRow()
+                textLine()
+            }
+        }.run()
+
+        terminal.assertMatches {
+            repeat(3) { textLine("0123456789") }
+        }
     }
 
     @Test
@@ -208,5 +228,4 @@ class OffscreenSupportTest {
             Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
-
 }
