@@ -198,6 +198,8 @@ fun InMemoryTerminal.resolveRerenders(): List<String> {
 
     resolved.add(currLine.toString())
 
+    // When a section is done running, a newline is auto-appended to the end of it, closing it off. Since we are working
+    // with the buffer of an active section, however, this newline isn't included yet, so we fake add it here.
     if (resolved.last() != "") resolved.add("")
 
     return resolved
