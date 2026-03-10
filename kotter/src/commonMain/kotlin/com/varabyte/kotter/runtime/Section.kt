@@ -359,6 +359,10 @@ class Section internal constructor(val session: Session, private val render: Mai
         CoroutineScope(KotterDispatchers.Render).launch { allRendersFinished.complete(Unit) }
         runBlocking { allRendersFinished.await() }
 
+        if (!renderer.commands.finalTextCommandIsNewline) {
+            session.terminal.write("\n")
+        }
+
         session.data.stop(Lifecycle)
 
         deferredException?.let { throw it }

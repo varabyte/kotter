@@ -26,9 +26,7 @@ class Renderer<R : RenderScope>(val session: Session, private val createScope: (
         createScope(this).render()
 
         _commands.add(ResetCommand)
-
-        if (commands.asSequence().filter { it is TextCommand }.lastOrNull() !== TextCommands.Newline) {
-            _commands.add(TextCommands.Newline)
-        }
     }
 }
+
+internal val List<TerminalCommand>.finalTextCommandIsNewline: Boolean get() = lastOrNull { it is TextCommand } === TextCommands.Newline

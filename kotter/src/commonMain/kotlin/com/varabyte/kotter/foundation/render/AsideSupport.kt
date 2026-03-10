@@ -1,6 +1,8 @@
 package com.varabyte.kotter.foundation.render
 
 import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.internal.ansi.commands.NewlineCommand
+import com.varabyte.kotter.runtime.internal.ansi.commands.TextCommands
 import com.varabyte.kotter.runtime.render.*
 
 /**
@@ -73,7 +75,14 @@ fun RunScope.aside(render: AsideRenderScope.() -> Unit) {
     val session = section.session
 
     val asideRenderer =
-        Renderer(session) { AsideRenderScope(it) }.apply { render(render) }
+        Renderer(session) { AsideRenderScope(it) }.apply {
+            render(render)
+            // Asides should always finish with a newline, since they are essentially finished sections, and finished
+            // sections close themselves with a newline
+            if (!this.commands.finalTextCommandIsNewline) {
+                this.appendCommand(TextCommands.Newline)
+            }
+        }
     session.data.putIfAbsent(AsideRendersKey, { mutableListOf() }) {
         add(asideRenderer)
         section.requestRerender()

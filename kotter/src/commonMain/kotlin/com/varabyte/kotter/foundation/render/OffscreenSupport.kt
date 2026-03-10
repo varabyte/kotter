@@ -28,15 +28,16 @@ class OffscreenBuffer internal constructor(
             Renderer(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
                 render(render)
             }
-        // The renderer normally makes sure that a command block ends with a trailing newline and a state reset, but we
-        // don't need those in an offscreen buffer.
-        // 1) The final newline shouldn't leak into the output. For example,
+        // NOTES:
+        // 1) The renderer always makes sure that a command block ends with a state reset, but we don't need that in an
+        // offscreen buffer, as `OffscreenCommandRenderer` below manages state.
+        // 2) A final newline, if present, shouldn't leak into the output. For example,
         // `offscreen { lines.forEach { textLine(it } }` shouldn't create a trailing single empty line.
-        // 2) `CommandRenderer` below handles its own state cleanup logic
-        // Note: The order of the newline and reset depend on if the final row ended with a newline or not. Either way,
-        // we want to remove both of them!
-        check(offscreenRenderer.commands.takeLast(2).containsAll(listOf(TextCommands.Newline, ResetCommand)))
-        offscreenRenderer.commands.dropLast(2)
+        check(offscreenRenderer.commands.last() == ResetCommand)
+        val toDrop = offscreenRenderer.commands.takeLast(2).count {
+            it === ResetCommand || it === TextCommands.Newline
+        }
+        offscreenRenderer.commands.dropLast(toDrop)
     }.withExplicitNewlines(maxWidth)
 
     /**

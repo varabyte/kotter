@@ -197,5 +197,8 @@ fun InMemoryTerminal.resolveRerenders(): List<String> {
     }
 
     resolved.add(currLine.toString())
+
+    if (resolved.last() != "") resolved.add("")
+
     return resolved
 }

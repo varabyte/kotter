@@ -115,11 +115,9 @@ class SectionTest {
         }
 
         assertThat(terminal.lines()).containsExactly(
-            "0${Codes.Sgr.Reset}",
-            "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}" // Clear the auto-appended newline
-                    + "\r${Codes.Erase.CursorToLineEnd}1${Codes.Sgr.Reset}",
-            "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}" // Clear the auto-appended newline
-                    + "\r${Codes.Erase.CursorToLineEnd}2${Codes.Sgr.Reset}",
+            "0${Codes.Sgr.Reset}" +
+                    "\r${Codes.Erase.CursorToLineEnd}1${Codes.Sgr.Reset}" +
+                    "\r${Codes.Erase.CursorToLineEnd}2${Codes.Sgr.Reset}",
             "", // Newline added at the end of the section
         ).inOrder()
 
@@ -150,18 +148,14 @@ class SectionTest {
 
         assertThat(terminal.lines()).containsExactly(
             "Multiple lines",
-            "Run #1${Codes.Sgr.Reset}",
-            "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}" // Clear the auto-appended newline
-                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}"
+            "Run #1${Codes.Sgr.Reset}\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}"
                     + "\r${Codes.Erase.CursorToLineEnd}"
                     + "Multiple lines",
-            "Run #2${Codes.Sgr.Reset}",
-            "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}" // Clear the auto-appended newline
-                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}"
+            "Run #2${Codes.Sgr.Reset}\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}"
                     + "\r${Codes.Erase.CursorToLineEnd}"
                     + "Multiple lines",
             "Run #3${Codes.Sgr.Reset}",
-            "", // Newline added at the end of the section
+            "",
         ).inOrder()
 
         // Also, make sure the resolved view looks right
@@ -214,10 +208,8 @@ class SectionTest {
         value = 123
 
         assertThat(terminal.lines()).containsExactly(
-            "0${Codes.Sgr.Reset}",
-            "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}" // Clear the auto-appended newline
-                    + "\r${Codes.Erase.CursorToLineEnd}"
-                    + "42${Codes.Sgr.Reset}",
+            "0${Codes.Sgr.Reset}" +
+                "\r${Codes.Erase.CursorToLineEnd}42${Codes.Sgr.Reset}",
             "", // Newline added at the end of the section
         ).inOrder()
     }
