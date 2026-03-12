@@ -241,7 +241,7 @@ class VirtualTerminal private constructor(
                 listenersAdded = true
             }
 
-            pane.processAnsiText(text)
+            pane.processAnsiText(text, width)
 
             userVScrollPos?.let {
                 SwingUtilities.invokeLater { scrollPane.verticalScrollBar.model.value = it }
@@ -562,8 +562,9 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
         }
     }
 
-    fun processAnsiText(text: String) {
+    fun processAnsiText(text: String, maxWidth: Int) {
         require(SwingUtilities.isEventDispatchThread())
+        require(maxWidth > 0)
         if (text.isEmpty()) return
 
         val doc = styledDocument
@@ -577,6 +578,7 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
             }
         }
 
+        var currCharIndex = 0
         val textPtr = TextPtr(text)
         do {
             when (textPtr.currChar) {
@@ -601,12 +603,25 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
                         if (charIndex > 0) increment()
 
                         caretPosition = charIndex
+                        currCharIndex = 0
                     }
+                }
+
+                '\n' -> {
+                    stringBuilder.append(textPtr.currChar)
+                    currCharIndex = 0
                 }
 
                 Char.MIN_VALUE -> {
                 } // Ignore the null terminator, it's only a TextPtr/Document concept
-                else -> stringBuilder.append(textPtr.currChar)
+                else -> {
+                    if (currCharIndex == maxWidth) {
+                        stringBuilder.append("\n")
+                        currCharIndex = 0
+                    }
+                    stringBuilder.append(textPtr.currChar)
+                    ++currCharIndex
+                }
             }
         } while (textPtr.increment())
         flush()
