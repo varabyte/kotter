@@ -209,8 +209,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                         // last one down to the beginning (in other words, don't consume the \n of the previous line)
                         // NOTE: We need to re-add auto newlines because the screen width might have changed since last time
                         val numLinesToErase = min(
-                            lastCommandsRendered.withImplicitNewlines(session.terminal.width)
-                                .count { it is NewlineCommand } + 1,
+                            lastCommandsRendered.count { it is NewlineCommand } + 1,
                             session.terminal.height)
                         for (i in 0 until numLinesToErase) {
                             append(WIPE_CURRENT_LINE_COMMAND)

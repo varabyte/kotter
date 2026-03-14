@@ -1,12 +1,16 @@
 package com.varabyte.kotter.runtime
 
-import com.varabyte.kotter.foundation.*
-import com.varabyte.kotter.foundation.render.*
-import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.foundation.render.aside
+import com.varabyte.kotter.foundation.runUntilSignal
+import com.varabyte.kotter.foundation.text.text
+import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotter.runtime.terminal.inmemory.*
-import com.varabyte.kotterx.test.foundation.*
-import com.varabyte.kotterx.test.terminal.*
+import com.varabyte.kotter.runtime.terminal.TerminalSize
+import com.varabyte.kotter.runtime.terminal.inmemory.lines
+import com.varabyte.kotter.runtime.terminal.inmemory.resolveRerenders
+import com.varabyte.kotterx.test.foundation.testSession
+import com.varabyte.kotterx.test.terminal.assertMatches
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlinx.coroutines.CompletableDeferred
@@ -163,6 +167,29 @@ class SectionTest {
             textLine("Multiple lines")
             text("Run #3")
         }
+    }
+
+    @Test
+    fun `section can rerender correctly when implicit lines are present`() = testSession(size = TerminalSize.ofWidth(5)) { terminal ->
+        section {
+            textLine("1234") // width - 1
+            textLine("12345") // width
+            textLine("123456") // width + 1
+            textLine("1234567") // width + 2
+        }.run {
+            repeat(3) { rerender() }
+        }
+
+        assertThat(terminal.resolveRerenders()).containsExactly(
+            "1234",
+            "12345",
+            "12345",
+            "6",
+            "12345",
+            "67",
+            "${Codes.Sgr.Reset}",
+            "",
+        )
     }
 
     @Test

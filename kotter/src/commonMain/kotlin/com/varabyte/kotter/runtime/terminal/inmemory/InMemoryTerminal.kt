@@ -238,7 +238,7 @@ fun InMemoryTerminal.resolveRerenders(): List<String> {
                 resolved.removeLast()
                 currLine.clear()
                 resolved.firstOrNull()?.let { currLine.append(it) }
-                currLineIndex = min(currLineIndex, currLine.lastIndex).coerceAtLeast(0)
+                currLineIndex = min(currLineIndex, currLine.lastIndex)
             }
 
             else -> {
