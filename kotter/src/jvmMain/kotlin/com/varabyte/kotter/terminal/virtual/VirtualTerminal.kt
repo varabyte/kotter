@@ -108,6 +108,10 @@ class VirtualTerminal private constructor(
             maxNumLines: Int = 1000,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
+            require(terminalSize.width < TerminalSize.Unbounded.width && terminalSize.height < TerminalSize.Unbounded.height) {
+                "Neither width nor height in the virtual terminal size can be unbounded. Both must be set explicitly."
+            }
+
             val font = fontOverride?.takeIf { it.exists() }
                 ?.let { Font.createFont(Font.TRUETYPE_FONT, it.toFile()).deriveFont(Font.PLAIN, fontSize.toFloat()) }
                 ?: Font(Font.MONOSPACED, Font.PLAIN, fontSize)

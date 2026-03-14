@@ -36,7 +36,7 @@ import kotlin.math.min
  * // Output: "Hello·\e[31mWorld\e[0m"
  * ```
  */
-class InMemoryTerminal : Terminal {
+class InMemoryTerminal(size: TerminalSize? = null) : Terminal {
     class Buffer(private val builder: StringBuilder): CharSequence by builder {
         override fun toString(): String {
             return builder.toString()
@@ -64,16 +64,67 @@ class InMemoryTerminal : Terminal {
         keys.forEach { keysFlow.emit(it) }
     }
 
-    // NOTE: we don't support overriding test width (for now) because then we would need to add a ton of logic in
-    // `resolveRenderers` for skipping over non-text ANSI commands, which is a bit more than what I want to sign up for
-    // at this point. However, you can use offscreen buffers as a way to test width-bounded text rendering (see
-    // OffscreenSupportTest)
-    override val width = TerminalSize.Unbounded.width
-    override val height = TerminalSize.Unbounded.height
+    override val width = size?.width ?: TerminalSize.Unbounded.width
+    override val height = size?.height ?: TerminalSize.Unbounded.height
+
+
 
     override fun write(text: String) {
         assertNotClosed()
-        builder.append(text)
+
+        fun skipOverCsiCode(textPtr: TextPtr): Boolean {
+            if (!textPtr.increment()) return false
+            Ansi.Csi.Code.parts(textPtr) ?: return false
+            textPtr.increment() // Finish consuming the code; normally position is left on the last part
+            return true
+        }
+
+        fun skipOverOscCode(textPtr: TextPtr): Boolean {
+            if (!textPtr.increment()) return false
+
+            Ansi.Osc.Code.parts(textPtr) ?: return false
+            textPtr.increment() // Finish consuming the code; normally position is left on the last part
+            return true
+        }
+
+        fun skipOverEscapeCode(textPtr: TextPtr): Boolean {
+            if (!textPtr.increment()) return false
+
+            return when (textPtr.currChar) {
+                Ansi.EscSeq.CSI -> skipOverCsiCode(textPtr)
+                Ansi.EscSeq.OSC -> skipOverOscCode(textPtr)
+                else -> false
+            }
+        }
+
+        var currLineWidth = 0
+        fun appendAndResetCurrLineWidth(value: Char) {
+            builder.append(value)
+            currLineWidth = 0
+        }
+
+        val textPtr = TextPtr(text)
+        while (textPtr.remainingLength > 0) {
+            val textPtrCopy = TextPtr(textPtr)
+            if (skipOverEscapeCode(textPtrCopy)) {
+                val numCharsToAddWithoutUpdatingWidth = textPtrCopy.charIndex - textPtr.charIndex
+                builder.append(textPtr.substring(numCharsToAddWithoutUpdatingWidth))
+                textPtr.charIndex += numCharsToAddWithoutUpdatingWidth
+            }
+
+            else {
+                when (textPtr.currChar) {
+                    '\n', '\r' -> appendAndResetCurrLineWidth(textPtr.currChar)
+                    else -> {
+                        if (currLineWidth == width) appendAndResetCurrLineWidth('\n')
+                        builder.append(textPtr.currChar)
+                        ++currLineWidth
+                    }
+                }
+                textPtr.increment()
+            }
+
+        }
     }
 
     override fun read(): SharedFlow<Int> {
@@ -187,7 +238,7 @@ fun InMemoryTerminal.resolveRerenders(): List<String> {
                 resolved.removeLast()
                 currLine.clear()
                 resolved.firstOrNull()?.let { currLine.append(it) }
-                currLineIndex = min(currLineIndex, currLine.lastIndex)
+                currLineIndex = min(currLineIndex, currLine.lastIndex).coerceAtLeast(0)
             }
 
             else -> {

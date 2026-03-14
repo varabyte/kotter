@@ -10,6 +10,8 @@ class TerminalSize(val width: Int, val height: Int) {
     companion object {
         val Default = TerminalSize(100, 40)
         val Unbounded = TerminalSize(Int.MAX_VALUE, Int.MAX_VALUE)
+        /** Convenience constructor for creating a terminal size with a fixed width and unbounded height. */
+        fun ofWidth(value: Int) = TerminalSize(value, Unbounded.height)
     }
     init {
         require(width >= 1 && height >= 1) { "TerminalSize values must both be positive. Got: $width, $height" }

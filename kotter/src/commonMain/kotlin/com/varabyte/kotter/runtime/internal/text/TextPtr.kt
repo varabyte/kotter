@@ -13,6 +13,8 @@ import kotlin.math.min
  * @property text The text wrapped by / pointed to by this class.
  */
 class TextPtr(val text: CharSequence, charIndex: Int = 0) {
+    constructor(other: TextPtr) : this(other.text, other.charIndex)
+
     /**
      * The current character index we are pointing at.
      *
