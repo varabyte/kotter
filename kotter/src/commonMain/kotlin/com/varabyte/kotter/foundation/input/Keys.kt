@@ -33,11 +33,11 @@ class IsoControlKey(private val name: String) : Key {
  * }
  * ```
  *
- * If you need case-specific handling, you can check the [char] value:
+ * If you need case-specific handling, you can query via [isUpper], [isLower], or [char]:
  * ```
  * when (key) {
  *    Keys.Q -> {
- *       if (key.char == 'Q') quit() else confirmThenQuit()
+ *       if (key.isUpper()) quit() else confirmThenQuit()
  *    }
  * }
  * ```
@@ -64,7 +64,7 @@ class CharKey(val char: Char) : Key {
 }
 
 private const val KEY_NAMING_CONVENTION_MESSAGE = "Name updated to reflect standard Kotlin naming conventions around singleton objects."
-private const val UPPER_KEY_REMOVED_MESSAGE = "We are removing the `_UPPER` keys. The regular letter keys now match both lower and upper case key presses (i.e. `Keys.A` matches 'a' and 'A'). If you explicitly care about case-sensitive matching, use `isUpper()` or `isLower()`, e.g. `if (key == Keys.A_UPPER`) -> `if (key == Keys.A && key.isUpper())`"
+private const val UPPER_KEY_REMOVED_MESSAGE = "We are removing the `_UPPER` keys. The regular letter keys now match both lower and upper case key presses (i.e. `Keys.A` matches 'a' and 'A'). If you explicitly care about case-sensitive matching, use `isUpper()` or `isLower()`, e.g. `if (key == Keys.A_UPPER)` migrates to `if (key == Keys.A && key.isUpper())`"
 
 // TODO(Bug #22): Add some way to check if two keys are the same (perhaps given a keyboard layout?)
 //  e.g. 'a' and 'A' are the same underlying key
