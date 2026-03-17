@@ -219,6 +219,7 @@ private class InputState(val id: Any, val cursorState: BlinkingCursorState, inpu
 
     private var _text = ""
     private var _cursorIndex = 0
+    private var _cursorWidth = 1
 
     var text
         get() = _text
@@ -240,6 +241,18 @@ private class InputState(val id: Any, val cursorState: BlinkingCursorState, inpu
                 if (isActive) cursorState.resetCursor()
             }
         }
+
+    var cursorWidth
+        get() = _cursorWidth
+        set(value) {
+            @Suppress("NAME_SHADOWING")
+            val value = value.coerceAtLeast(1)
+            if (_cursorWidth != value) {
+                _cursorWidth = value
+                if (isActive) cursorState.resetCursor()
+            }
+        }
+
 }
 
 // Exposed for testing
@@ -466,17 +479,16 @@ private fun ConcurrentScopedData.prepareInput(
                                 }
 
                                 var fireTextEnteredCallback = false
+                                var edit: InputEdit? = null
 
                                 when (key) {
                                     Keys.Left -> {
                                         cursorIndex = (cursorIndex - 1).coerceAtLeast(0)
-                                        multilineState?.updateIdealLineIndex()
                                     }
 
                                     Keys.Right -> {
                                         if (cursorIndex < text.length) {
-                                            cursorIndex++
-                                            multilineState?.updateIdealLineIndex()
+                                            cursorIndex += cursorWidth
                                         } else {
                                             get(CompleterKey) {
                                                 complete(text)?.let { completion ->
@@ -498,12 +510,10 @@ private fun ConcurrentScopedData.prepareInput(
 
                                     Keys.Home -> {
                                         cursorIndex = text.getLineStartCursorIndex(cursorIndex)
-                                        multilineState?.updateIdealLineIndex()
                                     }
 
                                     Keys.End -> {
                                         cursorIndex = text.getLineEndCursorIndex(cursorIndex)
-                                        multilineState?.updateIdealLineIndex()
                                     }
 
                                     Keys.PageUp -> {
@@ -518,13 +528,15 @@ private fun ConcurrentScopedData.prepareInput(
 
                                     Keys.Delete -> {
                                         if (cursorIndex <= text.lastIndex) {
-                                            proposedText = text.removeRange(cursorIndex, cursorIndex + 1)
+                                            edit = InputEdit.RemovedByDelete(text.substring(cursorIndex, cursorIndex + cursorWidth))
+                                            proposedText = text.removeRange(cursorIndex, cursorIndex + cursorWidth)
                                             proposedCursorIndex = cursorIndex
                                         }
                                     }
 
                                     Keys.Backspace -> {
                                         if (cursorIndex > 0) {
+                                            edit = InputEdit.RemovedByBackspace(text.substring(cursorIndex -1, cursorIndex))
                                             proposedText = text.removeRange(cursorIndex - 1, cursorIndex)
                                             proposedCursorIndex = cursorIndex - 1
                                         }
@@ -536,11 +548,13 @@ private fun ConcurrentScopedData.prepareInput(
                                         } else if (multilineState != null) {
                                             check(key == Keys.Enter)
 
+                                            edit = InputEdit.Added("\n")
                                             proposedText = text.insertAtCursorIndex(cursorIndex, '\n')
                                             proposedCursorIndex = cursorIndex + 1
                                         } else {
                                             val basicConfig = inputConfig as InputConfig.Basic
                                             if (key == Keys.Eof && basicConfig.onEof != null) {
+                                                edit = InputEdit.Added(basicConfig.onEof)
                                                 proposedText = basicConfig.onEof
                                                 proposedCursorIndex = basicConfig.onEof.length
 
@@ -551,19 +565,51 @@ private fun ConcurrentScopedData.prepareInput(
 
                                     else ->
                                         if (key is CharKey) {
+                                            edit = InputEdit.Added(key.char.toString())
                                             proposedText = text.insertAtCursorIndex(cursorIndex, key.char)
                                             proposedCursorIndex = cursorIndex + 1
                                         }
                                 }
 
+                                fun handleCursorIndexChanged() {
+                                    cursorWidth = 1
+                                    get(InputCursorChangedCallbackKey) {
+                                        val OnInputCursorChangedScope = OnInputCUrsorChangedScope(
+                                            id,
+                                            input = text,
+                                            index = cursorIndex,
+                                            cursorWidth = cursorWidth
+                                        )
+                                        this.invoke(OnInputCursorChangedScope)
+
+                                        cursorIndex = OnInputCursorChangedScope.index.coerceIn(0..text.length)
+                                        cursorWidth = OnInputCursorChangedScope.cursorWidth
+                                    }
+                                }
+
+                                if (prevCursorIndex != cursorIndex) {
+                                    handleCursorIndexChanged()
+                                    if (multilineState != null) {
+                                        val minCursorIndex = minOf(prevCursorIndex, cursorIndex)
+                                        val maxCursorIndex = maxOf(prevCursorIndex, cursorIndex)
+
+                                        // If navigation was on the same line (e.g. left / right nav), only then update
+                                        // the line index; moving up and down should respect these values, not change them
+                                        if (text.getLineStartCursorIndex(maxCursorIndex) <= minCursorIndex) {
+                                            multilineState.updateIdealLineIndex()
+                                        }
+                                    }
+                                }
+
                                 if (proposedText != null) {
                                     get(InputChangedCallbackKey) {
                                         val onInputChangedScope =
-                                            OnInputChangedScope(id, input = proposedText!!, prevInput = text)
+                                            OnInputChangedScope(id, input = proposedText!!, prevInput = text, index = proposedCursorIndex ?: cursorIndex, edit = edit!!)
                                         this.invoke(onInputChangedScope)
 
                                         if (!onInputChangedScope.rejected) {
                                             proposedText = onInputChangedScope.input
+                                            proposedCursorIndex = onInputChangedScope.index
                                         } else {
                                             proposedText = onInputChangedScope.prevInput
                                             proposedCursorIndex = cursorIndex
@@ -571,7 +617,10 @@ private fun ConcurrentScopedData.prepareInput(
                                     }
 
                                     text = proposedText!!
+
                                     cursorIndex = (proposedCursorIndex ?: cursorIndex).coerceIn(0, text.length)
+                                    handleCursorIndexChanged()
+
                                     // If the user typed something that shifted the text, we should update the current
                                     // line index as well
                                     if (text != prevText) multilineState?.updateIdealLineIndex()
@@ -912,7 +961,7 @@ private fun MainRenderScope.handleInput(
                     // Put in a placeholder space for every newline, which allows a cursor to appear in that place
                     if (finalText[i] == '\n') text(' ')
                     text(finalText[i])
-                    if (i == cursorIndex && cursorState.blinkOn) {
+                    if (i == (cursorIndex + cursorWidth - 1) && cursorState.blinkOn) {
                         clearInvert()
                     }
                     if (customFormatApplied) {
@@ -1252,6 +1301,13 @@ fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
     }
 }
 
+sealed class InputEdit(val value: String) {
+    class Added(value: String) : InputEdit(value)
+    class RemovedByBackspace(value: String) : InputEdit(value)
+    class RemovedByDelete(value: String) : InputEdit(value)
+}
+
+
 /**
  * Fields and methods accessible within a callback triggered by [onInputChanged].
  *
@@ -1260,7 +1316,7 @@ fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
  *   final input rendered.
  * @property prevInput The previous (last good) state of the input.
  */
-class OnInputChangedScope(val id: Any, var input: String, val prevInput: String) {
+class OnInputChangedScope(val id: Any, var input: String, val prevInput: String, var index: Int, val edit: InputEdit) {
     internal var rejected = false
 
     /** Indicate that the current [input] change isn't valid and the last state should be restored. */
@@ -1268,6 +1324,18 @@ class OnInputChangedScope(val id: Any, var input: String, val prevInput: String)
         rejected = true
     }
 }
+
+/**
+ * Fields and methods accessible within a callback triggered by [onInputChanged].
+ *
+ * @property id The ID of the current input, if one was specified in the original call to [input][com.varabyte.kotter.foundation.input.input].
+ * @property input The text value of the input entered by the user. This value can be modified, which will affect the
+ *   final input rendered.
+ * @property index The current cursor index. You can intercept this and provide your own target cursor index
+ * @property cursorWidth The width of the cursor. This will be reset to 1 on every navigation, but you can expand it to
+ *   more than that, e.g. if your cursor should highlight a group of characters all at once.
+ */
+class OnInputCUrsorChangedScope(val id: Any, val input: String, var index: Int, var cursorWidth: Int)
 
 private val InputChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputChangedScope.() -> Unit>()
 
@@ -1296,6 +1364,22 @@ fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
         throw IllegalStateException("Currently only one `onInputChanged` callback at a time is supported.")
     }
 }
+
+private val InputCursorChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputCUrsorChangedScope.() -> Unit>()
+
+/**
+ * A callback you can register in a [RunScope.run] block that will get triggered any time the user moves their cursor
+ * around the [input] value.
+ *
+ * You can adjust the [OnInputCUrsorChangedScope.index] value, e.g. to jump over characters, or even set the
+ * [OnInputCUrsorChangedScope.cursorWidth] value to increase the coverage of what gets highlighted.
+ */
+fun RunScope.onInputCursorChanged(listener: OnInputCUrsorChangedScope.() -> Unit) {
+    if (!data.tryPut(InputCursorChangedCallbackKey) { listener }) {
+        throw IllegalStateException("Currently only one `onInputNavigated` callback at a time is supported.")
+    }
+}
+
 
 /**
  * Fields and methods accessible within a callback triggered by [onInputEntered].
