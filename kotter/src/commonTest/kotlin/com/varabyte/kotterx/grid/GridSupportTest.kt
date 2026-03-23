@@ -1056,4 +1056,22 @@ class GridSupportTest {
             Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
+
+    @Test
+    fun `can disable horizontal lines`() = testSession { terminal ->
+        section {
+            grid(Cols(3, 3), horizontalLines = false) {
+                cell { textLine("A") }
+                cell { textLine("B") }
+                cell { textLine("C") }
+                cell { textLine("D") }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "|A  |B  |",
+            "|C  |D  |",
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
+        ).inOrder()
+    }
 }
