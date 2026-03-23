@@ -11,6 +11,7 @@ private const val DEFAULT_TABLE_WIDTH = 30
 fun main() = session {
     var tableWidth by liveVarOf(DEFAULT_TABLE_WIDTH)
     var usePadding by liveVarOf(true)
+    var useHorizontalLines by liveVarOf(true)
 
     section {
         scopedState {
@@ -22,16 +23,18 @@ fun main() = session {
             textLine("Press RIGHT to grow the table")
         }
         textLine("Press SPACE to toggle padding (currently ${if (usePadding) "on" else "off"})")
+        textLine("Press H to toggle horizontal lines (currently ${if (useHorizontalLines) "on" else "off"})")
         textLine("Press Q to quit")
         textLine()
 
         textLine("Target width: $tableWidth")
         grid(
-            Cols { fit(); fixed(10, Justification.CENTER); star(minWidth = 5)},
+            Cols { fit(); fixed(10, Justification.CENTER); star(minWidth = 5) },
             targetWidth = tableWidth,
             characters = GridCharacters.CURVED,
             paddingLeftRight = if (usePadding) 1 else 0,
-            maxCellHeight = 1
+            maxCellHeight = 1,
+            horizontalLines = useHorizontalLines
         ) {
             cell(colSpan = 3, justification = Justification.CENTER) { bold(); text("Grocery List") }
             cell { bold(); text("Item") }
@@ -54,6 +57,7 @@ fun main() = session {
                 Keys.Home -> tableWidth = MIN_TABLE_WIDTH
                 Keys.End -> tableWidth = MAX_TABLE_WIDTH
                 Keys.Space -> usePadding = !usePadding
+                Keys.H -> useHorizontalLines = !useHorizontalLines
             }
         }
     }
