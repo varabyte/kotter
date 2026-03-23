@@ -435,6 +435,7 @@ fun RenderScope.grid(
     paddingLeftRight: Int = 0,
     justification: Justification = Justification.LEFT,
     maxCellHeight: Int = Int.MAX_VALUE,
+    horizontalLines: Boolean = true,
     render: GridScope.() -> Unit
 ) {
     require(targetWidth == null || targetWidth > 0) { "targetWidth, if set, must be positive" }
@@ -506,19 +507,21 @@ fun RenderScope.grid(
     fun CellData?.isNonTerminatedVerticalCell() = this.isVerticalSpan() && !this.isLastVerticalCell()
 
     // Render top
-    text(characters.topLeft)
-    colWidthsWithPadding.forEachIndexed { i, width ->
-        if (i > 0) {
-            // Only create an interaction border piece if we're starting a new grid cell
-            text(
-                if (gridScope.cellData.getOrNull(i)
-                        .isExtendedHorizontalSpan()
-                ) characters.horiz else characters.topCross
-            )
+    if (horizontalLines) {
+        text(characters.topLeft)
+        colWidthsWithPadding.forEachIndexed { i, width ->
+            if (i > 0) {
+                // Only create an interaction border piece if we're starting a new grid cell
+                text(
+                    if (gridScope.cellData.getOrNull(i)
+                            .isExtendedHorizontalSpan()
+                    ) characters.horiz else characters.topCross
+                )
+            }
+            text(characters.horiz.toString().repeat(width))
         }
-        text(characters.horiz.toString().repeat(width))
+        textLine(characters.topRight)
     }
-    textLine(characters.topRight)
 
     val rowCount =
         gridScope.cellData.size / cols.specs.size + if (gridScope.cellData.size % cols.specs.size > 0) 1 else 0
@@ -557,6 +560,7 @@ fun RenderScope.grid(
         }
         _cellRenderers
     }
+
     fun CellData?.hasMoreToRender() = if (this != null) cellRenderers[this]?.hasNextRow() == true else false
 
     for (y in 0 until rowCount) {
@@ -655,7 +659,7 @@ fun RenderScope.grid(
         }
 
         // Here, we are rendering the lines between rows. Note that spanning rows will render as normal
-        if (y < lastRowIndex) {
+        if (y < lastRowIndex && horizontalLines) {
             colWidthsWithPadding.forEachIndexed { x, width ->
                 fun fillWithDashes() {
                     text(characters.horiz.toString().repeat(width))
@@ -724,22 +728,23 @@ fun RenderScope.grid(
                 else -> characters.rightCross
             }
             textLine(trailingChar)
-
         }
     }
 
     // Render bottom
-    text(characters.botLeft)
-    colWidthsWithPadding.forEachIndexed { i, width ->
-        if (i > 0) {
-            // Only create an interaction border piece if we're starting a new grid cell
-            text(
-                if (gridScope.cellData.getOrNull(gridScope.cellIndex(lastRowIndex, i))
-                        .isExtendedHorizontalSpan()
-                ) characters.horiz else characters.botCross
-            )
+    if (horizontalLines) {
+        text(characters.botLeft)
+        colWidthsWithPadding.forEachIndexed { i, width ->
+            if (i > 0) {
+                // Only create an interaction border piece if we're starting a new grid cell
+                text(
+                    if (gridScope.cellData.getOrNull(gridScope.cellIndex(lastRowIndex, i))
+                            .isExtendedHorizontalSpan()
+                    ) characters.horiz else characters.botCross
+                )
+            }
+            text(characters.horiz.toString().repeat(width))
         }
-        text(characters.horiz.toString().repeat(width))
+        textLine(characters.botRight)
     }
-    textLine(characters.botRight)
 }
