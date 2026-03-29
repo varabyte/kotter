@@ -31,7 +31,7 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                     currLineWidth = 0
                     add(command)
                 } else {
-                    val buffer = StringBuilder()
+                    val textSoFar = StringBuilder()
                     var currIndex = 0
                     while (currIndex <= command.text.lastIndex) {
                         val nextChar = command.text[currIndex++]
@@ -48,17 +48,17 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                         // will simply overflow rather than being omitted entirely. This graceful degradation
                         // is preferable to dropping content, and in practice, text areas should always be
                         // significantly wider than individual characters.
-                        if (buffer.isNotEmpty() && charWidth > remainingWidth) {
-                            add(TextCommands.Text(buffer.toString()))
+                        if (textSoFar.isNotEmpty() && charWidth > remainingWidth) {
+                            add(TextCommands.Text(textSoFar.toString()))
                             add(commandToInsert)
-                            buffer.clear()
+                            textSoFar.clear()
                             currLineWidth = 0
                         }
-                        buffer.append(nextChar)
+                        textSoFar.append(nextChar)
                         currLineWidth += charWidth
                     }
-                    if (buffer.isNotEmpty()) {
-                        add(TextCommands.Text(buffer.toString()))
+                    if (textSoFar.isNotEmpty()) {
+                        add(TextCommands.Text(textSoFar.toString()))
                     }
                 }
             } else {
