@@ -43,6 +43,13 @@ class OffscreenSupportTest {
     fun `offscreen buffers will add newlines at width boundaries if maxWidth is set`() = testSession { terminal ->
         section {
             val buffer = offscreen(maxWidth = 10) {
+                repeat(3) {
+                    // At one point, each new "text" request would ignore previous commands checking width,
+                    // so we make sure this works even only dropping down one character at a time.
+                    "0123456789".forEach { n -> text(n) }
+                }
+                textLine()
+
                 textLine("0123456789".repeat(3))
             }
 
@@ -54,7 +61,7 @@ class OffscreenSupportTest {
         }.run()
 
         terminal.assertMatches {
-            repeat(3) { textLine("0123456789") }
+            repeat(6) { textLine("0123456789") }
         }
     }
 

@@ -24,20 +24,19 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
     val commands = this
 
     return buildList {
-        var currLineWidth = 0
+        val lineSoFar = StringBuilder()
         for (command in commands) {
             if (command is TextCommand) {
                 if (command === TextCommands.Newline) {
-                    currLineWidth = 0
+                    lineSoFar.clear()
                     add(command)
                 } else {
-                    val buffer = StringBuilder()
+                    val textSoFar = StringBuilder()
                     var currIndex = 0
                     while (currIndex <= command.text.lastIndex) {
                         val nextChar = command.text[currIndex++]
                         val charWidth = nextChar.toRenderWidth()
-                        val remainingWidth = width - currLineWidth
-
+                        val remainingWidth = width - lineSoFar.sumOf { it.toRenderWidth() }
 
                         // NOTE: We insert an implicit newline when text exceeds the available space. However,
                         // we skip the newline if the render area is too narrow to fit even a single character.
@@ -48,17 +47,21 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                         // will simply overflow rather than being omitted entirely. This graceful degradation
                         // is preferable to dropping content, and in practice, text areas should always be
                         // significantly wider than individual characters.
-                        if (buffer.isNotEmpty() && charWidth > remainingWidth) {
-                            add(TextCommands.Text(buffer.toString()))
+                        if (lineSoFar.isNotEmpty() && charWidth > remainingWidth) {
+                            // NOTE: `textSoFar` will be empty if we're getting a new text command exactly at a point
+                            // where we should force a newline due to crossing over the width boundary
+                            if (textSoFar.isNotEmpty()) {
+                                add(TextCommands.Text(textSoFar.toString()))
+                            }
                             add(commandToInsert)
-                            buffer.clear()
-                            currLineWidth = 0
+                            textSoFar.clear()
+                            lineSoFar.clear()
                         }
-                        buffer.append(nextChar)
-                        currLineWidth += charWidth
+                        textSoFar.append(nextChar)
+                        lineSoFar.append(nextChar)
                     }
-                    if (buffer.isNotEmpty()) {
-                        add(TextCommands.Text(buffer.toString()))
+                    if (textSoFar.isNotEmpty()) {
+                        add(TextCommands.Text(textSoFar.toString()))
                     }
                 }
             } else {
