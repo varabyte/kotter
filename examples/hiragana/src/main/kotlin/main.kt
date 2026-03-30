@@ -8,6 +8,8 @@ import com.varabyte.kotter.foundation.text.textLine
 
 // Small characters which can extend some base hiragana characters.
 private val Yoon = setOf('ゃ', 'ゅ', 'ょ')
+private val Sokuon = 'っ'
+
 private val RomajiToHiraganaMap = mapOf(
     // Vowels
     "a" to "あ",
@@ -185,6 +187,23 @@ private val RomajiToHiraganaMap = mapOf(
     "pyu" to "ぴゅ",
     "pyo" to "ぴょ",
 
+    // Double combo characters (pause + Yōon)
+    "kkya" to "っきゃ",
+    "kkyu" to "っきゅ",
+    "kkyo" to "っきょ",
+
+    "ssha" to "っしゃ",
+    "sshu" to "っしゅ",
+    "ssho" to "っしょ",
+
+    "ccha" to "っちゃ",
+    "cchu" to "っちゅ",
+    "ccho" to "っちょ",
+
+    "ppya" to "っぴゃ",
+    "ppyu" to "っぴゅ",
+    "ppyo" to "っぴょ",
+
     // Alternative romanizations
     "si" to "し",
     "ti" to "ち",
@@ -225,19 +244,39 @@ fun main() = session {
     }.runUntilInputEntered {
         onInputCursorChanged {
             if (index !in input.indices) return@onInputCursorChanged
-
-            val curr = input.getOrNull(index)
-            val prefix = input.getOrNull(index - 1)
-            val postfix = input.getOrNull(index + 1)
+            val curr = input.getOrNull(index) ?: return@onInputCursorChanged
 
             if (curr in Yoon) {
+                // Yoon is always the end of a combo character,
+                // e.g. the ょ in きょ or っきょ
                 --index
-                cursorWidth = 2
-            } else if (postfix in Yoon || curr == 'っ') {
-                cursorWidth = 2
-            } else if (prefix == 'っ') {
-                --index
-                cursorWidth = 2
+                cursorWidth++
+
+                val prefix = input.getOrNull(index - 1)
+                if (prefix == Sokuon) {
+                    --index
+                    cursorWidth++
+                }
+            } else if (curr == Sokuon) {
+                // Sokuon is always the start of a combo character,
+                // e.g. the っ in っき or っきょ
+                cursorWidth++
+
+                val suffix = input.getOrNull(index + 2)
+                if (suffix in Yoon) {
+                    cursorWidth++
+                }
+            } else { // normal hiragana character
+                // Most often a solo character but might have a Sokuon prefix and/or a Yoon suffix
+                val prefix = input.getOrNull(index - 1)
+                val suffix = input.getOrNull(index + 1)
+                if (prefix == Sokuon) {
+                    --index
+                    cursorWidth++
+                }
+                if (suffix in Yoon) {
+                    cursorWidth++
+                }
             }
         }
 
@@ -265,9 +304,17 @@ fun main() = session {
                 is InputEdit.RemovedByBackspace -> {
                     // We might need to remove a compound word, in which case we need to delete more than a single
                     // character.
-                    val valueToRemove = if (edit.value.singleOrNull() in Yoon || input.getOrNull(index - 1) == 'っ') {
-                        input[index - 1] + edit.value
-                    } else edit.value
+                    val valueToRemove = run {
+                        val valueSoFar = StringBuilder(edit.value)
+                        if (edit.value.singleOrNull() in Yoon) {
+                            // Yoon is a combo suffix char, so index - 1 guaranteed to exist
+                            valueSoFar.insert(0, input[index - 1])
+                        }
+                        val maybeSokuon = input.getOrNull(index - valueSoFar.length)?.takeIf { it == Sokuon }
+                        if (maybeSokuon != null) valueSoFar.insert(0, Sokuon)
+
+                        valueSoFar.toString()
+                    }
 
                     RomajiToHiraganaMap.entries.firstOrNull { it.value == valueToRemove }?.let { entry ->
                         // Although we "deleted" a Japanese character, we want to act like we only deleted one part of
