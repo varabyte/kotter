@@ -204,15 +204,12 @@ private val RomajiToHiraganaMap = mapOf(
     "ppyu" to "っぴゅ",
     "ppyo" to "っぴょ",
 
-    // Alternative romanizations
-    "si" to "し",
-    "ti" to "ち",
-    "tu" to "つ",
-    "hu" to "ふ",
-    "zi" to "じ",
+    // Misc romanizations
     "wi" to "ゐ",
     "we" to "ゑ"
 )
+
+val HiraganaToRomajiMap = RomajiToHiraganaMap.map { entry -> entry.value to entry.key }.toMap()
 
 private fun Char.isAlphaLetter() = this in 'a'..'z' || this in 'A'..'Z'
 
@@ -316,10 +313,10 @@ fun main() = session {
                         valueSoFar.toString()
                     }
 
-                    RomajiToHiraganaMap.entries.firstOrNull { it.value == valueToRemove }?.let { entry ->
+                    HiraganaToRomajiMap[valueToRemove]?.let { romaji ->
                         // Although we "deleted" a Japanese character, we want to act like we only deleted one part of
                         // it, e.g. "は" + backspace == "h", not "" (if we treat "は" as "ha")
-                        val romaji = entry.key.dropLast(1)
+                        val romaji = romaji.dropLast(1)
                         index -= (valueToRemove.length - 1)
                         input = prevInput.replaceRange(index, index + valueToRemove.length, romaji)
                         index += romaji.length
