@@ -1301,9 +1301,17 @@ fun RunScope.onInputDeactivated(listener: OnInputDeactivatedScope.() -> Unit) {
     }
 }
 
+/**
+ * A representation of possible edits that can occur on an [onInputChanged] event.
+ */
 sealed class InputEdit(val value: String) {
+    /** Some text was added, with the new index being set to right after it. */
     class Added(value: String) : InputEdit(value)
+
+    /** Some text was deleted, and the new index will have shifted over by how much text was removed. */
     class RemovedByBackspace(value: String) : InputEdit(value)
+
+    /** Some text was deleted in place, so the index shouldn't have changed after the text was removed. */
     class RemovedByDelete(value: String) : InputEdit(value)
 }
 
