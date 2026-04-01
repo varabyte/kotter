@@ -574,7 +574,7 @@ private fun ConcurrentScopedData.prepareInput(
                                 fun handleCursorIndexChanged() {
                                     cursorWidth = 1
                                     get(InputCursorChangedCallbackKey) {
-                                        val OnInputCursorChangedScope = OnInputCUrsorChangedScope(
+                                        val OnInputCursorChangedScope = OnInputCursorChangedScope(
                                             id,
                                             input = text,
                                             index = cursorIndex,
@@ -1335,7 +1335,7 @@ class OnInputChangedScope(val id: Any, var input: String, val prevInput: String,
  * @property cursorWidth The width of the cursor. This will be reset to 1 on every navigation, but you can expand it to
  *   more than that, e.g. if your cursor should highlight a group of characters all at once.
  */
-class OnInputCUrsorChangedScope(val id: Any, val input: String, var index: Int, var cursorWidth: Int)
+class OnInputCursorChangedScope(val id: Any, val input: String, var index: Int, var cursorWidth: Int)
 
 private val InputChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputChangedScope.() -> Unit>()
 
@@ -1365,16 +1365,16 @@ fun RunScope.onInputChanged(listener: OnInputChangedScope.() -> Unit) {
     }
 }
 
-private val InputCursorChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputCUrsorChangedScope.() -> Unit>()
+private val InputCursorChangedCallbackKey = RunScope.Lifecycle.createKey<OnInputCursorChangedScope.() -> Unit>()
 
 /**
  * A callback you can register in a [RunScope.run] block that will get triggered any time the user moves their cursor
  * around the [input] value.
  *
- * You can adjust the [OnInputCUrsorChangedScope.index] value, e.g. to jump over characters, or even set the
- * [OnInputCUrsorChangedScope.cursorWidth] value to increase the coverage of what gets highlighted.
+ * You can adjust the [OnInputCursorChangedScope.index] value, e.g. to jump over characters, or even set the
+ * [OnInputCursorChangedScope.cursorWidth] value to increase the coverage of what gets highlighted.
  */
-fun RunScope.onInputCursorChanged(listener: OnInputCUrsorChangedScope.() -> Unit) {
+fun RunScope.onInputCursorChanged(listener: OnInputCursorChangedScope.() -> Unit) {
     if (!data.tryPut(InputCursorChangedCallbackKey) { listener }) {
         throw IllegalStateException("Currently only one `onInputNavigated` callback at a time is supported.")
     }
