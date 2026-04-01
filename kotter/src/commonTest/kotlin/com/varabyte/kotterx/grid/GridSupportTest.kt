@@ -5,6 +5,7 @@ import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.foundation.*
 import com.varabyte.kotterx.text.*
+import com.varabyte.kotterx.util.collections.indicesOf
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
@@ -1058,20 +1059,90 @@ class GridSupportTest {
     }
 
     @Test
-    fun `can disable horizontal lines`() = testSession { terminal ->
-        section {
-            grid(Cols(3, 3), horizontalLines = false) {
-                cell { textLine("A") }
-                cell { textLine("B") }
-                cell { textLine("C") }
-                cell { textLine("D") }
-            }
-        }.run()
+    fun `can control horizontal separator rendering`() = testSession { terminal ->
 
-        assertThat(terminal.lines()).containsExactly(
-            "|A  |B  |",
-            "|C  |D  |",
-            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
-        ).inOrder()
+        // Totally disabled
+        run {
+            terminal.clear()
+            section {
+                grid(Cols(3, 3), horizontalSeparatorIndices = HorizontalSeparatorIndices.None) {
+                    cell { textLine("A") }
+                    cell { textLine("B") }
+                    cell { textLine("C") }
+                    cell { textLine("D") }
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "|A  |B  |",
+                "|C  |D  |",
+                Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
+            ).inOrder()
+        }
+
+        // Top and bottom
+        run {
+            terminal.clear()
+            section {
+                grid(Cols(3, 3), horizontalSeparatorIndices = HorizontalSeparatorIndices.TopAndBottom) {
+                    cell { textLine("A") }
+                    cell { textLine("B") }
+                    cell { textLine("C") }
+                    cell { textLine("D") }
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "+---+---+",
+                "|A  |B  |",
+                "|C  |D  |",
+                "+---+---+",
+                Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
+            ).inOrder()
+        }
+
+        // Header and bottom
+        run {
+            terminal.clear()
+            section {
+                grid(Cols(3, 3), horizontalSeparatorIndices = HorizontalSeparatorIndices.HeaderAndBottom) {
+                    cell(colSpan = 2) { textLine("Letters") }
+                    cell { textLine("A") }
+                    cell { textLine("B") }
+                    cell { textLine("C") }
+                    cell { textLine("D") }
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "+-------+",
+                "|Letters|",
+                "+---+---+",
+                "|A  |B  |",
+                "|C  |D  |",
+                "+---+---+",
+                Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
+            ).inOrder()
+        }
+
+        // Custom indices (here, last only)
+        run {
+            terminal.clear()
+            section {
+                grid(Cols(3, 3), horizontalSeparatorIndices = indicesOf(-1)) {
+                    cell { textLine("A") }
+                    cell { textLine("B") }
+                    cell { textLine("C") }
+                    cell { textLine("D") }
+                }
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "|A  |B  |",
+                "|C  |D  |",
+                "+---+---+",
+                Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
+            ).inOrder()
+        }
     }
 }

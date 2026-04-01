@@ -8,10 +8,18 @@ private const val MIN_TABLE_WIDTH = 25
 private const val MAX_TABLE_WIDTH = 40
 private const val DEFAULT_TABLE_WIDTH = 30
 
+// NOTE: The order these strategies are declared matters and controls how they are cycled through
+private val HorizontalSeparatorStrategyNames = mapOf(
+    HorizontalSeparatorIndices.All to "All",
+    HorizontalSeparatorIndices.None to "None",
+    HorizontalSeparatorIndices.TopAndBottom to "Top and bottom",
+    HorizontalSeparatorIndices.HeaderAndBottom to "Header and bottom",
+)
+
 fun main() = session {
     var tableWidth by liveVarOf(DEFAULT_TABLE_WIDTH)
     var usePadding by liveVarOf(true)
-    var useHorizontalLines by liveVarOf(true)
+    var horizontalSeparatorStrategy by liveVarOf(HorizontalSeparatorIndices.All)
 
     section {
         scopedState {
@@ -23,7 +31,7 @@ fun main() = session {
             textLine("Press RIGHT to grow the table")
         }
         textLine("Press SPACE to toggle padding (currently ${if (usePadding) "on" else "off"})")
-        textLine("Press H to toggle horizontal lines (currently ${if (useHorizontalLines) "on" else "off"})")
+        textLine("Press H to cycle horizontal separator types (currently \"${HorizontalSeparatorStrategyNames.getValue(horizontalSeparatorStrategy)}\")")
         textLine("Press Q to quit")
         textLine()
 
@@ -34,7 +42,7 @@ fun main() = session {
             characters = GridCharacters.CURVED,
             paddingLeftRight = if (usePadding) 1 else 0,
             maxCellHeight = 1,
-            horizontalLines = useHorizontalLines
+            horizontalSeparatorIndices = horizontalSeparatorStrategy
         ) {
             cell(colSpan = 3, justification = Justification.CENTER) { bold(); text("Grocery List") }
             cell { bold(); text("Item") }
@@ -57,7 +65,11 @@ fun main() = session {
                 Keys.Home -> tableWidth = MIN_TABLE_WIDTH
                 Keys.End -> tableWidth = MAX_TABLE_WIDTH
                 Keys.Space -> usePadding = !usePadding
-                Keys.H -> useHorizontalLines = !useHorizontalLines
+                Keys.H -> {
+                    val currStrategyIndex = HorizontalSeparatorStrategyNames.keys.indexOf(horizontalSeparatorStrategy)
+                    val nextStrategyIndex = (currStrategyIndex + 1) % HorizontalSeparatorStrategyNames.size
+                    horizontalSeparatorStrategy = HorizontalSeparatorStrategyNames.keys.toList()[nextStrategyIndex]
+                }
             }
         }
     }

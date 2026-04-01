@@ -3,9 +3,10 @@ package com.varabyte.kotterx.grid
 import com.varabyte.kotter.foundation.render.*
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.render.*
-import com.varabyte.kotterx.decorations.BorderCharacters.Companion.BOX_THIN
 import com.varabyte.kotterx.grid.GridScope.*
 import com.varabyte.kotterx.text.*
+import com.varabyte.kotterx.util.collections.Indices
+import com.varabyte.kotterx.util.collections.indicesOf
 import kotlin.math.min
 
 /**
@@ -292,6 +293,24 @@ class GridScope(private val cols: Cols) {
     }
 }
 
+object HorizontalSeparatorIndices {
+    /** Include all row separators throughout the whole grid, the default aesthetic. */
+    val All: Indices = indicesOf { addRange(0, -1) }
+
+    /** Skip all row separators throughout the whole grid, for maximum compactness. */
+    val None: Indices = Indices.Empty
+
+    /** Skip all row separators throughout the whole grid EXCEPT the very first and last rows. */
+    val TopAndBottom: Indices = indicesOf(0, -1)
+
+    /**
+     * Skip all row separators throughout the whole grid EXCEPT the top two and last rows.
+     *
+     * This is ideal if your grid has a header row that you'd like to be visually distinct from the rest of your grid.
+     */
+    val HeaderAndBottom: Indices = indicesOf(0, 1, -1)
+}
+
 /**
  * Declare a grid of cells.
  *
@@ -427,6 +446,11 @@ class GridScope(private val cols: Cols) {
  *   `Cols { fit(justification = CENTER) }`)
  * @param maxCellHeight The maximum height to allow cells to grow to, which can happen if a cell contains many newlines
  *   or a "*" column gets squished a lot, forcing newlines to be inserted.
+ * @param horizontalSeparatorIndices Which horizontal separators to include when rendering this grid. While rendering
+ *   all is the default aesthetic, a user may want to remove many or all separators to maximize how much data can fit in
+ *   limited vertical space. Note that the first index represents the very top of the grid and the last index represents
+ *   the bottom. So if your table has 3 rows in it, then 0 is the top, 1 and 2 are the row separators, and 3 is the
+ *   bottom. Note that several default [HorizontalSeparatorIndices] are provided for your convenience.
  */
 fun RenderScope.grid(
     cols: Cols,
@@ -435,7 +459,7 @@ fun RenderScope.grid(
     paddingLeftRight: Int = 0,
     justification: Justification = Justification.LEFT,
     maxCellHeight: Int = Int.MAX_VALUE,
-    horizontalLines: Boolean = true,
+    horizontalSeparatorIndices: Indices = HorizontalSeparatorIndices.All,
     render: GridScope.() -> Unit
 ) {
     require(targetWidth == null || targetWidth > 0) { "targetWidth, if set, must be positive" }
@@ -506,8 +530,13 @@ fun RenderScope.grid(
     // figuring out what horizontal borders we should be using.
     fun CellData?.isNonTerminatedVerticalCell() = this.isVerticalSpan() && !this.isLastVerticalCell()
 
+    val rowCount =
+        gridScope.cellData.size / cols.specs.size + if (gridScope.cellData.size % cols.specs.size > 0) 1 else 0
+    val lastRowIndex = rowCount - 1
+    val horizontalSeparatorIndicesResolved = horizontalSeparatorIndices.resolve(rowCount)
+
     // Render top
-    if (horizontalLines) {
+    if (horizontalSeparatorIndicesResolved.contains(0)) {
         text(characters.topLeft)
         colWidthsWithPadding.forEachIndexed { i, width ->
             if (i > 0) {
@@ -522,10 +551,6 @@ fun RenderScope.grid(
         }
         textLine(characters.topRight)
     }
-
-    val rowCount =
-        gridScope.cellData.size / cols.specs.size + if (gridScope.cellData.size % cols.specs.size > 0) 1 else 0
-    val lastRowIndex = rowCount - 1
 
     val cellBuffers: Map<CellData, OffscreenBuffer> = run {
         @Suppress("LocalVariableName") val _cellBuffers = mutableMapOf<CellData, OffscreenBuffer>()
@@ -659,7 +684,7 @@ fun RenderScope.grid(
         }
 
         // Here, we are rendering the lines between rows. Note that spanning rows will render as normal
-        if (y < lastRowIndex && horizontalLines) {
+        if (y < lastRowIndex && horizontalSeparatorIndicesResolved.contains(y + 1)) {
             colWidthsWithPadding.forEachIndexed { x, width ->
                 fun fillWithDashes() {
                     text(characters.horiz.toString().repeat(width))
@@ -732,7 +757,7 @@ fun RenderScope.grid(
     }
 
     // Render bottom
-    if (horizontalLines) {
+    if (horizontalSeparatorIndicesResolved.contains(rowCount)) {
         text(characters.botLeft)
         colWidthsWithPadding.forEachIndexed { i, width ->
             if (i > 0) {
