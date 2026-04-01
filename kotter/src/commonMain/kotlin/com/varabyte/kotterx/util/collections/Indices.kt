@@ -3,23 +3,23 @@ package com.varabyte.kotterx.util.collections
 import com.varabyte.kotterx.util.collections.IndexGroup.Range
 import com.varabyte.kotterx.util.collections.IndexGroup.Single
 
-private fun convertRelativeIndex(value: Int, maxIndex: Int): Int =
-    if (value >= 0) value else maxIndex + value + 1
+private fun convertRelativeIndex(value: Int, size: Int): Int =
+    if (value >= 0) value else size + value
 
 private sealed class IndexGroup {
-    abstract fun toIntRange(maxIndex: Int): IntRange
+    abstract fun toIntRange(size: Int): IntRange
 
     class Range(val start: Int, val endInclusive: Int) : IndexGroup() {
-        override fun toIntRange(maxIndex: Int): IntRange {
-            val startConverted = convertRelativeIndex(start, maxIndex)
-            val endConverted = convertRelativeIndex(endInclusive, maxIndex)
+        override fun toIntRange(size: Int): IntRange {
+            val startConverted = convertRelativeIndex(start, size)
+            val endConverted = convertRelativeIndex(endInclusive, size)
             return startConverted..endConverted
         }
     }
 
     class Single(val value: Int) : IndexGroup() {
-        override fun toIntRange(maxIndex: Int): IntRange {
-            val valueConverted = convertRelativeIndex(value, maxIndex)
+        override fun toIntRange(size: Int): IntRange {
+            val valueConverted = convertRelativeIndex(value, size)
             return valueConverted..valueConverted
         }
     }
@@ -70,24 +70,26 @@ class Indices private constructor(private val indexGroups: List<IndexGroup>) {
         fun build(): Indices = Indices(indexGroups)
     }
 
-    internal fun toIntRanges(maxIndex: Int): List<IntRange> {
-        return indexGroups.map { it.toIntRange(maxIndex) }
+    internal fun toIntRanges(size: Int): List<IntRange> {
+        return indexGroups.map { it.toIntRange(size) }
     }
 
     /**
      * Resolve all indices, converting any relative negative values into absolute values.
+     *
+     * @param size The size of the collection being indexed (e.g. 10 means indices 0-9 are valid.)
      */
-    fun resolve(maxIndex: Int = Int.MAX_VALUE) = ResolvedIndices(this, maxIndex)
+    fun resolve(size: Int = Int.MAX_VALUE) = ResolvedIndices(this, size)
 }
 
 /**
- * A snapshot of an [Indices] instance with the [maxIndex] value locked in.
+ * A snapshot of an [Indices] instance with the [size] value locked in.
  */
-class ResolvedIndices internal constructor(indices: Indices, private val maxIndex: Int) {
-    private val intRanges = indices.toIntRanges(maxIndex)
+class ResolvedIndices internal constructor(indices: Indices, private val size: Int) {
+    private val intRanges = indices.toIntRanges(size)
 
     fun contains(index: Int): Boolean {
-        return (index in 0..maxIndex) && intRanges.any { index in it }
+        return (index in 0 until size) && intRanges.any { index in it }
     }
 }
 

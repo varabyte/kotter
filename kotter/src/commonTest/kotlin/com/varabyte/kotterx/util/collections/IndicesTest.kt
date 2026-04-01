@@ -14,7 +14,7 @@ class IndicesTest {
             add(-1)
         }
 
-        indices.resolve(maxIndex = 19).let { resolvedSize20 ->
+        indices.resolve(size = 20).let { resolvedSize20 ->
             // Test absolute indices / ranges
             assertThat(resolvedSize20.contains(0)).isFalse()
             assertThat(resolvedSize20.contains(1)).isTrue()
@@ -39,7 +39,7 @@ class IndicesTest {
             assertThat(resolvedSize20.contains(20)).isFalse()
         }
 
-        indices.resolve(maxIndex = 99).let { resolvedSize100 ->
+        indices.resolve(size = 100).let { resolvedSize100 ->
             // Test absolute indices / ranges
 
             assertThat(resolvedSize100.contains(0)).isFalse()
@@ -80,7 +80,7 @@ class IndicesTest {
             add(9999)
             addRange(0, 100)
             addRange(-9999, -1)
-        }.resolve(maxIndex = 1)
+        }.resolve(size = 2)
 
         assertThat(indices.contains(0)).isTrue()
         assertThat(indices.contains(1)).isTrue()
@@ -95,9 +95,9 @@ class IndicesTest {
         val indices = indicesOf {
             addRange(10, 0)
             addRange(-1, -11) // resolved as 10, 0
-        }.resolve(maxIndex = 10)
+        }.resolve(size = 10)
 
-        for (i in 0..10) {
+        for (i in 0 until 10) {
             assertThat(indices.contains(i)).isFalse()
         }
     }
@@ -109,9 +109,9 @@ class IndicesTest {
             add(1)
             add(1)
             addRange(3,7)
-            addRange(4,9)
+            addRange(4,8)
             addRange(-3, -1)
-        }.resolve(maxIndex = 10)
+        }.resolve(size = 10)
 
         assertThat(indices.contains(0)).isFalse()
         assertThat(indices.contains(1)).isTrue()
@@ -123,7 +123,5 @@ class IndicesTest {
         assertThat(indices.contains(7)).isTrue()
         assertThat(indices.contains(8)).isTrue()
         assertThat(indices.contains(9)).isTrue()
-        assertThat(indices.contains(10)).isTrue()
-
     }
 }

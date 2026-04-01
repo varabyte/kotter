@@ -533,7 +533,8 @@ fun RenderScope.grid(
     val rowCount =
         gridScope.cellData.size / cols.specs.size + if (gridScope.cellData.size % cols.specs.size > 0) 1 else 0
     val lastRowIndex = rowCount - 1
-    val horizontalSeparatorIndicesResolved = horizontalSeparatorIndices.resolve(rowCount)
+    // rowCount + 1 -> top (1) + bottom (1) + inner separators (rowCount - 1)
+    val horizontalSeparatorIndicesResolved = horizontalSeparatorIndices.resolve(rowCount + 1)
 
     // Render top
     if (horizontalSeparatorIndicesResolved.contains(0)) {
