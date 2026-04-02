@@ -191,7 +191,7 @@ class GridSupportTest {
 
     @Test
     fun `can span content across rows or columns`() = testSession { terminal ->
-        // NOTE: We use BOX_THIN characters for this test, so we can tell that the algorithm
+        // NOTE: We use BoxThin characters for this test, so we can tell that the algorithm
         // is picking the right wall pieces
 
         // Span across cols
@@ -199,7 +199,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(col = 1, colSpan = 2) {
@@ -218,7 +218,7 @@ class GridSupportTest {
         // Span across rows
         terminal.clear()
         section {
-            grid(Cols(1, 5, 1), characters = GridCharacters.BOX_THIN) {
+            grid(Cols(1, 5, 1), characters = GridCharacters.BoxThin) {
                 cell(col = 1, rowSpan = 2) {
                     textLine("Test1")
                     textLine("Test2")
@@ -239,7 +239,7 @@ class GridSupportTest {
         // Span across full cols (top)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
                 cell(colSpan = 3)
                 cell(row = 2)
             }
@@ -259,7 +259,7 @@ class GridSupportTest {
         // Span across full cols (mid)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
                 cell(row = 1, colSpan = 3)
                 cell(row = 2)
             }
@@ -279,7 +279,7 @@ class GridSupportTest {
         // Span across full cols (bottom)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
                 cell(row = 2, colSpan = 3)
             }
         }.run()
@@ -298,7 +298,7 @@ class GridSupportTest {
         // Span across full rows (left)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
                 cell(rowSpan = 3)
             }
         }.run()
@@ -317,7 +317,7 @@ class GridSupportTest {
         // Span across full rows (mid)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
                 cell(col = 1, rowSpan = 3)
             }
         }.run()
@@ -336,7 +336,7 @@ class GridSupportTest {
         // Span across full rows (right)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BOX_THIN) {
+            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
                 cell(col = 2, rowSpan = 3)
             }
         }.run()
@@ -355,7 +355,7 @@ class GridSupportTest {
         // Horizontal staircase
         terminal.clear()
         section {
-            grid(Cols.uniform(4, width = 3), characters = GridCharacters.BOX_THIN) {
+            grid(Cols.uniform(4, width = 3), characters = GridCharacters.BoxThin) {
                 cell(row = 1, col = 2, colSpan = 2)
                 cell(row = 2, col = 1, colSpan = 3)
                 cell(row = 3, col = 0, colSpan = 4)
@@ -378,7 +378,7 @@ class GridSupportTest {
         // Vertical staircase
         terminal.clear()
         section {
-            grid(Cols.uniform(4, width = 3), characters = GridCharacters.BOX_THIN) {
+            grid(Cols.uniform(4, width = 3), characters = GridCharacters.BoxThin) {
                 cell(row = 3)
                 cell(row = 2, col = 1, rowSpan = 2)
                 cell(row = 1, col = 2, rowSpan = 3)
@@ -407,7 +407,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(0, 0, rowSpan = 2, colSpan = 2) {
@@ -438,7 +438,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(0, 1, rowSpan = 2, colSpan = 2) {
@@ -469,7 +469,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(0, 2, rowSpan = 2, colSpan = 2) {
@@ -500,7 +500,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(1, 0, rowSpan = 2, colSpan = 2) {
@@ -531,7 +531,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(1, 1, rowSpan = 2, colSpan = 2) {
@@ -562,7 +562,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(1, 2, rowSpan = 2, colSpan = 2) {
@@ -593,7 +593,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(2, 0, rowSpan = 2, colSpan = 2) {
@@ -622,7 +622,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(2, 1, rowSpan = 2, colSpan = 2) {
@@ -651,7 +651,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(2, 2, rowSpan = 2, colSpan = 2) {
@@ -682,7 +682,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols(1, 2, 3),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(rowSpan = 2, colSpan = 3) {
@@ -706,7 +706,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(2, width = 5),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
             ) {
                 cell(row = 1, rowSpan = 2) {
                     for (i in 1..6) {
@@ -739,7 +739,7 @@ class GridSupportTest {
         section {
             grid(
                 Cols(5, 6),
-                characters = GridCharacters.BOX_THIN,
+                characters = GridCharacters.BoxThin,
                 maxCellHeight = 2
             ) {
                 cell(rowSpan = 2) {
@@ -768,7 +768,7 @@ class GridSupportTest {
     @Test
     fun `can change grid border characters`() = testSession { terminal ->
         section {
-            grid(characters = GridCharacters.BOX_THIN, cols = Cols.uniform(2, width = 7)) {
+            grid(characters = GridCharacters.BoxThin, cols = Cols.uniform(2, width = 7)) {
                 cell {
                     textLine("Test 11")
                 }

@@ -9,6 +9,8 @@ import com.varabyte.kotterx.util.collections.Indices
 import com.varabyte.kotterx.util.collections.indicesOf
 import kotlin.math.min
 
+private const val SINGLETON_NAMING_CONVENTION_MESSAGE = "Name updated to reflect standard Kotlin naming conventions around singleton objects."
+
 /**
  * A list of ASCII characters which define a grid's borders.
  */
@@ -25,6 +27,7 @@ class GridCharacters(
     val botCross: Char,
     val botRight: Char,
 ) {
+    @Suppress("unused") // Deprecated properties are unused but necessary to keep around for now
     companion object {
         /**
          * Grid border using basic ASCII characters guaranteed to be present in every environment.
@@ -37,7 +40,7 @@ class GridCharacters(
          * +-+-+
          * ```
          */
-        val ASCII get() = GridCharacters('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+')
+        val Ascii by lazy { GridCharacters('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+') }
 
         /**
          * Grid border using fairly standard unicode box characters.
@@ -51,10 +54,10 @@ class GridCharacters(
          * ```
          */
 
-        val BOX_THIN get() = GridCharacters('─', '│', '┌', '┬', '┐', '├', '┼', '┤', '└', '┴', '┘')
+        val BoxThin by lazy { GridCharacters('─', '│', '┌', '┬', '┐', '├', '┼', '┤', '└', '┴', '┘') }
 
         /**
-         * Like [BOX_THIN] but with a double-border.
+         * Like [BoxThin] but with a double-border.
          *
          * ```
          * ╔═╦═╗
@@ -64,7 +67,7 @@ class GridCharacters(
          * ╚═╩═╝
          * ```
          */
-        val BOX_DOUBLE get() = GridCharacters('═', '║', '╔', '╦', '╗', '╠', '╬', '╣', '╚', '╩', '╝')
+        val BoxDouble by lazy { GridCharacters('═', '║', '╔', '╦', '╗', '╠', '╬', '╣', '╚', '╩', '╝') }
 
         /**
          * An elegant, sleek, curved border for the sophisticated user. 🧐
@@ -77,12 +80,23 @@ class GridCharacters(
          * ╰─┴─╯
          * ```
          */
-        val CURVED get() = GridCharacters('─', '│', '╭', '┬', '╮', '├', '┼', '┤', '╰', '┴', '╯')
+        val Curved by lazy { GridCharacters('─', '│', '╭', '┬', '╮', '├', '┼', '┤', '╰', '┴', '╯') }
 
         /**
          * A blank border, where cell elements float separated by space.
          */
-        val INVISIBLE get() = GridCharacters(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ')
+        val Invisible by lazy { GridCharacters(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ') }
+
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("Ascii"))
+        val ASCII get() = Ascii
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("BoxThin"))
+        val BOX_THIN get() = BoxThin
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("BoxDouble"))
+        val BOX_DOUBLE get() = BoxDouble
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("Curved"))
+        val CURVED get() = Curved
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("Invisible"))
+        val INVISIBLE get() = Invisible
     }
 }
 
@@ -455,7 +469,7 @@ object HorizontalSeparatorIndices {
 fun RenderScope.grid(
     cols: Cols,
     targetWidth: Int? = null,
-    characters: GridCharacters = GridCharacters.ASCII,
+    characters: GridCharacters = GridCharacters.Ascii,
     paddingLeftRight: Int = 0,
     justification: Justification = Justification.LEFT,
     maxCellHeight: Int = Int.MAX_VALUE,

@@ -83,7 +83,7 @@ class BorderSupportTest {
     @Test
     fun `can change border`() = testSession { terminal ->
         section {
-            bordered(BorderCharacters.BOX_DOUBLE) {
+            bordered(BorderCharacters.BoxDouble) {
                 text("Test")
             }
         }.run()

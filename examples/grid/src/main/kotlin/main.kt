@@ -39,7 +39,7 @@ fun main() = session {
         grid(
             Cols { fit(); fixed(10, Justification.CENTER); star(minWidth = 5) },
             targetWidth = tableWidth,
-            characters = GridCharacters.CURVED,
+            characters = GridCharacters.Curved,
             paddingLeftRight = if (usePadding) 1 else 0,
             maxCellHeight = 1,
             horizontalSeparatorIndices = horizontalSeparatorStrategy

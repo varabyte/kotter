@@ -1,16 +1,21 @@
 package com.varabyte.kotterx.decorations
 
-import com.varabyte.kotter.foundation.render.*
-import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.foundation.render.offscreen
+import com.varabyte.kotter.foundation.text.addNewlinesIfNecessary
+import com.varabyte.kotter.foundation.text.text
+import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.render.OffscreenRenderScope
-import com.varabyte.kotterx.decorations.BorderCharacters.Companion.ASCII
-import com.varabyte.kotterx.decorations.BorderCharacters.Companion.CURVED
+import com.varabyte.kotter.runtime.render.RenderScope
+import com.varabyte.kotterx.decorations.BorderCharacters.Companion.Ascii
+import com.varabyte.kotterx.decorations.BorderCharacters.Companion.BoxThin
+import com.varabyte.kotterx.decorations.BorderCharacters.Companion.Curved
+
+private const val SINGLETON_NAMING_CONVENTION_MESSAGE = "Name updated to reflect standard Kotlin naming conventions around singleton objects."
 
 /**
  * Characters which collectively describe the look and feel of some border built out of text.
  *
- * A few borders are defined out of the box, such as [ASCII], [CURVED], and others.
+ * A few borders are defined out of the box, such as [Ascii], [Curved], and others.
  */
 class BorderCharacters(
     val topLeft: Char,
@@ -20,6 +25,7 @@ class BorderCharacters(
     val horiz: Char,
     val vert: Char,
 ) {
+    @Suppress("unused") // Deprecated properties are unused but necessary to keep around for now
     companion object {
         /**
          * Border using basic ASCII characters guaranteed to be present in every environment.
@@ -30,7 +36,7 @@ class BorderCharacters(
          * +-+
          * ```
          */
-        val ASCII get() = BorderCharacters('+', '+', '+', '+', '-', '|')
+        val Ascii by lazy { BorderCharacters('+', '+', '+', '+', '-', '|') }
 
         /**
          * Border using fairly standard unicode box characters.
@@ -41,10 +47,10 @@ class BorderCharacters(
          * └─┘
          * ```
          */
-        val BOX_THIN get() = BorderCharacters('┌', '┐', '└', '┘', '─', '│')
+        val BoxThin by lazy { BorderCharacters('┌', '┐', '└', '┘', '─', '│') }
 
         /**
-         * Like [BOX_THIN] but with a double-border.
+         * Like [BoxThin] but with a double-border.
          *
          * ```
          * ╔═╗
@@ -52,7 +58,7 @@ class BorderCharacters(
          * ╚═╝
          * ```
          */
-        val BOX_DOUBLE get() = BorderCharacters('╔', '╗', '╚', '╝', '═', '║')
+        val BoxDouble by lazy { BorderCharacters('╔', '╗', '╚', '╝', '═', '║') }
 
         /**
          * An elegant, sleek, curved border for the sophisticated user. 🧐
@@ -63,7 +69,16 @@ class BorderCharacters(
          * ╰─╯
          * ```
          */
-        val CURVED get() = BorderCharacters('╭', '╮', '╰', '╯', '─', '│')
+        val Curved by lazy { BorderCharacters('╭', '╮', '╰', '╯', '─', '│') }
+
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("Ascii"))
+        val ASCII get() = Ascii
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("BoxThin"))
+        val BOX_THIN get() = BoxThin
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("BoxDouble"))
+        val BOX_DOUBLE get() = BoxDouble
+        @Deprecated(SINGLETON_NAMING_CONVENTION_MESSAGE, replaceWith = ReplaceWith("Curved"))
+        val CURVED get() = Curved
     }
 }
 
@@ -76,7 +91,7 @@ class BorderCharacters(
  * @param render The render block that generates content (e.g. via `textLine`) which will be wrapped within a border.
  */
 fun RenderScope.bordered(
-    borderCharacters: BorderCharacters = BorderCharacters.BOX_THIN,
+    borderCharacters: BorderCharacters = BoxThin,
     paddingLeftRight: Int = 0,
     paddingTopBottom: Int = 0,
     render: OffscreenRenderScope.() -> Unit
