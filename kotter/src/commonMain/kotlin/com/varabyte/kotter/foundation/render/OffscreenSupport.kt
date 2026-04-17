@@ -38,14 +38,24 @@ class OffscreenBuffer internal constructor(
             it === ResetCommand || it === TextCommands.Newline
         }
         offscreenRenderer.commands.dropLast(toDrop)
-    }.withExplicitNewlines(maxWidth)
+    }.withExplicitNewlines(parentScope.renderer.session.textMetrics, maxWidth)
 
     /**
      * A property which provides access to the lengths of each line in the buffer.
      *
+     * You may be more interested in [lineWidths] which calculates how much space the line takes on screen.
+     * (Very often, especially with simple text, these values are the same but they can diverge for text with Asian
+     * characters, emojis, etc.)
+     */
+    @Deprecated("You probably want to use `lineWidths` instead. Please read this property's documentation.", replaceWith = ReplaceWith("lineWidths"))
+    val lineLengths = commands.lineLengths
+
+    /**
+     * A property which provides access to the render widths of each line in the buffer.
+     *
      * This can be used if you need to calculate padding, for example, or centering a text block.
      */
-    val lineLengths = commands.lineLengths
+    val lineWidths = commands.lineWidths(parentScope.renderer.session.textMetrics)
 
     /**
      * Create an [OffscreenCommandRenderer] which can apply this buffer's commands into the current render scope.
@@ -64,7 +74,7 @@ class OffscreenBuffer internal constructor(
 fun OffscreenBuffer.isNotEmpty() = !isEmpty()
 
 /** How many lines of text were generated within this offscreen buffer. */
-val OffscreenBuffer.numLines get() = lineLengths.size
+val OffscreenBuffer.numLines get() = lineWidths.size
 
 /**
  * A renderer tied to an [OffscreenBuffer] which allows the user to render one row of text at a time.

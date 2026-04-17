@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
  */
 class Session internal constructor(
     internal val terminal: Terminal,
+    val textMetrics: TextMetrics,
     internal val sectionExceptionHandler: (Throwable) -> Unit
 ) {
     /**

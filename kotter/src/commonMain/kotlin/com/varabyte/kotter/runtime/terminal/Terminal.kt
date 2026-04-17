@@ -1,6 +1,5 @@
 package com.varabyte.kotter.runtime.terminal
 
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 
 /**

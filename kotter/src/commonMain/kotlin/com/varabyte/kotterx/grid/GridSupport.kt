@@ -499,7 +499,7 @@ fun RenderScope.grid(
                                 ?.cellBlock
                         if (cellBlock != null) {
                             val cellRenderer = this.offscreen(Int.MAX_VALUE, cellBlock)
-                            cellRenderer.lineLengths.maxOrNull()?.let { cellWidth ->
+                            cellRenderer.lineWidths.maxOrNull()?.let { cellWidth ->
                                 fitWidth = maxOf(fitWidth, cellWidth)
                             }
                         }
@@ -633,7 +633,7 @@ fun RenderScope.grid(
             val buffer = cellBuffers.getValue(this)
             val renderer = cellRenderers.getValue(this)
 
-            val extraSpace = buffer.maxWidth - buffer.lineLengths.getOrElse(renderer.nextRowIndex) { 0 }
+            val extraSpace = buffer.maxWidth - buffer.lineWidths.getOrElse(renderer.nextRowIndex) { 0 }
             val finalJustification =
                 this.justification
                     ?: cols.specs[colIndex].justification

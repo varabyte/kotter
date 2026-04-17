@@ -9,6 +9,7 @@ import com.varabyte.kotter.runtime.*
 import com.varabyte.kotter.runtime.concurrent.*
 import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.text.*
+import com.varabyte.kotter.runtime.terminal.TextMetrics
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.onSubscription
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.math.min
 import kotlin.time.Duration
 
 // A flow of keys that any coroutine can write to or read from. Will be filled with bytes read from the terminal,
@@ -193,25 +193,34 @@ private class MultilineState(
     var pageSize: Int,
 ) {
     /**
-     * The line position we should try to set our cursor to if we can.
-     *
-     * Note: In a multiline context, the cursor index is the offset from the beginning of all the text, while the line
-     * index is the offset from the last newline.
+     * The current line offset we should try to set our cursor to if we can.
      *
      * The reason this property is called "ideal" and not actual is because we might be moving up / down several lines,
      * and some intermediate lines are too short to hit it. However, when we go back to a line that is long enough, we
      * should try to set the cursor to this position again.
+     *
+     * Note that some characters render larger than a single character's width, e.g. Asian characters. So if you have a
+     * line of three double-width characters and the user moves the cursor over the last one, that means the position
+     * should actually be 4:
+     *
+     * ```
+     * // Assume AA, BB, and CC represent double width characters
+     * AABBCC
+     * 0 2 4
+     * ```
      */
-    var idealLineIndex = 0
+    var idealLineOffset = 0
         private set
 
-    fun updateIdealLineIndex() {
-        idealLineIndex = parentState.text.getLineIndex(parentState.cursorIndex)
+    fun updateIdealLineOffset() {
+        with (parentState) {
+            idealLineOffset = text.getLineOffsetFromIndex(textMetrics, cursorIndex)
+        }
     }
 }
 
 /** State needed to support the `input()` function */
-private class InputState(val id: Any, val cursorState: BlinkingCursorState, inputConfig: InputConfig) {
+private class InputState(val id: Any, val cursorState: BlinkingCursorState, inputConfig: InputConfig, var textMetrics: TextMetrics) {
     var isActive = false
 
     val multilineState: MultilineState? =
@@ -303,7 +312,7 @@ private fun ConcurrentScopedData.deactivate(state: InputState) {
     state.isActive = false
 }
 
-private fun String.getLineStartCursorIndex(cursorIndex: Int): Int {
+private fun String.getLineStartIndex(cursorIndex: Int): Int {
     val ptr = TextPtr(this, cursorIndex)
     ptr.decrementUntil { it == '\n' }
     // Line start should be AFTER previous line's newline. However, don't increment if we're at the start of the text.
@@ -311,7 +320,7 @@ private fun String.getLineStartCursorIndex(cursorIndex: Int): Int {
     return ptr.charIndex
 }
 
-private fun String.getLineEndCursorIndex(cursorIndex: Int): Int {
+private fun String.getLineEndIndex(cursorIndex: Int): Int {
     val ptr = TextPtr(this, cursorIndex)
     if (ptr.currChar != '\n') {
         ptr.incrementUntil { it == '\n' }
@@ -319,8 +328,32 @@ private fun String.getLineEndCursorIndex(cursorIndex: Int): Int {
     return ptr.charIndex
 }
 
-private fun String.getLineIndex(cursorIndex: Int): Int {
-    return cursorIndex - getLineStartCursorIndex(cursorIndex)
+private fun String.getLineOffsetFromIndex(textMetrics: TextMetrics, index: Int): Int {
+    var currIndex = getLineStartIndex(index)
+    var offset = 0
+
+    while (currIndex < index) {
+        val nextGraphemeSize = textMetrics.graphemeSizeAt(this, currIndex)
+        offset += textMetrics.renderWidthOf(this.subSequence(currIndex, currIndex + nextGraphemeSize))
+        currIndex += nextGraphemeSize
+    }
+
+    return offset
+}
+
+private fun String.getLineIndexFromOffset(textMetrics: TextMetrics, startIndex: Int, endIndex: Int, offset: Int): Int {
+    var currIndex = startIndex
+    var offsetRemaining = offset
+
+    while (offsetRemaining > 0 && currIndex < endIndex) {
+        val nextGraphemeSize = textMetrics.graphemeSizeAt(this, currIndex)
+        val nextRenderWidth = textMetrics.renderWidthOf(this.subSequence(currIndex, currIndex + nextGraphemeSize))
+        if (nextRenderWidth > offsetRemaining) break
+        offsetRemaining -= nextRenderWidth
+        currIndex += nextGraphemeSize
+    }
+
+    return currIndex.coerceAtMost(endIndex)
 }
 
 private fun String.insertAtCursorIndex(cursorIndex: Int, c: Char): String {
@@ -406,11 +439,12 @@ private fun ConcurrentScopedData.prepareInput(
         val state = inputStates[id]?.also { (inputConfig as? InputConfig.Multiline)?.update(it.multilineState!!) } ?: InputState(
             id,
             cursorState,
-            inputConfig
+            inputConfig,
+            scope.section.session.textMetrics,
         ).apply {
             text = initialText
             cursorIndex = initialText.length
-            multilineState?.updateIdealLineIndex()
+            multilineState?.updateIdealLineOffset()
         }.also { inputStates[id] = it }
 
         putIfAbsent(InputStatesCalledThisRender, provideInitialValue = { mutableMapOf() }) {
@@ -454,27 +488,20 @@ private fun ConcurrentScopedData.prepareInput(
 
                                 fun moveCursorUp() {
                                     if (multilineState == null) return
-                                    val prevLineEndCursorIndex = text.getLineStartCursorIndex(cursorIndex) - 1
-                                    if (prevLineEndCursorIndex >= 0) {
-                                        val prevLineEndIndex = text.getLineIndex(prevLineEndCursorIndex)
-                                        val diffToIdealLineIndex =
-                                            (prevLineEndIndex - multilineState.idealLineIndex).coerceAtLeast(0)
-                                        cursorIndex = prevLineEndCursorIndex - diffToIdealLineIndex
+                                    val prevLineEndIndex = text.getLineStartIndex(cursorIndex) - 1
+                                    if (prevLineEndIndex >= 0) {
+                                        val prevLineStartIndex = text.getLineStartIndex(prevLineEndIndex)
+                                        cursorIndex = text.getLineIndexFromOffset(textMetrics, prevLineStartIndex, prevLineEndIndex, multilineState.idealLineOffset)
                                     }
                                 }
 
                                 fun moveCursorDown() {
                                     if (multilineState == null) return
-                                    val nextLineStartCursorIndex = text.getLineEndCursorIndex(cursorIndex) + 1
-                                    if (nextLineStartCursorIndex <= text.length) {
-                                        val nextLineEndCursorIndex =
-                                            text.getLineEndCursorIndex(nextLineStartCursorIndex)
-                                        val nextLineLength = nextLineEndCursorIndex - nextLineStartCursorIndex
+                                    val nextLineStartIndex = text.getLineEndIndex(cursorIndex) + 1
+                                    if (nextLineStartIndex <= text.length) {
+                                        val nextLineEndIndex = text.getLineEndIndex(nextLineStartIndex)
                                         cursorIndex =
-                                            nextLineStartCursorIndex + min(
-                                                multilineState.idealLineIndex,
-                                                nextLineLength
-                                            )
+                                            text.getLineIndexFromOffset(textMetrics, nextLineStartIndex, nextLineEndIndex, multilineState.idealLineOffset)
                                     }
                                 }
 
@@ -509,11 +536,11 @@ private fun ConcurrentScopedData.prepareInput(
                                     }
 
                                     Keys.Home -> {
-                                        cursorIndex = text.getLineStartCursorIndex(cursorIndex)
+                                        cursorIndex = text.getLineStartIndex(cursorIndex)
                                     }
 
                                     Keys.End -> {
-                                        cursorIndex = text.getLineEndCursorIndex(cursorIndex)
+                                        cursorIndex = text.getLineEndIndex(cursorIndex)
                                     }
 
                                     Keys.PageUp -> {
@@ -595,8 +622,8 @@ private fun ConcurrentScopedData.prepareInput(
 
                                         // If navigation was on the same line (e.g. left / right nav), only then update
                                         // the line index; moving up and down should respect these values, not change them
-                                        if (text.getLineStartCursorIndex(maxCursorIndex) <= minCursorIndex) {
-                                            multilineState.updateIdealLineIndex()
+                                        if (text.getLineStartIndex(maxCursorIndex) <= minCursorIndex) {
+                                            multilineState.updateIdealLineOffset()
                                         }
                                     }
                                 }
@@ -623,7 +650,7 @@ private fun ConcurrentScopedData.prepareInput(
 
                                     // If the user typed something that shifted the text, we should update the current
                                     // line index as well
-                                    if (text != prevText) multilineState?.updateIdealLineIndex()
+                                    if (text != prevText) multilineState?.updateIdealLineOffset()
                                 }
 
                                 if (fireTextEnteredCallback) {

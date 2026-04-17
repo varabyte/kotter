@@ -32,20 +32,20 @@ fun RenderScope.justified(
     render: OffscreenRenderScope.() -> Unit
 ) {
     val content = offscreen(render)
-    val maxWidth = max(content.lineLengths.maxOrNull() ?: 0, minWidth)
+    val maxWidth = max(content.lineWidths.maxOrNull() ?: 0, minWidth)
 
     val renderer = content.createRenderer()
-    content.lineLengths.forEach { lineLength ->
+    content.lineWidths.forEach { lineWidth ->
         val (leftPad, rightPad) = when (justification) {
-            Justification.LEFT -> 0 to maxWidth - lineLength
+            Justification.LEFT -> 0 to maxWidth - lineWidth
             Justification.CENTER -> {
-                val spaceToDivideIntoTwo = maxWidth - lineLength
+                val spaceToDivideIntoTwo = maxWidth - lineWidth
                 val firstHalf = spaceToDivideIntoTwo / 2
                 val secondHalf = spaceToDivideIntoTwo - firstHalf
                 (firstHalf to secondHalf)
             }
 
-            else -> maxWidth - lineLength to 0
+            else -> maxWidth - lineWidth to 0
         }
         repeat(leftPad) { text(" ") }
         renderer.renderNextRow()

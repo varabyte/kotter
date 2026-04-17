@@ -98,7 +98,7 @@ class OffscreenSupportTest {
             }
         }.run()
 
-        assertThat(buffer.lineLengths).containsExactly(1, 2, 3, 4).inOrder()
+        assertThat(buffer.lineWidths).containsExactly(1, 2, 3, 4).inOrder()
     }
 
     @Test

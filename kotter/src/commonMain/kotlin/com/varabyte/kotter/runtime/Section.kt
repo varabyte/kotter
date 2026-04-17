@@ -240,7 +240,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                     session.sectionExceptionHandler(t)
                 }
 
-                lastCommandsRendered = renderer.commands.withImplicitNewlines(session.terminal.width)
+                lastCommandsRendered = renderer.commands.withImplicitNewlines(session.textMetrics, session.terminal.width)
 
                 // Send the whole set of instructions through `write` at once so the clear and updates are processed
                 // in one pass.

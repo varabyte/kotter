@@ -99,7 +99,7 @@ fun RenderScope.bordered(
     addNewlinesIfNecessary(1)
 
     val content = offscreen(render)
-    val maxWidth = (content.lineLengths.maxOrNull() ?: 0)
+    val maxWidth = (content.lineWidths.maxOrNull() ?: 0)
     val maxWidthWithPadding = maxWidth + paddingLeftRight * 2
 
     text(borderCharacters.topLeft)
@@ -113,11 +113,11 @@ fun RenderScope.bordered(
     }
 
     val renderer = content.createRenderer()
-    for (i in content.lineLengths.indices) {
+    for (i in content.lineWidths.indices) {
         text(borderCharacters.vert)
         text(" ".repeat(paddingLeftRight))
         renderer.renderNextRow()
-        repeat(maxWidth - content.lineLengths[i]) { text(" ") }
+        repeat(maxWidth - content.lineWidths[i]) { text(" ") }
         text(" ".repeat(paddingLeftRight))
         textLine(borderCharacters.vert)
     }

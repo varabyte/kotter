@@ -2,25 +2,37 @@ package com.varabyte.kotter.runtime.internal.text
 
 import com.varabyte.kotter.runtime.internal.*
 import com.varabyte.kotter.runtime.internal.ansi.commands.*
+import com.varabyte.kotter.runtime.terminal.TextMetrics
+
+private fun List<TerminalCommand>.mapLinesIntoNumericValue(calcText: (String) -> Int): List<Int> {
+    return this.fold(mutableListOf(0)) { lengths, command ->
+        if (command is TextCommand) {
+            if (command is NewlineCommand) {
+                lengths.add(0)
+            } else {
+                lengths[lengths.lastIndex] += calcText(command.text)
+            }
+        }
+        lengths
+    }
+}
 
 /**
  * Return the length of each line of text a list of [TerminalCommand]s would generate if rendered.
  */
 internal val List<TerminalCommand>.lineLengths: List<Int>
     get() {
-        return this.fold(mutableListOf(0)) { lengths, command ->
-            if (command is TextCommand) {
-                if (command === TextCommands.Newline) {
-                    lengths.add(0)
-                } else {
-                    lengths[lengths.lastIndex] += command.text.length
-                }
-            }
-            lengths
-        }
+        return this.mapLinesIntoNumericValue { text -> text.length }
     }
 
-private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: TerminalCommand, width: Int): List<TerminalCommand> {
+/**
+ * Return the render width of each line of text a list of [TerminalCommand]s would generate if rendered.
+ */
+internal fun List<TerminalCommand>.lineWidths(textMetrics: TextMetrics): List<Int> {
+    return this.mapLinesIntoNumericValue { text -> textMetrics.renderWidthOf(text) }
+}
+
+private fun List<TerminalCommand>.insertCommandAtLineBreaks(textMetrics: TextMetrics, commandToInsert: TerminalCommand, width: Int): List<TerminalCommand> {
     val commands = this
 
     return buildList {
@@ -34,9 +46,11 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                     val textSoFar = StringBuilder()
                     var currIndex = 0
                     while (currIndex <= command.text.lastIndex) {
-                        val nextChar = command.text[currIndex++]
-                        val charWidth = nextChar.toRenderWidth()
-                        val remainingWidth = width - lineSoFar.sumOf { it.toRenderWidth() }
+                        val nextGraphemeSize = textMetrics.graphemeSizeAt(command.text, currIndex)
+                        val nextGrapheme = command.text.subSequence(currIndex, currIndex + nextGraphemeSize)
+                        currIndex += nextGraphemeSize
+                        val graphemeWidth = textMetrics.renderWidthOf(nextGrapheme)
+                        val remainingWidth = width - textMetrics.renderWidthOf(lineSoFar)
 
                         // NOTE: We insert an implicit newline when text exceeds the available space. However,
                         // we skip the newline if the render area is too narrow to fit even a single character.
@@ -47,7 +61,7 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                         // will simply overflow rather than being omitted entirely. This graceful degradation
                         // is preferable to dropping content, and in practice, text areas should always be
                         // significantly wider than individual characters.
-                        if (lineSoFar.isNotEmpty() && charWidth > remainingWidth) {
+                        if (lineSoFar.isNotEmpty() && graphemeWidth > remainingWidth) {
                             // NOTE: `textSoFar` will be empty if we're getting a new text command exactly at a point
                             // where we should force a newline due to crossing over the width boundary
                             if (textSoFar.isNotEmpty()) {
@@ -57,8 +71,8 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
                             textSoFar.clear()
                             lineSoFar.clear()
                         }
-                        textSoFar.append(nextChar)
-                        lineSoFar.append(nextChar)
+                        textSoFar.append(nextGrapheme)
+                        lineSoFar.append(nextGrapheme)
                     }
                     if (textSoFar.isNotEmpty()) {
                         add(TextCommands.Text(textSoFar.toString()))
@@ -77,8 +91,8 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(commandToInsert: Ter
  * These mark where newlines will get added but don't actually cause newlines to occur. This can be useful for being
  * able to keep track of how many lines need to be repainted, taking terminal auto-newline wrapping into account.
  */
-internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<TerminalCommand> {
-    return insertCommandAtLineBreaks(TextCommands.ImplicitNewline, width)
+internal fun List<TerminalCommand>.withImplicitNewlines(textMetrics: TextMetrics, width: Int): List<TerminalCommand> {
+    return insertCommandAtLineBreaks(textMetrics, TextCommands.ImplicitNewline, width)
 }
 
 /**
@@ -86,8 +100,8 @@ internal fun List<TerminalCommand>.withImplicitNewlines(width: Int): List<Termin
  *
  * This can be useful for rendering text into constrained spaces, e.g. when rendering into a grid cell.
  */
-internal fun List<TerminalCommand>.withExplicitNewlines(width: Int): List<TerminalCommand> {
-    return insertCommandAtLineBreaks(TextCommands.Newline, width)
+internal fun List<TerminalCommand>.withExplicitNewlines(textMetrics: TextMetrics, width: Int): List<TerminalCommand> {
+    return insertCommandAtLineBreaks(textMetrics, TextCommands.Newline, width)
 }
 
 /**
