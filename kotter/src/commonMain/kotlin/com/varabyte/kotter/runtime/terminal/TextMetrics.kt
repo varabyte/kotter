@@ -83,6 +83,14 @@ class TextMetrics {
 }
 
 /**
+ * Convenience version of `renderWidthOf` using a form people are more used to for substrings.
+ *
+ * Note that, like [CharSequence.substring], [startIndex] is inclusive and [endIndex] is exclusive.
+ */
+fun TextMetrics.renderWidthOf(str: CharSequence, startIndex: Int, endIndex: Int): Int =
+    renderWidthOf(str, startIndex until endIndex)
+
+/**
  * Take characters from [text] up until they can no longer fit into a space of [maxWidth].
  *
  * @param ellipsis If provided AND if the text doesn't fit, then make sure the string returned ends with this.

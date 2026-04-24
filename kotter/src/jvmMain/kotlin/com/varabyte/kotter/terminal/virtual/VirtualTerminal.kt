@@ -36,10 +36,14 @@ import javax.swing.text.AbstractDocument
 import javax.swing.text.AttributeSet
 import javax.swing.text.Document
 import javax.swing.text.DocumentFilter
+import javax.swing.text.Element
 import javax.swing.text.JTextComponent
+import javax.swing.text.LabelView
 import javax.swing.text.MutableAttributeSet
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
+import javax.swing.text.StyledEditorKit
+import javax.swing.text.ViewFactory
 import kotlin.io.path.exists
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
@@ -328,8 +332,110 @@ class VirtualTerminal private constructor(
 
 private fun Document.getText() = getText(0, length)
 
-private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, linkColor: Color, maxNumLines: Int) :
-    JTextPane() {
+private class SwingTerminalPane(
+    font: Font,
+    fgColor: Color,
+    bgColor: Color,
+    linkColor: Color,
+    maxNumLines: Int
+) : JTextPane() {
+
+    /**
+     * A custom component that enforces all text, regardless of font, to conform to a grid.
+     *
+     * This lets us mix emoji, which come from non-monospace fonts, with the rest of our monospace text.
+     */
+    private class FixedGridLabelView(
+        elem: Element,
+        private val cellWidth: Int,
+    ) : LabelView(elem) {
+
+        private val textMetrics = TextMetrics()
+        private val lineStroke = BasicStroke(1f) // Used for underline / strikethrough
+
+        override fun paint(g: Graphics, allocation: Shape) {
+            val g2d = g as Graphics2D
+            val doc = document
+            val p0 = startOffset
+            val p1 = endOffset
+            val text = doc.getText(p0, p1 - p0)
+
+            val bounds = allocation.bounds
+            var currentX = bounds.x.toFloat()
+            val lineMetrics = font.getLineMetrics(text, g2d.fontRenderContext)
+            val yBaseline = bounds.y + lineMetrics.ascent
+
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+
+            g2d.font = font
+            background?.let { bgColor ->
+                g2d.color = bgColor
+                g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
+            }
+            g2d.color = foreground
+
+            var currIndex = 0
+            while (currIndex < text.length) {
+                val graphemeSize = textMetrics.graphemeSizeAt(text, currIndex)
+                val grapheme = text.substring(currIndex, currIndex + graphemeSize)
+
+                val numCells = textMetrics.renderWidthOf(text, currIndex, currIndex + graphemeSize)
+                val pixelWidth = (numCells * cellWidth).toFloat()
+
+                g2d.drawString(grapheme, currentX, yBaseline)
+
+                if (isUnderline || isStrikeThrough) {
+                    g2d.stroke = lineStroke
+
+                    if (isUnderline) {
+                        val underlineY = yBaseline + lineMetrics.underlineOffset + lineMetrics.underlineThickness
+                        g2d.drawLine(
+                            currentX.toInt(),
+                            underlineY.toInt(),
+                            (currentX + pixelWidth).toInt(),
+                            underlineY.toInt()
+                        )
+                    }
+
+                    if (isStrikeThrough) {
+                        val strikeY = yBaseline + lineMetrics.strikethroughOffset
+                        g2d.drawLine(
+                            currentX.toInt(),
+                            strikeY.toInt(),
+                            (currentX + pixelWidth).toInt(),
+                            strikeY.toInt()
+                        )
+                    }
+                }
+
+                currentX += numCells * cellWidth
+                currIndex += graphemeSize
+            }
+        }
+
+        override fun getPreferredSpan(axis: Int): Float {
+            return when (axis) {
+                X_AXIS -> {
+                    val text = document.getText(startOffset, endOffset - startOffset)
+                    (textMetrics.renderWidthOf(text) * cellWidth).toFloat()
+                }
+                else -> super.getPreferredSpan(axis)
+            }
+        }
+    }
+
+    private class GridEditorKit(private val cellWidth: Int) : StyledEditorKit() {
+        override fun getViewFactory(): ViewFactory {
+            return ViewFactory { elem ->
+                when (elem.name) {
+                    AbstractDocument.ContentElementName -> FixedGridLabelView(elem, cellWidth)
+                    else -> super@GridEditorKit.getViewFactory().create(elem)
+                }
+            }
+        }
+    }
+
     private class UriState(private val linkColor: Color, private val bgColor: Color) {
         private var currUri: Pair<Int, URI>? = null
         private var prevFgColor: Color? = null
@@ -384,6 +490,7 @@ private class SwingTerminalPane(font: Font, fgColor: Color, bgColor: Color, link
     private val uriState = UriState(linkColor, bgColor)
 
     init {
+        editorKit = GridEditorKit(getFontMetrics(font).charWidth('W'))
         isEditable = false
         foreground = fgColor
         background = bgColor
