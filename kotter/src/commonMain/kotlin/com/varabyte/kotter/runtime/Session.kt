@@ -21,9 +21,17 @@ import kotlinx.coroutines.runBlocking
  */
 class Session internal constructor(
     internal val terminal: Terminal,
-    val textMetrics: TextMetrics,
     internal val sectionExceptionHandler: (Throwable) -> Unit
 ) {
+    /**
+     * A global text metrics instance for measuring Unicode text.
+     *
+     * A user could have just instantiated this for themselves. However, providing it in a global location like this shows
+     * intention (this value exists across the entire Kotter session) and avoids having many places needing to allocate
+     * it over and over again.
+     */
+    val textMetrics: TextMetrics = TextMetrics()
+
     /**
      * A home for default values that will be shared across all sections.
      *

@@ -3,58 +3,7 @@ package com.varabyte.kotter.runtime.terminal
 /**
  * A class which provides text measurement utilities.
  */
-interface TextMetrics {
-    companion object {
-        val Default = object : TextMetrics {
-            override fun renderWidthOf(c: Char) = wcwidth(c.code).coerceAtLeast(0)
-            override fun renderWidthOf(str: CharSequence, range: IntRange): Int {
-                var totalWidth = 0
-                var i = range.first
-                val endInclusive = range.last
-                while (i <= endInclusive) {
-                    val graphemeSize = graphemeSizeAt(str, i)
-                    totalWidth += calculateClusterWidth(str, i, graphemeSize)
-                    i += graphemeSize
-                }
-                return totalWidth
-            }
-
-            override fun graphemeSizeAt(str: CharSequence, index: Int): Int {
-                val len = str.length
-                if (index >= len) return 0
-
-                val cp = codePointAt(str, index)
-                var pos = index + charCount(cp)
-
-                // 1. Regional indicator pairs (Flags) form one cluster
-                if (isRegionalIndicator(cp) && pos < len) {
-                    val nextCp = codePointAt(str, pos)
-                    if (isRegionalIndicator(nextCp)) {
-                        pos += charCount(nextCp)
-                    }
-                    return pos - index
-                }
-
-                // 2. Consume extensions: ZWJ, combining marks, variation selectors
-                while (pos < len) {
-                    val ncp = codePointAt(str, pos)
-                    if (ncp == 0x200D) { // Zero Width Joiner
-                        pos += 1
-                        if (pos < len) {
-                            pos += charCount(codePointAt(str, pos))
-                        }
-                    } else if (wcwidth(ncp) == 0 && ncp >= 0x20) {
-                        // Zero-width extending characters like accents
-                        pos += charCount(ncp)
-                    } else {
-                        break
-                    }
-                }
-                return pos - index
-            }
-        }
-    }
-
+class TextMetrics {
     /**
      * Return the length of this character when rendered in a terminal.
      *
@@ -64,7 +13,9 @@ interface TextMetrics {
      * If you are calling this method on a string that may contain complex Unicode values, like emojis composed of
      * multiple characters, you are encouraged to use the other [renderWidthOf] method that acts on a text string.
      */
-    fun renderWidthOf(c: Char): Int
+    fun renderWidthOf(c: Char): Int{
+        return wcwidth(c.code).coerceAtLeast(0)
+    }
 
     /**
      * Return the length of a String when rendered in a terminal.
@@ -75,7 +26,17 @@ interface TextMetrics {
      * @param range An optional range you can use to restrict the calculation to a subset of the text, which can help
      * you avoid doing an unnecessary substring extraction in some cases.
      */
-    fun renderWidthOf(str: CharSequence, range: IntRange = str.indices): Int
+    fun renderWidthOf(str: CharSequence, range: IntRange = str.indices): Int {
+        var totalWidth = 0
+        var i = range.first
+        val endInclusive = range.last
+        while (i <= endInclusive) {
+            val graphemeSize = graphemeSizeAt(str, i)
+            totalWidth += calculateClusterWidth(str, i, graphemeSize)
+            i += graphemeSize
+        }
+        return totalWidth
+    }
 
     /**
      * Given an index into a string, return how many underlying characters the grapheme at that index consists of.
@@ -86,7 +47,39 @@ interface TextMetrics {
      * A vast majority of characters will just return 1 here, assuming they fit entirely inside a Unicode 16 value
      * (which Kotlin uses).
      */
-    fun graphemeSizeAt(str: CharSequence, index: Int): Int
+    fun graphemeSizeAt(str: CharSequence, index: Int): Int {
+        val len = str.length
+        if (index >= len) return 0
+
+        val cp = codePointAt(str, index)
+        var pos = index + charCount(cp)
+
+        // 1. Regional indicator pairs (Flags) form one cluster
+        if (isRegionalIndicator(cp) && pos < len) {
+            val nextCp = codePointAt(str, pos)
+            if (isRegionalIndicator(nextCp)) {
+                pos += charCount(nextCp)
+            }
+            return pos - index
+        }
+
+        // 2. Consume extensions: ZWJ, combining marks, variation selectors
+        while (pos < len) {
+            val ncp = codePointAt(str, pos)
+            if (ncp == 0x200D) { // Zero Width Joiner
+                pos += 1
+                if (pos < len) {
+                    pos += charCount(codePointAt(str, pos))
+                }
+            } else if (wcwidth(ncp) == 0 && ncp >= 0x20) {
+                // Zero-width extending characters like accents
+                pos += charCount(ncp)
+            } else {
+                break
+            }
+        }
+        return pos - index
+    }
 }
 
 /**

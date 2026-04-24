@@ -6,7 +6,7 @@ import kotlin.test.Test
 class TextMetricsTest {
     @Test
     fun `renderWidthOf char works`() {
-        val tm = TextMetrics.Default
+        val tm = TextMetrics()
 
         assertThat(tm.renderWidthOf('a')).isEqualTo(1)
         assertThat(tm.renderWidthOf('何')).isEqualTo(2) // Double width
@@ -14,7 +14,7 @@ class TextMetricsTest {
 
     @Test
     fun `renderWidthOf string works`() {
-        val tm = TextMetrics.Default
+        val tm = TextMetrics()
 
         assertThat(tm.renderWidthOf("Hello")).isEqualTo(5)
         assertThat(tm.renderWidthOf("💩")).isEqualTo(2)
@@ -22,7 +22,7 @@ class TextMetricsTest {
 
     @Test
     fun `truncateToWidth works`() {
-        val tm = TextMetrics.Default
+        val tm = TextMetrics()
 
         run {
             val textEn = "Hello, World!"

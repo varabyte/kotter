@@ -67,14 +67,13 @@ internal expect val defaultTerminalProviders: List<() -> Terminal>
 fun session(
     terminal: Terminal = defaultTerminalProviders.firstSuccess(),
     clearTerminal: Boolean = false,
-    textMetrics: TextMetrics = TextMetrics.Default,
     sectionExceptionHandler: (Throwable) -> Unit = {},
     block: Session.() -> Unit
 ) {
 
     if (clearTerminal) terminal.clear()
 
-    val session = Session(terminal, textMetrics, sectionExceptionHandler)
+    val session = Session(terminal, sectionExceptionHandler)
 
     // Clean-up even if the user presses control-C
     onShutdown { session.shutdown() }
