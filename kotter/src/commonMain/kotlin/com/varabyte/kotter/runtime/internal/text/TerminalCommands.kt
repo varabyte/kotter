@@ -37,10 +37,12 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(textMetrics: TextMet
 
     return buildList {
         val lineSoFar = StringBuilder()
+        var lineSoFarWidth = 0
         for (command in commands) {
             if (command is TextCommand) {
                 if (command === TextCommands.Newline) {
                     lineSoFar.clear()
+                    lineSoFarWidth = 0
                     add(command)
                 } else {
                     val textSoFar = StringBuilder()
@@ -50,7 +52,7 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(textMetrics: TextMet
                         val nextGrapheme = command.text.subSequence(currIndex, currIndex + nextGraphemeLen)
                         currIndex += nextGraphemeLen
                         val graphemeWidth = textMetrics.renderWidthOf(nextGrapheme)
-                        val remainingWidth = width - textMetrics.renderWidthOf(lineSoFar)
+                        val remainingWidth = width - lineSoFarWidth
 
                         // NOTE: We insert an implicit newline when text exceeds the available space. However,
                         // we skip the newline if the render area is too narrow to fit even a single character.
@@ -70,9 +72,11 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(textMetrics: TextMet
                             add(commandToInsert)
                             textSoFar.clear()
                             lineSoFar.clear()
+                            lineSoFarWidth = 0
                         }
                         textSoFar.append(nextGrapheme)
                         lineSoFar.append(nextGrapheme)
+                        lineSoFarWidth += graphemeWidth
                     }
                     if (textSoFar.isNotEmpty()) {
                         add(TextCommands.Text(textSoFar.toString()))
