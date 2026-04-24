@@ -333,9 +333,9 @@ private fun String.getLineOffsetFromIndex(textMetrics: TextMetrics, index: Int):
     var offset = 0
 
     while (currIndex < index) {
-        val nextGraphemeSize = textMetrics.graphemeSizeAt(this, currIndex)
-        offset += textMetrics.renderWidthOf(this.subSequence(currIndex, currIndex + nextGraphemeSize))
-        currIndex += nextGraphemeSize
+        val nextGraphemeLen = textMetrics.graphemeLengthAt(this, currIndex)
+        offset += textMetrics.renderWidthOf(this.subSequence(currIndex, currIndex + nextGraphemeLen))
+        currIndex += nextGraphemeLen
     }
 
     return offset
@@ -346,11 +346,11 @@ private fun String.getLineIndexFromOffset(textMetrics: TextMetrics, startIndex: 
     var offsetRemaining = offset
 
     while (offsetRemaining > 0 && currIndex < endIndex) {
-        val nextGraphemeSize = textMetrics.graphemeSizeAt(this, currIndex)
-        val nextRenderWidth = textMetrics.renderWidthOf(this.subSequence(currIndex, currIndex + nextGraphemeSize))
+        val nextGraphemeLen = textMetrics.graphemeLengthAt(this, currIndex)
+        val nextRenderWidth = textMetrics.renderWidthOf(this.subSequence(currIndex, currIndex + nextGraphemeLen))
         if (nextRenderWidth > offsetRemaining) break
         offsetRemaining -= nextRenderWidth
-        currIndex += nextGraphemeSize
+        currIndex += nextGraphemeLen
     }
 
     return currIndex.coerceAtMost(endIndex)

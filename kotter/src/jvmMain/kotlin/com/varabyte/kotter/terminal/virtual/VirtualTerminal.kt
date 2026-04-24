@@ -377,10 +377,10 @@ private class SwingTerminalPane(
 
             var currIndex = 0
             while (currIndex < text.length) {
-                val graphemeSize = textMetrics.graphemeSizeAt(text, currIndex)
-                val grapheme = text.substring(currIndex, currIndex + graphemeSize)
+                val graphemeLen = textMetrics.graphemeLengthAt(text, currIndex)
+                val grapheme = text.substring(currIndex, currIndex + graphemeLen)
 
-                val numCells = textMetrics.renderWidthOf(text, currIndex, currIndex + graphemeSize)
+                val numCells = textMetrics.renderWidthOf(text, currIndex, currIndex + graphemeLen)
                 val pixelWidth = (numCells * cellWidth).toFloat()
 
                 g2d.drawString(grapheme, currentX, yBaseline)
@@ -410,7 +410,7 @@ private class SwingTerminalPane(
                 }
 
                 currentX += numCells * cellWidth
-                currIndex += graphemeSize
+                currIndex += graphemeLen
             }
         }
 

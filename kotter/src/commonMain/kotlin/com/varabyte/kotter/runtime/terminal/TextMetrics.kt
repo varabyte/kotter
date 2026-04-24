@@ -31,9 +31,9 @@ class TextMetrics {
         var i = range.first
         val endInclusive = range.last
         while (i <= endInclusive) {
-            val graphemeSize = graphemeSizeAt(str, i)
-            totalWidth += calculateClusterWidth(str, i, graphemeSize)
-            i += graphemeSize
+            val graphemeLen = graphemeLengthAt(str, i)
+            totalWidth += calculateClusterWidth(str, i, graphemeLen)
+            i += graphemeLen
         }
         return totalWidth
     }
@@ -47,7 +47,7 @@ class TextMetrics {
      * A vast majority of characters will just return 1 here, assuming they fit entirely inside a Unicode 16 value
      * (which Kotlin uses).
      */
-    fun graphemeSizeAt(str: CharSequence, index: Int): Int {
+    fun graphemeLengthAt(str: CharSequence, index: Int): Int {
         val len = str.length
         if (index >= len) return 0
 
@@ -100,12 +100,12 @@ fun TextMetrics.truncateToWidth(text: CharSequence, maxWidth: Int, ellipsis: Str
         var currWidth = 0
         var currIndex = 0
         while (currIndex < text.length) {
-            val size = graphemeSizeAt(text, currIndex)
-            if (size <= 0) break
-            val width = renderWidthOf(text, currIndex until (currIndex + size))
+            val graphemeLen = graphemeLengthAt(text, currIndex)
+            if (graphemeLen <= 0) break
+            val width = renderWidthOf(text, currIndex until (currIndex + graphemeLen))
             if (currWidth + width > maxWidth) break
             currWidth += width
-            currIndex += size
+            currIndex += graphemeLen
         }
         return text.substring(0, currIndex)
     }
