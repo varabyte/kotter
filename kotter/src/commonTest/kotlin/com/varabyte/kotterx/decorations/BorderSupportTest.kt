@@ -1,9 +1,10 @@
 package com.varabyte.kotterx.decorations
 
-import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.text.text
+import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
-import com.varabyte.kotter.runtime.terminal.inmemory.*
-import com.varabyte.kotterx.test.foundation.*
+import com.varabyte.kotter.runtime.terminal.inmemory.lines
+import com.varabyte.kotterx.test.foundation.testSession
 import com.varabyte.truthish.assertThat
 import kotlin.test.Test
 
@@ -20,6 +21,25 @@ class BorderSupportTest {
             "┌────┐",
             "│Test│",
             "└────┘",
+            Codes.Sgr.Reset.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
+    fun `border uses default style for session`() = testSession { terminal ->
+        assertThat(defaults.borderStyle).isEqualTo(BorderCharacters.BoxThin)
+        defaults.borderStyle = BorderCharacters.BoxDouble
+
+        section {
+            bordered {
+                text("Test")
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "╔════╗",
+            "║Test║",
+            "╚════╝",
             Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }

@@ -1,17 +1,32 @@
 package com.varabyte.kotterx.grid
 
-import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.runtime.internal.ansi.*
-import com.varabyte.kotter.runtime.terminal.inmemory.*
-import com.varabyte.kotterx.test.foundation.*
-import com.varabyte.kotterx.text.*
+import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.terminal.TerminalSize
+import com.varabyte.kotter.runtime.terminal.inmemory.InMemoryTerminal
+import com.varabyte.kotter.runtime.terminal.inmemory.lines
+import com.varabyte.kotterx.text.Justification
 import com.varabyte.kotterx.util.collections.indicesOf
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
 
 class GridSupportTest {
-    @Test
+    private fun testSession(
+        // Use ASCII grids because I'm lazy and it's easier to type those by hand
+        defaultGridStyle: GridCharacters = GridCharacters.Ascii,
+        size: TerminalSize? = null,
+        suppressSectionExceptions: Boolean = false,
+        block: Session.(InMemoryTerminal) -> Unit
+    ) {
+        com.varabyte.kotterx.test.foundation.testSession(size, suppressSectionExceptions) { terminal ->
+            defaults.gridStyle = defaultGridStyle
+            block(terminal)
+        }
+    }
+
+        @Test
     fun `empty grids do not render`() = testSession { terminal ->
         section {
             grid(Cols(1, 2, 3)) {
@@ -189,17 +204,15 @@ class GridSupportTest {
         ).inOrder()
     }
 
+    // NOTE: We use BoxThin characters for this test, so we can tell that the algorithm is picking the right wall pieces
     @Test
-    fun `can span content across rows or columns`() = testSession { terminal ->
-        // NOTE: We use BoxThin characters for this test, so we can tell that the algorithm
-        // is picking the right wall pieces
+    fun `can span content across rows or columns`() = testSession(GridCharacters.BoxThin) { terminal ->
 
         // Span across cols
         terminal.clear()
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(col = 1, colSpan = 2) {
@@ -218,7 +231,7 @@ class GridSupportTest {
         // Span across rows
         terminal.clear()
         section {
-            grid(Cols(1, 5, 1), characters = GridCharacters.BoxThin) {
+            grid(Cols(1, 5, 1)) {
                 cell(col = 1, rowSpan = 2) {
                     textLine("Test1")
                     textLine("Test2")
@@ -239,7 +252,7 @@ class GridSupportTest {
         // Span across full cols (top)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
+            grid(Cols.uniform(3, width = 3)) {
                 cell(colSpan = 3)
                 cell(row = 2)
             }
@@ -259,7 +272,7 @@ class GridSupportTest {
         // Span across full cols (mid)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
+            grid(Cols.uniform(3, width = 3)) {
                 cell(row = 1, colSpan = 3)
                 cell(row = 2)
             }
@@ -279,7 +292,7 @@ class GridSupportTest {
         // Span across full cols (bottom)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
+            grid(Cols.uniform(3, width = 3)) {
                 cell(row = 2, colSpan = 3)
             }
         }.run()
@@ -298,7 +311,7 @@ class GridSupportTest {
         // Span across full rows (left)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
+            grid(Cols.uniform(3, width = 3)) {
                 cell(rowSpan = 3)
             }
         }.run()
@@ -317,7 +330,7 @@ class GridSupportTest {
         // Span across full rows (mid)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
+            grid(Cols.uniform(3, width = 3)) {
                 cell(col = 1, rowSpan = 3)
             }
         }.run()
@@ -336,7 +349,7 @@ class GridSupportTest {
         // Span across full rows (right)
         terminal.clear()
         section {
-            grid(Cols.uniform(3, width = 3), characters = GridCharacters.BoxThin) {
+            grid(Cols.uniform(3, width = 3)) {
                 cell(col = 2, rowSpan = 3)
             }
         }.run()
@@ -355,7 +368,7 @@ class GridSupportTest {
         // Horizontal staircase
         terminal.clear()
         section {
-            grid(Cols.uniform(4, width = 3), characters = GridCharacters.BoxThin) {
+            grid(Cols.uniform(4, width = 3)) {
                 cell(row = 1, col = 2, colSpan = 2)
                 cell(row = 2, col = 1, colSpan = 3)
                 cell(row = 3, col = 0, colSpan = 4)
@@ -378,7 +391,7 @@ class GridSupportTest {
         // Vertical staircase
         terminal.clear()
         section {
-            grid(Cols.uniform(4, width = 3), characters = GridCharacters.BoxThin) {
+            grid(Cols.uniform(4, width = 3)) {
                 cell(row = 3)
                 cell(row = 2, col = 1, rowSpan = 2)
                 cell(row = 1, col = 2, rowSpan = 3)
@@ -400,14 +413,14 @@ class GridSupportTest {
         ).inOrder()
     }
 
+    // NOTE: We use BoxThin characters for this test, so we can tell that the algorithm is picking the right wall pieces
     @Test
-    fun `can span content across rows and columns`() = testSession { terminal ->
+    fun `can span content across rows and columns`() = testSession(GridCharacters.BoxThin) { terminal ->
         // Span across both rows and cols (top left)
         terminal.clear()
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(0, 0, rowSpan = 2, colSpan = 2) {
@@ -438,7 +451,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(0, 1, rowSpan = 2, colSpan = 2) {
@@ -469,7 +481,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(0, 2, rowSpan = 2, colSpan = 2) {
@@ -500,7 +511,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(1, 0, rowSpan = 2, colSpan = 2) {
@@ -531,7 +541,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(1, 1, rowSpan = 2, colSpan = 2) {
@@ -562,7 +571,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(1, 2, rowSpan = 2, colSpan = 2) {
@@ -593,7 +601,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(2, 0, rowSpan = 2, colSpan = 2) {
@@ -622,7 +629,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(2, 1, rowSpan = 2, colSpan = 2) {
@@ -651,7 +657,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(4, width = 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(2, 2, rowSpan = 2, colSpan = 2) {
@@ -682,7 +687,6 @@ class GridSupportTest {
         section {
             grid(
                 Cols(1, 2, 3),
-                characters = GridCharacters.BoxThin,
                 justification = Justification.CENTER
             ) {
                 cell(rowSpan = 2, colSpan = 3) {
@@ -706,6 +710,8 @@ class GridSupportTest {
         section {
             grid(
                 Cols.uniform(2, width = 5),
+                // NOTE: We use BoxThin characters for this test, so we can tell that the algorithm is picking the right
+                // wall pieces
                 characters = GridCharacters.BoxThin,
             ) {
                 cell(row = 1, rowSpan = 2) {
@@ -739,6 +745,8 @@ class GridSupportTest {
         section {
             grid(
                 Cols(5, 6),
+                // NOTE: We use BoxThin characters for this test, so we can tell that the algorithm is picking the right
+                // wall pieces
                 characters = GridCharacters.BoxThin,
                 maxCellHeight = 2
             ) {
@@ -768,6 +776,8 @@ class GridSupportTest {
     @Test
     fun `can change grid border characters`() = testSession { terminal ->
         section {
+            // NOTE: We use BoxThin characters for this test, so we can tell that the algorithm is picking the right
+            // wall pieces
             grid(characters = GridCharacters.BoxThin, cols = Cols.uniform(2, width = 7)) {
                 cell {
                     textLine("Test 11")
@@ -1060,7 +1070,6 @@ class GridSupportTest {
 
     @Test
     fun `can control horizontal separator rendering`() = testSession { terminal ->
-
         // Totally disabled
         run {
             terminal.clear()

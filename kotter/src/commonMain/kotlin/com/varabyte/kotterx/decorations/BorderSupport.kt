@@ -4,6 +4,8 @@ import com.varabyte.kotter.foundation.render.offscreen
 import com.varabyte.kotter.foundation.text.addNewlinesIfNecessary
 import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.render.OffscreenRenderScope
 import com.varabyte.kotter.runtime.render.RenderScope
 import com.varabyte.kotterx.decorations.BorderCharacters.Companion.Ascii
@@ -82,6 +84,18 @@ class BorderCharacters(
     }
 }
 
+private val DefaultBorderStyleKey = Session.Lifecycle.createKey<BorderCharacters>()
+
+/**
+ * The default border style that the [bordered] method will use if not explicitly set.
+ */
+var Session.Defaults.borderStyle: BorderCharacters
+    get() = data[DefaultBorderStyleKey] ?: BoxThin
+    set(value) {
+        data[DefaultBorderStyleKey] = value
+    }
+
+
 /**
  * Automatically render a border around some inner content.
  *
@@ -91,7 +105,7 @@ class BorderCharacters(
  * @param render The render block that generates content (e.g. via `textLine`) which will be wrapped within a border.
  */
 fun RenderScope.bordered(
-    borderCharacters: BorderCharacters = BoxThin,
+    borderCharacters: BorderCharacters = section.session.defaults.borderStyle,
     paddingLeftRight: Int = 0,
     paddingTopBottom: Int = 0,
     render: OffscreenRenderScope.() -> Unit

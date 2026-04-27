@@ -2,6 +2,8 @@ package com.varabyte.kotterx.grid
 
 import com.varabyte.kotter.foundation.render.*
 import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.runtime.Session
+import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.render.*
 import com.varabyte.kotterx.grid.GridScope.*
 import com.varabyte.kotterx.text.*
@@ -99,6 +101,18 @@ class GridCharacters(
         val INVISIBLE get() = Invisible
     }
 }
+
+private val DefaultGridStyleKey = Session.Lifecycle.createKey<GridCharacters>()
+
+/**
+ * The default border style that the [grid] method will use if not explicitly set.
+ */
+var Session.Defaults.gridStyle: GridCharacters
+    get() = data[DefaultGridStyleKey] ?: GridCharacters.BoxThin
+    set(value) {
+        data[DefaultGridStyleKey] = value
+    }
+
 
 /**
  * A column specification for a grid.
@@ -469,7 +483,7 @@ object HorizontalSeparatorIndices {
 fun RenderScope.grid(
     cols: Cols,
     targetWidth: Int? = null,
-    characters: GridCharacters = GridCharacters.Ascii,
+    characters: GridCharacters = section.session.defaults.gridStyle,
     paddingLeftRight: Int = 0,
     justification: Justification = Justification.LEFT,
     maxCellHeight: Int = Int.MAX_VALUE,
