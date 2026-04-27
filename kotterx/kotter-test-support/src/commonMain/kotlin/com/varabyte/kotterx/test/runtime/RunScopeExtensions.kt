@@ -1,9 +1,13 @@
 package com.varabyte.kotterx.test.runtime
 
+import com.varabyte.kotter.foundation.session
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.runtime.concurrent.createKey
 import com.varabyte.kotter.runtime.render.*
 import com.varabyte.kotter.runtime.terminal.inmemory.*
+import com.varabyte.kotterx.grid.GridCharacters
+import com.varabyte.kotterx.grid.grid
 import com.varabyte.kotterx.test.terminal.*
 import com.varabyte.kotterx.util.*
 import kotlinx.coroutines.CompletableDeferred
@@ -20,6 +24,24 @@ import kotlin.time.Duration.Companion.seconds
  * coroutine machinery. This way, if a test fails due to a timeout, we can see the stack trace and debug it.
  */
 class BlockUntilRenderTimeoutException(wrapped: TimeoutCancellationException) : Exception(wrapped)
+
+private val DefaultRenderTimeoutKey = Session.Lifecycle.createKey<Duration>()
+
+/**
+ * The default timeout used for methods that wait for a render to settle.
+ *
+ * If not set, this defaults to a 1 second. The thought here is that we're never waiting for some 10 second real-time
+ * animation to finish, but rather we're waiting for the Kotter engine to resolve its current event loop, which should
+ * barely take milliseconds.
+ *
+ * You can set this to [Duration.INFINITE] if you want to disable timeouts for your test.
+ */
+var Session.Defaults.renderTimeout: Duration
+    get() = data[DefaultRenderTimeoutKey] ?: 1.seconds
+    set(value) {
+        data[DefaultRenderTimeoutKey] = value
+    }
+
 
 /**
  * Block the current run block until a render has occurred where the passed in [condition] is true.
@@ -46,12 +68,9 @@ class BlockUntilRenderTimeoutException(wrapped: TimeoutCancellationException) : 
  * }
  * ```
  *
- * @param timeout A timeout to set for this block before it throws a [TimeoutCancellationException]. If null, this
- *   defaults to a 1 second. The thought here is that we're never waiting for some 10 second real-time animation to
- *   finish, but rather we're waiting for the Kotter engine to resolve its current event loop, which should barely take
- *   milliseconds. You can pass in [Duration.INFINITE] if you want to disable this.
+ * @param timeout A timeout to set for this block before it throws a [TimeoutCancellationException].
  */
-fun RunScope.blockUntilRenderWhen(timeout: Duration? = null, condition: () -> Boolean) {
+fun RunScope.blockUntilRenderWhen(timeout: Duration? = section.session.defaults.renderTimeout, condition: () -> Boolean) {
     val latch = CompletableDeferred<Unit>()
 
     // Prevent the section from starting a render pass until we're sure we've registered our callback
@@ -100,7 +119,7 @@ fun RunScope.blockUntilRenderWhen(timeout: Duration? = null, condition: () -> Bo
  */
 fun RunScope.blockUntilRenderMatches(
     terminal: InMemoryTerminal,
-    timeout: Duration? = null,
+    timeout: Duration? = section.session.defaults.renderTimeout,
     expected: RenderScope.() -> Unit
 ) {
     val expectedOutput = buildAnsiLines(expected)
