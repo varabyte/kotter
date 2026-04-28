@@ -47,6 +47,7 @@ class TextMetrics {
      * A vast majority of characters will just return 1 here, assuming they fit entirely inside a Unicode 16 value
      * (which Kotlin uses).
      */
+    // See also: `charCountForGraphemeClusterLegacy` in jline
     fun graphemeLengthAt(str: CharSequence, index: Int): Int {
         val len = str.length
         if (index >= len) return 0
@@ -54,7 +55,7 @@ class TextMetrics {
         val cp = codePointAt(str, index)
         var pos = index + charCount(cp)
 
-        // 1. Regional indicator pairs (Flags) form one cluster
+        // Regional indicator pairs form a single grapheme cluster (flag)
         if (isRegionalIndicator(cp) && pos < len) {
             val nextCp = codePointAt(str, pos)
             if (isRegionalIndicator(nextCp)) {
@@ -63,20 +64,21 @@ class TextMetrics {
             return pos - index
         }
 
-        // 2. Consume extensions: ZWJ, combining marks, variation selectors
+        // Consume grapheme cluster extensions
         while (pos < len) {
             val ncp = codePointAt(str, pos)
             if (ncp == 0x200D) { // Zero Width Joiner
-                pos += 1
-                if (pos < len) {
+                val zwjSize = charCount(ncp)
+                if (pos + zwjSize < len) {
+                    pos += zwjSize
                     pos += charCount(codePointAt(str, pos))
-                }
+                } else break
             } else if (wcwidth(ncp) == 0 && ncp >= 0x20) {
-                // Zero-width extending characters like accents
+                // Zero-width extending characters: combining marks,
+                // variation selectors (FE0E/FE0F), skin tone modifiers,
+                // tag characters, etc.
                 pos += charCount(ncp)
-            } else {
-                break
-            }
+            } else break
         }
         return pos - index
     }
@@ -125,7 +127,7 @@ fun TextMetrics.truncateToWidth(text: CharSequence, maxWidth: Int, ellipsis: Str
     return truncate(text, maxWidthMinusEllipsis) + ellipsis
 }
 
-// Code below forked from org.jline.utils.WCWidth.
+// Much of the code below forked from org.jline.utils.WCWidth.
 // See also: https://github.com/jline/jline3/blob/master/terminal/src/main/java/org/jline/utils/WCWidth.java
 // I would have used it directly (it is a dependency of this project!) but this codebase is multiplatform so I needed a
 // common version freed from the constraints of a JVM-only project.
@@ -717,18 +719,23 @@ private fun calculateClusterWidth(cs: CharSequence, index: Int, size: Int): Int 
 
 // --- KMP Unicode Helpers ---
 
+// See java.lang.Character
+private const val MIN_SUPPLEMENTARY_CODE_POINT = 0x10000
+
+// See java.lang.Character.codePointAt
 private fun codePointAt(cs: CharSequence, index: Int): Int {
     val high = cs[index]
     if (high.isHighSurrogate() && index + 1 < cs.length) {
         val low = cs[index + 1]
         if (low.isLowSurrogate()) {
-            return (high.code - 0xD800 shl 10) + (low.code - 0xDC00) + 0x10000
+            return (high.code - Char.MIN_HIGH_SURROGATE.code shl 10) + (low.code - Char.MIN_LOW_SURROGATE.code) + MIN_SUPPLEMENTARY_CODE_POINT
         }
     }
     return high.code
 }
 
-private fun charCount(cp: Int): Int = if (cp >= 0x10000) 2 else 1
+// See java.lang.Character.charCount
+private fun charCount(cp: Int): Int = if (cp >= MIN_SUPPLEMENTARY_CODE_POINT) 2 else 1
 
 private fun isRegionalIndicator(cp: Int): Boolean = cp in 0x1F1E6..0x1F1FF
 
