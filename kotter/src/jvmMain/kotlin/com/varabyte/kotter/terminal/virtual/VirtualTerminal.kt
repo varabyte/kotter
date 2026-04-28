@@ -110,7 +110,8 @@ class VirtualTerminal private constructor(
             bgColor: AnsiColor = AnsiColor.BLACK,
             linkColor: AnsiColor = AnsiColor.CYAN,
             maxNumLines: Int = 1000,
-            handleInterrupt: Boolean = true
+            handleInterrupt: Boolean = true,
+            hideScrollBars: Boolean = false
         ): VirtualTerminal {
             require(terminalSize.width < TerminalSize.Unbounded.width && terminalSize.height < TerminalSize.Unbounded.height) {
                 "Neither width nor height in the virtual terminal size can be unbounded. Both must be set explicitly."
@@ -146,6 +147,10 @@ class VirtualTerminal private constructor(
                     border = EmptyBorder(5, 5, 5, 5)
                     foreground = fgColor.toSwingColor()
                     background = bgColor.toSwingColor()
+                    if (hideScrollBars) {
+                        horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                        verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_NEVER
+                    }
                 })
                 frame.pack()
                 frame.setLocationRelativeTo(null)
