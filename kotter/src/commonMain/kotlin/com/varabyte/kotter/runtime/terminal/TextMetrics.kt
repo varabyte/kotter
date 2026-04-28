@@ -98,9 +98,10 @@ fun TextMetrics.renderWidthOf(str: CharSequence, startIndex: Int, endIndex: Int)
  * Note that this method requires a single, unbroken line of text. If [text] contains a newline, this method will throw
  * an [IllegalArgumentException].
  *
- * @param ellipsis If provided AND if the text doesn't fit, then make sure the string returned ends with this.
+ * @param ellipsis If provided AND if the text doesn't fit, then make sure the string returned ends with this. Set to
+ *   the empty string to indicate that truncate should do a hard cut.
  */
-fun TextMetrics.truncateToWidth(text: CharSequence, maxWidth: Int, ellipsis: String? = null): String {
+fun TextMetrics.truncateToWidth(text: CharSequence, maxWidth: Int, ellipsis: String = ""): String {
     fun truncate(text: CharSequence, maxWidth: Int): String {
         var currWidth = 0
         var currIndex = 0
@@ -125,7 +126,7 @@ fun TextMetrics.truncateToWidth(text: CharSequence, maxWidth: Int, ellipsis: Str
     val totalWidth = renderWidthOf(text)
     if (totalWidth <= maxWidth) return text.toString()
 
-    if (ellipsis == null) return truncate(text, maxWidth)
+    if (ellipsis.isEmpty()) return truncate(text, maxWidth)
     val ellipsisWidth = renderWidthOf(ellipsis)
     val maxWidthMinusEllipsis = maxWidth - ellipsisWidth
 
