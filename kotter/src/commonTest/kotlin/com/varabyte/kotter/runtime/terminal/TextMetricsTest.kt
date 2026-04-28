@@ -1,6 +1,7 @@
 package com.varabyte.kotter.runtime.terminal
 
 import com.varabyte.truthish.assertThat
+import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
 
 class TextMetricsTest {
@@ -35,6 +36,10 @@ class TextMetricsTest {
             assertThat(tm.truncateToWidth(textEn, 4, ellipsis = "...")).isEqualTo("H...")
             assertThat(tm.truncateToWidth(textEn, 8, ellipsis = "...")).isEqualTo("Hello...")
             assertThat(tm.truncateToWidth(textEn, 9999, ellipsis = "...")).isEqualTo("Hello, World!")
+        }
+
+        assertThrows<IllegalArgumentException>("Truncating text with a newline did not result in an expected exception") {
+            tm.truncateToWidth("Hello\nWorld", 1000)
         }
 
         run {

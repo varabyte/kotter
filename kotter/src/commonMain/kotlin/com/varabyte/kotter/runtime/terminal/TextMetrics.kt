@@ -95,6 +95,9 @@ fun TextMetrics.renderWidthOf(str: CharSequence, startIndex: Int, endIndex: Int)
 /**
  * Take characters from [text] up until they can no longer fit into a space of [maxWidth].
  *
+ * Note that this method requires a single, unbroken line of text. If [text] contains a newline, this method will throw
+ * an [IllegalArgumentException].
+ *
  * @param ellipsis If provided AND if the text doesn't fit, then make sure the string returned ends with this.
  */
 fun TextMetrics.truncateToWidth(text: CharSequence, maxWidth: Int, ellipsis: String? = null): String {
@@ -113,6 +116,11 @@ fun TextMetrics.truncateToWidth(text: CharSequence, maxWidth: Int, ellipsis: Str
     }
 
     if (text.isEmpty()) return ""
+
+    require(!text.contains('\n')) {
+        "Cannot truncate text that contains separators:\n" +
+        text
+    }
 
     val totalWidth = renderWidthOf(text)
     if (totalWidth <= maxWidth) return text.toString()
