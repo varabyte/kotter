@@ -133,4 +133,35 @@ class BorderSupportTest {
             Codes.Sgr.Reset.toFullEscapeCode(),
         ).inOrder()
     }
+
+    @Test
+    fun `works with double width characters and emoji`() = testSession { terminal ->
+        section {
+            bordered {
+                textLine("X")
+                // render width =
+                //   "こんにちは" (10)
+                //   "世界" (4)
+                //   "(" (1)
+                //   🌏 (2)
+                // + ")" (1)
+                // ---------------
+                // 18
+                textLine("こんにちは世界(\uD83C\uDF0F)")
+                textLine("Y")
+            }
+        }.run()
+
+        // NOTE: The following table may look weird in your IDE, but it should look perfect in a terminal!
+        // This is because the font for asian characters probably isn't using monospace width.
+        assertThat(terminal.lines()).containsExactly(
+            "┌──────────────────┐",
+            "│X                 │",
+            "│こんにちは世界(\uD83C\uDF0F)│",
+            "│Y                 │",
+            "└──────────────────┘",
+            Codes.Sgr.Reset.toFullEscapeCode(),
+        ).inOrder()
+    }
+
 }

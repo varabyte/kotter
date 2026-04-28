@@ -925,6 +925,37 @@ class GridSupportTest {
     }
 
     @Test
+    fun `fit sizing works with double-width characters`() = testSession { terminal ->
+        section {
+            grid(cols = Cols { fit(); fit() }) {
+                cell {
+                    textLine("X")
+                }
+                cell {
+                    textLine("こんにちは") // render width = 10
+                }
+                cell {
+                    textLine("世界") // render width = 4
+                }
+                cell {
+                    textLine("X")
+                }
+            }
+        }.run()
+
+        // NOTE: The following table may look weird in your IDE, but it should look perfect in a terminal!
+        // This is because the font for asian characters probably isn't using monospace width.
+        assertThat(terminal.lines()).containsExactly(
+            "+----+----------+",
+            "|X   |こんにちは|",
+            "+----+----------+",
+            "|世界|X         |",
+            "+----+----------+",
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
+        ).inOrder()
+    }
+
+    @Test
     fun `justification works`() = testSession { terminal ->
         section {
             // Precedence:
