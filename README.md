@@ -1020,9 +1020,13 @@ too late to measure it!
 `offscreen` to the rescue. You can think of `offscreen` as a temporary buffer to render to, after which you can both
 query it and control when it actually renders to the screen.
 
-`offscreen` returns a buffer, which is a read-only view of the content. You can query its raw text or line lengths,
+`offscreen` returns a buffer, which is a read-only view of the content. You can query its raw text or line widths,
 for example. To render it, you need to call `offscreen.createRenderer` and then use `renderer.renderNextRow` to render
 out each line at a time.
+
+> [!CAUTION]
+> Note that a line's _width_ may be different from its string length, as many symbols, such as emojis and Asian
+> characters, take up double the space of a regular Latin letter.
 
 Here, we use `offscreen` to render the header effect described above:
 
@@ -1031,14 +1035,14 @@ section {
   val buffer = offscreen {
     textLine("Multi-line"); textLine("Header"); textLine("Example")
   }
-  val headerLen = buffer.lineLengths.maxOrNull() ?: 0
+  val headerWidth = buffer.lineWidths.maxOrNull() ?: 0
   val renderer = buffer.createRenderer()
-  repeat(headerLen) { text('=') }; textLine()
+  repeat(headerWidth) { text('=') }; textLine()
   while (renderer.hasNextRow()) {
     renderer.renderNextRow()
     textLine()
   }
-  repeat(headerLen) { text('=') }; textLine()
+  repeat(headerWidth) { text('=') }; textLine()
 }.run()
 ```
 
@@ -1416,6 +1420,72 @@ too long after an interrupt request, the system may just halt your program anywa
 Finally, you should not rely on shutdown hooks actually getting run. They don't get triggered if the system exits
 normally, the program crashes, or if the process gets aggressively halted by the OS (perhaps because things were taking
 too long to shut down, or maybe the user issued a kill command from the terminal).
+
+### 📐 Text Metrics
+
+Unicode is hard! But if you want to use non-Latin characters in your application, Kotter tries to handle it correctly.
+
+The class that supports this functionality is exposed from the Kotter session via the `textMetrics` property, so you can
+use it as well, anytime you need to measure text that may contain complex Unicode characters.
+
+```kotlin
+class TextMetrics {
+    fun renderWidthOf(str: CharSequence): Int
+    fun graphemeLengthAt(str: CharSequence, index: Int): Int
+}
+
+// There is also a `renderWidthOf` method provided that takes a single `Char`
+// value, but the `String` version is recommended as sometimes the render width
+// of a character can change based on surrounding context, which is why we
+// elide it here. But you can use it if you know what you're doing!
+```
+
+Kotter's grids and bordered text areas use it so that their borders still line up correctly when containing emojis or
+Asian characters. And the `offscreen` buffer uses it internally and exposes the final render width values via the
+`lineWidths` property.
+
+A _grapheme_ is the final symbol that gets rendered to the screen. For basic text, this is often one-to-one with the
+underlying character, but with emoji, that's often not the case. For example, the emoji 👨‍👩‍👧‍👦 is built up from 11
+underlying characters! Use `graphemeLengthAt` with an index pointing at the beginning of a grapheme cluster to get this
+value.
+
+When a grapheme is rendered, it generally takes up either 1 or 2 spaces in the terminal grid. This is important to know
+when measuring out text to fit inside a container. Use `renderWidthOf` to get this value.
+
+Bringing this all together, if you wanted to iterate a text string that might contain some Unicode, the skeleton of your
+loop would generally look like this:
+
+```kotlin
+var currIndex = 0
+var currWidth = 0
+while (currIndex < str.length) {
+    val graphemeLen = textMetrics.graphemeLengthAt(str, currIndex)
+    val grapheme = textMetrics.substring(currIndex, currIndex + graphemeLen)
+    // Do something with the grapheme here
+    currWidth += textMetrics.renderWidthOf(grapheme)
+    currIndex += nextGraphemeLen
+}
+```
+
+#### Truncating text
+
+Kotter extends the core `TextMetrics` class with a useful method that lets you truncate text to ensure it fits within a
+target render width:
+
+```kotlin
+fun TextMetrics.truncateToWidth(text: String, maxWidth: Int, ellipsis: String? = null): String
+```
+
+By default, the method will just truncate your string if it doesn't fit, but you can also provide an optional ellipsis
+value. If present, the method will more "gently" cut off the end of the text (after securing any additional space needed
+for the ellipsis value itself)
+
+```kotlin
+textMetrics.truncateToWidth("Hello world", maxWidth = 8, ellipsis = "…")
+// Returns: "Hello w…"
+textMetrics.truncateToWidth("Hello world", maxWidth = 8, ellipsis = "...")
+// Returns: "Hello..."
+```
 
 ## 🎓 Advanced
 
