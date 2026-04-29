@@ -213,7 +213,30 @@ class Cols private constructor(internal vararg val specs: Spec) {
     }
 }
 
-private typealias OffscreenRenderBlock = (OffscreenRenderScope.() -> Unit)
+/**
+ * Simple metrics about the current cell being rendered.
+ *
+ * Use it like so:
+ *
+ * ```kotlin
+ * cell { cellMetrics ->
+ *   text(textMetrics.truncateToWidth(".....", cellMetrics.width, ellipsis = "…")
+ * }
+ * ```
+ *
+ * Note that a cell does an initial measurement pass where no bounds are set, at which point
+ * [isMeasurementPass] will return true and [width] will return [Int.MAX_VALUE].
+ */
+class CellMetrics(
+    val width: Int,
+) {
+    val isMeasurementPass: Boolean get() = width == Int.MAX_VALUE
+    companion object {
+        internal val Measuring = CellMetrics(Int.MAX_VALUE)
+    }
+}
+
+private typealias CellRenderBlock = (OffscreenRenderScope.(CellMetrics) -> Unit)
 
 /**
  * A scope used when constructing a grid, allowing the user to declare cells.
@@ -222,7 +245,7 @@ class GridScope(private val cols: Cols) {
     internal sealed interface CellData {
         val justification: Justification?
 
-        class Item(val cellBlock: OffscreenRenderBlock, override val justification: Justification?, val width: Int, val height: Int) : CellData
+        class Item(val cellBlock: CellRenderBlock, override val justification: Justification?, val width: Int, val height: Int) : CellData
         class Ptr(val target: Item, val offsetX: Int, val offsetY: Int) : CellData {
             override val justification = target.justification
         }
@@ -270,7 +293,7 @@ class GridScope(private val cols: Cols) {
      *
      * @throws IllegalArgumentException if the cell is being placed in a spot that's already taken.
      */
-    fun cell(row: Int? = null, col: Int? = null, rowSpan: Int = 1, colSpan: Int = 1, justification: Justification? = null, render: OffscreenRenderScope.() -> Unit = {}) {
+    fun cell(row: Int? = null, col: Int? = null, rowSpan: Int = 1, colSpan: Int = 1, justification: Justification? = null, render: CellRenderBlock = {}) {
         // If last cell is on (row 1, col 1) and user specified `cell(row = 2)`, we should start at col 0 on that new
         // row, not whatever the random next column would be.
         @Suppress("NAME_SHADOWING") val col = col ?: if (row == null) nextEmptyCellCol else 0
@@ -512,7 +535,7 @@ fun RenderScope.grid(
                                 ?.takeIf { it.width == 1 } // Don't include mutli-column cells in this calculation
                                 ?.cellBlock
                         if (cellBlock != null) {
-                            val cellRenderer = this.offscreen(Int.MAX_VALUE, cellBlock)
+                            val cellRenderer = this.offscreen(Int.MAX_VALUE) { cellBlock(CellMetrics.Measuring) }
                             cellRenderer.lineWidths.maxOrNull()?.let { cellWidth ->
                                 fitWidth = maxOf(fitWidth, cellWidth)
                             }
@@ -593,7 +616,12 @@ fun RenderScope.grid(
                     val totalSpace = (0 until data.width).sumOf {
                         colWidthsWithoutPadding[x + it]
                     } + (data.width - 1) + ((data.width - 1) * paddingLeftRight * 2)
-                    _cellBuffers[data] = this.offscreen(totalSpace, data.cellBlock)
+                    _cellBuffers[data] = this.offscreen(totalSpace) {
+                        data.cellBlock(
+                            this,
+                            CellMetrics(width = totalSpace)
+                        )
+                    }
                 }
 
                 is CellData.Ptr -> _cellBuffers[data] = _cellBuffers.getValue(data.target)

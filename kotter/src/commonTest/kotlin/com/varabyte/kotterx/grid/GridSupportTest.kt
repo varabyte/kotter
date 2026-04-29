@@ -3,6 +3,7 @@ package com.varabyte.kotterx.grid
 import com.varabyte.kotter.foundation.text.textLine
 import com.varabyte.kotter.runtime.Session
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.render.OffscreenRenderScope
 import com.varabyte.kotter.runtime.terminal.TerminalSize
 import com.varabyte.kotter.runtime.terminal.inmemory.InMemoryTerminal
 import com.varabyte.kotter.runtime.terminal.inmemory.lines
@@ -805,7 +806,7 @@ class GridSupportTest {
     }
 
     @Test
-    fun `Cols fromStr works with dynamic sizing`() = testSession { terminal ->
+    fun `Cols can be specified with dynamic sizing`() = testSession { terminal ->
         section {
             grid(cols = Cols { star(3); fixed(4); star(1) }, targetWidth = 12) {
                 cell {
@@ -1184,5 +1185,51 @@ class GridSupportTest {
                 Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
             ).inOrder()
         }
+    }
+
+    @Test
+    fun `metrics capture information about the rendered cell`() = testSession { terminal ->
+        fun OffscreenRenderScope.renderCell(cellMetrics: CellMetrics) {
+            if (!cellMetrics.isMeasurementPass) {
+                textLine(cellMetrics.width.toString())
+            }
+        }
+
+        // Cell metrics for each type of column
+        terminal.clear()
+        section {
+            grid(cols = Cols { star(3); fixed(4); fit(); star(1) }, paddingLeftRight = 1, targetWidth = 13) {
+                cell { metrics -> renderCell(metrics) }
+                cell { metrics -> renderCell(metrics) }
+                cell { metrics -> renderCell(metrics) }
+                cell { metrics -> renderCell(metrics) }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+--------+------+---+----+",
+            "| 6      | 4    | 1 | 2  |",
+            "+--------+------+---+----+",
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
+        ).inOrder()
+
+        // Cell metrics works for cells that span multiple columns
+        terminal.clear()
+        section {
+            grid(cols = Cols { fixed(4); fixed(6) }, paddingLeftRight = 1) {
+                cell(colSpan = 2) { metrics -> renderCell(metrics) }
+                cell { metrics -> renderCell(metrics) }
+                cell { metrics -> renderCell(metrics) }
+            }
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "+---------------+",
+            "| 13            |", // Note it is 4 + 6 + 1 (padding right) + 1 (separator) + 1 (padding left)
+            "+------+--------+",
+            "| 4    | 6      |",
+            "+------+--------+",
+            Ansi.Csi.Codes.Sgr.Reset.toFullEscapeCode(),
+        ).inOrder()
     }
 }
