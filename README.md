@@ -1428,10 +1428,15 @@ Unicode is hard! But if you want to use non-Latin characters in your application
 The class that supports this functionality is exposed from the Kotter session via the `textMetrics` property, so you can
 use it as well, anytime you need to measure text that may contain complex Unicode characters.
 
+Kotter's grids and bordered text areas use text metrics so that their borders still line up correctly when containing
+emojis or Asian characters. And the `offscreen` buffer uses it internally and exposes the final render width values via
+the `lineWidths` property.
+
 ```kotlin
 class TextMetrics {
-    fun renderWidthOf(str: CharSequence): Int
-    fun graphemeLengthAt(str: CharSequence, index: Int): Int
+  fun renderWidthOf(str: CharSequence): Int
+  fun graphemeLengthAt(str: CharSequence, index: Int): Int
+  fun graphemeStartIndex(str: CharSequence, index: Int): Int
 }
 
 // There is also a `renderWidthOf` method provided that takes a single `Char`
@@ -1440,22 +1445,23 @@ class TextMetrics {
 // elide it here. But you can use it if you know what you're doing!
 ```
 
-Kotter's grids and bordered text areas use it so that their borders still line up correctly when containing emojis or
-Asian characters. And the `offscreen` buffer uses it internally and exposes the final render width values via the
-`lineWidths` property.
-
 A _grapheme_ is the final symbol that gets rendered to the screen. For basic text, this is often one-to-one with the
 underlying character, but with emoji, that's often not the case. For example, the emoji 👨‍👩‍👧‍👦 is built up from 11
 underlying characters! Use `graphemeLengthAt` with an index pointing at the beginning of a grapheme cluster to get this
 value.
 
+You can also use `graphemeStartIndex` to return the start of a cluster given any index inside said cluster. It is not
+expected that most users will ever need this, but it can be useful if you want to iterate a Unicode string backwards one
+grapheme at a time.
+
 When a grapheme is rendered, it generally takes up either 1 or 2 spaces in the terminal grid. This is important to know
 when measuring out text to fit inside a container. Use `renderWidthOf` to get this value.
 
-Bringing this all together, if you wanted to iterate a text string that might contain some Unicode, the skeleton of your
+Bringing it all together, if you wanted to iterate a text string that might contain some Unicode, the skeleton of your
 loop would generally look like this:
 
 ```kotlin
+// Iterating forward
 var currIndex = 0
 var currWidth = 0
 while (currIndex < str.length) {
@@ -1465,6 +1471,18 @@ while (currIndex < str.length) {
     currWidth += textMetrics.renderWidthOf(grapheme)
     currIndex += nextGraphemeLen
 }
+
+// Iterating backwards
+var currIndex = string.length - 1
+var currWidth = 0
+while (currIndex >= 0) {
+    val graphemeStart = textMetrics.graphemeStartIndex(str, currIndex)
+    val graphemeLen = textMetrics.graphemeLengthAt(str, graphemeStart)
+    val grapheme = textMetrics.substring(currIndex, graphemeStart + graphemeLen)
+    // Do something with the grapheme here
+    currWidth += textMetrics.renderWidthOf(grapheme)
+    currIndex = graphemeStart - 1
+}
 ```
 
 #### Truncating text
@@ -1473,7 +1491,12 @@ Kotter extends the core `TextMetrics` class with a useful method that lets you t
 target render width:
 
 ```kotlin
-fun TextMetrics.truncateToWidth(text: String, maxWidth: Int, ellipsis: String? = null): String
+fun TextMetrics.truncateToWidth(
+  text: String,
+  maxWidth: Int,
+  truncateAt: TruncateAt = TruncateAt.END,
+  ellipsis: String = ""
+): String
 ```
 
 By default, the method will just truncate your string if it doesn't fit, but you can also provide an optional ellipsis
@@ -1481,10 +1504,24 @@ value. If present, the method will more "gently" cut off the end of the text (af
 for the ellipsis value itself)
 
 ```kotlin
+// Truncate with 1-width ellipsis character
 textMetrics.truncateToWidth("Hello world", maxWidth = 8, ellipsis = "…")
 // Returns: "Hello w…"
+
+// Truncate with 3-width ellipsis character
 textMetrics.truncateToWidth("Hello world", maxWidth = 8, ellipsis = "...")
 // Returns: "Hello..."
+```
+
+You can also specify that the truncation should happen at the start or middle of the string:
+
+```kotlin
+textMetrics.truncateToWidth("Hello world", maxWidth = 8, TruncateAt.END, ellipsis = "…")
+// Returns: "Hello w…"
+textMetrics.truncateToWidth("Hello world", maxWidth = 8, TruncateAt.START, ellipsis = "…")
+// Returns: "…o world"
+textMetrics.truncateToWidth("Hello world", maxWidth = 8, TruncateAt.MIDDLE, ellipsis = "…")
+// Returns: "Hell…rld"
 ```
 
 ## 🎓 Advanced

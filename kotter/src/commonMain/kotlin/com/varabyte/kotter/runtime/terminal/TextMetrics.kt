@@ -1,5 +1,9 @@
 package com.varabyte.kotter.runtime.terminal
 
+// Zero Width Joiner (https://en.wikipedia.org/wiki/Zero-width_joiner)
+private const val ZWJ_CODEPOINT = 0x200D
+private const val FIRST_PRINTABLE_CHAR_CODEPOINT = 0x20
+
 /**
  * A class which provides text measurement utilities.
  */
@@ -67,13 +71,13 @@ class TextMetrics {
         // Consume grapheme cluster extensions
         while (pos < len) {
             val ncp = codePointAt(str, pos)
-            if (ncp == 0x200D) { // Zero Width Joiner
+            if (ncp == ZWJ_CODEPOINT) {
                 val zwjSize = charCount(ncp)
                 if (pos + zwjSize < len) {
                     pos += zwjSize
                     pos += charCount(codePointAt(str, pos))
                 } else break
-            } else if (wcwidth(ncp) == 0 && ncp >= 0x20) {
+            } else if (wcwidth(ncp) == 0 && ncp >= FIRST_PRINTABLE_CHAR_CODEPOINT) {
                 // Zero-width extending characters: combining marks,
                 // variation selectors (FE0E/FE0F), skin tone modifiers,
                 // tag characters, etc.
@@ -82,6 +86,84 @@ class TextMetrics {
         }
         return pos - index
     }
+
+    /**
+     * Given an [index], return the start index of the grapheme cluster it belongs to.
+     *
+     * If the index is already at the start of a cluster, it returns [index].
+     * If the index is in the middle of a surrogate pair or a multi-character emoji,
+     * it returns the index where that sequence begins.
+     */
+    // NOTE: AI generated the initial pass of the following code
+    fun graphemeStartIndex(str: CharSequence, index: Int): Int {
+        require(index >= 0)
+        if (index == 0) return 0
+        var pos = index
+
+        // If we are pointing at a low surrogate, we are in the middle of a code point.
+        // Move back to the high surrogate.
+        fun stepBackIfInMiddleOfCodePoint() {
+            if (str[pos].isLowSurrogate() && pos > 0 && str[pos - 1].isHighSurrogate()) {
+                pos--
+            }
+        }
+
+        fun isGraphemeContinuation(cp: Int): Boolean {
+            if (cp == ZWJ_CODEPOINT) return true
+            return wcwidth(cp) == 0 && cp >= FIRST_PRINTABLE_CHAR_CODEPOINT
+        }
+
+        stepBackIfInMiddleOfCodePoint()
+
+        // Look backward for "continuation" characters.
+        // We want to skip over anything that isn't a "base" character.
+        while (pos > 0) {
+            val cp = codePointAt(str, pos)
+
+            // If the current character is a "follower" (ZWJ, combining mark, etc.),
+            // we must keep looking back for its parent.
+            if (isGraphemeContinuation(cp)) {
+                pos--
+                // If the character we just skipped was a surrogate pair, move back one more
+                stepBackIfInMiddleOfCodePoint()
+            } else {
+                // If here, we are at a base character for an emoji. But some superset emojis are composed of multiple
+                // individual emojis. You can test for this by seeing if the previous character is a ZWJ, as that is the
+                // glue between multiple emojis.
+                if (pos > 0 && str[pos - 1].code == ZWJ_CODEPOINT) {
+                    pos--
+                } else {
+                    break
+                }
+            }
+        }
+
+        // Special Case: Regional Indicators (Flags)
+        // RI symbols (like 🇺 + 🇸) form a single grapheme.
+        // If we are at an RI, we need to count how many RIs are immediately behind us.
+        // An even number of RIs behind us means WE are the start of a new pair.
+        // An odd number means we are the second half of a pair started before us.
+        val currentCp = codePointAt(str, pos)
+        if (isRegionalIndicator(currentCp)) {
+            var riCount = 0
+            var lookback = pos - 2
+            while (lookback >= 0) {
+                val prevCp = codePointAt(str, lookback)
+                if (isRegionalIndicator(prevCp)) {
+                    riCount++
+                    lookback -= 2
+                } else {
+                    break
+                }
+            }
+            if (riCount % 2 != 0) {
+                pos -= 2
+            }
+        }
+
+        return pos
+    }
+
 }
 
 /**
@@ -92,6 +174,12 @@ class TextMetrics {
 fun TextMetrics.renderWidthOf(str: CharSequence, startIndex: Int, endIndex: Int): Int =
     renderWidthOf(str, startIndex until endIndex)
 
+enum class TruncateAt {
+    START,
+    MIDDLE,
+    END,
+}
+
 /**
  * Take characters from [text] up until they can no longer fit into a space of [maxWidth].
  *
@@ -101,39 +189,127 @@ fun TextMetrics.renderWidthOf(str: CharSequence, startIndex: Int, endIndex: Int)
  * @param ellipsis If provided AND if the text doesn't fit, then make sure the string returned ends with this. Set to
  *   the empty string to indicate that truncate should do a hard cut.
  */
-fun TextMetrics.truncateToWidth(text: CharSequence, maxWidth: Int, ellipsis: String = ""): String {
-    fun truncate(text: CharSequence, maxWidth: Int): String {
-        var currWidth = 0
-        var currIndex = 0
-        while (currIndex < text.length) {
-            val graphemeLen = graphemeLengthAt(text, currIndex)
-            if (graphemeLen <= 0) break
-            val width = renderWidthOf(text, currIndex until (currIndex + graphemeLen))
-            if (currWidth + width > maxWidth) break
-            currWidth += width
-            currIndex += graphemeLen
-        }
-        return text.substring(0, currIndex)
-    }
-
+fun TextMetrics.truncateToWidth(
+    text: CharSequence,
+    maxWidth: Int,
+    truncateAt: TruncateAt = TruncateAt.END,
+    ellipsis: String = "",
+): String {
     if (text.isEmpty()) return ""
 
     require(!text.contains('\n')) {
         "Cannot truncate text that contains separators:\n" +
-        text
+                text
+    }
+
+    // NOTE: Since this is an internal method only, we do a lazy hack here where a TruncateAt.MIDDLE uses a newline as a
+    // separator character between the first and second truncated parts. The more proper approach would be to use a
+    // different return type that handles this case cleanly, but for an internal method, that feels like overkill.
+    fun truncate(text: CharSequence, maxWidth: Int, truncateAt: TruncateAt): String {
+        check(text.isNotEmpty() && !text.contains("\n")) // We control all places this method is called
+        return when (truncateAt) {
+            TruncateAt.END -> {
+                var currWidth = 0
+                var currIndex = 0
+
+                while (currIndex < text.length) {
+                    val graphemeLen = graphemeLengthAt(text, currIndex)
+                    if (graphemeLen <= 0) break
+                    val width = renderWidthOf(text, currIndex until (currIndex + graphemeLen))
+                    if (currWidth + width > maxWidth) break
+                    currWidth += width
+                    currIndex += graphemeLen
+                }
+                text.substring(0, currIndex)
+            }
+            TruncateAt.START -> {
+                var currWidth = 0
+                var currIndex = text.length - 1
+                while (currIndex >= 0) {
+                    val graphemeStart = graphemeStartIndex(text, currIndex)
+                    val graphemeLen = graphemeLengthAt(text, graphemeStart)
+                    if (graphemeLen <= 0) break
+                    val width = renderWidthOf(text, graphemeStart until (graphemeStart + graphemeLen))
+                    if (currWidth + width > maxWidth) break
+                    currIndex = graphemeStart - 1
+                    currWidth += width
+                }
+                // + 1 because the logic in our while loop goes one too far before aborting
+                text.substring(currIndex + 1)
+            }
+            TruncateAt.MIDDLE -> {
+                var startWidth = 0
+                var endWidth = 0
+                var currWidth = 0
+                var startIndex = 0
+                var endIndex = text.length - 1
+                while (startIndex < endIndex) {
+                    fun growStartSide(): Boolean {
+                        val startGraphemeLen = graphemeLengthAt(text, startIndex)
+                        if (startGraphemeLen <= 0) return false
+
+                        val startGraphemeWidth = renderWidthOf(text, startIndex until (startIndex + startGraphemeLen))
+                        if (currWidth + startGraphemeWidth > maxWidth) return false
+
+                        startWidth += startGraphemeWidth
+                        currWidth += startGraphemeWidth
+                        startIndex += startGraphemeLen
+                        return true
+                    }
+
+                    fun growEndSide(): Boolean {
+                        val endGraphemeStart = graphemeStartIndex(text, endIndex)
+                        val endGraphemeLen = graphemeLengthAt(text, endGraphemeStart)
+                        if (endGraphemeLen <= 0) return false
+
+                        val endGraphemeWidth = renderWidthOf(text, endGraphemeStart until (endGraphemeStart + endGraphemeLen))
+                        if (currWidth + endGraphemeWidth > maxWidth) return false
+
+                        endWidth += endGraphemeWidth
+                        currWidth += endGraphemeWidth
+                        endIndex = endGraphemeStart - 1
+                        return true
+                    }
+
+                    // If the start or end of a string has more double width characters than the other, they can grow
+                    // out of balance over time, so always prioritize any side falling behind. All things being equal,
+                    // bias towards the first part, since that looks better to people reading text left to right
+                    if (startWidth <= endWidth) {
+                        if (!growStartSide()) break
+                        if (startIndex >= endIndex) break
+                        if (!growEndSide()) break
+                    } else {
+                        if (!growEndSide()) break
+                        if (startIndex >= endIndex) break
+                        if (!growStartSide()) break
+                    }
+                }
+
+                // + 1 because the logic in our while loop goes one too far before aborting
+                text.substring(0, startIndex) + "\n" + text.substring(endIndex + 1)
+            }
+        }
     }
 
     val totalWidth = renderWidthOf(text)
     if (totalWidth <= maxWidth) return text.toString()
 
-    if (ellipsis.isEmpty()) return truncate(text, maxWidth)
+    if (ellipsis.isEmpty()) return truncate(text, maxWidth, truncateAt)
     val ellipsisWidth = renderWidthOf(ellipsis)
     val maxWidthMinusEllipsis = maxWidth - ellipsisWidth
 
     // Only the ellipses itself can fit (and maybe not even all of it)
-    if (maxWidthMinusEllipsis <= 0) return truncate(ellipsis, maxWidth)
+    if (maxWidthMinusEllipsis <= 0) return truncate(ellipsis, maxWidth, TruncateAt.END)
 
-    return truncate(text, maxWidthMinusEllipsis) + ellipsis
+    val truncated = truncate(text, maxWidthMinusEllipsis, truncateAt)
+    return when (truncateAt) {
+        TruncateAt.END -> truncated + ellipsis
+        TruncateAt.START -> ellipsis + truncated
+        TruncateAt.MIDDLE -> {
+            val (truncatedStart, truncatedEnd) = truncated.split("\n")
+            truncatedStart + ellipsis + truncatedEnd
+        }
+    }
 }
 
 // Much of the code below forked from org.jline.utils.WCWidth.
