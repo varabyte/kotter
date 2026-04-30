@@ -77,6 +77,10 @@ class VirtualTerminal private constructor(
          *   ensure that this program won't eventually run out of memory if you keep appending text in a loop forever.
          *   This value Will be clamped to at least [TerminalSize.height]. Set to [Int.MAX_VALUE] if you don't want
          *   truncation to happen.
+         * @param hideVerticalScrollbar If true, hide the vertical scrollbar. This is useful if you are explicitly
+         *   designing an app that you are sure won't ever go over the height of the terminal (or you really don't care
+         *   if there's no thumb indicator to tell you to scroll). When hidden, a small amount of space on the right
+         *   side of the terminal will be collapsed, resulting in a slightly tighter fit.
          * @param handleInterrupt If true, handle CTRL-C by closing the window.
          */
         @Suppress("DEPRECATION")
@@ -89,6 +93,7 @@ class VirtualTerminal private constructor(
             bgColor: AnsiColor = AnsiColor.BLACK,
             linkColor: AnsiColor = AnsiColor.CYAN,
             maxNumLines: Int = 1000,
+            hideVerticalScrollbar: Boolean = false,
             handleInterrupt: Boolean = true
         ): VirtualTerminal {
             require(terminalSize.width < TerminalSize.Unbounded.width && terminalSize.height < TerminalSize.Unbounded.height) {
@@ -125,49 +130,58 @@ class VirtualTerminal private constructor(
                     border = EmptyBorder(5, 5, 5, 5)
                     foreground = fgColor.toSwingColor()
                     background = bgColor.toSwingColor()
+                    // We never need a horizontal scrollbar in Virtual Terminal land. Our text will never go beyond the
+                    // right side of the pane; it will just wrap.
                     horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
                     // The default "as needed" scrollbar eats into existing space after it appears, causing lines that
                     // previously perfectly fit to suddenly end up interrupted and wrapped. Instead, we design a
                     // scrollbar UI that essentially is always there but is invisible (since it shares the same bg
                     // color as the regular pane) until the thumb appears.
-                    verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-                    verticalScrollBar.setUI(object : BasicScrollBarUI() {
-                        private fun createNonButton() = JButton().apply { preferredSize = Dimension(0, 0) }
-                        override fun createDecreaseButton(orientation: Int): JButton = createNonButton()
-                        override fun createIncreaseButton(orientation: Int): JButton = createNonButton()
+                    if (!hideVerticalScrollbar) {
+                        verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+                        verticalScrollBar.setUI(object : BasicScrollBarUI() {
+                            private fun createNonButton() = JButton().apply { preferredSize = Dimension(0, 0) }
+                            override fun createDecreaseButton(orientation: Int): JButton = createNonButton()
+                            override fun createIncreaseButton(orientation: Int): JButton = createNonButton()
 
-                        override fun configureScrollBarColors() {
-                            this.trackColor = bgColor.toSwingColor()
-                            this.thumbColor = fgColor.toSwingColor().let {
-                                Color(it.red, it.green, it.blue, 100)
+                            override fun configureScrollBarColors() {
+                                this.trackColor = bgColor.toSwingColor()
+                                this.thumbColor = fgColor.toSwingColor().let {
+                                    Color(it.red, it.green, it.blue, 100)
+                                }
                             }
-                        }
 
-                        override fun paintThumb(g: Graphics, c: JComponent, thumbBounds: Rectangle) {
-                            if (thumbBounds.isEmpty || !scrollbar.isEnabled) return
+                            override fun paintThumb(g: Graphics, c: JComponent, thumbBounds: Rectangle) {
+                                if (thumbBounds.isEmpty || !scrollbar.isEnabled) return
 
-                            val g2 = g.create() as Graphics2D
-                            try {
-                                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-                                g2.color = thumbColor
+                                val g2 = g.create() as Graphics2D
+                                try {
+                                    g2.setRenderingHint(
+                                        RenderingHints.KEY_ANTIALIASING,
+                                        RenderingHints.VALUE_ANTIALIAS_ON
+                                    )
+                                    g2.color = thumbColor
 
-                                val xMargin = 4
-                                val yMargin = 2
-                                val x = thumbBounds.x + xMargin
-                                val y = thumbBounds.y + yMargin
-                                val width = thumbBounds.width - (xMargin * 2)
-                                val height = thumbBounds.height - (yMargin * 2)
+                                    val xMargin = 4
+                                    val yMargin = 2
+                                    val x = thumbBounds.x + xMargin
+                                    val y = thumbBounds.y + yMargin
+                                    val width = thumbBounds.width - (xMargin * 2)
+                                    val height = thumbBounds.height - (yMargin * 2)
 
-                                // Use an arc width/height equal to the width of the thumb for a perfect oval
-                                val arcSize = width
+                                    // Use an arc width/height equal to the width of the thumb for a perfect oval
+                                    val arcSize = width
 
-                                g2.fillRoundRect(x, y, width, height, arcSize, arcSize)
+                                    g2.fillRoundRect(x, y, width, height, arcSize, arcSize)
 
-                            } finally {
-                                g2.dispose()
+                                } finally {
+                                    g2.dispose()
+                                }
                             }
-                        }
-                    })
+                        })
+                    } else {
+                        verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_NEVER
+                    }
                 })
                 frame.pack()
                 frame.setLocationRelativeTo(null)
