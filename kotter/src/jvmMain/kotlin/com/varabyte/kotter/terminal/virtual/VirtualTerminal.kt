@@ -13,37 +13,16 @@ import kotlinx.coroutines.flow.shareIn
 import java.awt.*
 import java.awt.Cursor.HAND_CURSOR
 import java.awt.datatransfer.DataFlavor
-import java.awt.event.KeyAdapter
-import java.awt.event.KeyEvent
-import java.awt.event.MouseAdapter
-import java.awt.event.MouseEvent
-import java.awt.event.MouseMotionAdapter
-import java.awt.event.WindowAdapter
-import java.awt.event.WindowEvent
+import java.awt.event.*
 import java.awt.event.WindowEvent.WINDOW_CLOSING
 import java.awt.geom.Point2D
 import java.net.URI
 import java.net.URISyntaxException
 import java.nio.file.Path
-import javax.swing.BoundedRangeModel
-import javax.swing.JFrame
-import javax.swing.JScrollPane
-import javax.swing.JTextPane
-import javax.swing.SwingUtilities
-import javax.swing.ToolTipManager
+import javax.swing.*
 import javax.swing.border.EmptyBorder
-import javax.swing.text.AbstractDocument
-import javax.swing.text.AttributeSet
-import javax.swing.text.Document
-import javax.swing.text.DocumentFilter
-import javax.swing.text.Element
-import javax.swing.text.JTextComponent
-import javax.swing.text.LabelView
-import javax.swing.text.MutableAttributeSet
-import javax.swing.text.SimpleAttributeSet
-import javax.swing.text.StyleConstants
-import javax.swing.text.StyledEditorKit
-import javax.swing.text.ViewFactory
+import javax.swing.plaf.basic.BasicScrollBarUI
+import javax.swing.text.*
 import kotlin.io.path.exists
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
@@ -146,6 +125,49 @@ class VirtualTerminal private constructor(
                     border = EmptyBorder(5, 5, 5, 5)
                     foreground = fgColor.toSwingColor()
                     background = bgColor.toSwingColor()
+                    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                    // The default "as needed" scrollbar eats into existing space after it appears, causing lines that
+                    // previously perfectly fit to suddenly end up interrupted and wrapped. Instead, we design a
+                    // scrollbar UI that essentially is always there but is invisible (since it shares the same bg
+                    // color as the regular pane) until the thumb appears.
+                    verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+                    verticalScrollBar.setUI(object : BasicScrollBarUI() {
+                        private fun createNonButton() = JButton().apply { preferredSize = Dimension(0, 0) }
+                        override fun createDecreaseButton(orientation: Int): JButton = createNonButton()
+                        override fun createIncreaseButton(orientation: Int): JButton = createNonButton()
+
+                        override fun configureScrollBarColors() {
+                            this.trackColor = bgColor.toSwingColor()
+                            this.thumbColor = fgColor.toSwingColor().let {
+                                Color(it.red, it.green, it.blue, 100)
+                            }
+                        }
+
+                        override fun paintThumb(g: Graphics, c: JComponent, thumbBounds: Rectangle) {
+                            if (thumbBounds.isEmpty || !scrollbar.isEnabled) return
+
+                            val g2 = g.create() as Graphics2D
+                            try {
+                                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+                                g2.color = thumbColor
+
+                                val xMargin = 4
+                                val yMargin = 2
+                                val x = thumbBounds.x + xMargin
+                                val y = thumbBounds.y + yMargin
+                                val width = thumbBounds.width - (xMargin * 2)
+                                val height = thumbBounds.height - (yMargin * 2)
+
+                                // Use an arc width/height equal to the width of the thumb for a perfect oval
+                                val arcSize = width
+
+                                g2.fillRoundRect(x, y, width, height, arcSize, arcSize)
+
+                            } finally {
+                                g2.dispose()
+                            }
+                        }
+                    })
                 })
                 frame.pack()
                 frame.setLocationRelativeTo(null)
