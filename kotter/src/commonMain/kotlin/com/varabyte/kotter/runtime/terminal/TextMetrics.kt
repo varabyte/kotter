@@ -180,6 +180,12 @@ enum class TruncateAt {
     END,
 }
 
+object EllipsisPresets {
+    const val NONE = ""
+    const val SYMBOL = "…"
+    const val PERIODS = "..."
+}
+
 /**
  * Take characters from [text] up until they can no longer fit into a space of [maxWidth].
  *
@@ -193,7 +199,7 @@ fun TextMetrics.truncateToWidth(
     text: CharSequence,
     maxWidth: Int,
     truncateAt: TruncateAt = TruncateAt.END,
-    ellipsis: String = "",
+    ellipsis: String = EllipsisPresets.NONE,
 ): String {
     if (text.isEmpty()) return ""
 
