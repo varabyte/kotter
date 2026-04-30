@@ -55,6 +55,11 @@ class Session internal constructor(
     val defaults = Defaults(this)
 
     /**
+     * The size of the terminal that this session is attached to.
+     */
+    val terminalSize: TerminalSize get() = TerminalSize(terminal.width, terminal.height)
+
+    /**
      * A way to access the current active section, if any.
      *
      * You normally shouldn't need to use this, but it can be good for tests, or as a way to abort a running Kotter
