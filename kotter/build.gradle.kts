@@ -30,6 +30,9 @@ kotlin {
 
             // For GuardedBy concurrency annotation
             implementation(libs.jcip.annotations)
+
+            // TODO: Move to a different module
+            implementation(libs.jsvg)
         }
     }
 }
@@ -103,13 +106,7 @@ tasks.register<PrintLineCoverageFromKoverTask>("printLineCoverage") {
     koverReportFile.set(layout.buildDirectory.file("reports/kover/report.xml"))
 }
 
-publishing {
-    publications {
-        withType<MavenPublication> {
-            pom {
-                name.set("Kotter")
-                description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")
-            }
-        }
-    }
+kotterPublication {
+    name.set("Kotter")
+    description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")
 }

@@ -20,5 +20,6 @@ rootProject.name = "kotter"
 
 include(":kotter")
 include(":kotterx:kotter-test-support")
+include(":kotterx:vt-twemoji")
 include(":docs")
 

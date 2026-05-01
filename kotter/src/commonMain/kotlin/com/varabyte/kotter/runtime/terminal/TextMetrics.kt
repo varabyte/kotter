@@ -164,6 +164,45 @@ class TextMetrics {
         return pos
     }
 
+    /**
+     * Whether the given grapheme starting at the target character represents a known emoji value.
+     */
+    fun isEmoji(codePoint: Int): Boolean {
+        return when (codePoint) {
+            // Emoticons
+            in 0x1F600..0x1F64F -> true
+            // Miscellaneous Symbols and Pictographs
+            in 0x1F300..0x1F5FF -> true
+            // Transport and Map Symbols
+            in 0x1F680..0x1F6FF -> true
+            // Supplemental Symbols and Pictographs
+            in 0x1F900..0x1F9FF -> true
+            // Symbols and Pictographs Extended-A (Unicode 12.0+)
+            in 0x1FA70..0x1FAFF -> true
+            // Dingbats
+            in 0x2700..0x27BF -> true
+            // Miscellaneous Symbols
+            in 0x2600..0x26FF -> true
+            // Regional Indicator Symbols (Flag components)
+            in 0x1F1E6..0x1F1FF -> true
+            // Enclosed Alphanumeric Supplement
+            in 0x1F100..0x1F1FF -> true
+            // Variation Selectors (Used to specify emoji vs text presentation)
+            in 0xFE00..0xFE0F -> true
+            // Miscellaneous Technical (includes things like ⌚ and ⌛)
+            in 0x2300..0x23FF -> true
+            // Enclosed Ideographic Supplement
+            in 0x1F200..0x1F2FF -> true
+            // Various punctuation/symbols that are emojis
+            0x203C, 0x2049, 0x2139, 0x2194, 0x2195, 0x2196, 0x2197, 0x2198, 0x2199, 0x21A9, 0x21AA -> true
+            // Geometric Shapes
+            in 0x2B05..0x2B07,
+            in 0x2B1B..0x2B1C,
+            0x2B50, 0x2B55 -> true
+
+            else -> false
+        }
+    }
 }
 
 /**
@@ -173,6 +212,13 @@ class TextMetrics {
  */
 fun TextMetrics.renderWidthOf(str: CharSequence, startIndex: Int, endIndex: Int): Int =
     renderWidthOf(str, startIndex until endIndex)
+
+/**
+ * Convenience version of `isEmoji` that works with raw strings instead of code points..
+ */
+fun TextMetrics.isEmoji(str: CharSequence, index: Int = 0): Boolean {
+    return isEmoji(codePointAt(str, index))
+}
 
 enum class TruncateAt {
     START,
@@ -926,7 +972,7 @@ private fun codePointAt(cs: CharSequence, index: Int): Int {
 }
 
 // See java.lang.Character.charCount
-private fun charCount(cp: Int): Int = if (cp >= MIN_SUPPLEMENTARY_CODE_POINT) 2 else 1
+private fun charCount(codePoint: Int): Int = if (codePoint >= MIN_SUPPLEMENTARY_CODE_POINT) 2 else 1
 
 private fun isRegionalIndicator(cp: Int): Boolean = cp in 0x1F1E6..0x1F1FF
 
