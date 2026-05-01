@@ -25,13 +25,7 @@ kotlin {
     }
 }
 
-publishing {
-    publications {
-        withType<MavenPublication> {
-            pom {
-                name.set("Kotter test support")
-                description.set("Helper classes for writing tests for code using Kotter.")
-            }
-        }
-    }
+kotterPublication {
+    name.set("Kotter test support")
+    description.set("Helper classes for writing tests for code using Kotter.")
 }

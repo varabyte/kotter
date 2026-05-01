@@ -3,7 +3,8 @@ includeBuild("..") {
     dependencySubstitution {
         substitute(module("com.varabyte.kotter:kotter"))
             .using(project(":kotter"))
-
+        substitute(module("com.varabyte.kotterx:vt-twemoji"))
+            .using(project(":kotterx:vt-twemoji"))
     }
 }
 

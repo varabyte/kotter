@@ -1,8 +1,9 @@
 package com.varabyte.kotter.terminal.virtual
 
-import com.varabyte.kotter.runtime.coroutines.*
-import com.varabyte.kotter.runtime.internal.ansi.*
-import com.varabyte.kotter.runtime.internal.text.*
+import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
+import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.internal.text.TextPtr
+import com.varabyte.kotter.runtime.internal.text.substring
 import com.varabyte.kotter.runtime.terminal.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
@@ -19,11 +20,13 @@ import java.awt.geom.Point2D
 import java.net.URI
 import java.net.URISyntaxException
 import java.nio.file.Path
+import java.util.ServiceLoader
 import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicScrollBarUI
 import javax.swing.text.*
 import kotlin.io.path.exists
+import kotlin.math.roundToInt
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
 @Deprecated("Use com.varabyte.kotter.runtime.terminal.TerminalSize instead")
@@ -382,6 +385,7 @@ private class SwingTerminalPane(
      * This lets us mix emoji, which come from non-monospace fonts, with the rest of our monospace text.
      */
     private class FixedGridLabelView(
+        private val emojiRenderers: List<EmojiRenderer>,
         elem: Element,
         private val cellWidth: Int,
     ) : LabelView(elem) {
@@ -419,7 +423,24 @@ private class SwingTerminalPane(
                 val numCells = textMetrics.renderWidthOf(text, currIndex, currIndex + graphemeLen)
                 val pixelWidth = (numCells * cellWidth).toFloat()
 
-                g2d.drawString(grapheme, currentX, yBaseline)
+                var graphemeRenderHandled = false
+                if (emojiRenderers.isNotEmpty() && textMetrics.isEmoji(grapheme)) {
+                    for (emojiRenderer in emojiRenderers) {
+                        if (emojiRenderer.render(
+                            g2d,
+                            container as JComponent,
+                            grapheme,
+                            Rectangle(currentX.roundToInt(), bounds.y, pixelWidth.roundToInt(), bounds.height)
+                        )) {
+                            graphemeRenderHandled = true
+                            break
+                        }
+                    }
+                }
+
+                if (!graphemeRenderHandled) {
+                    g2d.drawString(grapheme, currentX, yBaseline)
+                }
 
                 if (isUnderline || isStrikeThrough) {
                     g2d.stroke = lineStroke
@@ -462,10 +483,11 @@ private class SwingTerminalPane(
     }
 
     private class GridEditorKit(private val cellWidth: Int) : StyledEditorKit() {
+        private val emojiRenderers = ServiceLoader.load(EmojiRenderer::class.java).toList()
         override fun getViewFactory(): ViewFactory {
             return ViewFactory { elem ->
                 when (elem.name) {
-                    AbstractDocument.ContentElementName -> FixedGridLabelView(elem, cellWidth)
+                    AbstractDocument.ContentElementName -> FixedGridLabelView(emojiRenderers, elem, cellWidth)
                     else -> super@GridEditorKit.getViewFactory().create(elem)
                 }
             }

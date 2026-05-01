@@ -10,6 +10,13 @@ plugins {
     id("dokka-convention")
 }
 
+abstract class KotterPublicationConfig {
+    abstract val name: Property<String>
+    abstract val description: Property<String>
+}
+
+val isJvmOnly = (project.findProperty("kotter.publication.jvmOnly") as? String)?.toBoolean() ?: false
+
 val defaultKotlinVersion = "1.8.22" // Improved lambda inference
 val nativeKotlinVersion = "1.9.25" // Time and Atomic system support
 
@@ -46,28 +53,35 @@ tasks.withType<KotlinNativeCompile>().configureEach {
     }
 }
 
+val gcloudSecret: String? = findProperty("gcloud.artifact.registry.secret") as? String
+
+val config = project.extensions.create<KotterPublicationConfig>("kotterPublication")
+
 kotlin {
     jvm {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    linuxX64()
-    macosArm64()
-    macosX64()
-    mingwX64()
 
-    // See https://kotlinlang.org/docs/multiplatform-hierarchy.html#additional-configuration
-    @Suppress("OPT_IN_USAGE")
-    applyDefaultHierarchyTemplate {
-        common {
-            group("native") {
-                group("posix") {
-                    withLinuxX64()
-                    withMacos()
-                }
-                group("win") {
-                    withMingwX64()
+    if (!isJvmOnly) {
+        linuxX64()
+        macosArm64()
+        macosX64()
+        mingwX64()
+
+        // See https://kotlinlang.org/docs/multiplatform-hierarchy.html#additional-configuration
+        @Suppress("OPT_IN_USAGE")
+        applyDefaultHierarchyTemplate {
+            common {
+                group("native") {
+                    group("posix") {
+                        withLinuxX64()
+                        withMacos()
+                    }
+                    group("win") {
+                        withMingwX64()
+                    }
                 }
             }
         }
@@ -80,13 +94,13 @@ kotlin {
             }
         }
 
-        nativeMain.dependencies {
-            implementation(kotlin("stdlib", nativeKotlinVersion))
+        if (!isJvmOnly) {
+            nativeMain.dependencies {
+                implementation(kotlin("stdlib", nativeKotlinVersion))
+            }
         }
     }
 }
-
-val gcloudSecret: String? = findProperty("gcloud.artifact.registry.secret") as? String
 
 // Hack: project.version is NOT set yet but needs to be for credentials to be set correctly for snapshot builds. Put
 // behind an `afterEvaluate` for now to ensure the calling build script has set the version.
@@ -97,9 +111,10 @@ afterEvaluate {
 
         pom {
             val githubPath = "https://github.com/varabyte/kotter"
-            name.set("Kotter")
-            description.set("A declarative, Kotlin-idiomatic API for writing dynamic command line applications.")
             url.set(githubPath)
+            name.set(config.name)
+            description.set(config.description)
+
             scm {
                 url.set(githubPath)
                 val connectionPath = "scm:git:${githubPath}.git"

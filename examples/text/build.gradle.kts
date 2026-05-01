@@ -8,6 +8,7 @@ version = "1.0-SNAPSHOT"
 
 dependencies {
     implementation(libs.kotter)
+    implementation(libs.kotterx.twemoji)
     implementation(libs.kotlinx.coroutines)
 }
 
