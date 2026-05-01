@@ -6,7 +6,7 @@ okhttp = "5.3.2"
 
 [libraries]
 kotter = { module = "com.varabyte.kotter:kotter", version = "+" }
-kotterx-twemoji = { module = "com.varabyte.kotterx:vt-twemoji", version = "+" }
+kotterx-twemoji = { module = "com.varabyte.kotterx:twemoji", version = "+" }
 kotlinx-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
