@@ -1871,6 +1871,68 @@ session(
 }
 ```
 
+#### Cross-platform emoji support
+
+Kotter provides an extension artifact, `com.varabyte.kotterx:twemoji`, which provides rendering support for emoji
+characters using SVGs provided by the [Twemoji (Twitter Emoji)](https://github.com/twitter/twemoji) project.
+
+The benefit is a consistent look and feel whether you are using Mac, Windows, or Linux. It also seems to provide more
+complete emoji support than the system fonts do.
+
+Above we mentioned that the virtual terminal is a JVM-only concept. As such, this extension library is only provided for
+the JVM target.
+
+All you have to do is add a dependency on the Kotterx `twemoji` coordinate in you're build script, and it will
+automatically be picked up by the virtual terminal if it opens up.
+
+```kotlin
+// JVM project
+plugins {
+  kotlin("jvm")
+}
+
+dependencies {
+  implementation("com.varabyte.kotter:kotter-jvm:1.3.0")
+  implementation("com.varabyte.kotterx:twemoji-jvm:1.3.0")
+}
+
+// Mulitplatform project
+plugins {
+  kotlin("multiplatform")
+}
+
+kotlin {
+  jvm()
+  // optionally other targets
+
+  sourceSets {
+    commonMain {
+      dependencies {
+        implementation("com.varabyte.kotter:kotter:1.3.0")
+      }
+    }
+    jvmMain {
+      dependencies {
+        implementation("com.varabyte.kotterx:twemoji:1.3.0")
+      }
+    }
+  }
+}
+```
+
+On the left is a screenshot of my virtual terminal running on MacOS using the default system font; on the right,
+Twemoji. Some reports indicate that the left side looks even more dismal on Windows.
+
+![Emojis provided by the system](https://github.com/varabyte/media/raw/main/kotter/images/kotter-emoji-system.png)
+![Emojies from the twemoji project](https://github.com/varabyte/media/raw/main/kotter/images/kotter-emoji-twemoji.png)
+
+The biggest drawback for including this dependency is it adds about 4MB of data to your application bundle.
+
+We don't include this as part of core Kotter since it's assumed most users will want to write an application that
+targets a system terminal and hopefully will never even open up the virtual terminal, so why pay the memory cost?
+Additionally, allowing an external module to control emoji rendering opens us up to supporting alternate emoji sets in
+the future.
+
 ### 🔙 Fallback in Non-Interactive Terminals
 
 Kotter is designed to *only* run within a rich, interactive terminal environment, such as a console with ANSI support
