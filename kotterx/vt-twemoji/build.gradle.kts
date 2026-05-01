@@ -1,5 +1,5 @@
 plugins {
-    id("kotter-build-support")
+    id("kotter-publication")
 }
 
 group = "com.varabyte.kotterx"

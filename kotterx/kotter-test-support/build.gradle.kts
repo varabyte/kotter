@@ -1,7 +1,8 @@
 import org.jetbrains.dokka.gradle.DokkaTask
 
 plugins {
-    id("kotter-build-support")
+    id("kotter-publication")
+    id("dokka-convention")
 }
 
 group = "com.varabyte.kotterx"

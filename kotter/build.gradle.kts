@@ -1,7 +1,8 @@
 import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
-    id("kotter-build-support")
+    id("kotter-publication")
+    id("dokka-convention")
     alias(libs.plugins.kotlinx.kover)
 }
 
@@ -9,7 +10,7 @@ group = "com.varabyte.kotter"
 version = libs.versions.kotter.get()
 
 kotlin {
-    // Targets set in kotter-build-support plugin
+    // Targets set in kotter-publication plugin
 
     sourceSets {
         commonMain {
