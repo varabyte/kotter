@@ -385,12 +385,12 @@ private class SwingTerminalPane(
      * This lets us mix emoji, which come from non-monospace fonts, with the rest of our monospace text.
      */
     private class FixedGridLabelView(
+        private val textMetrics: TextMetrics,
         private val emojiRenderers: List<EmojiRenderer>,
         elem: Element,
         private val cellWidth: Int,
     ) : LabelView(elem) {
 
-        private val textMetrics = TextMetrics()
         private val lineStroke = BasicStroke(1f) // Used for underline / strikethrough
 
         override fun paint(g: Graphics, allocation: Shape) {
@@ -482,12 +482,12 @@ private class SwingTerminalPane(
         }
     }
 
-    private class GridEditorKit(private val cellWidth: Int) : StyledEditorKit() {
+    private class GridEditorKit(private val textMetrics: TextMetrics, private val cellWidth: Int) : StyledEditorKit() {
         private val emojiRenderers = ServiceLoader.load(EmojiRenderer::class.java).toList()
         override fun getViewFactory(): ViewFactory {
             return ViewFactory { elem ->
                 when (elem.name) {
-                    AbstractDocument.ContentElementName -> FixedGridLabelView(emojiRenderers, elem, cellWidth)
+                    AbstractDocument.ContentElementName -> FixedGridLabelView(textMetrics, emojiRenderers, elem, cellWidth)
                     else -> super@GridEditorKit.getViewFactory().create(elem)
                 }
             }
@@ -546,9 +546,10 @@ private class SwingTerminalPane(
 
     private val sgrCodeConverter: SgrCodeConverter
     private val uriState = UriState(linkColor, bgColor)
+    private val textMetrics = TextMetrics()
 
     init {
-        editorKit = GridEditorKit(getFontMetrics(font).charWidth('W'))
+        editorKit = GridEditorKit(textMetrics, getFontMetrics(font).charWidth('W'))
         isEditable = false
         foreground = fgColor
         background = bgColor
@@ -574,20 +575,29 @@ private class SwingTerminalPane(
     private fun getWordAtOffset(offset: Int): String {
         val textPtr = TextPtr(styledDocument.getText(), offset)
 
-        textPtr.incrementUntil { it.isWhitespace() }
+        fun Char.isBoundary() = isWhitespace() || isLowSurrogate() || isHighSurrogate()
+
+        textPtr.incrementUntil { it.isBoundary() }
         val end = textPtr.charIndex
 
-        textPtr.decrementUntil { it.isWhitespace() }
+        textPtr.decrementUntil { it.isBoundary()  }
+        if (textPtr.currChar.isBoundary()) textPtr.increment() // If not a boundary char, we hit string start; leave it
         val start = textPtr.charIndex
         return textPtr.substring(end - start)
     }
 
     private fun getUriAtOffset(offset: Int): URI? {
         return uriState.findUriAt(offset) ?: run {
+            // If no embedded hyperlink is found, we can still search for raw URLs inside the text
             val wordAtOffset = getWordAtOffset(offset)
             try {
-                wordAtOffset.takeIf { it.isNotBlank() }?.let { URI(it) }
-            } catch (ignored: URISyntaxException) {
+                val uri = wordAtOffset.takeIf { it.isNotBlank() }
+                    ?.let { URI(it) }
+                    // Sometimes URI accepts strings I wouldn't expect it too; just check if there's a scheme as a way
+                    // to make sure it is an actual URL
+                    ?.takeIf { it.scheme != null }
+                uri
+            } catch (_: URISyntaxException) {
                 null
             }
         }
