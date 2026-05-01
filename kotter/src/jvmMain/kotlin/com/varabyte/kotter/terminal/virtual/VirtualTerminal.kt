@@ -572,8 +572,10 @@ private class SwingTerminalPane(
         resetMouseListeners()
     }
 
-    private fun getWordAtOffset(offset: Int): String {
-        val textPtr = TextPtr(styledDocument.getText(), offset)
+    private fun getWordAtOffset(offset: Int): String? {
+        val docText = styledDocument.getText()
+        if (offset < 0 || offset > docText.lastIndex) return null
+        val textPtr = TextPtr(docText, offset)
 
         fun Char.isBoundary() = isWhitespace() || isLowSurrogate() || isHighSurrogate()
 
@@ -589,7 +591,7 @@ private class SwingTerminalPane(
     private fun getUriAtOffset(offset: Int): URI? {
         return uriState.findUriAt(offset) ?: run {
             // If no embedded hyperlink is found, we can still search for raw URLs inside the text
-            val wordAtOffset = getWordAtOffset(offset)
+            val wordAtOffset = getWordAtOffset(offset) ?: return null
             try {
                 val uri = wordAtOffset.takeIf { it.isNotBlank() }
                     ?.let { URI(it) }
@@ -713,7 +715,7 @@ private class SwingTerminalPane(
                 } ?: false
             }
 
-            else -> return false
+            else -> false
         }
     }
 
