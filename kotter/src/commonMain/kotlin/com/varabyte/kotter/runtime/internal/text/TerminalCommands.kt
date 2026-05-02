@@ -48,7 +48,7 @@ private fun List<TerminalCommand>.insertCommandAtLineBreaks(textMetrics: TextMet
                     val textSoFar = StringBuilder()
                     var currIndex = 0
                     while (currIndex <= command.text.lastIndex) {
-                        val nextGraphemeLen = textMetrics.graphemeLengthAt(command.text, currIndex)
+                        val nextGraphemeLen = textMetrics.graphemeClusterLengthAt(command.text, currIndex)
                         val nextGrapheme = command.text.subSequence(currIndex, currIndex + nextGraphemeLen)
                         currIndex += nextGraphemeLen
                         val graphemeWidth = textMetrics.renderWidthOf(nextGrapheme)

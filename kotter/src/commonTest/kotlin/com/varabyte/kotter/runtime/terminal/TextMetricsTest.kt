@@ -52,7 +52,7 @@ class TextMetricsTest {
         var currIndex = graphemeRichText.length - 1
         while (currIndex >= 0) {
             val graphemeStart = tm.graphemeStartIndex(graphemeRichText, currIndex)
-            val graphemeLen = tm.graphemeLengthAt(graphemeRichText, graphemeStart)
+            val graphemeLen = tm.graphemeClusterLengthAt(graphemeRichText, graphemeStart)
             val grapheme = graphemeRichText.substring(graphemeStart, graphemeStart + graphemeLen)
 
             val (expectedGrapheme, expectedGraphemeLen) = expectedGraphemes.removeLast()

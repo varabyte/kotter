@@ -35,7 +35,7 @@ class TextMetrics {
         var i = range.first
         val endInclusive = range.last
         while (i <= endInclusive) {
-            val graphemeLen = graphemeLengthAt(str, i)
+            val graphemeLen = graphemeClusterLengthAt(str, i)
             totalWidth += calculateClusterWidth(str, i, graphemeLen)
             i += graphemeLen
         }
@@ -52,7 +52,7 @@ class TextMetrics {
      * (which Kotlin uses).
      */
     // See also: `charCountForGraphemeClusterLegacy` in jline
-    fun graphemeLengthAt(str: CharSequence, index: Int): Int {
+    fun graphemeClusterLengthAt(str: CharSequence, index: Int): Int {
         val len = str.length
         if (index >= len) return 0
 
@@ -265,7 +265,7 @@ fun TextMetrics.truncateToWidth(
                 var currIndex = 0
 
                 while (currIndex < text.length) {
-                    val graphemeLen = graphemeLengthAt(text, currIndex)
+                    val graphemeLen = graphemeClusterLengthAt(text, currIndex)
                     if (graphemeLen <= 0) break
                     val width = renderWidthOf(text, currIndex until (currIndex + graphemeLen))
                     if (currWidth + width > maxWidth) break
@@ -279,7 +279,7 @@ fun TextMetrics.truncateToWidth(
                 var currIndex = text.length - 1
                 while (currIndex >= 0) {
                     val graphemeStart = graphemeStartIndex(text, currIndex)
-                    val graphemeLen = graphemeLengthAt(text, graphemeStart)
+                    val graphemeLen = graphemeClusterLengthAt(text, graphemeStart)
                     if (graphemeLen <= 0) break
                     val width = renderWidthOf(text, graphemeStart until (graphemeStart + graphemeLen))
                     if (currWidth + width > maxWidth) break
@@ -297,7 +297,7 @@ fun TextMetrics.truncateToWidth(
                 var endIndex = text.length - 1
                 while (startIndex < endIndex) {
                     fun growStartSide(): Boolean {
-                        val startGraphemeLen = graphemeLengthAt(text, startIndex)
+                        val startGraphemeLen = graphemeClusterLengthAt(text, startIndex)
                         if (startGraphemeLen <= 0) return false
 
                         val startGraphemeWidth = renderWidthOf(text, startIndex until (startIndex + startGraphemeLen))
@@ -311,7 +311,7 @@ fun TextMetrics.truncateToWidth(
 
                     fun growEndSide(): Boolean {
                         val endGraphemeStart = graphemeStartIndex(text, endIndex)
-                        val endGraphemeLen = graphemeLengthAt(text, endGraphemeStart)
+                        val endGraphemeLen = graphemeClusterLengthAt(text, endGraphemeStart)
                         if (endGraphemeLen <= 0) return false
 
                         val endGraphemeWidth = renderWidthOf(text, endGraphemeStart until (endGraphemeStart + endGraphemeLen))

@@ -417,7 +417,7 @@ private class SwingTerminalPane(
 
             var currIndex = 0
             while (currIndex < text.length) {
-                val graphemeLen = textMetrics.graphemeLengthAt(text, currIndex)
+                val graphemeLen = textMetrics.graphemeClusterLengthAt(text, currIndex)
                 val grapheme = text.substring(currIndex, currIndex + graphemeLen)
 
                 val numCells = textMetrics.renderWidthOf(text, currIndex, currIndex + graphemeLen)

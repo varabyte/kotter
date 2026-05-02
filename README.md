@@ -1436,7 +1436,7 @@ the `lineWidths` property.
 ```kotlin
 class TextMetrics {
   fun renderWidthOf(str: CharSequence): Int
-  fun graphemeLengthAt(str: CharSequence, index: Int): Int
+  fun graphemeClusterLengthAt(str: CharSequence, index: Int): Int
   fun graphemeStartIndex(str: CharSequence, index: Int): Int
 }
 
@@ -1448,8 +1448,8 @@ class TextMetrics {
 
 A _grapheme_ is the final symbol that gets rendered to the screen. For basic text, this is often one-to-one with the
 underlying character, but with emoji, that's often not the case. For example, the emoji 👨‍👩‍👧‍👦 is built up from 11
-underlying characters! Use `graphemeLengthAt` with an index pointing at the beginning of a grapheme cluster to get this
-value.
+underlying characters! Use `graphemeCusterLengthAt` with an index pointing at the beginning of a grapheme cluster to get
+this value.
 
 You can also use `graphemeStartIndex` to return the start of a cluster given any index inside said cluster. It is not
 expected that most users will ever need this, but it can be useful if you want to iterate a Unicode string backwards one
@@ -1466,7 +1466,7 @@ loop would generally look like this:
 var currIndex = 0
 var currWidth = 0
 while (currIndex < str.length) {
-    val graphemeLen = textMetrics.graphemeLengthAt(str, currIndex)
+    val graphemeLen = textMetrics.graphemeClusterLengthAt(str, currIndex)
     val grapheme = textMetrics.substring(currIndex, currIndex + graphemeLen)
     // Do something with the grapheme here
     currWidth += textMetrics.renderWidthOf(grapheme)
@@ -1478,7 +1478,7 @@ var currIndex = string.length - 1
 var currWidth = 0
 while (currIndex >= 0) {
     val graphemeStart = textMetrics.graphemeStartIndex(str, currIndex)
-    val graphemeLen = textMetrics.graphemeLengthAt(str, graphemeStart)
+    val graphemeLen = textMetrics.graphemeClusterLengthAt(str, graphemeStart)
     val grapheme = textMetrics.substring(currIndex, graphemeStart + graphemeLen)
     // Do something with the grapheme here
     currWidth += textMetrics.renderWidthOf(grapheme)
