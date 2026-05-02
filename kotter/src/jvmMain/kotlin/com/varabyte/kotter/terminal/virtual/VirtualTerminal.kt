@@ -501,9 +501,9 @@ private class SwingTerminalPane(
         private var prevIsUnderlined: Boolean = false
         private val uris = mutableMapOf<Pair<Int, Int>, URI>()
 
-        fun startDefiningUri(offset: Int, uri: URI, attrs: MutableAttributeSet) {
+        fun startDefiningUri(index: Int, uri: URI, attrs: MutableAttributeSet) {
             check(currUri == null) { "Attempt to define a new URI without closing an old one." }
-            currUri = offset to uri
+            currUri = index to uri
 
             prevFgColor = StyleConstants.getForeground(attrs)
             prevBgColor = StyleConstants.getBackground(attrs)
@@ -514,11 +514,11 @@ private class SwingTerminalPane(
             StyleConstants.setUnderline(attrs, true)
         }
 
-        fun finishDefiningUri(offset: Int, attrs: MutableAttributeSet) {
+        fun finishDefiningUri(index: Int, attrs: MutableAttributeSet) {
             val currUri = currUri
             check(currUri != null) { "Attempt to finish a ULI that was never started" }
-            check(currUri.first < offset) { "Invalid offset when closing URI" }
-            uris[currUri.first to offset] = currUri.second
+            check(currUri.first < index) { "Invalid offset when closing URI" }
+            uris[currUri.first to index] = currUri.second
 
             StyleConstants.setForeground(attrs, prevFgColor)
             StyleConstants.setBackground(attrs, prevBgColor)
@@ -530,11 +530,11 @@ private class SwingTerminalPane(
             prevIsUnderlined = false
         }
 
-        fun findUriAt(offset: Int): URI? {
+        fun findUriAt(textIndex: Int): URI? {
             assertValidState()
-            uris.forEach { (offsets, uri) ->
-                val (start, end) = offsets
-                if (offset in start..end) return uri
+            uris.forEach { (indices, uri) ->
+                val (start, end) = indices
+                if (textIndex in start..end) return uri
             }
             return null
         }
@@ -547,9 +547,16 @@ private class SwingTerminalPane(
     private val sgrCodeConverter: SgrCodeConverter
     private val uriState = UriState(linkColor, bgColor)
     private val textMetrics = TextMetrics()
+    private val cellWidth: Int
+    private val cellHeight: Int
 
     init {
-        editorKit = GridEditorKit(textMetrics, getFontMetrics(font).charWidth('W'))
+        with(getFontMetrics(font)) {
+            cellWidth = charWidth('W')
+            cellHeight = getLineMetrics("W", graphics).height.toInt()
+        }
+
+        editorKit = GridEditorKit(textMetrics, cellWidth)
         isEditable = false
         foreground = fgColor
         background = bgColor
@@ -572,12 +579,14 @@ private class SwingTerminalPane(
         resetMouseListeners()
     }
 
-    private fun getWordAtOffset(offset: Int): String? {
-        val docText = styledDocument.getText()
-        if (offset < 0 || offset > docText.lastIndex) return null
-        val textPtr = TextPtr(docText, offset)
+    private fun getWordAtTextIndex(textIndex: Int): String? {
+        val text = this.styledDocument.getText()
+        if (textIndex < 0 || textIndex >= text.length) return null
+        val textPtr = TextPtr(text, textIndex)
 
         fun Char.isBoundary() = isWhitespace() || isLowSurrogate() || isHighSurrogate()
+
+        if (textPtr.currChar.isBoundary()) return null
 
         textPtr.incrementUntil { it.isBoundary() }
         val end = textPtr.charIndex
@@ -588,10 +597,10 @@ private class SwingTerminalPane(
         return textPtr.substring(end - start)
     }
 
-    private fun getUriAtOffset(offset: Int): URI? {
-        return uriState.findUriAt(offset) ?: run {
+    private fun getUriAtTextIndex(textIndex: Int): URI? {
+        return uriState.findUriAt(textIndex) ?: run {
             // If no embedded hyperlink is found, we can still search for raw URLs inside the text
-            val wordAtOffset = getWordAtOffset(offset) ?: return null
+            val wordAtOffset = getWordAtTextIndex(textIndex) ?: return null
             try {
                 val uri = wordAtOffset.takeIf { it.isNotBlank() }
                     ?.let { URI(it) }
@@ -605,18 +614,27 @@ private class SwingTerminalPane(
         }
     }
 
-    // viewToModel2D is not available in JDK8, so backport it
-    @Suppress("DEPRECATION") // viewToModel2d not available in JDK8
-    private fun JTextComponent.viewToModel2D_jdk8(pt: Point2D): Int {
-        // In our limited use of viewToModel2D, its behavior is identical to viewToModel
-        return viewToModel(pt as Point)
+    private fun JTextComponent.textIndexAtPoint(pt: Point2D): Int? {
+        val col = (pt.x / cellWidth).toInt()
+        val row = (pt.y / cellHeight).toInt()
+
+        val lines = text.lines()
+
+        if (row >= lines.size) return null
+        if (col >= lines[row].length) return null
+
+        val textIndex = col + lines.asSequence()
+            .take(row) // Take previous rows behind us
+            .sumOf { textMetrics.renderWidthOf(it) + 1 } // +1 since newline was stripped by lines() call
+
+        return textIndex
     }
 
     override fun getToolTipText(event: MouseEvent): String? {
-        val offset = viewToModel2D_jdk8(event.point)
-        val uriUnderCursor = getUriAtOffset(offset)
+        val textIndex = textIndexAtPoint(event.point) ?: return null
+        val uriUnderCursor = getUriAtTextIndex(textIndex)
         if (uriUnderCursor != null) {
-            val word = getWordAtOffset(offset)
+            val word = getWordAtTextIndex(textIndex)
             val uriAsString = uriUnderCursor.toString()
             if (uriAsString != word) {
                 return uriAsString
@@ -635,19 +653,22 @@ private class SwingTerminalPane(
 
         addMouseMotionListener(object : MouseMotionAdapter() {
             override fun mouseMoved(e: MouseEvent) {
-                val uriUnderCursor = getUriAtOffset(this@SwingTerminalPane.viewToModel2D_jdk8(e.point))
-                cursor = if (uriUnderCursor != null) {
-                    Cursor.getPredefinedCursor(HAND_CURSOR)
-                } else {
-                    Cursor.getDefaultCursor()
+                var nextCursor = Cursor.getDefaultCursor()
+                this@SwingTerminalPane.textIndexAtPoint(e.point)?.let { textIndex ->
+                    if (getUriAtTextIndex(textIndex) != null) {
+                        nextCursor = Cursor.getPredefinedCursor(HAND_CURSOR)
+                    }
                 }
+                cursor = nextCursor
             }
         })
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                getUriAtOffset(this@SwingTerminalPane.viewToModel2D_jdk8(e.point))?.let { uriUnderCursor ->
-                    Desktop.getDesktop().browse(uriUnderCursor)
+                this@SwingTerminalPane.textIndexAtPoint(e.point)?.let { textIndex ->
+                    getUriAtTextIndex(textIndex)?.let { uriUnderCursor ->
+                        Desktop.getDesktop().browse(uriUnderCursor)
+                    }
                 }
             }
         })
