@@ -621,11 +621,19 @@ private class SwingTerminalPane(
         val lines = text.lines()
 
         if (row >= lines.size) return null
-        if (col >= lines[row].length) return null
+        if (col >= textMetrics.renderWidthOf(lines[row])) return null
 
-        val textIndex = col + lines.asSequence()
-            .take(row) // Take previous rows behind us
-            .sumOf { textMetrics.renderWidthOf(it) + 1 } // +1 since newline was stripped by lines() call
+        var textIndex = 0
+        val currLine = lines[row]
+        var x = 0
+        while (x < col) {
+            val graphemeLen = textMetrics.graphemeClusterLengthAt(currLine, textIndex)
+            x += textMetrics.renderWidthOf(currLine, textIndex, textIndex + graphemeLen)
+            textIndex += graphemeLen
+        }
+        textIndex += lines.asSequence()
+            .take(row) // Take previous rows above us
+            .sumOf { it.length + 1 } // +1 since newline was stripped by lines() call
 
         return textIndex
     }
