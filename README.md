@@ -176,6 +176,7 @@ repositories {
 + maven("https://central.sonatype.com/repository/maven-snapshots/") {
 +   mavenContent {
 +     includeGroup("com.varabyte.kotter")
++     includeGroup("com.varabyte.kotterx")
 +     snapshotsOnly()
 +   }
 + }
