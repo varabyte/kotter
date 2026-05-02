@@ -388,7 +388,7 @@ private class SwingTerminalPane(
         private val textMetrics: TextMetrics,
         private val emojiRenderers: List<EmojiRenderer>,
         elem: Element,
-        private val cellWidth: Int,
+        private val cellBounds: Point,
     ) : LabelView(elem) {
 
         private val lineStroke = BasicStroke(1f) // Used for underline / strikethrough
@@ -421,7 +421,7 @@ private class SwingTerminalPane(
                 val grapheme = text.substring(currIndex, currIndex + graphemeLen)
 
                 val numCells = textMetrics.renderWidthOf(text, currIndex, currIndex + graphemeLen)
-                val pixelWidth = (numCells * cellWidth).toFloat()
+                val pixelWidth = (numCells * cellBounds.x).toFloat()
 
                 var graphemeRenderHandled = false
                 if (emojiRenderers.isNotEmpty() && textMetrics.isEmoji(grapheme)) {
@@ -466,7 +466,7 @@ private class SwingTerminalPane(
                     }
                 }
 
-                currentX += numCells * cellWidth
+                currentX += numCells * cellBounds.x
                 currIndex += graphemeLen
             }
         }
@@ -475,19 +475,20 @@ private class SwingTerminalPane(
             return when (axis) {
                 X_AXIS -> {
                     val text = document.getText(startOffset, endOffset - startOffset)
-                    (textMetrics.renderWidthOf(text) * cellWidth).toFloat()
+                    (textMetrics.renderWidthOf(text) * cellBounds.x).toFloat()
                 }
+                Y_AXIS -> cellBounds.y.toFloat()
                 else -> super.getPreferredSpan(axis)
             }
         }
     }
 
-    private class GridEditorKit(private val textMetrics: TextMetrics, private val cellWidth: Int) : StyledEditorKit() {
+    private class GridEditorKit(private val textMetrics: TextMetrics, private val cellBounds: Point) : StyledEditorKit() {
         private val emojiRenderers = ServiceLoader.load(EmojiRenderer::class.java).toList()
         override fun getViewFactory(): ViewFactory {
             return ViewFactory { elem ->
                 when (elem.name) {
-                    AbstractDocument.ContentElementName -> FixedGridLabelView(textMetrics, emojiRenderers, elem, cellWidth)
+                    AbstractDocument.ContentElementName -> FixedGridLabelView(textMetrics, emojiRenderers, elem, cellBounds)
                     else -> super@GridEditorKit.getViewFactory().create(elem)
                 }
             }
@@ -547,16 +548,17 @@ private class SwingTerminalPane(
     private val sgrCodeConverter: SgrCodeConverter
     private val uriState = UriState(linkColor, bgColor)
     private val textMetrics = TextMetrics()
-    private val cellWidth: Int
-    private val cellHeight: Int
+    private val cellBounds: Point
 
     init {
         with(getFontMetrics(font)) {
-            cellWidth = charWidth('W')
-            cellHeight = getLineMetrics("W", graphics).height.toInt()
+            cellBounds = Point(
+                charWidth('W'),
+                getLineMetrics("W", graphics).height.toInt()
+            )
         }
 
-        editorKit = GridEditorKit(textMetrics, cellWidth)
+        editorKit = GridEditorKit(textMetrics, cellBounds)
         isEditable = false
         foreground = fgColor
         background = bgColor
@@ -615,8 +617,8 @@ private class SwingTerminalPane(
     }
 
     private fun JTextComponent.textIndexAtPoint(pt: Point2D): Int? {
-        val col = (pt.x / cellWidth).toInt()
-        val row = (pt.y / cellHeight).toInt()
+        val col = (pt.x / cellBounds.x).toInt()
+        val row = (pt.y / cellBounds.y).toInt()
 
         val lines = text.lines()
 
