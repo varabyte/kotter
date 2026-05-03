@@ -379,6 +379,16 @@ private class SwingTerminalPane(
     maxNumLines: Int
 ) : JTextPane() {
 
+    // We handle wrapping outselves (in processAnsiText) so disable Swing's own attempt to do the same thing. (They
+    // aren't aware of Unicode graphemes, pretty sure, and they force newlines in expected places for lines with emoji.)
+    private class NoWrapParagraphView(elem: Element) : ParagraphView(elem) {
+        override fun layout(width: Int, height: Int) {
+            super.layout(Short.MAX_VALUE.toInt(), height)
+        }
+    }
+
+    override fun getScrollableTracksViewportWidth() = false
+
     /**
      * A custom component that enforces all text, regardless of font, to conform to a grid.
      *
@@ -489,6 +499,7 @@ private class SwingTerminalPane(
             return ViewFactory { elem ->
                 when (elem.name) {
                     AbstractDocument.ContentElementName -> FixedGridLabelView(textMetrics, emojiRenderers, elem, cellBounds)
+                    AbstractDocument.ParagraphElementName -> NoWrapParagraphView(elem)
                     else -> super@GridEditorKit.getViewFactory().create(elem)
                 }
             }
