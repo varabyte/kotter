@@ -783,14 +783,52 @@ private class SwingTerminalPane(
         val attrs = SimpleAttributeSet()
         val stringBuilder = StringBuilder()
         fun flush() {
-            val stringToInsert = stringBuilder.toString()
-            if (stringToInsert.isNotEmpty()) {
-                doc.insertString(caretPosition, stringToInsert, attrs)
-                stringBuilder.clear()
+            if (stringBuilder.isEmpty()) return
+
+            // The contents of the string builder may not fit in the current width, so we need to force wrapping in that
+            // case. We do this here instead of while we are adding characters to the string builder, because due to
+            // Unicode graphemes consisting of multile chars, this is easier to do AFTER all the individual chars have
+            // been added.
+            run {
+                val docText = doc.getText()
+                var currLineWidth = 0
+                if (docText.isNotEmpty()) {
+                    with(TextPtr(docText, docText.length)) {
+                        decrementUntil { it == '\n' }
+                        // If not true we are at the start of the first line, so no need to step forward
+                        if (currChar == '\n') increment()
+
+                        while (remainingLength > 0) {
+                            val graphemeLen = textMetrics.graphemeClusterLengthAt(docText, charIndex)
+                            currLineWidth += textMetrics.renderWidthOf(docText, charIndex, charIndex + graphemeLen)
+                            repeat(graphemeLen) { increment() }
+                        }
+                    }
+                }
+
+                var currIndex = 0
+                while (currIndex < stringBuilder.length) {
+                    val currChar = stringBuilder[currIndex]
+                    if (currChar == '\n') {
+                        currLineWidth = 0
+                        currIndex++
+                    } else {
+                        val graphemeLen = textMetrics.graphemeClusterLengthAt(stringBuilder, currIndex)
+                        currLineWidth += textMetrics.renderWidthOf(stringBuilder, currIndex, currIndex + graphemeLen)
+                        if (currLineWidth > maxWidth) {
+                            stringBuilder.insert(currIndex, '\n')
+                            currIndex++
+                            currLineWidth = 0
+                        }
+                        currIndex += graphemeLen
+                    }
+                }
             }
+
+            doc.insertString(caretPosition, stringBuilder.toString(), attrs)
+            stringBuilder.clear()
         }
 
-        var currCharIndex = 0
         val textPtr = TextPtr(text)
         do {
             when (textPtr.currChar) {
@@ -815,27 +853,21 @@ private class SwingTerminalPane(
                         if (charIndex > 0) increment()
 
                         caretPosition = charIndex
-                        currCharIndex = 0
                     }
                 }
 
                 '\n' -> {
                     stringBuilder.append(textPtr.currChar)
-                    currCharIndex = 0
                 }
 
                 Char.MIN_VALUE -> {
                 } // Ignore the null terminator, it's only a TextPtr/Document concept
                 else -> {
-                    if (currCharIndex == maxWidth) {
-                        stringBuilder.append("\n")
-                        currCharIndex = 0
-                    }
                     stringBuilder.append(textPtr.currChar)
-                    ++currCharIndex
                 }
             }
         } while (textPtr.increment())
+
         flush()
 
         uriState.assertValidState()
