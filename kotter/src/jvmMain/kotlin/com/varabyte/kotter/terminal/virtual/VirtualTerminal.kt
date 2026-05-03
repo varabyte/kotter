@@ -594,7 +594,7 @@ private class SwingTerminalPane(
             }
         }
 
-        resetMouseListeners()
+        initMouseListeners()
     }
 
     private fun getWordAtTextIndex(textIndex: Int): String? {
@@ -670,7 +670,7 @@ private class SwingTerminalPane(
         return null
     }
 
-    private fun resetMouseListeners() {
+    private fun initMouseListeners() {
         // The existing mouse handlers set the cursor behind our back which mess with the repainting of the area
         // Let's just disable them for now.
         mouseListeners.toList().forEach { removeMouseListener(it) }
@@ -888,13 +888,7 @@ private class SwingTerminalPane(
 
         uriState.assertValidState()
 
-        // Hack alert: I'm not sure why, but calling updateUI is the only consistent way I've been able to get the text
-        // pane to refresh its text contents without stuttering. However, this sometimes affects the caret position? So
-        // we reset it back.
-        caretPosition.let { prevCaret ->
-            updateUI()
-            resetMouseListeners()
-            caretPosition = prevCaret
-        }
+        revalidate()
+        repaint()
     }
 }
