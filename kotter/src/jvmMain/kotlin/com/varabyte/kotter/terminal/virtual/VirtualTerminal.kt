@@ -137,10 +137,9 @@ class VirtualTerminal private constructor(
                     viewportBorder = null
                     border = EmptyBorder(5, 5, 5, 5)
 
-                    // If the user never resizes their window, our text will always fit (because we auto-wrap). However,
-                    // the window is resizable, so if a user squishes it horizontally, then it can be useful to show a
-                    // scrollbar in that case.
-                    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+                    // We never need a horizontal scrollbar in Virtual Terminal land. Our text will never go beyond the
+                    // right side of the pane; it will just wrap.
+                    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
                     // The default "as needed" scrollbar eats into existing space after it appears, causing lines that
                     // previously perfectly fit to suddenly end up interrupted and wrapped. Instead, we design a
                     // scrollbar UI that essentially is always there but is invisible (since it shares the same bg
