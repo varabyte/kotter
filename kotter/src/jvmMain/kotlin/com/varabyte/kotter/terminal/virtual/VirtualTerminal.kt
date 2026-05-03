@@ -133,6 +133,10 @@ class VirtualTerminal private constructor(
                     border = EmptyBorder(5, 5, 5, 5)
                     foreground = fgColor.toSwingColor()
                     background = bgColor.toSwingColor()
+                    viewport.background = background
+                    viewportBorder = null
+                    border = EmptyBorder(5, 5, 5, 5)
+
                     // If the user never resizes their window, our text will always fit (because we auto-wrap). However,
                     // the window is resizable, so if a user squishes it horizontally, then it can be useful to show a
                     // scrollbar in that case.
