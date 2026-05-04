@@ -32,22 +32,23 @@ import com.varabyte.kotter.foundation.text.Color as AnsiColor
 @Deprecated("Use com.varabyte.kotter.runtime.terminal.TerminalSize instead")
 typealias TerminalSize = com.varabyte.kotter.runtime.terminal.TerminalSize
 
+// Slightly creamy, less harsh colors.
 private val ANSI_TO_SWING_COLORS = mapOf(
     AnsiColor.BLACK to Color.BLACK,
-    AnsiColor.RED to Color.RED.darker(),
-    AnsiColor.GREEN to Color.GREEN.darker(),
-    AnsiColor.YELLOW to Color.YELLOW.darker(),
-    AnsiColor.BLUE to Color.BLUE.darker(),
-    AnsiColor.MAGENTA to Color.MAGENTA.darker(),
-    AnsiColor.CYAN to Color.CYAN.darker(),
-    AnsiColor.WHITE to Color.LIGHT_GRAY,
-    AnsiColor.BRIGHT_BLACK to Color.DARK_GRAY,
-    AnsiColor.BRIGHT_RED to Color.RED,
-    AnsiColor.BRIGHT_GREEN to Color.GREEN,
-    AnsiColor.BRIGHT_YELLOW to Color.YELLOW,
-    AnsiColor.BRIGHT_BLUE to Color.BLUE,
-    AnsiColor.BRIGHT_MAGENTA to Color.MAGENTA,
-    AnsiColor.BRIGHT_CYAN to Color.CYAN,
+    AnsiColor.RED to Color(0xC65339),
+    AnsiColor.GREEN to Color(0x6AC44B),
+    AnsiColor.YELLOW to Color(0xB8B74A),
+    AnsiColor.BLUE to Color(0x61AFEF),
+    AnsiColor.MAGENTA to Color(0xC678DD),
+    AnsiColor.CYAN to Color(0x56B6C2),
+    AnsiColor.WHITE to Color(0xABB2BF),
+    AnsiColor.BRIGHT_BLACK to Color(0x5C6370),
+    AnsiColor.BRIGHT_RED to Color(0xEC5A3A),
+    AnsiColor.BRIGHT_GREEN to Color(0x77EA51),
+    AnsiColor.BRIGHT_YELLOW to Color(0xEFEF53),
+    AnsiColor.BRIGHT_BLUE to Color(0x82C2FF),
+    AnsiColor.BRIGHT_MAGENTA to Color(0xEC5AF7),
+    AnsiColor.BRIGHT_CYAN to Color(0x78E2EF),
     AnsiColor.BRIGHT_WHITE to Color.WHITE,
 )
 
