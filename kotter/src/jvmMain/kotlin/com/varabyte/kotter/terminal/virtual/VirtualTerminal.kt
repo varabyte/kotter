@@ -65,6 +65,56 @@ internal fun AnsiColor.toSwingColor(): Color = ANSI_TO_SWING_COLORS.getValue(thi
 class VirtualTerminal private constructor(
     private val pane: SwingTerminalPane, override val width: Int, override val height: Int
 ) : Terminal {
+    private class SleekScrollBarUI(
+        private val _trackColor: Color,
+        private val _thumbColor: Color
+    ) : BasicScrollBarUI() {
+        private fun createNonButton() = JButton().apply { preferredSize = Dimension(0, 0) }
+        override fun createDecreaseButton(orientation: Int): JButton = createNonButton()
+        override fun createIncreaseButton(orientation: Int): JButton = createNonButton()
+
+        override fun configureScrollBarColors() {
+            this.trackColor = _trackColor
+            this.thumbColor = _thumbColor
+        }
+
+        override fun paintThumb(g: Graphics, c: JComponent, thumbBounds: Rectangle) {
+            if (thumbBounds.isEmpty || !scrollbar.isEnabled) return
+
+            val g2 = g.create() as Graphics2D
+            try {
+                g2.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+                )
+                g2.color = thumbColor
+
+                val xMargin: Int
+                val yMargin: Int
+                if (scrollbar.orientation == JScrollBar.VERTICAL) {
+                    xMargin = 4
+                    yMargin = 2
+                } else {
+                    check(scrollbar.orientation == JScrollBar.HORIZONTAL)
+                    xMargin = 2
+                    yMargin = 4
+                }
+
+                val x = thumbBounds.x + xMargin
+                val y = thumbBounds.y + yMargin
+                val width = thumbBounds.width - (xMargin * 2)
+                val height = thumbBounds.height - (yMargin * 2)
+
+                // Use an arc width/height equal to the width of the thumb for a perfect oval
+                val arcSize = if (scrollbar.orientation == JScrollBar.VERTICAL) width else height
+
+                g2.fillRoundRect(x, y, width, height, arcSize, arcSize)
+            } finally {
+                g2.dispose()
+            }
+        }
+    }
+
     companion object {
         /**
          * Factory method for constructing a [VirtualTerminal].
@@ -138,6 +188,13 @@ class VirtualTerminal private constructor(
                     viewportBorder = null
                     border = EmptyBorder(5, 5, 5, 5)
 
+                    val trackColor = bgColor.toSwingColor()
+                    val thumbColor = fgColor.toSwingColor().let {
+                        Color(it.red, it.green, it.blue, 100)
+                    }
+                    horizontalScrollBar.setUI(SleekScrollBarUI(trackColor, thumbColor))
+                    verticalScrollBar.setUI(SleekScrollBarUI(trackColor, thumbColor))
+
                     // Our text will autowrap and never go past the right side of the initial terminal window size, so
                     // by default we don't need to show a scrollbar. However, the user can resize the window themselves
                     // and shrink it.
@@ -148,46 +205,6 @@ class VirtualTerminal private constructor(
                     // color as the regular pane) until the thumb appears.
                     if (!hideVerticalScrollbar) {
                         verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-                        verticalScrollBar.setUI(object : BasicScrollBarUI() {
-                            private fun createNonButton() = JButton().apply { preferredSize = Dimension(0, 0) }
-                            override fun createDecreaseButton(orientation: Int): JButton = createNonButton()
-                            override fun createIncreaseButton(orientation: Int): JButton = createNonButton()
-
-                            override fun configureScrollBarColors() {
-                                this.trackColor = bgColor.toSwingColor()
-                                this.thumbColor = fgColor.toSwingColor().let {
-                                    Color(it.red, it.green, it.blue, 100)
-                                }
-                            }
-
-                            override fun paintThumb(g: Graphics, c: JComponent, thumbBounds: Rectangle) {
-                                if (thumbBounds.isEmpty || !scrollbar.isEnabled) return
-
-                                val g2 = g.create() as Graphics2D
-                                try {
-                                    g2.setRenderingHint(
-                                        RenderingHints.KEY_ANTIALIASING,
-                                        RenderingHints.VALUE_ANTIALIAS_ON
-                                    )
-                                    g2.color = thumbColor
-
-                                    val xMargin = 4
-                                    val yMargin = 2
-                                    val x = thumbBounds.x + xMargin
-                                    val y = thumbBounds.y + yMargin
-                                    val width = thumbBounds.width - (xMargin * 2)
-                                    val height = thumbBounds.height - (yMargin * 2)
-
-                                    // Use an arc width/height equal to the width of the thumb for a perfect oval
-                                    val arcSize = width
-
-                                    g2.fillRoundRect(x, y, width, height, arcSize, arcSize)
-
-                                } finally {
-                                    g2.dispose()
-                                }
-                            }
-                        })
                     } else {
                         verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_NEVER
                     }
@@ -385,11 +402,23 @@ private class SwingTerminalPane(
     maxNumLines: Int
 ) : JTextPane() {
 
-    // We handle wrapping outselves (in processAnsiText) so disable Swing's own attempt to do the same thing. (They
-    // aren't aware of Unicode graphemes, pretty sure, and they force newlines in expected places for lines with emoji.)
+    // Our virtual terminal acts like there is always infinite horizontal space and text elements should never be
+    // wrapped. In fact, we handle wrapping outselves (in processAnsiText) so disable Swing's own attempt to do the same
+    // thing. (Swing apparently isn't aware of Unicode graphemes, and they force newlines in unexpected places for lines
+    // with emoji.)
+    // If this class isn't configured correctly, you get very weird horizontal scrollbar behavior, as the way I render
+    // elements doesn't match the model Swing has for those same elements.
     private class NoWrapParagraphView(elem: Element) : ParagraphView(elem) {
         override fun layout(width: Int, height: Int) {
             super.layout(Short.MAX_VALUE.toInt(), height)
+        }
+
+        override fun getFlowSpan(index: Int): Int {
+            return Int.MAX_VALUE
+        }
+
+        override fun getMinimumSpan(axis: Int): Float {
+            return if (axis == X_AXIS) super.getPreferredSpan(axis) else super.getMinimumSpan(axis)
         }
     }
 
