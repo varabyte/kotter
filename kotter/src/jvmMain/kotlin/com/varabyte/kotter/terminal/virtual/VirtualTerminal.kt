@@ -137,9 +137,10 @@ class VirtualTerminal private constructor(
                     viewportBorder = null
                     border = EmptyBorder(5, 5, 5, 5)
 
-                    // We never need a horizontal scrollbar in Virtual Terminal land. Our text will never go beyond the
-                    // right side of the pane; it will just wrap.
-                    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_NEVER
+                    // Our text will autowrap and never go past the right side of the initial terminal window size, so
+                    // by default we don't need to show a scrollbar. However, the user can resize the window themselves
+                    // and shrink it.
+                    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
                     // The default "as needed" scrollbar eats into existing space after it appears, causing lines that
                     // previously perfectly fit to suddenly end up interrupted and wrapped. Instead, we design a
                     // scrollbar UI that essentially is always there but is invisible (since it shares the same bg
@@ -495,6 +496,11 @@ private class SwingTerminalPane(
                 else -> super.getPreferredSpan(axis)
             }
         }
+
+        // There is no resizing our virtual terminal content. The text area always set to a fixed width for the life of
+        // the program. Also, overriding these prevents Swing from using its own non-Unicode/non-Emoji aware logic.
+        override fun getMinimumSpan(axis: Int) = getPreferredSpan(axis)
+        override fun getMaximumSpan(axis: Int) = getPreferredSpan(axis)
     }
 
     private class GridEditorKit(private val textMetrics: TextMetrics, private val cellBounds: Point) : StyledEditorKit() {
