@@ -38,13 +38,13 @@ fun main() = session {
 
     val versionLines =
         """
-              _          ___     
-             /' \       /'___`\   
-            /\_, \     /\_\ /\ \  
-            \/_/\ \    \/_/// /__ 
-               \ \ \  __  // /_\ \
-                \ \_\/\_\/\______/
-                 \/_/\/_/\/_____/ 
+               _         __     
+             /' \      /'__`\   
+            /\_, \    /\_\L\ \  
+            \/_/\ \   \/_/_\_<_ 
+               \ \ \  __/\ \L\ \
+                \ \_\/\_\ \____/
+                 \/_/\/_/\/___/ 
           """.trimIndent().split("\n")
 
     // 'length + 1' for num frames because we also include the empty string as a frame
