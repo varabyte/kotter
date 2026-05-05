@@ -1027,7 +1027,7 @@ out each line at a time.
 
 > [!CAUTION]
 > Note that a line's _width_ may be different from its string length, as many symbols, such as emojis and Asian
-> characters, take up double the space of a regular Latin letter.
+> characters, may be built out of many combined characters or take up double the space of a regular Latin letter.
 
 Here, we use `offscreen` to render the header effect described above:
 
@@ -1430,8 +1430,8 @@ The class that supports this functionality is exposed from the Kotter session vi
 use it as well, anytime you need to measure text that may contain complex Unicode characters.
 
 Kotter's grids and bordered text areas use text metrics so that their borders still line up correctly when containing
-emojis or Asian characters. And the `offscreen` buffer uses it internally and exposes the final render width values via
-the `lineWidths` property.
+emojis or double-width, non-Latin characters. And the `offscreen` buffer uses it internally and exposes the final render
+width values via the `lineWidths` property.
 
 ```kotlin
 class TextMetrics {
@@ -1439,24 +1439,25 @@ class TextMetrics {
   fun graphemeClusterLengthAt(str: CharSequence, index: Int): Int
   fun graphemeStartIndex(str: CharSequence, index: Int): Int
 }
-
-// There is also a `renderWidthOf` method provided that takes a single `Char`
-// value, but the `String` version is recommended as sometimes the render width
-// of a character can change based on surrounding context, which is why we
-// elide it here. But you can use it if you know what you're doing!
 ```
 
-A _grapheme_ is the final symbol that gets rendered to the screen. For basic text, this is often one-to-one with the
-underlying character, but with emoji, that's often not the case. For example, the emoji 👨‍👩‍👧‍👦 is built up from 11
-underlying characters! Use `graphemeCusterLengthAt` with an index pointing at the beginning of a grapheme cluster to get
-this value.
+> [!NOTE]
+> There is also a `renderWidthOf` method provided that takes a single `Char` value, but the `String` version is
+> recommended as sometimes the render width of a character can change based on surrounding context, which is why we
+> elide it here. But you can use it if you know what you're doing!
+
+A _grapheme_ is the final symbol that gets rendered to the screen. A _grapheme cluster_ is the underlying characters
+which are associated with the resulting grapheme. For basic text, the grapheme is often one-to-one with the underlying
+character, but with emoji, that's often not the case. For example, the emoji 👨‍👩‍👧‍👦 is built up from 11 underlying
+characters! Use `graphemeCusterLengthAt` with an index pointing at the beginning of a grapheme cluster to get this
+value.
 
 You can also use `graphemeStartIndex` to return the start of a cluster given any index inside said cluster. It is not
 expected that most users will ever need this, but it can be useful if you want to iterate a Unicode string backwards one
 grapheme at a time.
 
-When a grapheme is rendered, it generally takes up either 1 or 2 spaces in the terminal grid. This is important to know
-when measuring out text to fit inside a container. Use `renderWidthOf` to get this value.
+When a grapheme is rendered, it takes up either 1 or 2 spaces in the terminal grid. This is important to know when
+measuring out how much text will fit inside a container. Use `renderWidthOf` to get this value.
 
 Bringing it all together, if you wanted to iterate a text string that might contain some Unicode, the skeleton of your
 loop would generally look like this:
@@ -1523,6 +1524,18 @@ textMetrics.truncateToWidth("Hello world", maxWidth = 8, TruncateAt.START, ellip
 // Returns: "…o world"
 textMetrics.truncateToWidth("Hello world", maxWidth = 8, TruncateAt.MIDDLE, ellipsis = "…")
 // Returns: "Hell…rld"
+```
+
+Ellipsis presets are provided for your convenience:
+
+```kotlin
+object EllipsisPresets {
+    const val NONE = ""
+    const val SYMBOL = "…"
+    const val PERIODS = "..."
+}
+
+textMetrics.truncateToWidth("Hello world", maxWidth = 8, ellipsis = EllipsisPresets.SYMBOL)
 ```
 
 ## 🎓 Advanced
@@ -1874,14 +1887,15 @@ session(
 
 #### Cross-platform emoji support
 
-Kotter provides an extension artifact, `com.varabyte.kotterx:twemoji`, which provides rendering support for emoji
+Our team produces the `com.varabyte.kotterx:twemoji` artifact, a dependency which provides rendering support for emoji
 characters using SVGs provided by the [Twemoji (Twitter Emoji)](https://github.com/twitter/twemoji) project.
 
-The benefit is a consistent look and feel whether you are using Mac, Windows, or Linux. It also seems to provide more
-complete emoji support than the system fonts do.
+> [!IMPORTANT]
+> Above, we mentioned that the virtual terminal is a JVM-only concept. As such, this dependency is only provided for the
+> JVM target.
 
-Above we mentioned that the virtual terminal is a JVM-only concept. As such, this extension library is only provided for
-the JVM target.
+The benefit of using an emoji library instead of system fonts is a consistent look and feel whether you are using Mac,
+Windows, or Linux. It also seems to provide more complete emoji support than the fonts do.
 
 All you have to do is add a dependency on the Kotterx `twemoji` coordinate in you're build script, and it will
 automatically be picked up by the virtual terminal if it opens up.
@@ -2263,7 +2277,7 @@ scenarios. It can be nice to have a clear separation of the rendering logic from
 Still, for concreteness, let's take a few examples from Mordant's README and show them side-by-side with equivalent
 Kotter implementations:
 
-**Multiple styles**
+**Declaring basic styles**
 ```kotlin
 // Mordant
 val t = Terminal()
@@ -2277,7 +2291,7 @@ section {
 }.run()
 ```
 
-**Nest styles**
+**Nesting styles**
 ```kotlin
 // Mordant
 t.println(white("You ${(blue on yellow)("can ${(black + strikethrough)("nest")} styles")} arbitrarily"))
@@ -2298,7 +2312,7 @@ section {
 }.run()
 ```
 
-**Reuse styles**
+**Reusing styles**
 ```kotlin
 // Mordant
 val style = (bold + white + underline)
@@ -2355,7 +2369,8 @@ t.println("You chose: $response")
 val choices = listOf("small", "large")
 var choice: String = ""
 section {
-    text("Choose a size [${choices.joinToString()}]: "); input(Completions(*choices))
+    text("Choose a size [${choices.joinToString()}]: ")
+    input(Completions(*choices))
 }.runUntilInputEntered {
     onInputEntered {
         if (input !in choices) rejectInput() else choice = input
