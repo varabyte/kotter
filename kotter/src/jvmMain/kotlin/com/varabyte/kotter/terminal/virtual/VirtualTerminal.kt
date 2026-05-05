@@ -376,7 +376,7 @@ class VirtualTerminal private constructor(
             // There should always be two newlines before this final text so this looks good. Append them
             // if they're not there!
             val prependNewlines = "\n".repeat(2 - pane.text.takeLast(2).count { it == '\n' })
-            write("$prependNewlines(This terminal session has ended. Press any key to continue.)")
+            write("$prependNewlines(Application has ended. Press any key to continue.)")
         }
         pane.addKeyListener(object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent?) {
