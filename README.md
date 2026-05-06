@@ -1438,6 +1438,7 @@ class TextMetrics {
   fun renderWidthOf(str: CharSequence): Int
   fun graphemeClusterLengthAt(str: CharSequence, index: Int): Int
   fun graphemeStartIndex(str: CharSequence, index: Int): Int
+  fun isEmoji(codePoint: Int): Boolean
 }
 ```
 
