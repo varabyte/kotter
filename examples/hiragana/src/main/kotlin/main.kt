@@ -3,8 +3,14 @@ import com.varabyte.kotter.foundation.input.multilineInput
 import com.varabyte.kotter.foundation.input.onInputChanged
 import com.varabyte.kotter.foundation.input.onInputCursorChanged
 import com.varabyte.kotter.foundation.input.runUntilInputEntered
+import com.varabyte.kotter.foundation.liveVarOf
 import com.varabyte.kotter.foundation.session
+import com.varabyte.kotter.foundation.text.black
+import com.varabyte.kotter.foundation.text.clearInvert
+import com.varabyte.kotter.foundation.text.invert
+import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.foundation.text.textLine
+import com.varabyte.kotter.foundation.text.underline
 
 // Small characters which can extend some base hiragana characters.
 private val Yoon = setOf('ゃ', 'ゅ', 'ょ')
@@ -215,6 +221,7 @@ private fun Char.isAlphaLetter() = this in 'a'..'z' || this in 'A'..'Z'
 
 fun main() = session {
     section {
+        textLine()
         textLine("English that you type will get converted to hiragana if possible.")
         textLine("For example, \"ha\" will be converted to \"は\".")
         textLine()
@@ -236,10 +243,51 @@ fun main() = session {
         return text.toString()
     }
 
+    var currInput by liveVarOf("")
+    var currInputIndex by liveVarOf(0)
+
     section {
         multilineInput()
+
+        // Render raw version of text, so users who aren't familiar with hiragana can see what's going on
+        if (currInput.isNotEmpty()) {
+            textLine()
+            black(isBright = true) {
+                underline { textLine("Raw Text") }
+                textLine()
+                // Add a final space at the end, since input strings have a secret space at the end so the user can move
+                // the cursor past the end of the text. Here, it gives us a character to invert to reflect the cursor
+                // position in the source text
+                val sourceChars = currInput.toMutableList().also { it.add(' ') }
+                val sourceCharGroup = StringBuilder()
+                var sourceCharsRendered = 0
+                while (sourceChars.isNotEmpty()) {
+                    // Search for small kana which cause text to get grouped, like っぴょ, っぴ, and ぴょ
+                    sourceCharGroup.append(sourceChars.removeFirst())
+                    if (sourceCharGroup[0] == Sokuon && sourceChars.isNotEmpty()) {
+                        sourceCharGroup.append(sourceChars.removeFirst())
+                    }
+                    if (sourceChars.isNotEmpty() && sourceChars.first() in Yoon) {
+                        sourceCharGroup.append(sourceChars.removeFirst())
+                    }
+
+                    val sourceCharStr = sourceCharGroup.toString()
+                    val shouldInvert = sourceCharsRendered == currInputIndex
+                    if (shouldInvert) invert()
+                    // Add a space at the end of each line, so we show an invert if the cursor happens to be on the
+                    // newline.
+                    text(HiraganaToRomajiMap[sourceCharStr] ?: if (sourceCharStr != "\n") sourceCharStr else " \n")
+                    if (shouldInvert) clearInvert()
+
+                    sourceCharsRendered += sourceCharGroup.length
+                    sourceCharGroup.clear()
+                }
+            }
+        }
     }.runUntilInputEntered {
         onInputCursorChanged {
+            currInputIndex = index // Set before early aborts JUST in case; otherwise, we'll update it again later
+
             if (index !in input.indices) return@onInputCursorChanged
             val curr = input.getOrNull(index) ?: return@onInputCursorChanged
 
@@ -275,6 +323,8 @@ fun main() = session {
                     cursorWidth++
                 }
             }
+
+            currInputIndex = index
         }
 
         onInputChanged {
@@ -326,6 +376,9 @@ fun main() = session {
                     // Default behavior is fine
                 }
             }
+
+            currInput = input
+            currInputIndex = index
         }
     }
 }
