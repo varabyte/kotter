@@ -80,8 +80,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.varabyte.kotter:kotter-jvm:1.3.0")
-    testImplementation("com.varabyte.kotterx:kotter-test-support-jvm:1.3.0")
+    implementation("com.varabyte.kotter:kotter:1.3.0")
+    testImplementation("com.varabyte.kotterx:kotter-test-support:1.3.0")
 }
 
 application {
@@ -1908,8 +1908,8 @@ plugins {
 }
 
 dependencies {
-  implementation("com.varabyte.kotter:kotter-jvm:1.3.0")
-  implementation("com.varabyte.kotterx:twemoji-jvm:1.3.0")
+  implementation("com.varabyte.kotter:kotter:1.3.0")
+  implementation("com.varabyte.kotterx:twemoji:1.3.0")
 }
 
 // Mulitplatform project
