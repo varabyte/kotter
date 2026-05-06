@@ -182,6 +182,19 @@ class TextMetricsTest {
             assertThat(tm.truncateToWidth("xyz", 0)).isEqualTo("")
             assertThat(tm.truncateToWidth("xyz", 0, ellipsis = "...")).isEqualTo("")
         }
+    }
 
+    @Test
+    fun `isEmoji works`() {
+        val tm = TextMetrics()
+
+        assertThat(tm.isEmoji('a'.code)).isFalse()
+        assertThat(tm.isEmoji("語")).isFalse()
+
+        assertThat(tm.isEmoji("\uD83D\uDE00")).isTrue() // 😀
+        assertThat(tm.isEmoji("\uD83D\uDC69\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC67")).isTrue() // 👩‍👩‍👧‍👧
+        assertThat(tm.isEmoji("\uD83C\uDDFA\uD83C\uDDF8")).isTrue() // 🇺🇸
+        assertThat(tm.isEmoji("⚠\uFE0F")).isTrue() // ⚠️
+        assertThat(tm.isEmoji("⌛")).isTrue()
     }
 }

@@ -56,12 +56,12 @@ class TextMetrics {
         val len = str.length
         if (index >= len) return 0
 
-        val cp = codePointAt(str, index)
+        val cp = str.codePointAt(index)
         var pos = index + charCount(cp)
 
         // Regional indicator pairs form a single grapheme cluster (flag)
         if (isRegionalIndicator(cp) && pos < len) {
-            val nextCp = codePointAt(str, pos)
+            val nextCp = str.codePointAt(pos)
             if (isRegionalIndicator(nextCp)) {
                 pos += charCount(nextCp)
             }
@@ -70,12 +70,12 @@ class TextMetrics {
 
         // Consume grapheme cluster extensions
         while (pos < len) {
-            val ncp = codePointAt(str, pos)
+            val ncp = str.codePointAt(pos)
             if (ncp == ZWJ_CODEPOINT) {
                 val zwjSize = charCount(ncp)
                 if (pos + zwjSize < len) {
                     pos += zwjSize
-                    pos += charCount(codePointAt(str, pos))
+                    pos += charCount(str.codePointAt(pos))
                 } else break
             } else if (wcwidth(ncp) == 0 && ncp >= FIRST_PRINTABLE_CHAR_CODEPOINT) {
                 // Zero-width extending characters: combining marks,
@@ -118,7 +118,7 @@ class TextMetrics {
         // Look backward for "continuation" characters.
         // We want to skip over anything that isn't a "base" character.
         while (pos > 0) {
-            val cp = codePointAt(str, pos)
+            val cp = str.codePointAt(pos)
 
             // If the current character is a "follower" (ZWJ, combining mark, etc.),
             // we must keep looking back for its parent.
@@ -143,12 +143,12 @@ class TextMetrics {
         // If we are at an RI, we need to count how many RIs are immediately behind us.
         // An even number of RIs behind us means WE are the start of a new pair.
         // An odd number means we are the second half of a pair started before us.
-        val currentCp = codePointAt(str, pos)
+        val currentCp = str.codePointAt(pos)
         if (isRegionalIndicator(currentCp)) {
             var riCount = 0
             var lookback = pos - 2
             while (lookback >= 0) {
-                val prevCp = codePointAt(str, lookback)
+                val prevCp = str.codePointAt(lookback)
                 if (isRegionalIndicator(prevCp)) {
                     riCount++
                     lookback -= 2
@@ -217,7 +217,7 @@ fun TextMetrics.renderWidthOf(str: CharSequence, startIndex: Int, endIndex: Int)
  * Convenience version of `isEmoji` that works with raw strings instead of code points..
  */
 fun TextMetrics.isEmoji(str: CharSequence, index: Int = 0): Boolean {
-    return isEmoji(codePointAt(str, index))
+    return isEmoji(str.codePointAt(index))
 }
 
 enum class TruncateAt {
@@ -940,13 +940,13 @@ private fun bisearch(ucs: Int, table: Array<Interval>): Boolean {
  * Scans the cluster for Variation Selectors that override width.
  */
 private fun calculateClusterWidth(cs: CharSequence, index: Int, size: Int): Int {
-    val cp = codePointAt(cs, index)
+    val cp = cs.codePointAt(index)
     val w = wcwidth(cp)
 
     var pos = index + charCount(cp)
     val end = index + size
     while (pos < end) {
-        val ncp = codePointAt(cs, pos)
+        val ncp = cs.codePointAt(pos)
         if (ncp == 0xFE0F) return 2 // VS16: Emoji presentation
         if (ncp == 0xFE0E) return 1 // VS15: Text presentation
         pos += charCount(ncp)
@@ -960,7 +960,8 @@ private fun calculateClusterWidth(cs: CharSequence, index: Int, size: Int): Int 
 private const val MIN_SUPPLEMENTARY_CODE_POINT = 0x10000
 
 // See java.lang.Character.codePointAt
-private fun codePointAt(cs: CharSequence, index: Int): Int {
+fun CharSequence.codePointAt(index: Int): Int {
+    val cs = this
     val high = cs[index]
     if (high.isHighSurrogate() && index + 1 < cs.length) {
         val low = cs[index + 1]
