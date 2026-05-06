@@ -42,7 +42,7 @@ private val ANSI_TO_SWING_COLORS = mapOf(
     AnsiColor.MAGENTA to Color(0xC678DD),
     AnsiColor.CYAN to Color(0x399BA8),
     AnsiColor.WHITE to Color(0xAAAAAA),
-    AnsiColor.BRIGHT_BLACK to Color(0x3E4757),
+    AnsiColor.BRIGHT_BLACK to Color(0x666666),
     AnsiColor.BRIGHT_RED to Color(0xEC5A3A),
     AnsiColor.BRIGHT_GREEN to Color(0x77EA51),
     AnsiColor.BRIGHT_YELLOW to Color(0xEFEF53),
