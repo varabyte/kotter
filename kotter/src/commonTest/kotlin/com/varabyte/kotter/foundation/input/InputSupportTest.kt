@@ -277,6 +277,29 @@ class InputSupportTest {
     }
 
     @Test
+    fun `can intercept cursor position to manipulate it`() = testSession { terminal ->
+        section {
+            input(initialText = "Hello")
+        }.run {
+            onInputCursorChanged {
+                assertThat(input).isEqualTo("Hello")
+                assertThat(index).isEqualTo(4) // o
+                cursorWidth = 2
+
+                index -= 2
+            }
+
+            // At this point, cursor is PAST the o
+            // NOTE: `onInputCursorChanged` moves left an additional two spaces
+            terminal.sendCode(Codes.Keys.Left)
+
+            blockUntilRenderMatches(terminal) {
+                text("He"); invert(); text("ll"); clearInvert(); text("o ")
+            }
+        }
+    }
+
+    @Test
     fun `can delete input in place using the delete key`() = testSession { terminal ->
         lateinit var typed: String
 
