@@ -61,10 +61,10 @@ class SystemTerminal : Terminal {
         }
 
     override val width: Int
-        get() = terminal.width
+        get() = terminal.columns
 
     override val height: Int
-        get() = terminal.height
+        get() = terminal.rows
 
     override fun write(text: String) {
         terminal.writer().print(text)
