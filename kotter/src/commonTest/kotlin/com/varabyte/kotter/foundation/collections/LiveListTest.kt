@@ -1,6 +1,7 @@
 package com.varabyte.kotter.foundation.collections
 
 import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.platform.internal.collections.removeIf
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.foundation.*
@@ -125,6 +126,94 @@ class LiveListTest {
             "List iterator (reverse): 6, 5, 4, 3, 2, 1",
             "${Codes.Sgr.Reset}",
         ).inOrder()
+
+        // Test that listIterator can remove and set
+        run {
+            terminal.clear()
+
+            section {
+                textLine(nums.joinToString(", "))
+            }.run {
+                nums.withWriteLock {
+                    // Identical to nums.removeIf { it % 2 == 0 }
+                    with(listIterator()) {
+                        while (hasNext()) {
+                            val num = next()
+                            if (num % 2 == 0) remove()
+                        }
+                    }
+                }
+            }
+
+            assertThat(terminal.lines()).containsExactly(
+                "1, 2, 3, 4, 5, 6",
+                "${Codes.Sgr.Reset}"
+                        + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}"
+                        + "\r${Codes.Erase.CursorToLineEnd}"
+                        + "1, 3, 5",
+                "${Codes.Sgr.Reset}",
+            ).inOrder()
+
+            var i = 9
+            with (nums.listIterator()) {
+                while (hasNext()) {
+                    next()
+                    set(i--)
+                    add(i--)
+                }
+            }
+
+            terminal.clear()
+            section {
+                textLine(nums.joinToString(", "))
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "9, 8, 7, 6, 5, 4",
+                "${Codes.Sgr.Reset}",
+            ).inOrder()
+        }
+
+        // Test list iterator index methods
+        run {
+            var i = 0
+            with (nums.listIterator()) {
+                while (hasNext()) {
+                    assertThat(previousIndex()).isEqualTo(i - 1)
+                    assertThat(nextIndex()).isEqualTo(i)
+                    ++i
+                    next()
+                }
+            }
+            assertThat(i).isEqualTo(nums.size)
+        }
+
+        // Test that iterator can remove
+        run {
+            terminal.clear()
+
+            var i = 0
+            with (nums.iterator()) {
+                while (hasNext()) {
+                    next()
+                    if (i % 2 == 1) {
+                        remove()
+                    }
+                    ++i
+                }
+            }
+
+            terminal.clear()
+            section {
+                textLine(nums.joinToString(", "))
+            }.run()
+
+            assertThat(terminal.lines()).containsExactly(
+                "9, 7, 5",
+                "${Codes.Sgr.Reset}",
+            ).inOrder()
+        }
+
     }
 
     @Test

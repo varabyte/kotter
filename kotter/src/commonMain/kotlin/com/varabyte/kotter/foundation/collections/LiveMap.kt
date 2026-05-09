@@ -25,6 +25,159 @@ import com.varabyte.kotter.runtime.*
  */
 @ThreadSafe
 class LiveMap<K, V> internal constructor(private val session: Session, vararg elements: Pair<K, V>) : MutableMap<K, V> {
+
+    private inner class SafeMutableIterator<T>(private val wrapped: MutableIterator<T>) : MutableIterator<T> {
+        override fun remove() {
+            write { wrapped.remove() }
+        }
+
+        override fun next(): T {
+            return read { wrapped.next() }
+        }
+
+        override fun hasNext(): Boolean {
+            return read { wrapped.hasNext() }
+        }
+    }
+
+    @Suppress("ConvertArgumentToSet")
+    private inner class SafeMutableEntries<K, V>(private val wrapped: MutableSet<MutableMap.MutableEntry<K, V>>): MutableSet<MutableMap.MutableEntry<K, V>> {
+        override fun iterator(): MutableIterator<MutableMap.MutableEntry<K, V>> {
+            return SafeMutableIterator(wrapped.iterator())
+        }
+
+        override fun add(element: MutableMap.MutableEntry<K, V>): Boolean {
+            throw UnsupportedOperationException() // Kotlin mutableMap entries does not support addition
+        }
+
+        override fun remove(element: MutableMap.MutableEntry<K, V>): Boolean {
+            return write { wrapped.remove(element) }
+        }
+
+        override fun addAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean {
+            throw UnsupportedOperationException() // Kotlin mutableMap entries does not support addition
+        }
+
+        override fun removeAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean {
+            return write { wrapped.removeAll(elements) }
+        }
+
+        override fun retainAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean {
+            return write { wrapped.retainAll(elements) }
+        }
+
+        override fun clear() {
+            write { wrapped.clear() }
+        }
+
+        override val size: Int
+            get() = read { wrapped.size }
+
+        override fun isEmpty(): Boolean {
+            return read { wrapped.isEmpty()}
+        }
+
+        override fun contains(element: MutableMap.MutableEntry<K, V>): Boolean {
+            return read { wrapped.contains(element) }
+        }
+
+        override fun containsAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean {
+            return read { wrapped.containsAll(elements) }
+        }
+    }
+
+    @Suppress("ConvertArgumentToSet")
+    private inner class SafeMutableSet<T>(private val wrapped: MutableSet<T>): MutableSet<T> {
+        override fun iterator(): MutableIterator<T> {
+            return SafeMutableIterator(wrapped.iterator())
+        }
+
+        override fun add(element: T): Boolean {
+            throw UnsupportedOperationException() // Kotlin mutableMap keys does not support addition
+        }
+
+        override fun remove(element: T): Boolean {
+            return write { wrapped.remove(element) }
+        }
+
+        override fun addAll(elements: Collection<T>): Boolean {
+            throw UnsupportedOperationException() // Kotlin mutableMap keys does not support addition
+        }
+
+        override fun removeAll(elements: Collection<T>): Boolean {
+            return write { wrapped.removeAll(elements) }
+        }
+
+        override fun retainAll(elements: Collection<T>): Boolean {
+            return write { wrapped.retainAll(elements) }
+        }
+
+        override fun clear() {
+            write { wrapped.clear() }
+        }
+
+        override val size: Int
+            get() = read { wrapped.size }
+
+        override fun isEmpty(): Boolean {
+            return read { wrapped.isEmpty() }
+        }
+
+        override fun contains(element: T): Boolean {
+            return read { wrapped.contains(element) }
+        }
+
+        override fun containsAll(elements: Collection<T>): Boolean {
+            return read { wrapped.containsAll(elements) }
+        }
+    }
+
+    @Suppress("ConvertArgumentToSet")
+    private inner class SafeMutableCollection<T>(private val wrapped: MutableCollection<T>): MutableCollection<T> {
+        override fun iterator(): MutableIterator<T> {
+            return SafeMutableIterator(wrapped.iterator())
+        }
+
+        override fun add(element: T): Boolean {
+            return write { wrapped.add(element) }
+        }
+
+        override fun remove(element: T): Boolean {
+            return write { wrapped.remove(element) }
+        }
+
+        override fun addAll(elements: Collection<T>): Boolean {
+            return write { wrapped.addAll(elements) }
+        }
+
+        override fun removeAll(elements: Collection<T>): Boolean {
+            return write { wrapped.removeAll(elements) }
+        }
+
+        override fun retainAll(elements: Collection<T>): Boolean {
+            return write { wrapped.retainAll(elements) }
+        }
+
+        override fun clear() {
+            return write { wrapped.clear() }
+        }
+
+        override val size: Int
+            get() = read { wrapped.size }
+
+        override fun isEmpty(): Boolean {
+            return read { wrapped.isEmpty() }
+        }
+
+        override fun contains(element: T): Boolean {
+            return read { wrapped.contains(element) }
+        }
+
+        override fun containsAll(elements: Collection<T>): Boolean {
+            return read { wrapped.containsAll(elements) }
+        }
+    }
+
     // LiveVar already has a lot of nice logic for updating the render block as necessary, so we delegate to it to
     // avoid reimplementing the logic here
     private var modifyCountVar by session.liveVarOf(0)
@@ -36,6 +189,7 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
     private fun <R> read(block: () -> R): R {
         return withReadLock {
             // Triggers LiveVar.getValue but not setValue (which, here, aborts early because value is the same)
+            @Suppress("SelfAssignment")
             modifyCountVar = modifyCountVar
             block()
         }
@@ -72,14 +226,10 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
     override fun containsValue(value: V) = read { delegateMap.containsValue(value) }
     override fun get(key: K) = read { delegateMap[key] }
 
-
-    // Technically mutable methods that we treat as immutable
-    // This is a downgrade for what the MutableMap API is supposed to expose, but it's a pain to implement this
-    // correctly in a way that ensures we won't do a ton of unecessary rerendering of sections. Most of the time users
-    // are using these fields for read only purposes.
-    override val entries get() = read { delegateMap.toMutableMap().entries }
-    override val keys get() = read { delegateMap.toMutableMap().keys }
-    override val values get() = read { delegateMap.toMutableMap().values }
+    // Access to inner contents
+    override val entries: MutableSet<MutableMap.MutableEntry<K, V>> get() = SafeMutableEntries(delegateMap.entries)
+    override val keys: MutableSet<K> get() = SafeMutableSet(delegateMap.keys)
+    override val values: MutableCollection<V> get() = SafeMutableCollection(delegateMap.values)
 
     // Mutable methods
     override fun clear() = write { delegateMap.clear() }

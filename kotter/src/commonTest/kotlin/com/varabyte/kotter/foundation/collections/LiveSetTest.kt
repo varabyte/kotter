@@ -85,6 +85,24 @@ class LiveSetTest {
             "Iterator: 1, 2, 3, 4, 5, 6${Codes.Sgr.Reset}",
             "",
         ).inOrder()
+
+        // Also, check that iterator remove works
+        terminal.clear()
+        with(nums.iterator()) {
+            while (hasNext()) {
+                val next = next()
+                if (next % 2 == 0) remove()
+            }
+        }
+
+        section {
+            textLine(nums.joinToString(", "))
+        }.run()
+
+        assertThat(terminal.lines()).containsExactly(
+            "1, 3, 5",
+            "${Codes.Sgr.Reset}",
+        ).inOrder()
     }
 
     @Test
