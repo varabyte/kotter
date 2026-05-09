@@ -26,6 +26,21 @@ import com.varabyte.kotter.runtime.*
  */
 @ThreadSafe
 class LiveSet<T> internal constructor(private val session: Session, vararg elements: T) : MutableSet<T> {
+
+    private inner class SafeMutableIterator<T>(private val wrapped: MutableIterator<T>) : MutableIterator<T> {
+        override fun remove() {
+            write { wrapped.remove() }
+        }
+
+        override fun next(): T {
+            return read { wrapped.next() }
+        }
+
+        override fun hasNext(): Boolean {
+            return read { wrapped.hasNext() }
+        }
+    }
+
     // LiveVar already has a lot of nice logic for updating the render block as necessary, so we delegate to it to
     // avoid reimplementing the logic here
     private var modifyCountVar by session.liveVarOf(0)
@@ -37,6 +52,7 @@ class LiveSet<T> internal constructor(private val session: Session, vararg eleme
     private fun <R> read(block: () -> R): R {
         return withReadLock {
             // Triggers LiveVar.getValue but not setValue (which, here, aborts early because value is the same)
+            @Suppress("SelfAssignment")
             modifyCountVar = modifyCountVar
             block()
         }
@@ -73,8 +89,7 @@ class LiveSet<T> internal constructor(private val session: Session, vararg eleme
     override fun contains(element: T) = read { delegateSet.contains(element) }
 
     // Iterators
-    // Note: We return iterators to the copy of this set, so we don't have to worry about another thread clobbering it
-    override fun iterator() = read { delegateSet.toMutableSet().iterator() }
+    override fun iterator(): MutableIterator<T> = SafeMutableIterator(delegateSet.iterator())
 
     // Mutable methods
     override fun add(element: T) = write { delegateSet.add(element) }

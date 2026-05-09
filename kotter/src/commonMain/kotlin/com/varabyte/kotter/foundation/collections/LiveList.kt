@@ -22,10 +22,63 @@ import com.varabyte.kotter.runtime.*
  * }
  * ```
  *
- * This class is thread safe and expected to be accessed across different threads.
+ * This class is thread-safe and expected to be accessed across different threads.
  */
 @ThreadSafe
 class LiveList<T> internal constructor(private val session: Session, vararg elements: T) : MutableList<T> {
+
+    private inner class SafeMutableIterator(private val wrapped: MutableIterator<T>) : MutableIterator<T> {
+        override fun remove() {
+            write { wrapped.remove() }
+        }
+
+        override fun next(): T {
+            return read { wrapped.next() }
+        }
+
+        override fun hasNext(): Boolean {
+            return read { wrapped.hasNext() }
+        }
+    }
+
+    private inner class SafeMutableListIterator(private val wrapped: MutableListIterator<T>) : MutableListIterator<T> {
+        override fun remove() {
+            write { wrapped.remove() }
+        }
+
+        override fun next(): T {
+            return read { wrapped.next() }
+        }
+
+        override fun hasNext(): Boolean {
+            return read { wrapped.hasNext() }
+        }
+
+        override fun set(element: T) {
+            write { wrapped.set(element) }
+        }
+
+        override fun add(element: T) {
+            write { wrapped.add(element) }
+        }
+
+        override fun hasPrevious(): Boolean {
+            return read { wrapped.hasPrevious() }
+        }
+
+        override fun previous(): T {
+            return read { wrapped.previous() }
+        }
+
+        override fun nextIndex(): Int {
+            return read { wrapped.nextIndex()}
+        }
+
+        override fun previousIndex(): Int {
+            return read { wrapped.previousIndex() }
+        }
+    }
+
     // LiveVar already has a lot of nice logic for updating the render block as necessary, so we delegate to it to
     // avoid reimplementing the logic here
     private var modifyCountVar by session.liveVarOf(0)
@@ -37,6 +90,7 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
     private fun <R> read(block: () -> R): R {
         return withReadLock {
             // Triggers LiveVar.getValue but not setValue (which, here, aborts early because value is the same)
+            @Suppress("SelfAssignment")
             modifyCountVar = modifyCountVar
             block()
         }
@@ -78,11 +132,9 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
         read { delegateList.subList(fromIndex, toIndex) }
 
     // Iterators
-    // Note: We return iterators to the copy of a list, so we don't have to worry about another thread clobbering it
-    override fun iterator(): MutableIterator<T> = read { delegateList.toMutableList() }.iterator()
-    override fun listIterator(): MutableListIterator<T> = read { delegateList.toMutableList() }.listIterator()
-    override fun listIterator(index: Int): MutableListIterator<T> = read { delegateList.toMutableList() }
-        .listIterator(index)
+    override fun iterator(): MutableIterator<T> = SafeMutableIterator(delegateList.iterator())
+    override fun listIterator(): MutableListIterator<T> = SafeMutableListIterator(delegateList.listIterator())
+    override fun listIterator(index: Int): MutableListIterator<T> = SafeMutableListIterator(delegateList.listIterator(index))
 
     // Mutable methods
     override fun add(element: T): Boolean = write { delegateList.add(element) }
