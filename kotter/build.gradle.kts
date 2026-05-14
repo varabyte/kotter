@@ -31,9 +31,6 @@ kotlin {
 
             // For GuardedBy concurrency annotation
             implementation(libs.jcip.annotations)
-
-            // TODO: Move to a different module
-            implementation(libs.jsvg)
         }
     }
 }
