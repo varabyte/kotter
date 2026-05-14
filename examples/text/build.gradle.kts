@@ -1,7 +1,10 @@
+import org.gradle.kotlin.dsl.dependencies
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
     application
 }
+
 
 group = "com.varabyte.kotter"
 version = "1.0-SNAPSHOT"
@@ -10,6 +13,10 @@ dependencies {
     implementation(libs.kotter)
     implementation(libs.kotterx.twemoji)
     implementation(libs.kotlinx.coroutines)
+}
+
+java {
+    modularity.inferModulePath.set(true)
 }
 
 application {
@@ -28,7 +35,11 @@ application {
         // See also: https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/doc-files/RestrictedMethods.html
         // And also: https://github.com/jline/jline3/issues/1067
         "-XX:+IgnoreUnrecognizedVMOptions",
-        "--enable-native-access=ALL-UNNAMED",
+        "--enable-native-access=org.jline.nativ",
+        "--add-modules=jdk.unsupported",
+        "--add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED",
+        "--add-reads=kotlin.stdlib=kotlinx.coroutines.core"
     )
-    mainClass.set("MainKt")
+    mainModule.set("com.varabyte.kotter.examples.text")
+    mainClass.set("com.varabyte.kotter.examples.text.MainKt")
 }

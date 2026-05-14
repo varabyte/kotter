@@ -7,6 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 plugins {
     id("org.jetbrains.kotlin.multiplatform")
     id("com.vanniktech.maven.publish")
+    id("module-info-support")
 }
 
 abstract class KotterPublicationConfig {

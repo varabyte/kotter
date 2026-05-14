@@ -19,7 +19,7 @@ class TwemojiRenderer : EmojiRenderer {
     private val cache = mutableMapOf<String, SVGDocument?>()
 
     private val zipFile by lazy {
-        val stream = EmojiRenderer::class.java.getResourceAsStream("/twemoji-svg.zip")
+        val stream = TwemojiRenderer::class.java.getResourceAsStream("/twemoji-svg.zip")
             ?: throw IllegalStateException("Emoji resource ZIP not found")
 
         // ZipFile constructor needs an actual file on disk, not bytes embedded in a resource stream

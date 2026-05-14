@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="25" />
+    <bytecodeTargetLevel target="25">
+      <module name="kotter.kotter.main" target="11" />
+      <module name="kotter.kotter.test" target="11" />
+      <module name="kotter.kotterx.kotter-test-support.main" target="11" />
+      <module name="kotter.kotterx.kotter-test-support.test" target="11" />
+      <module name="kotter.kotterx.twemoji.main" target="11" />
+      <module name="kotter.kotterx.twemoji.test" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="kotter.kotter" options="--patch-module com.varabyte.kotter=$PROJECT_DIR$/../kotter/build/classes/kotlin/jvm/main" />
+      <module name="kotter.kotter.jvmMain" options="--patch-module com.varabyte.kotter=$PROJECT_DIR$/../kotter/build/classes/kotlin/jvm/main" />
+      <module name="kotter.kotter.jvmTest" options="--patch-module com.varabyte.kotter=$PROJECT_DIR$/../kotter/build/classes/kotlin/jvm/main" />
+      <module name="kotter.kotterx.kotter-test-support" options="--patch-module com.varabyte.kotterx.test.support=$PROJECT_DIR$/../kotterx/kotter-test-support/build/classes/kotlin/jvm/main" />
+      <module name="kotter.kotterx.kotter-test-support.jvmMain" options="--patch-module com.varabyte.kotterx.test.support=$PROJECT_DIR$/../kotterx/kotter-test-support/build/classes/kotlin/jvm/main" />
+      <module name="kotter.kotterx.kotter-test-support.jvmTest" options="--patch-module com.varabyte.kotterx.test.support=$PROJECT_DIR$/../kotterx/kotter-test-support/build/classes/kotlin/jvm/main" />
+      <module name="kotter.kotterx.twemoji" options="--patch-module com.varabyte.kotterx.twemoji=$PROJECT_DIR$/../kotterx/twemoji/build/classes/kotlin/jvm/main" />
+      <module name="kotter.kotterx.twemoji.jvmMain" options="--patch-module com.varabyte.kotterx.twemoji=$PROJECT_DIR$/../kotterx/twemoji/build/classes/kotlin/jvm/main" />
+      <module name="kotter.kotterx.twemoji.jvmTest" options="--patch-module com.varabyte.kotterx.twemoji=$PROJECT_DIR$/../kotterx/twemoji/build/classes/kotlin/jvm/main" />
+    </option>
   </component>
 </project>

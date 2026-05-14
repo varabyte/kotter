@@ -1,0 +1,1 @@
+An example that demonstrates all the various text effect methods.

@@ -5,6 +5,25 @@ import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.runtime.*
 
 fun main() = session {
+
+    val testList = liveListOf('A'..'Z')
+    section {
+        textLine("List (${testList.size}):")
+        testList.take(10).forEach {
+            textLine("* $it")
+        }
+        if (testList.size > 10) {
+            textLine("...")
+        }
+    }.runUntilKeyPressed(Keys.Q) {
+        onKeyPressed {
+            when (key) {
+                Keys.Up -> testList.removeIf { it == testList.firstOrNull() }
+            }
+        }
+    }
+
+
     // Scenario #1 - trivial but common case. A section exists to request a single input from the user
     run {
         var wantsToLearn by liveVarOf(false)
