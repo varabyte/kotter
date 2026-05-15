@@ -2,7 +2,7 @@
 kotter = "1.3.1-SNAPSHOT"
 #------------------------
 dokka = "2.0.0"
-jline = "4.1.0"
+jline = "4.3.1"
 jsvg = "2.0.0"
 kotlinx-coroutines = "1.7.3"
 kotlin = "2.2.0"
@@ -15,6 +15,7 @@ jcip-annotations = { module = "net.jcip:jcip-annotations", version = "1.0" }
 jetbrains-dokka-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 jline-terminal-core = { module = "org.jline:jline-terminal", version.ref = "jline" }
 jline-terminal-jni = { module = "org.jline:jline-terminal-jni", version.ref = "jline" }
+jline-terminal-ffm = { module = "org.jline:jline-terminal-ffm", version.ref = "jline" }
 jsvg = { module = "com.github.weisj:jsvg", version.ref = "jsvg" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-multiplatform-plugin = { module = "org.jetbrains.kotlin.multiplatform:org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
@@ -29,4 +30,6 @@ kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref 
 vanniktech-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-publish" }
 
 [bundles]
-jline = ["jline-terminal-core", "jline-terminal-jni"]
+# jline will pick the appropriate one
+# ffm for JDK22+, JNI for older. A clunky system fallback is available if all providers fail.
+jline-terminal-providers = ["jline-terminal-jni", "jline-terminal-ffm"]

@@ -27,7 +27,8 @@ kotlin {
 
         jvmMain.dependencies {
             // For system terminal implementation
-            implementation(libs.bundles.jline)
+            implementation(libs.jline.terminal.core)
+            runtimeOnly(libs.bundles.jline.terminal.providers)
 
             // For GuardedBy concurrency annotation
             implementation(libs.jcip.annotations)
