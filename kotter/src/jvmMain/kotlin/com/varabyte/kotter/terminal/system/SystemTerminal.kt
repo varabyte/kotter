@@ -31,7 +31,7 @@ class SystemTerminal : Terminal {
         .system(true)
         // Don't use JLine's virtual terminal - use ours! Because this is false, this builder will throw an exception
         // if the current terminal environment doesn't support standards we require. We can listen for that exception to
-        // either halt the problem or start up a virtual terminal instead.
+        // either halt the program or start up a virtual terminal instead.
         .dumb(false)
         .build().apply {
             // Swallow keypresses - instead, we will handle them
