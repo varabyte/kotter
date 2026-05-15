@@ -601,16 +601,16 @@ private fun ConcurrentScopedData.prepareInput(
                                 fun handleCursorIndexChanged() {
                                     cursorWidth = 1
                                     get(InputCursorChangedCallbackKey) {
-                                        val OnInputCursorChangedScope = OnInputCursorChangedScope(
+                                        val onInputCursorChangedScope = OnInputCursorChangedScope(
                                             id,
                                             input = text,
                                             index = cursorIndex,
                                             cursorWidth = cursorWidth
                                         )
-                                        this.invoke(OnInputCursorChangedScope)
+                                        this.invoke(onInputCursorChangedScope)
 
-                                        cursorIndex = OnInputCursorChangedScope.index.coerceIn(0..text.length)
-                                        cursorWidth = OnInputCursorChangedScope.cursorWidth
+                                        cursorIndex = onInputCursorChangedScope.index.coerceIn(0..text.length)
+                                        cursorWidth = onInputCursorChangedScope.cursorWidth
                                     }
                                 }
 
