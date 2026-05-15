@@ -13,20 +13,14 @@ dependencies {
 
 application {
     applicationDefaultJvmArgs = listOf(
-        // JDK24 started reporting warnings for libraries that use restricted native methods, at least one which Kotter
-        // uses indirectly (via jline/jansi). It looks like this:
-        //
-        // WARNING: A restricted method in java.lang.System has been called
-        // WARNING: java.lang.System::loadLibrary has been called by ...
-        // WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
-        // WARNING: Restricted methods will be blocked in a future release unless native access is enabled
-        //
-        // The best solution we have for now is to disable the warning by explicitly enabling access.
-        // We also suggest the IgnoreUnrecognizedVMOptions flag here to allow kotter applications to be able to compile
-        // with JDKs older than JDK24. You can remove it if you are intentionally using JDK24+.
+        "-XX:+IgnoreUnrecognizedVMOptions", // Unnecessary if you are building with JDK23+
+        // Starting in JDK24, the Java runtime is getting a bit more strict about what code is allowed to make native
+        // calls, which jline (a major dependency used by kotter) does. This is related to JPMS, the Java module system,
+        // and you are supposed to whitelist modules that you grant heightened privileges for. Unfortunately, JPMS
+        // doesn't play too well with Kotlin, and it's not straightforward or even that beneficial to modularize your
+        // own application. For now, the easiest recommendation is to just disable the whole system.
         // See also: https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/doc-files/RestrictedMethods.html
-        // And also: https://github.com/jline/jline3/issues/1067
-        "-XX:+IgnoreUnrecognizedVMOptions",
+        // See also: https://github.com/varabyte/kotter/issues/152
         "--enable-native-access=ALL-UNNAMED",
     )
     mainClass.set("com.varabyte.kotter.examples.extend.MainKt")
