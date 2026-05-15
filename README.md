@@ -1211,7 +1211,7 @@ section {
 > instead of `Cols(6, 6)` which we used above, you could also call `Cols.uniform(2, width = 6)`. It is a bit more
 > verbose but may express intention more clearly.
 
-You can check out the [grid example](examples/grid/src/main/kotlin/main.kt) for a more comprehensive example.
+You can check out the [grid example](examples/grid/src/main/kotlin/com/varabyte/kotter/examples/grid/main.kt) for a more comprehensive example.
 
 #### Fit- and star-sized columns
 
@@ -2215,7 +2215,7 @@ Kotter.
 
 * Mosaic doesn't support input well yet (at the time of writing this README, but maybe this has changed in the future).
   For example, compare [Mosaic](https://github.com/JakeWharton/mosaic/blob/fd213711ce2b828a6436a61d6d345692222bdb95/samples/robot/src/main/kotlin/example/robot.kt#L45)
-  to [Kotter](https://github.com/varabyte/kotter/blob/main/examples/mosaic/robot/src/main/kotlin/main.kt#L27).
+  to [Kotter](https://github.com/varabyte/kotter/blob/main/examples/mosaic/robot/src/main/kotlin/com/varabyte/kotter/examples/mosaic/robot/main.kt#L27).
 
 #### Mosaic comparison
 

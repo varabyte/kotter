@@ -29,5 +29,5 @@ application {
         "-XX:+IgnoreUnrecognizedVMOptions",
         "--enable-native-access=ALL-UNNAMED",
     )
-    mainClass.set("MainKt")
+    mainClass.set("com.varabyte.kotter.examples.extend.MainKt")
 }

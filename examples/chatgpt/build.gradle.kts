@@ -15,5 +15,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("com.varabyte.kotter.examples.chatgpt.MainKt")
 }

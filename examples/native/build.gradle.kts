@@ -17,7 +17,7 @@ kotlin {
         nativeTarget.apply {
             binaries {
                 executable {
-                    entryPoint = "main"
+                    entryPoint = "com.varabyte.kotter.examples.nativ.main"
                 }
             }
         }
