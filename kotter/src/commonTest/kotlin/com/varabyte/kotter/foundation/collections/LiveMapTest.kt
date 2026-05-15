@@ -122,7 +122,7 @@ class LiveMapTest {
     }
 
     @Test
-    fun `live map entries property works`() = testSession { terminal ->
+    fun `live map entries property works`() = testSession {
         val numSquares = liveMapOf<Int, Int>()
         val entries = numSquares.entries
 
@@ -177,7 +177,7 @@ class LiveMapTest {
     }
 
     @Test
-    fun `live map keys property works`() = testSession { terminal ->
+    fun `live map keys property works`() = testSession {
         val numSquares = liveMapOf<Int, Int>()
         val keys = numSquares.keys
 
@@ -221,7 +221,7 @@ class LiveMapTest {
     }
 
     @Test
-    fun `live map values property works`() = testSession { terminal ->
+    fun `live map values property works`() = testSession {
         val numSquares = liveMapOf<Int, Int>()
         val values = numSquares.values
 

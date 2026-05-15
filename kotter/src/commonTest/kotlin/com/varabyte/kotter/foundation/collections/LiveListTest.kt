@@ -1,7 +1,6 @@
 package com.varabyte.kotter.foundation.collections
 
 import com.varabyte.kotter.foundation.text.*
-import com.varabyte.kotter.platform.internal.collections.removeIf
 import com.varabyte.kotter.runtime.internal.ansi.Ansi.Csi.Codes
 import com.varabyte.kotter.runtime.terminal.inmemory.*
 import com.varabyte.kotterx.test.foundation.*
@@ -52,7 +51,7 @@ class LiveListTest {
         }.run {
             nums.withWriteLock {
                 nums.addAll(2, listOf(3, 4, 5))
-                nums.add(3) // Add a second three, to test "lastIndexOf"
+                nums.add(3) // Add a second 3, to test "lastIndexOf"
             }
         }
 
