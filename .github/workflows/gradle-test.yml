@@ -37,10 +37,10 @@ jobs:
           (matrix.os == 'macos-latest' && inputs.target-mac)
         run: echo "This workflow will run because the inputs are relevant to this machine."
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: steps.shouldrun.conclusion == 'success'
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         if: steps.shouldrun.conclusion == 'success'
         with:
           distribution: temurin
@@ -48,11 +48,11 @@ jobs:
 
       - name: Setup Gradle
         if: steps.shouldrun.conclusion == 'success'
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Cache Kotlin Native compiler
         if: steps.shouldrun.conclusion == 'success'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.konan
           key: kotlin-native-compiler-${{ runner.OS }}
@@ -63,7 +63,7 @@ jobs:
 
       - name: Upload test report if failure
         if: ${{ always() && hashFiles('kotter/build/reports/tests/allTests/index.html') != '' }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: kotter-test-report-${{ runner.OS }}
           path: kotter/build/reports/tests/allTests/
