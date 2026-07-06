@@ -1,5 +1,7 @@
 package com.varabyte.kotter.runtime.render
 
+import com.varabyte.kotter.foundation.render.offscreen
+
 /**
  * A [RenderScope] used for the [offscreen] method.
  *

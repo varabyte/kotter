@@ -16,7 +16,7 @@ internal object LinkCommands {
     internal class Open(uri: Uri) : AnsiOscCommand(Ansi.Osc.Codes.openLink(uri, emptyMap()))
 
     /**
-     * A command for closing a block opened by [OpenLinkCommand].
+     * A command for closing a block opened by [Open].
      */
     internal val Close = AnsiOscCommand(Ansi.Osc.Codes.CloseLink)
 }
