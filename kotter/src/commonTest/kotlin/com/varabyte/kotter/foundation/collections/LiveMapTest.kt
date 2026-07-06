@@ -154,10 +154,16 @@ class LiveMapTest {
         assertThat(entries.size).isEqualTo(10)
         assertThat(numSquares.size).isEqualTo(entries.size)
 
-        entries.removeAll(entries.filter { it.key % 2 == 0 }) // Remove all evens
+        // Originally, this intentionally tested
+        // entries.removeAll(entries.filter { it.key % 2 == 0 })
+        // but currently this crashes on K/N: https://youtrack.jetbrains.com/issue/KT-87473
+        entries.removeAll { it.key % 2 == 0 } // Remove all evens
         assertThat(entries.size).isEqualTo(5)
 
-        entries.retainAll(entries.filter { it.key <= 5 })
+        // Originally, this intentionally tested
+        // entries.retainAll(entries.filter { it.key <= 5 })
+        // but currently this crashes on K/N: https://youtrack.jetbrains.com/issue/KT-87473
+        entries.retainAll { it.key <= 5 }
         assertThat(entries.size).isEqualTo(3)
 
         with(entries.iterator()) {
