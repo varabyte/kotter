@@ -1,10 +1,9 @@
 package com.varabyte.kotter.platform.concurrent.locks
 
-import com.varabyte.kotter.platform.internal.concurrent.*
-import com.varabyte.kotter.platform.internal.concurrent.annotations.*
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import com.varabyte.kotter.platform.internal.concurrent.Thread
+import com.varabyte.kotter.platform.internal.concurrent.ThreadId
+import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
+import kotlinx.atomicfu.atomic
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -25,125 +24,228 @@ import kotlin.contracts.contract
  * temporarily be upgraded to write mode. (Of course, if other reads were open, the write request would temporarily
  * block until all other readers relinquished their read access)
  *
- * Programmer's note: See note in ReentrantLock about how bad an idea this probably is...
+ * Programmer's note: This class was introduced when I converted Kotter from JVM-only to KMP (since reentrant locks
+ * are not provided for the Kotlin/Native target). I wanted to see if it was possible to have an algorithm working in
+ * commonMain instead of delegating to expect/actual, but it is a naive implementation, so we can revisit this
+ * decision later.
  */
 @ThreadSafe
 class ReentrantReadWriteLock {
-    private enum class State {
-        IDLE,
-        READING,
-        WRITING,
+    /**
+     * @property readerCounts A mapping of threads to how many read locks they are currently holding.
+     * @property pausedReaderCounts Like [readerCounts], but they are temporarily paused while a thread has a write
+     *   lock. When that write lock is released, relevant paused reader locks will be reactivated.
+     * @property writerCount If non-null, indicates a thread has write access, and if multiple write locks are requested
+     *   then the count is tracked here.
+     */
+    private class LockState(val readerCounts: Map<ThreadId, Int>, val pausedReaderCounts: Map<ThreadId, Int>, val writerCount: Pair<ThreadId, Int>?) {
+        companion object {
+            fun newForWriter(owner: ThreadId): LockState = LockState(readerCounts = emptyMap(), pausedReaderCounts = emptyMap(), writerCount = owner to 1)
+            fun newForReader(owner: ThreadId): LockState = LockState(readerCounts = mapOf(owner to 1), pausedReaderCounts = emptyMap(), writerCount = null)
+        }
+
+        private fun Map<ThreadId, Int>.incrementCount(threadId: ThreadId): Map<ThreadId, Int> {
+            val newCount = this[threadId]?.let { threadIdCount -> threadIdCount + 1 } ?: 1
+            return this.toMutableMap().apply { this[threadId] = newCount }
+        }
+
+        private fun Map<ThreadId, Int>.decrementCount(threadId: ThreadId): Map<ThreadId, Int> {
+            val newCount = this[threadId]?.let { it - 1 } ?: run {
+                error("Thread [$threadId] attempted to release a read lock that it did not have.")
+            }
+
+            return this.toMutableMap().apply {
+                if (newCount > 0) this[threadId] = newCount else this.remove(threadId)
+            }
+        }
+
+        private fun moveCounts(threadId: ThreadId, from: Map<ThreadId, Int>, to: Map<ThreadId, Int>): Pair<Map<ThreadId, Int>, Map<ThreadId, Int>> {
+            val fromCount = from[threadId] ?: return from to to
+            check(!to.containsKey(threadId)) { "Thread [$threadId] already has counts in destination map." }
+
+            val newFrom = from - threadId
+            val newTo = to + (threadId to fromCount)
+            return newFrom to newTo
+        }
+
+        private fun Pair<ThreadId, Int>?.incrementCount(threadId: ThreadId): Pair<ThreadId, Int> {
+            if (this != null) {
+                check(first == threadId) { "Thread [$threadId] attempted to grab write lock already held by another thread [$first]." }
+                return first to second + 1
+            } else {
+                return threadId to 1
+            }
+        }
+        private fun Pair<ThreadId, Int>.decrementCount(threadId: ThreadId): Pair<ThreadId, Int>? {
+            check(first == threadId) { "Thread [$threadId] attempted to release write lock held by another thread [$first]."}
+            return if (second > 1) first to second - 1 else null
+        }
+
+        fun addWriter(owner: ThreadId): LockState {
+            val (newReaders, newPaused) = moveCounts(owner, readerCounts, pausedReaderCounts)
+            return LockState(newReaders, newPaused, writerCount.incrementCount(owner))
+        }
+        fun addReader(owner: ThreadId) = LockState(readerCounts.incrementCount(owner), pausedReaderCounts, writerCount)
+        fun addPausedReader(owner: ThreadId) = LockState(readerCounts, pausedReaderCounts.incrementCount(owner), writerCount)
+        fun releaseWriter(owner: ThreadId): LockState? {
+            check (writerCount != null) {
+                "Thread [$owner] attempted to release write lock that nobody was holding."
+            }
+            val newWriterCount = writerCount.decrementCount(owner)
+
+            return if (newWriterCount == null) {
+                if (readerCounts.isEmpty() && pausedReaderCounts.isEmpty()) null else {
+                    val (newPaused, newReaders) = moveCounts(
+                        owner,
+                        pausedReaderCounts,
+                        readerCounts
+                    )
+                    LockState(newReaders, newPaused, newWriterCount)
+                }
+            } else {
+                LockState(readerCounts, pausedReaderCounts, newWriterCount)
+            }
+        }
+        fun releaseReader(owner: ThreadId): LockState? {
+            val (newReaders, newPaused) = if (owner == writer) {
+                readerCounts to pausedReaderCounts.decrementCount(owner)
+            } else {
+                readerCounts.decrementCount(owner) to pausedReaderCounts
+            }
+
+            return if (newReaders.isNotEmpty() || newPaused.isNotEmpty() || writerCount != null) {
+                LockState(newReaders, newPaused, writerCount)
+            } else null
+        }
+
+        fun pauseReader(owner: ThreadId): LockState {
+            check (readerCounts.containsKey(owner) && !pausedReaderCounts.containsKey(owner))
+            val (newReaders, newPaused) = moveCounts(owner, readerCounts, pausedReaderCounts)
+            return LockState(newReaders, newPaused, writerCount)
+        }
+
+        val writer: ThreadId? get() = writerCount?.first
+        fun isReader(owner: ThreadId) = readerCounts.containsKey(owner)
+        fun canGrabWriteLock(owner: ThreadId) = writer == null && (readerCounts.isEmpty() || readerCounts.size == 1 && isReader(owner))
     }
 
-    private val stateLock = Mutex()
-    private var writeCount = 0
-    private var currState = State.IDLE
-    private var readingThreadsIds = mutableListOf<ThreadId>()
-    private var readCountsToRestore = mutableMapOf<ThreadId, Int>()
-    private var writingThreadId: ThreadId? = null
+    private val state = atomic<LockState?>(null)
 
     inner class ReaderLock {
-        fun lock() = runBlocking {
-            val threadId = Thread.getId()
-            var waitInLine = true
-            while (waitInLine) {
-                stateLock.withLock {
-                    if (currState == State.IDLE) {
-                        currState = State.READING
-                    }
+        fun lock() {
+            val currThread = Thread.getId()
+            var spins = 0
 
-                    // Note: If you own the write lock, you can read if you want to! You're the boss!
-                    if (currState == State.READING || (currState == State.WRITING && writingThreadId == threadId)) {
-                        readingThreadsIds.add(threadId)
-                        waitInLine = false
+            while (true) {
+                val currState = state.value
+
+                if (currState == null) {
+                    // No one has the lock yet; try to grab it!
+                    if (state.compareAndSet(currState, LockState.newForReader(currThread))) return
+                } else {
+                    if (currState.writer == null && currState.pausedReaderCounts.isEmpty()) {
+                        // Lock already has readers -- so we can add more!
+                        // But note, if there is a paused reader, that means a thread is in the process of securing
+                        // write access, which we want to prioritize since it asked first
+                        if (state.compareAndSet(currState, currState.addReader(currThread))) return
+                    } else if (currState.writer == currThread) {
+                        // This thread already has a write lock, so just note our read lock request and grant it (but
+                        // paused for now; it will become a regular read lock after the write lock is released)
+                        if (state.compareAndSet(currState, currState.addPausedReader(currThread))) return
                     }
                 }
 
-                if (waitInLine) Thread.sleepMs(0)
+                // If here, someone else has the write lock or modified state before we did. Wait another loop!
+
+                spins++
+                yieldBasedOnSpinCount(spins)
             }
         }
 
-        fun unlock() = runBlocking {
-            val threadId = Thread.getId()
-            stateLock.withLock {
-                readingThreadsIds.remove(threadId)
-                if (readingThreadsIds.isEmpty() && writeCount == 0) {
-                    currState = State.IDLE
-                }
+        fun unlock() {
+            val currThread = Thread.getId()
+            var spins = 0
+
+            while (true) {
+                val currState = state.value
+                    ?: error("Thread [$currThread] attempted to release read lock but no lock was acquired. Maybe you have mismatched lock / unlock calls?")
+
+                if (state.compareAndSet(currState, currState.releaseReader(currThread))) return
+
+                // If here, other threads modified state before we did. Wait another loop!
+
+                spins++
+                yieldBasedOnSpinCount(spins)
             }
         }
     }
-
-    val readerLock = ReaderLock()
+    val reader = ReaderLock()
 
     inner class WriterLock {
-        fun lock() = runBlocking {
-            var waitInLine = true
-            val threadId = Thread.getId()
+        fun lock() {
+            val currThread = Thread.getId()
+            var spins = 0
 
-            while (waitInLine) {
-                stateLock.withLock {
-                    if (currState == State.READING && !readCountsToRestore.containsKey(threadId)) {
-                        val readCountsToRelease = readingThreadsIds.count { it == threadId }
-                        if (readCountsToRelease > 0) {
-                            readingThreadsIds.removeAll { it == threadId }
-                            readCountsToRestore[threadId] = readCountsToRelease
-                        }
-                        if (readingThreadsIds.isEmpty()) {
-                            currState = State.IDLE
-                        }
-                    }
+            while (true) {
+                val currState = state.value
 
-                    if (currState == State.IDLE) {
-                        currState = State.WRITING
-                        writingThreadId = threadId
-                    }
-
-                    if ((currState == State.WRITING && writingThreadId == threadId)) {
-                        writeCount++
-                        waitInLine = false
+                if (currState == null) {
+                    // No one has the lock yet; try to grab it!
+                    if (state.compareAndSet(currState, LockState.newForWriter(currThread))) return
+                } else {
+                    if (currState.writer == currThread || currState.canGrabWriteLock(currThread)) {
+                        if (state.compareAndSet(currState, currState.addWriter(currThread))) return
+                    } else if (currState.isReader(currThread)) {
+                        // Another thread is holding a writer lock OR there is no writer but other readers. Temporarily
+                        // recuse our reader locks and keep looping until we can grab a write lock.
+                        if (state.compareAndSet(currState, currState.pauseReader(currThread))) continue
                     }
                 }
 
-                if (waitInLine) Thread.sleepMs(0)
+                // If here, other threads are holding read locks or the writer lock or modified state before we did.
+                // Wait another loop!
+
+                spins++
+                yieldBasedOnSpinCount(spins)
             }
         }
 
-        fun unlock() = runBlocking {
-            val threadId = Thread.getId()
+        fun unlock() {
+            val currThread = Thread.getId()
+            var spins = 0
 
-            stateLock.withLock {
-                writeCount--
-                if (writeCount == 0) {
-                    val readCountsToAcquire = readCountsToRestore.remove(threadId) ?: 0
-                    repeat(readCountsToAcquire) { readingThreadsIds.add(threadId) }
+            while (true) {
+                val currState = state.value
+                    ?: error("Thread [$currThread] attempted to release write lock but no lock was acquired. Maybe you have mismatched lock / unlock calls?")
 
-                    currState = if (readingThreadsIds.isEmpty()) State.IDLE else State.READING
-                }
+                if (state.compareAndSet(currState, currState.releaseWriter(currThread))) return
+
+                // If here, other threads modified state before we did. Wait another loop!
+
+                spins++
+                yieldBasedOnSpinCount(spins)
             }
-
         }
     }
-
-    val writerLock = WriterLock()
+    val writer = WriterLock()
 }
 
 inline fun <T> ReentrantReadWriteLock.read(block: () -> T): T {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
+    reader.lock()
     return try {
-        readerLock.lock()
         block()
     } finally {
-        readerLock.unlock()
+        reader.unlock()
     }
 }
 
 inline fun <T> ReentrantReadWriteLock.write(block: () -> T): T {
     contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
+    writer.lock()
     return try {
-        writerLock.lock()
         block()
     } finally {
-        writerLock.unlock()
+        writer.unlock()
     }
 }

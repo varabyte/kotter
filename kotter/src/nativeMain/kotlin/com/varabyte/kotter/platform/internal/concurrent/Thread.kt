@@ -20,5 +20,8 @@ internal actual class Thread {
         actual fun sleepMs(millis: Int) {
             usleep((millis * 1000).toUInt())
         }
+        actual fun yield() {
+            platform.posix.sched_yield()
+        }
     }
 }

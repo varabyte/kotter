@@ -2,53 +2,145 @@ package com.varabyte.kotter.platform.concurrent.locks
 
 import com.varabyte.kotter.platform.internal.concurrent.Thread
 import com.varabyte.truthish.assertThat
+import com.varabyte.truthish.assertThrows
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
+import kotlin.sequences.sequence
 import kotlin.test.Test
 
-// NOTE: If this test seems sparse for such potentially delicate code, it's because the general usage of the lock class
-// is already tested by the rest of the tests indirectly. However, as for now (this may change later), this class exists
-// to test really gnarly edge cases I want to make sure are working
+@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 class ReentrantReadWriteLockTest {
+    @Test
+    fun readLockCanBeUpgradedToWriteLock() {
+        val lock = ReentrantReadWriteLock()
+
+        lock.reader.lock()
+        lock.writer.lock()
+    }
+
+    @Test
+    fun writeLockCanAlwaysAllowReadLock() {
+        val lock = ReentrantReadWriteLock()
+
+        lock.writer.lock()
+        lock.reader.lock()
+    }
+
+    @Test
+    fun attemptingToUnlockLocksYouDoNotHaveThrowsExceptions() {
+        val lock = ReentrantReadWriteLock()
+
+        lock.reader.lock()
+        lock.writer.lock()
+        lock.reader.lock()
+        lock.reader.unlock()
+        lock.writer.unlock()
+
+        assertThrows<IllegalStateException> {
+            lock.writer.unlock()
+        }
+
+        lock.reader.unlock()
+
+        assertThrows<IllegalStateException> {
+            lock.writer.unlock()
+        }
+
+        assertThrows<IllegalStateException> {
+            lock.reader.unlock()
+        }
+    }
+
+
+    @Test
+    fun canReleaseLocksInAnyOrder() {
+        // In practice, people should be doing strictly nested locking,
+        // e.g. "+R, +W, +R, -R, -W, -R"
+        // but the algorithm can handle any order as long as the lock / unlocks are matched
+
+        fun <T> getUniquePermutations(list: List<T>): Sequence<List<T>> {
+            if (list.isEmpty()) return sequenceOf(emptyList())
+
+            return sequence {
+                val seen = mutableSetOf<T>()
+                for (i in list.indices) {
+                    val element = list[i]
+
+                    if (seen.add(element)) {
+                        val remaining = list.take(i) + list.drop(i + 1)
+                        for (permutation in getUniquePermutations(remaining)) {
+                            yield(listOf(element) + permutation)
+                        }
+                    }
+                }
+            }
+        }
+
+        val baseOps = listOf('R', 'R', 'W', 'W')
+
+        val lockSequences = getUniquePermutations(baseOps)
+        val unlockSequences = getUniquePermutations(baseOps)
+
+        for (lockSeq in lockSequences) {
+            for (unlockSeq in unlockSequences) {
+                val lock = ReentrantReadWriteLock()
+
+                for (op in lockSeq) {
+                    when (op) {
+                        'R' -> lock.reader.lock()
+                        'W' -> lock.writer.lock()
+                    }
+                }
+
+                for (op in unlockSeq) {
+                    when (op) {
+                        'R' -> lock.reader.unlock()
+                        'W' -> lock.writer.unlock()
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun multipleConcurrentReadersAllowed() = runTest {
         // Use real threads and not fake coroutine threads because lock / unlock uses real thread IDs under the hood to
         // manage who owns any active read locks or write lock.
-        val testDispatcher = Dispatchers.Default.limitedParallelism(3)
+        val dispatchers = listOf(
+            newFixedThreadPoolContext(1, "Thread 1"),
+            newFixedThreadPoolContext(1, "Thread 2"),
+            newFixedThreadPoolContext(1, "Thread 3")
+        )
 
-        val lock = ReentrantReadWriteLock()
+        try {
+            val lock = ReentrantReadWriteLock()
 
-        // Channels to coordinate the exact overlapping of readers
-        val readerEntered = Channel<Unit>(capacity = 3)
-        val releaseReaders = CompletableDeferred<Unit>()
-        val finishedCount = Channel<Unit>(capacity = 3)
+            val readerEntered = Channel<Unit>(capacity = 3)
+            val releaseReaders = CompletableDeferred<Unit>()
+            val finishedCount = Channel<Unit>(capacity = 3)
 
-        // Spin up 3 concurrent readers
-        val jobs = List(3) {
-            launch(testDispatcher) {
-                lock.read {
-                    // Signal that this reader has successfully entered the lock
-                    readerEntered.send(Unit)
-
-                    // Wait here until ALL readers have entered
-                    releaseReaders.await()
+            val jobs = List(3) { i ->
+                launch(dispatchers[i]) {
+                    lock.read {
+                        readerEntered.send(Unit)
+                        releaseReaders.await()
+                    }
+                    finishedCount.send(Unit)
                 }
-                finishedCount.send(Unit)
             }
+
+            repeat(3) { readerEntered.receive() }
+
+            // If read locks weren't concurrent, we would deadlock here because the first reader would never exit to let
+            // the next one enter. Since we reached this line, concurrency is proven. Release them!
+            releaseReaders.complete(Unit)
+
+            repeat(3) { finishedCount.receive() }
+            jobs.joinAll()
+        } finally {
+            dispatchers.forEach { it.close() }
         }
-
-        // Wait until all 3 readers are simultaneously inside the read lock
-        repeat(3) { readerEntered.receive() }
-
-        // If the lock wasn't concurrent, we would deadlock here because the first
-        // reader would never exit to let the next one enter.
-        // Since we reached this line, concurrency is proven. Release them!
-        releaseReaders.complete(Unit)
-
-        // Ensure all of them finish cleanly
-        repeat(3) { finishedCount.receive() }
-        jobs.joinAll()
     }
 
     enum class WriteLockState {
@@ -62,56 +154,62 @@ class ReentrantReadWriteLockTest {
     fun writerExcludesReaders() = runTest {
         // Use real threads and not fake coroutine threads because lock / unlock uses real thread IDs under the hood to
         // manage who owns any active read locks or write lock.
-        val testDispatcher = Dispatchers.Default.limitedParallelism(2)
+        val writeDispatcher = newFixedThreadPoolContext(1, "Writing thread")
+        val readDispatcher = newFixedThreadPoolContext(1, "Reading thread")
 
-        val lock = ReentrantReadWriteLock()
+        try {
 
-        val writerInside = CompletableDeferred<Unit>()
-        val readerFinished = CompletableDeferred<Unit>()
-        val writerFinished = CompletableDeferred<Unit>()
+            val lock = ReentrantReadWriteLock()
 
-        var writeLockState = WriteLockState.NOT_STARTED
-        var readerObservedState: WriteLockState? = null
+            val writerInside = CompletableDeferred<Unit>()
+            val readerFinished = CompletableDeferred<Unit>()
+            val writerFinished = CompletableDeferred<Unit>()
 
-        // Thread 1: Claims the write lock
-        launch(testDispatcher) {
-            lock.write {
-                writeLockState = WriteLockState.ENTERED
-                writerInside.complete(Unit)
+            var writeLockState = WriteLockState.NOT_STARTED
+            var readerObservedState: WriteLockState? = null
 
-                // Artificially suspend while holding the lock until the reader
-                // has attempted to run and block
-                yield()
-                writeLockState = WriteLockState.FINISHING
+            // Thread 1: Claims the write lock
+            launch(writeDispatcher) {
+                lock.write {
+                    writeLockState = WriteLockState.ENTERED
+                    writerInside.complete(Unit)
+
+                    // Artificially suspend while holding the lock until the reader
+                    // has attempted to run and block
+                    yield()
+                    writeLockState = WriteLockState.FINISHING
+                }
+                readerFinished.await()
+                writerFinished.complete(Unit)
+                writeLockState = WriteLockState.FINISHED
             }
-            readerFinished.await()
-            writerFinished.complete(Unit)
-            writeLockState = WriteLockState.FINISHED
-        }
 
-        // Thread 2: Attempts to read
-        launch(testDispatcher) {
-            // Wait until we are absolutely certain the writer is inside its block
-            writerInside.await()
+            // Thread 2: Attempts to read
+            launch(readDispatcher) {
+                // Wait until we are absolutely certain the writer is inside its block
+                writerInside.await()
 
-            lock.read {
-                readerObservedState = writeLockState
+                lock.read {
+                    readerObservedState = writeLockState
+                }
+                readerFinished.complete(Unit)
             }
-            readerFinished.complete(Unit)
+
+            // If the write lock is exclusive, the reader cannot finish before the writer exits
+            writerFinished.await() // Implies readerFinished.await() already happened
+
+            // The reader must have only seen the value *after* the writer completed entirely
+            assertThat(readerObservedState).isEqualTo(WriteLockState.FINISHING)
+        } finally {
+            writeDispatcher.close()
+            readDispatcher.close()
         }
-
-        // If the write lock is exclusive, the reader cannot finish before the writer exits
-        writerFinished.await() // Implies readerFinished.await() already happened
-
-        // The reader must have only seen the value *after* the writer completed entirely
-        assertThat(readerObservedState).isEqualTo(WriteLockState.FINISHING)
     }
 
     @Test
     fun readLockIsReentrantOnSameThread() {
         val currThreadId = Thread.getId()
         val lock = ReentrantReadWriteLock()
-        var executed = false
 
         lock.read {
             assertThat(Thread.getId()).isEqualTo(currThreadId)
@@ -119,38 +217,31 @@ class ReentrantReadWriteLockTest {
                 assertThat(Thread.getId()).isEqualTo(currThreadId)
                 lock.read {
                     assertThat(Thread.getId()).isEqualTo(currThreadId)
-                    executed = true
                 }
             }
         }
-
-        assertThat(executed).isTrue()
     }
 
     @Test
     fun writeLockIsReentrantOnSameThread() {
         val currThreadId = Thread.getId()
         val lock = ReentrantReadWriteLock()
-        var executed = false
 
         lock.write {
             assertThat(Thread.getId()).isEqualTo(currThreadId)
             lock.write {
                 assertThat(Thread.getId()).isEqualTo(currThreadId)
                 lock.write {
-                    executed = true
+                    assertThat(Thread.getId()).isEqualTo(currThreadId)
                 }
             }
         }
-
-        assertThat(executed).isTrue()
     }
 
     @Test
     fun writeLockCanAcquireReadLockOnSameThread() {
         val currThreadId = Thread.getId()
         val lock = ReentrantReadWriteLock()
-        var executed = false
 
         lock.write {
             assertThat(Thread.getId()).isEqualTo(currThreadId)
@@ -162,16 +253,12 @@ class ReentrantReadWriteLockTest {
                     assertThat(Thread.getId()).isEqualTo(currThreadId)
                     lock.read {
                         assertThat(Thread.getId()).isEqualTo(currThreadId)
-                        executed = true
                     }
                 }
             }
         }
-
-        assertThat(executed).isTrue()
     }
 
-    @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     @Test
     fun twoThreadsCanConvertReadToWriteLocksAtTheSameTime() = runTest {
         // If two threads both do this:

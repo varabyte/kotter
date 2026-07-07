@@ -6,5 +6,6 @@ internal expect class Thread {
     companion object {
         fun getId(): ThreadId
         fun sleepMs(millis: Int)
+        fun yield()
     }
 }

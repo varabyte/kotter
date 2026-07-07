@@ -10,6 +10,7 @@ import kotlin.jvm.java
 // at build about the same plugin being loaded multiple times.
 // See also: https://docs.gradle.org/current/userguide/plugins.html#sec:subprojects_plugins_dsl
 plugins {
+    alias(libs.plugins.kotlinx.atomicfu) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.kotlinx.kover) apply false
     alias(libs.plugins.jetbrains.dokka) apply false

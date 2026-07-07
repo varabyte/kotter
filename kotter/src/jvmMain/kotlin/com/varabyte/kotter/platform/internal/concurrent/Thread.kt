@@ -20,5 +20,9 @@ internal actual class Thread {
         actual fun sleepMs(millis: Int) {
             JvmThread.sleep(millis.toLong())
         }
+
+        actual fun yield() {
+            JvmThread.yield()
+        }
     }
 }

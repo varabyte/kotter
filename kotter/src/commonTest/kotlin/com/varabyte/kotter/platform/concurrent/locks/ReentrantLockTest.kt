@@ -2,11 +2,12 @@ package com.varabyte.kotter.platform.concurrent.locks
 
 import com.varabyte.kotter.platform.internal.concurrent.Thread
 import com.varabyte.truthish.assertThat
+import com.varabyte.truthish.assertThrows
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
+@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 class ReentrantLockTest {
     @Test
     fun basicLockAndUnlockExecutesSequentially() {
@@ -41,9 +42,58 @@ class ReentrantLockTest {
         assertThat(counter).isEqualTo(1)
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+    @Test
+    fun unlockWithoutLockThrowsException() {
+        val lock = ReentrantLock()
+
+        // Calling unlock on an idle lock should throw an IllegalMonitorStateException
+        assertThrows<IllegalStateException> {
+            lock.unlock()
+        }
+    }
+
+    @Test
+    fun unlockingFromDifferentThreadThrowsException() = runTest {
+        // Use real threads and not fake coroutine threads because lock / unlock uses real thread IDs under the hood to
+        // manage who owns any active read locks or write lock.
+        val ownerDispatcher = newFixedThreadPoolContext(1, "Owner Thread")
+        val thiefDispatcher = newFixedThreadPoolContext(1, "Thief Thread")
+
+        try {
+            val lock = ReentrantLock()
+            val ownerAcquiredLock = CompletableDeferred<Unit>()
+            val thiefFinished = CompletableDeferred<Unit>()
+
+            val ownerJob = CoroutineScope(ownerDispatcher).launch {
+                lock.lock() // Lock acquired on Thread 1
+                ownerAcquiredLock.complete(Unit)
+                thiefFinished.await()
+                lock.unlock()
+            }
+
+            val thiefJob = CoroutineScope(thiefDispatcher).launch {
+                ownerAcquiredLock.await()
+
+                // Thread 2 attempts to unlock Thread 1's lock
+                assertThrows<IllegalStateException> {
+                    lock.unlock()
+                }
+
+                thiefFinished.complete(Unit)
+            }
+
+            thiefFinished.await()
+            joinAll(ownerJob, thiefJob)
+        } finally {
+            ownerDispatcher.close()
+            thiefDispatcher.close()
+        }
+    }
+
     @Test
     fun lockBlocksOtherThreadsUntilReleased() = runTest {
+        // Use real threads and not fake coroutine threads because lock / unlock uses real thread IDs under the hood to
+        // manage who owns any active read locks or write lock.
         val dispatcher1 = newFixedThreadPoolContext(1, "Thread 1")
         val dispatcher2 = newFixedThreadPoolContext(1, "Thread 2")
 
