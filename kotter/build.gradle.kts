@@ -19,12 +19,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                implementation(libs.kotlinx.coroutines)
+                implementation(libs.kotlinx.coroutines.core)
             }
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
             implementation(libs.truthish)
             implementation(project(":kotterx:kotter-test-support"))
         }
