@@ -4,6 +4,8 @@ import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.platform.internal.concurrent.annotations.*
 import com.varabyte.kotter.runtime.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Like [LiveVar], but for maps.
@@ -209,7 +211,10 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withReadLock(block: LiveMap<K, V>.() -> R): R = session.data.lock.read { this.block() }
+    fun <R> withReadLock(block: LiveMap<K, V>.() -> R): R {
+        contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
+        return session.data.lock.read { this.block() }
+    }
 
     /**
      * Allow calls to write lock the map for a longer time than just a single field at a time, useful if
@@ -217,7 +222,10 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withWriteLock(block: LiveMap<K, V>.() -> R): R = session.data.lock.write { this.block() }
+    fun <R> withWriteLock(block: LiveMap<K, V>.() -> R): R {
+        contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
+        return session.data.lock.write { this.block() }
+    }
 
     // Immutable methods
     override val size get() = read { delegateMap.size }

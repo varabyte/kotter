@@ -5,6 +5,8 @@ import com.varabyte.kotter.platform.internal.concurrent.annotations.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * A poor man's reimplementation of the JVM ReentrantReadWriteLock class.
@@ -127,6 +129,7 @@ class ReentrantReadWriteLock {
 }
 
 inline fun <T> ReentrantReadWriteLock.read(block: () -> T): T {
+    contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
     return try {
         readerLock.lock()
         block()
@@ -136,6 +139,7 @@ inline fun <T> ReentrantReadWriteLock.read(block: () -> T): T {
 }
 
 inline fun <T> ReentrantReadWriteLock.write(block: () -> T): T {
+    contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
     return try {
         writerLock.lock()
         block()

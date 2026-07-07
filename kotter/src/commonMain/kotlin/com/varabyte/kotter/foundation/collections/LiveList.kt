@@ -4,6 +4,8 @@ import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.platform.concurrent.locks.*
 import com.varabyte.kotter.platform.internal.concurrent.annotations.*
 import com.varabyte.kotter.runtime.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /**
  * Like [LiveVar], but for lists.
@@ -110,7 +112,10 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withReadLock(block: LiveList<T>.() -> R): R = session.data.lock.read { this.block() }
+    fun <R> withReadLock(block: LiveList<T>.() -> R): R {
+        contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
+        return session.data.lock.read { this.block() }
+    }
 
     /**
      * Allow calls to write lock the list for a longer time than just a single field at a time, useful if
@@ -118,7 +123,10 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
      *
      * @param R The result type of any value produced as a side effect of calling [block]; can be `Unit`
      */
-    fun <R> withWriteLock(block: LiveList<T>.() -> R): R = session.data.lock.write { this.block() }
+    fun <R> withWriteLock(block: LiveList<T>.() -> R): R {
+        contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
+        return session.data.lock.write { this.block() }
+    }
 
     // Immutable functions
     override val size get() = read { delegateList.size }

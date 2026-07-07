@@ -12,6 +12,10 @@ version = libs.versions.kotter.get()
 kotlin {
     // Targets set in kotter-publication plugin
 
+    compilerOptions {
+        optIn.add("kotlin.contracts.ExperimentalContracts")
+    }
+
     sourceSets {
         commonMain {
             dependencies {
