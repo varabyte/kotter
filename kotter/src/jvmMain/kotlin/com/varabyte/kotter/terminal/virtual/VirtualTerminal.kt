@@ -857,6 +857,7 @@ private class SwingTerminalPane(
                     }
                 }
 
+                // Run through the string builder and insert "auto wrap" newlines where text would otherwise overflow.
                 var currIndex = 0
                 while (currIndex < stringBuilder.length) {
                     val currChar = stringBuilder[currIndex]
@@ -865,13 +866,21 @@ private class SwingTerminalPane(
                         currIndex++
                     } else {
                         val graphemeLen = textMetrics.graphemeClusterLengthAt(stringBuilder, currIndex)
-                        currLineWidth += textMetrics.renderWidthOf(stringBuilder, currIndex, currIndex + graphemeLen)
-                        if (currLineWidth > maxWidth) {
+                        val graphemeWidth = textMetrics.renderWidthOf(stringBuilder, currIndex, currIndex + graphemeLen)
+                        if (currLineWidth == 0 || currLineWidth + graphemeWidth <= maxWidth) {
+                            // Accept the grapheme if it fits. Note that we ALWAYS accept a grapheme at the start of a
+                            // newline because even though it should always fit, if somehow it doesn't (e.g. width=2 in
+                            // a terminal of width=1), we would get into an infinite loop pushing it to the next line
+                            // forever.
+                            currLineWidth += graphemeWidth
+                            currIndex += graphemeLen
+                        } else {
+                            // The most recent character doesn't fit. Inject a newline and re-evaluate this same
+                            // character on the fresh line during the next iteration.
                             stringBuilder.insert(currIndex, '\n')
                             currIndex++
                             currLineWidth = 0
                         }
-                        currIndex += graphemeLen
                     }
                 }
             }
