@@ -1,24 +1,12 @@
 package com.varabyte.kotter.platform.concurrent.locks
 
+import com.varabyte.kotter.platform.concurrent.locks.internal.ProgressiveBackoffYielder
+import com.varabyte.kotter.platform.concurrent.locks.internal.SpinLock
 import com.varabyte.kotter.platform.internal.concurrent.Thread
 import com.varabyte.kotter.platform.internal.concurrent.ThreadId
 import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
-import kotlinx.atomicfu.atomic
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
-
-// How many times to loop before falling back to a more cooperative behavior
-private const val SPIN_THRESHOLD = 100
-
-// Progressively back off a thread based on how many times it has spun in a loop
-@Suppress("NOTHING_TO_INLINE")
-internal inline fun yieldBasedOnSpinCount(spin: Int) {
-    when {
-        spin <= SPIN_THRESHOLD -> Thread.yield()
-        spin <= (SPIN_THRESHOLD * 2) -> Thread.sleepMs(0)
-        else -> Thread.sleepMs(1)
-    }
-}
 
 /**
  * A poor man's reimplementation of the JVM ReentrantLock class.
@@ -30,8 +18,10 @@ internal inline fun yieldBasedOnSpinCount(spin: Int) {
  */
 @ThreadSafe
 class ReentrantLock {
-    private class LockState(val owner: ThreadId, val holdCount: Int)
-    private val state = atomic<LockState?>(null)
+    private val spinLock = SpinLock()
+
+    private var ownerThread: ThreadId? = null
+    private var holdCount = 0
 
     /**
      * Request a lock.
@@ -48,26 +38,22 @@ class ReentrantLock {
      */
     fun lock() {
         val currThreadId = Thread.getId()
-        var spins = 0
+        var yielder: ProgressiveBackoffYielder? = null
 
         while (true) {
-            val currState = state.value
-
-            // Lock is unowned? Quick, try to grab it!
-            if (currState == null) {
-                val newState = LockState(currThreadId, 1)
-                if (state.compareAndSet(null, newState)) return
-            } else {
-                // If we already own the lock, we're done!
-                if (currState.owner == currThreadId) {
-                    val newState = LockState(currThreadId, currState.holdCount + 1)
-                    if (state.compareAndSet(currState, newState)) return
+            spinLock.withLock {
+                if (ownerThread == null) {
+                    ownerThread = currThreadId
+                    holdCount = 1
+                    return
+                } else if (ownerThread == currThreadId) {
+                    holdCount++
+                    return
                 }
             }
 
-            // Someone else owns the lock -- backoff progressively
-            spins++
-            yieldBasedOnSpinCount(spins)
+            yielder = yielder ?: ProgressiveBackoffYielder()
+            yielder.yield()
         }
     }
 
@@ -78,29 +64,15 @@ class ReentrantLock {
      */
     fun unlock() {
         val currThreadId = Thread.getId()
-
-        while (true) {
-            val currState = state.value
-            val currOwner = currState?.owner
-
-            if (currOwner != currThreadId) {
-                error(buildString {
-                    append("Thread [$currThreadId] attempted to unlock a lock ")
-                    if (currState != null) {
-                        append("owned by Thread [$currOwner].")
-                    } else {
-                        append("that was never locked.")
-                    }
-                })
+        spinLock.withLock {
+            if (ownerThread != currThreadId) {
+                error("Thread [$currThreadId] attempted to unlock a lock it does not own.")
             }
 
-            val newState = if (currState.holdCount > 1) {
-                LockState(currThreadId, currState.holdCount - 1)
-            } else null
-
-            // Shouldn't happen in practice -- only the owning thread can unlock a lock, so we shouldn't expect that
-            // state got changed by a different thread, but this pattern seems to feel safer with atomic writes.
-            if (state.compareAndSet(currState, newState)) return
+            holdCount--
+            if (holdCount == 0) {
+                ownerThread = null
+            }
         }
     }
 }
