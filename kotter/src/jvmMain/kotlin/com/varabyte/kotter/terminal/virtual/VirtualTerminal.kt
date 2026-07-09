@@ -29,9 +29,6 @@ import kotlin.io.path.exists
 import kotlin.math.roundToInt
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
-@Deprecated("Use com.varabyte.kotter.runtime.terminal.TerminalSize instead")
-typealias TerminalSize = com.varabyte.kotter.runtime.terminal.TerminalSize
-
 // Slightly creamy, less harsh colors.
 private val ANSI_TO_SWING_COLORS = mapOf(
     AnsiColor.BLACK to Color.BLACK,
