@@ -14,7 +14,16 @@ kotlin {
     // Targets set in kotter-publication plugin
 
     compilerOptions {
-        optIn.add("kotlin.contracts.ExperimentalContracts")
+        optIn.addAll(
+            "kotlin.contracts.ExperimentalContracts",
+            // We are willing to task a risk with K/N APIs; we can always bump up min versions later if things need to
+            // break.
+            "kotlinx.cinterop.ExperimentalForeignApi",
+        )
+
+        freeCompilerArgs.addAll(
+            "-Xexpect-actual-classes"
+        )
     }
 
     sourceSets {
