@@ -1,8 +1,9 @@
 package com.varabyte.kotter.terminal.native
 
-import com.varabyte.kotter.runtime.coroutines.*
-import com.varabyte.kotter.runtime.internal.ansi.*
-import com.varabyte.kotter.runtime.terminal.*
+import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
+import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.terminal.Terminal
+import com.varabyte.kotter.runtime.terminal.TerminalSize
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -12,33 +13,14 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.yield
-import platform.posix.ECHO
-import platform.posix.ICANON
-import platform.posix.ICRNL
-import platform.posix.IEXTEN
-import platform.posix.INLCR
-import platform.posix.IXON
-import platform.posix.STDIN_FILENO
-import platform.posix.STDOUT_FILENO
-import platform.posix.TCSAFLUSH
-import platform.posix.VMIN
-import platform.posix.VTIME
-import platform.posix.fflush
-import platform.posix.ioctl
-import platform.posix.isatty
-import platform.posix.memcpy
-import platform.posix.printf
-import platform.posix.read
-import platform.posix.stdout
-import platform.posix.system
-import platform.posix.tcgetattr
-import platform.posix.tcsetattr
-import platform.posix.termios
-import platform.posix.winsize
+import platform.posix.*
+import kotlin.concurrent.AtomicInt
 
 // Workaround needed for the fact that K/N doesn't expose
 // platform.posix.TIOCGWINSZ in macos platforms at this posix layer
 internal expect val TIOCGWINSZ: ULong
+
+private val windowChangeSignalReceived = AtomicInt(0)
 
 // Thanks to https://viewsourcecode.org/snaptoken/kilo/index.html!
 actual class NativeTerminal : Terminal {
@@ -68,6 +50,8 @@ actual class NativeTerminal : Terminal {
     init {
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
         fflush(stdout) // Needed or else the command seems to get missed
+
+        signal(SIGWINCH, staticCFunction { _: Int -> windowChangeSignalReceived.value = 1 })
     }
 
     override val width: Int
@@ -84,6 +68,9 @@ actual class NativeTerminal : Terminal {
             winsize.ws_row.toInt()
         }
 
+    private val mutableEvents = Terminal.MutableEvents()
+    override val events = mutableEvents.asReadOnly()
+
     private var closed = false
 
     override fun write(text: String) {
@@ -98,13 +85,22 @@ actual class NativeTerminal : Terminal {
                 val cVar = alloc<IntVar>()
                 while (!quit && context.isActive) {
                     val readResult = read(STDIN_FILENO, cVar.ptr, 1u)
+
+                    // `read` calls can get interrupted by signals before continuing. Check if a signal that we
+                    // registered for was tripped.
+                    if (windowChangeSignalReceived.compareAndSet(1, 0)) {
+                        mutableEvents.sizeChanged.emit(TerminalSize(width, height))
+                    }
+
                     if (closed) {
                         // terminal was just closed between this read and last read
                         quit = true
                     } else if (readResult > 0L) {
                         emit(cVar.value)
-                    } else {
-                        quit = (readResult == -1L)
+                    } else if (readResult == -1L) {
+                        if (errno != EINTR) { // interrupt errors are OK and even expected
+                            quit = true
+                        }
                     }
 
                     yield()

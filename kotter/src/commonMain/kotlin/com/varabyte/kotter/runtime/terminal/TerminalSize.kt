@@ -16,4 +16,14 @@ class TerminalSize(val width: Int, val height: Int) {
     init {
         require(width >= 1 && height >= 1) { "TerminalSize values must both be positive. Got: $width, $height" }
     }
+
+    override fun equals(other: Any?): Boolean {
+        return other is TerminalSize && other.width == width && other.height == height
+    }
+
+    override fun hashCode(): Int {
+        return arrayOf(width, height).contentHashCode()
+    }
+
+    override fun toString() = "TerminalSize($width, $height)"
 }

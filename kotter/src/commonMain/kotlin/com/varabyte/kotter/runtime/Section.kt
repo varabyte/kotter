@@ -13,6 +13,7 @@ import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.ansi.commands.*
 import com.varabyte.kotter.runtime.internal.text.*
 import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.runtime.terminal.TextMetrics
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -194,7 +195,40 @@ class Section internal constructor(val session: Session, private val render: Mai
         }
     }
 
-    private var lastCommandsRendered = emptyList<TerminalCommand>()
+    /**
+     * Manage a list of terminal commands, along with an operation to insert implicit newlines into it that gets cached.
+     *
+     * Essentially, we need to remember what we just rendered last time so we know how to erase it. And since
+     * calculating newlines isn't free and generates extra allocations, we want to cache it.
+     *
+     * However, in very rare cases (when a user is resizing the window), the width value may have changed since the
+     * last render took place. So we keep enough information in here that we can invalidate the cache if we need to.
+     */
+    private class CommandsCache(private val textMetrics: TextMetrics) {
+        private var lastCommandsRendered: List<TerminalCommand> = emptyList()
+        private var lastCommandsRenderedWithNewlines: List<TerminalCommand> = emptyList()
+        private var lastWidth = -1
+
+        fun clear() {
+            lastCommandsRendered = emptyList()
+            lastCommandsRenderedWithNewlines = emptyList()
+            lastWidth = -1
+        }
+
+        fun setTo(commands: List<TerminalCommand>) {
+            clear()
+            lastCommandsRendered = commands.toList() // Make a copy, it's ours now
+        }
+
+        fun withNewlines(width: Int): List<TerminalCommand> {
+            if (lastWidth != width) {
+                lastCommandsRenderedWithNewlines = lastCommandsRendered.withImplicitNewlines(textMetrics, width)
+                lastWidth = width
+            }
+            return lastCommandsRenderedWithNewlines
+        }
+    }
+    private val commandsCache = CommandsCache(session.textMetrics)
 
     private fun renderOnceAsync(): Job {
         return CoroutineScope(KotterDispatchers.Render).launch {
@@ -204,22 +238,22 @@ class Section internal constructor(val session: Session, private val render: Mai
                 renderLock.withLock { renderRequested = false }
 
                 val clearBlockCommand = buildString {
-                    if (lastCommandsRendered.isNotEmpty()) {
-                        // To clear an existing block of 'n' lines, completely delete all but one of them, and then delete the
-                        // last one down to the beginning (in other words, don't consume the \n of the previous line)
-                        // NOTE: We need to re-add auto newlines because the screen width might have changed since last time
-                        val numLinesToErase = min(
-                            lastCommandsRendered.count { it is NewlineCommand } + 1,
-                            session.terminal.height)
-                        for (i in 0 until numLinesToErase) {
-                            append(WIPE_CURRENT_LINE_COMMAND)
-                            if (i < numLinesToErase - 1) {
-                                append(Ansi.Csi.Codes.Cursor.MoveToPrevLine.toFullEscapeCode())
+                    commandsCache.withNewlines(session.terminal.width).takeIf { it.isNotEmpty() }
+                        ?.let { previouslyRenderedCommands ->
+                            // To clear an existing block of 'n' lines, completely delete all but one of them, and then
+                            // delete the last one down to the beginning (in other words, don't consume the \n of the
+                            // previous line)
+                            val numLinesToErase = min(
+                                previouslyRenderedCommands.count { it is NewlineCommand } + 1,
+                                session.terminal.height)
+                            for (i in 0 until numLinesToErase) {
+                                append(WIPE_CURRENT_LINE_COMMAND)
+                                if (i < numLinesToErase - 1) {
+                                    append(Ansi.Csi.Codes.Cursor.MoveToPrevLine.toFullEscapeCode())
+                                }
                             }
                         }
-
-                        lastCommandsRendered = emptyList()
-                    }
+                    commandsCache.clear()
                 }
 
                 val asideTextBuilder = StringBuilder()
@@ -240,14 +274,14 @@ class Section internal constructor(val session: Session, private val render: Mai
                     session.sectionExceptionHandler(t)
                 }
 
-                lastCommandsRendered = renderer.commands.withImplicitNewlines(session.textMetrics, session.terminal.width)
+                commandsCache.setTo(renderer.commands)
 
                 // Send the whole set of instructions through `write` at once so the clear and updates are processed
                 // in one pass.
                 session.terminal.write(
                     clearBlockCommand
                             + asideTextBuilder.toString()
-                            + lastCommandsRendered.toText(session.terminal.height)
+                            + commandsCache.withNewlines(session.terminal.width).toText(session.terminal.height)
                 )
 
                 onRendered.removeIf {
@@ -330,6 +364,10 @@ class Section internal constructor(val session: Session, private val render: Mai
         // Running might crash, and if so, we should still propagate the exception but only after we've cleaned up post
         // run.
         var deferredException: Exception? = null
+
+        coroutineScope.launch {
+            session.terminal.events.sizeChanged.collect { renderOnceAsync() }
+        }
 
         if (block != null) {
             val self = this

@@ -1,10 +1,14 @@
 package com.varabyte.kotter.runtime.terminal.inmemory
 
-import com.varabyte.kotter.foundation.input.*
-import com.varabyte.kotter.runtime.internal.ansi.*
-import com.varabyte.kotter.runtime.internal.text.*
-import com.varabyte.kotter.runtime.terminal.*
-import com.varabyte.kotter.runtime.terminal.inmemory.InMemoryTerminal.*
+import com.varabyte.kotter.foundation.input.CharKey
+import com.varabyte.kotter.foundation.input.Key
+import com.varabyte.kotter.foundation.input.Keys
+import com.varabyte.kotter.runtime.internal.ansi.Ansi
+import com.varabyte.kotter.runtime.internal.text.TextPtr
+import com.varabyte.kotter.runtime.internal.text.startsWith
+import com.varabyte.kotter.runtime.internal.text.substring
+import com.varabyte.kotter.runtime.terminal.Terminal
+import com.varabyte.kotter.runtime.terminal.TerminalSize
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -64,10 +68,18 @@ class InMemoryTerminal(size: TerminalSize? = null) : Terminal {
         keys.forEach { keysFlow.emit(it) }
     }
 
-    override val width = size?.width ?: TerminalSize.Unbounded.width
-    override val height = size?.height ?: TerminalSize.Unbounded.height
+    var size = size ?: TerminalSize.Unbounded
+        set(value) {
+            if (field != value) {
+                field = value
+                mutableEvents.sizeChanged.tryEmit(value)
+            }
+        }
+    override val width get() = size.width
+    override val height get() = size.height
 
-
+    private val mutableEvents = Terminal.MutableEvents()
+    override val events = mutableEvents.asReadOnly()
 
     override fun write(text: String) {
         assertNotClosed()

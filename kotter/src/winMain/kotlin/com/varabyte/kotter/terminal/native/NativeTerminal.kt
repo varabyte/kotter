@@ -42,6 +42,7 @@ import platform.windows.STD_INPUT_HANDLE
 import platform.windows.STD_OUTPUT_HANDLE
 import platform.windows.SetConsoleMode
 import platform.windows.TRUE
+import platform.windows.WINDOW_BUFFER_SIZE_EVENT
 
 actual class NativeTerminal : Terminal {
     private val stdInHandle = GetStdHandle(STD_INPUT_HANDLE)!!
@@ -95,6 +96,9 @@ actual class NativeTerminal : Terminal {
             GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
             (csbi.srWindow.Bottom - csbi.srWindow.Top)
         }
+
+    private val mutableEvents = Terminal.MutableEvents()
+    override val events = mutableEvents.asReadOnly()
 
     private var closed = false
 
@@ -171,8 +175,9 @@ actual class NativeTerminal : Terminal {
                     } else {
                         if (readResult != 0) {
                             for (i in 0 until numEventsRead.value.toInt()) {
-                                if (inputRecord.EventType.toInt() == KEY_EVENT) {
-                                    processKeyEvent(inputRecord.Event.KeyEvent)
+                                when (inputRecord.EventType.toInt()) {
+                                    KEY_EVENT -> processKeyEvent(inputRecord.Event.KeyEvent)
+                                    WINDOW_BUFFER_SIZE_EVENT -> mutableEvents.sizeChanged.emit(TerminalSize(width, height))
                                 }
                             }
                         } else {

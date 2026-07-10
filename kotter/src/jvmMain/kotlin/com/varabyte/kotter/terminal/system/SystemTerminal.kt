@@ -27,6 +27,9 @@ class SystemTerminal : Terminal {
     private val previousErr = System.err
     private var closed = false
 
+    private val mutableEvents = Terminal.MutableEvents()
+    override val events: Terminal.Events = mutableEvents.asReadOnly()
+
     private val terminal = TerminalBuilder.builder()
         .system(true)
         // Don't use JLine's virtual terminal - use ours! Because this is false, this builder will throw an exception
@@ -40,6 +43,10 @@ class SystemTerminal : Terminal {
             // Handle Ctrl-C ourselves, because Windows otherwise swallows it
             // See also: https://github.com/jline/jline3/issues/822
             handle(Signal.INT) { exitProcess(130) } // 130 == 128+2, where 2 == SIGINT
+
+            handle(Signal.WINCH) {
+                mutableEvents.sizeChanged.tryEmit(TerminalSize(columns, rows))
+            }
 
             val disabledPrintStream = PrintStream(object : OutputStream() {
                 override fun write(b: Int) = Unit

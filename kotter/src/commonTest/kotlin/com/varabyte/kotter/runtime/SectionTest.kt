@@ -10,6 +10,7 @@ import com.varabyte.kotter.runtime.terminal.TerminalSize
 import com.varabyte.kotter.runtime.terminal.inmemory.lines
 import com.varabyte.kotter.runtime.terminal.inmemory.resolveRerenders
 import com.varabyte.kotterx.test.foundation.testSession
+import com.varabyte.kotterx.test.runtime.blockUntilRenderMatches
 import com.varabyte.kotterx.test.terminal.assertMatches
 import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
@@ -246,6 +247,22 @@ class SectionTest {
     fun `runUntilSignal exits after the signal is reached`() = testSession {
         section {}.runUntilSignal {
             signal()
+        }
+    }
+
+    @Test
+    fun `section repainted on size changed`() = testSession(TerminalSize(100, 40)) { terminal ->
+        section {
+            text("$width x $height")
+        }.run {
+            blockUntilRenderMatches(terminal) {
+                text("100 x 40")
+            }
+
+            terminal.size = TerminalSize(50, 20)
+            blockUntilRenderMatches(terminal) {
+                text("50 x 20")
+            }
         }
     }
 }

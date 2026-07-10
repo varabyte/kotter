@@ -25,9 +25,9 @@ import java.net.URISyntaxException
 import java.nio.file.Path
 import java.util.*
 import javax.swing.*
+import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicScrollBarUI
 import kotlin.io.path.exists
-import kotlin.math.ceil
 import kotlin.math.roundToInt
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
@@ -63,7 +63,9 @@ private inline fun <reified T> Component.findAncestor(): T? {
 }
 
 private val Component.window get() = findAncestor<Window>()
-private val Component.scrollPane get() = findAncestor<JScrollPane>()
+
+private fun Dimension.withInsets(insets: Insets) =
+    Dimension(width + insets.left + insets.right, height + insets.top + insets.bottom)
 
 // Data that doesn't require doing a String substring memory allocation
 private class LineSection(
@@ -105,7 +107,7 @@ private fun CharSequence.sectionsForWidth(textMetrics: TextMetrics, width: Int):
  * An instance cannot be created manually. See [VirtualTerminal.create] instead.
  */
 class VirtualTerminal private constructor(
-    private val pane: SwingTerminalPane, private val terminalSize: TerminalSize, private val showExitPrompt: Boolean
+    private val pane: TerminalPane, terminalSize: TerminalSize, private val showExitPrompt: Boolean
 ) : Terminal {
 
     private class SleekScrollBarUI(
@@ -203,7 +205,7 @@ class VirtualTerminal private constructor(
             val font = fontOverride?.takeIf { it.exists() }
                 ?.let { Font.createFont(Font.TRUETYPE_FONT, it.toFile()).deriveFont(Font.PLAIN, fontSize.toFloat()) }
                 ?: Font(Font.MONOSPACED, Font.PLAIN, fontSize)
-            val pane = SwingTerminalPane(
+            val pane = TerminalPane(
                 terminalSize,
                 font,
                 fgColor.toSwingColor(),
@@ -214,55 +216,76 @@ class VirtualTerminal private constructor(
             pane.focusTraversalKeysEnabled = false // Don't handle TAB, we want to send it to the user
 
             val terminal = VirtualTerminal(pane, terminalSize, showExitPrompt)
-            SwingUtilities.invokeAndWait {
-                val frame = JFrame(title)
-                frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+            terminal.pane.addComponentListener(object : ComponentAdapter() {
+                override fun componentResized(e: ComponentEvent) {
+                    terminal.terminalSize = pane.terminalSize
+                }
+            })
 
-                val borderWrapper = JPanel(BorderLayout()).apply {
+            val vscrollBar = JScrollBar(JScrollBar.VERTICAL).apply {
+                val self = this
+
+                val trackColor = bgColor.toSwingColor()
+                val thumbColor = fgColor.toSwingColor().let {
+                    Color(it.red, it.green, it.blue, 100)
+                }
+                setUI(SleekScrollBarUI(trackColor, thumbColor))
+
+                fun updateScrollBounds() {
+                    val newValue = pane.docViewport.topLineIndex
+                    val newExtent = pane.terminalSize.height
+                    val newMin = 0
+                    val newMax = pane.docViewport.totalLineCount
+                    self.setValues(newValue, newExtent, newMin, newMax)
+                }
+
+                pane.addComponentListener(object : ComponentAdapter() {
+                    override fun componentResized(e: ComponentEvent) {
+                        updateScrollBounds()
+                    }
+                })
+                pane.addTextProcessedListener { updateScrollBounds() }
+                pane.addMouseWheelListener { e ->
+                    val unitsToScroll = e.unitsToScroll
+
+                    val newValue = self.value + unitsToScroll
+                    val clampedValue = newValue.coerceIn(self.minimum, self.maximum)
+                    self.value = clampedValue
+                }
+
+                this.addAdjustmentListener { e ->
+                    pane.topLineIndex = e.value
+                }
+            }
+
+            val windowContent = object : JPanel(BorderLayout()) {
+                init {
                     background = bgColor.toSwingColor()
-                    border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                    border = EmptyBorder(10, 10, 10, 10)
                     add(terminal.pane, BorderLayout.CENTER)
+                    if (!hideVerticalScrollbar) add(vscrollBar, BorderLayout.EAST)
                 }
-                val scrollPane = JScrollPane(borderWrapper).apply {
-                    border = null // removes an annoying white line from the bottom of the view
+
+                override fun getMinimumSize(): Dimension {
+                    val terminalMinSize = terminal.pane.minimumSize
+                    val scrollerSize = vscrollBar.preferredSize
+                    return Dimension(
+                        terminalMinSize.width + scrollerSize.width,
+                        terminalMinSize.height,
+                    ).withInsets(insets)
+                }
+            }
+
+            SwingUtilities.invokeAndWait {
+                val frame = JFrame(title).apply {
                     background = bgColor.toSwingColor()
-                    viewport.background = background
+                    defaultCloseOperation = JFrame.EXIT_ON_CLOSE
+                    add(windowContent)
+                    pack()
+                    setLocationRelativeTo(null)
 
-                    val trackColor = bgColor.toSwingColor()
-                    val thumbColor = fgColor.toSwingColor().let {
-                        Color(it.red, it.green, it.blue, 100)
-                    }
-                    horizontalScrollBar.setUI(SleekScrollBarUI(trackColor, thumbColor))
-                    verticalScrollBar.setUI(SleekScrollBarUI(trackColor, thumbColor))
-
-                    // Our text will autowrap and never go past the right side of the initial terminal window size, so
-                    // by default we don't need to show a scrollbar. However, the user can resize the window themselves
-                    // and shrink it.
-                    horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-                    // The default "as needed" scrollbar eats into existing space after it appears, causing lines that
-                    // previously perfectly fit to suddenly end up interrupted and wrapped. Instead, we design a
-                    // scrollbar UI that essentially is always there but is invisible (since it shares the same bg
-                    // color as the regular pane) until the thumb appears.
-                    verticalScrollBarPolicy = if (hideVerticalScrollbar) {
-                        JScrollPane.VERTICAL_SCROLLBAR_NEVER
-                    } else {
-                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
-                    }
-
-                    // Swing isn't setting up my scrollbar increments, I have no idea why
-                    horizontalScrollBar.unitIncrement = pane.cellBounds.x
-                    verticalScrollBar.unitIncrement = pane.cellBounds.y
-                    verticalScrollBar.addAdjustmentListener { event ->
-                        // If a user window resize results in a fractional number of rows, use ceiling rounding to bias
-                        // towards showing the bottom lines. Otherwise, when scrolled to the absolute end, standard
-                        // truncation can clip the final line entirely out of the viewport.
-                        pane.handleScrollPositionChanged(ceil(event.value.toFloat() / pane.cellBounds.y).toInt())
-                    }
-                    viewport.scrollMode = JViewport.SIMPLE_SCROLL_MODE
+                    minimumSize = windowContent.minimumSize.withInsets(insets)
                 }
-                frame.add(scrollPane)
-                frame.pack()
-                frame.setLocationRelativeTo(null)
 
                 if (handleInterrupt) {
                     terminal.pane.addKeyListener(object : KeyAdapter() {
@@ -312,8 +335,18 @@ class VirtualTerminal private constructor(
         }
     }
 
+    var terminalSize = terminalSize
+        set(value) {
+            if (field != value) {
+                field = value
+                mutableEvents.sizeChanged.tryEmit(value)
+            }
+        }
     override val width get() = terminalSize.width
     override val height get() = terminalSize.height
+
+    private var mutableEvents = Terminal.MutableEvents()
+    override val events = mutableEvents.asReadOnly()
 
     override fun write(text: String) {
         SwingUtilities.invokeLater {
@@ -354,7 +387,12 @@ class VirtualTerminal private constructor(
                         }
                     }
                     chars.forEach { c -> trySend(c.code) }
-                    if (chars.isNotEmpty()) e.consume()
+                    if (chars.isNotEmpty()) {
+                        e.consume()
+                        // When the user presses a key, focus back to the bottom of the terminal (otherwise, it's weird
+                        // if they've scrolled up to the top and can't see what they're typing!)
+                        pane.stickToBottom()
+                    }
                 }
             })
 
@@ -404,14 +442,14 @@ class VirtualTerminal private constructor(
     override fun clear() = Unit
 }
 
-private class SwingTerminalPane(
-    private var terminalSize: TerminalSize,
+private class TerminalPane(
+    terminalSize: TerminalSize,
     font: Font,
     fgColor: Color,
     bgColor: Color,
     linkColor: Color,
     maxNumLines: Int
-) : JPanel(), Scrollable {
+) : JPanel() {
 
     private class UriState(private val linkColor: Color, private val bgColor: Color) {
         private var currUri: Pair<Int, URI>? = null
@@ -594,13 +632,7 @@ private class SwingTerminalPane(
         }
     }
 
-    private class DocumentViewport(
-        private val doc: Document,
-        private val textMetrics: TextMetrics,
-        numLines: Int,
-        width: Int,
-        topLineIndex: Int = 0
-    ) {
+    interface DocumentViewport {
         /**
          * Information about a line visible to the user.
          *
@@ -613,6 +645,29 @@ private class SwingTerminalPane(
          */
         class LineInfo(val line: String, val startIndex: Int, val renderWidth: Int)
 
+        val numLines: Int
+        val topLineIndex: Int
+        val totalLineCount: Int
+
+        /**
+         * Return a [LineInfo] associated with the visible line on screen.
+         *
+         * For example, if [lineIndex] is 2, that will be the third visible row on screen.
+         *
+         * This could be null if you are asking for a row past the final text in the document, e.g. a view that has
+         * five lines of text in a terminal of height 20, and you ask for index 18.
+         */
+        fun lineInfoFor(lineIndex: Int): LineInfo?
+        fun forEach(block: (LineInfo) -> Unit)
+    }
+
+    private class MutableDocumentViewport(
+        private val doc: Document,
+        private val textMetrics: TextMetrics,
+        numLines: Int,
+        width: Int,
+        topLineIndex: Int = 0
+    ) : DocumentViewport {
         /**
          * A mapping of a line's final visual index (which autowrap may affect) to its original logical document line
          * index.
@@ -621,9 +676,9 @@ private class SwingTerminalPane(
          */
         private val visualToLogicalIndices = TreeMap<Int, Int>()
         private val visualIndexToLineStart = TreeMap<Int, Int>()
-        private val lineInfoCache = mutableMapOf<Int, LineInfo>()
+        private val lineInfoCache = mutableMapOf<Int, DocumentViewport.LineInfo>()
 
-        var numLines = numLines
+        override var numLines = numLines
             set(value) {
                 if (field != value) {
                     field = value
@@ -639,7 +694,7 @@ private class SwingTerminalPane(
                 }
             }
 
-        var topLineIndex = topLineIndex
+        override var topLineIndex = topLineIndex
             set(value) {
                 if (field != value) {
                     field = value
@@ -655,7 +710,7 @@ private class SwingTerminalPane(
         }
 
         private var _totalLineCount: Int? = null
-        val totalLineCount: Int get() = _totalLineCount ?: run {
+        override val totalLineCount: Int get() = _totalLineCount ?: run {
             updateVisualIndices()
             _totalLineCount!!
         }
@@ -686,7 +741,7 @@ private class SwingTerminalPane(
          * Fetch a [LineInfo] associated with the line index of _all_ text _after_ it was autowrapped.
          *
          */
-        private fun lineInfoForGlobalIndex(visualLineIndex: Int): LineInfo? {
+        private fun lineInfoForGlobalIndex(visualLineIndex: Int): DocumentViewport.LineInfo? {
             check(_totalLineCount != null) // Only call this AFTER calling `updateVisualIndices` first!
             if (visualLineIndex !in 0 until totalLineCount) return null
 
@@ -701,7 +756,7 @@ private class SwingTerminalPane(
                 sections.forEachIndexed { i, section ->
                     val visualLine = logicalLine.substring(section.range)
                     lineInfoCache[floorVisualLineIndex + i] =
-                        LineInfo(
+                        DocumentViewport.LineInfo(
                             visualLine,
                             // "+ logicalLineIndex" means capture all preceeding newlines from the logical text as well
                             visualIndexToLineStart.getValue(floorVisualLineIndex + i),
@@ -721,14 +776,13 @@ private class SwingTerminalPane(
          * This could be null if you are asking for a row past the final text in the document, e.g. a view that has
          * five lines of text in a terminal of height 20, and you ask for index 18.
          */
-        fun lineInfoFor(lineIndex: Int): LineInfo? {
+        override fun lineInfoFor(lineIndex: Int): DocumentViewport.LineInfo? {
             if (lineIndex !in 0 until numLines) return null
             updateVisualIndices()
             return lineInfoForGlobalIndex(topLineIndex + lineIndex)
         }
 
-        // Inline to allow breaking
-        inline fun forEach(block: (LineInfo) -> Unit) {
+        override fun forEach(block: (DocumentViewport.LineInfo) -> Unit) {
             updateVisualIndices()
             for (i in topLineIndex until topLineIndex + numLines) {
                 val lineInfo = lineInfoForGlobalIndex(i) ?: break
@@ -737,12 +791,41 @@ private class SwingTerminalPane(
         }
     }
 
+    private val textProcessedListeners = mutableListOf<() -> Unit>()
+    fun addTextProcessedListener(block: () -> Unit) { textProcessedListeners.add(block) }
+
+    var terminalSize = terminalSize
+        set(value) {
+            if (field != value) {
+                field = value
+                mutableDocViewport.width = value.width
+                mutableDocViewport.numLines = value.height
+                repaint()
+            }
+        }
+
+    var topLineIndex: Int
+        get() {
+            return docViewport.topLineIndex
+        }
+        set(value) {
+            val clampedValue = value.coerceIn(0, maxTopLineIndex)
+            if (docViewport.topLineIndex != clampedValue) {
+                mutableDocViewport.topLineIndex = clampedValue
+                repaint()
+            }
+        }
+
+    val maxTopLineIndex get() = (docViewport.totalLineCount - terminalSize.height).coerceAtLeast(0)
+
     private val textMetrics = TextMetrics()
     private val mutableDoc = MutableDocument(fgColor, bgColor, maxNumLines, textMetrics)
     val doc get(): Document = mutableDoc
 
     private val uriState = UriState(linkColor, bgColor)
-    private val docViewport = DocumentViewport(doc, textMetrics, numLines = terminalSize.height, width = terminalSize.width)
+    private val mutableDocViewport = MutableDocumentViewport(doc, textMetrics, numLines = terminalSize.height, width = terminalSize.width)
+    val docViewport: DocumentViewport = mutableDocViewport
+
     /**
      * The cumulative application of styles as we've processed ANSI style commands.
      *
@@ -764,6 +847,11 @@ private class SwingTerminalPane(
             )
         }
 
+        preferredSize = Dimension(
+            terminalSize.width * cellBounds.x,
+            terminalSize.height * cellBounds.y
+        )
+
         isFocusable = true
         isOpaque = true
         foreground = fgColor
@@ -771,41 +859,30 @@ private class SwingTerminalPane(
         this.font = font
 
         initMouseListeners()
-    }
 
-    override fun getPreferredSize(): Dimension {
-        return Dimension(
-            terminalSize.width * cellBounds.x,
-            maxOf(docViewport.totalLineCount, terminalSize.height) * cellBounds.y
-        )
+        addComponentListener(object : ComponentAdapter() {
+            override fun componentResized(e: ComponentEvent) {
+                val pane = this@TerminalPane
+                val newWidth = (width / cellBounds.x).coerceAtLeast(1)
+                val newHeight = (height / cellBounds.y).coerceAtLeast(1)
+                if (newWidth != pane.terminalSize.width || newHeight != pane.terminalSize.height) {
+                    val wasAtBottom = (pane.isStuckToBottom())
+                    pane.terminalSize = TerminalSize(newWidth, newHeight)
+
+                    if (!wasAtBottom) {
+                        // If the window got bigger, there is now more space for lines, so it's possible our maxTopLineIndex
+                        // changed. Update topLineIndex to respect it.
+                        topLineIndex = topLineIndex // Will get clamped if maxTopLineIndex changed; otherwise, no-op
+                    } else {
+                        stickToBottom()
+                    }
+                }
+            }
+        })
     }
 
     override fun getMinimumSize(): Dimension {
         return Dimension(10 * cellBounds.x, 2 * cellBounds.y)
-    }
-
-    private var lastTopLineIndex = -1
-    fun handleScrollPositionChanged(newTopLine: Int) {
-        if (newTopLine == lastTopLineIndex) return
-
-        docViewport.topLineIndex = newTopLine
-        lastTopLineIndex = newTopLine
-    }
-
-    override fun getPreferredScrollableViewportSize(): Dimension = preferredSize
-
-    // If the window gets horizontally smaller than the render area, actually move it left and right.
-    override fun getScrollableTracksViewportWidth() = false
-    // We fake vertical scrolling internally by updating the render area with text from different parts of our
-    // history. Setting this to true stops the JScrollPane from physically moving our panel up and down.
-    override fun getScrollableTracksViewportHeight() = true
-
-    override fun getScrollableUnitIncrement(visibleRect: Rectangle, orientation: Int, direction: Int): Int {
-        return if (orientation == SwingConstants.VERTICAL) cellBounds.y else cellBounds.x
-    }
-
-    override fun getScrollableBlockIncrement(visibleRect: Rectangle, orientation: Int, direction: Int): Int {
-        return if (orientation == SwingConstants.VERTICAL) visibleRect.height else visibleRect.width
     }
 
     private val emojiRenderers = ServiceLoader.load(EmojiRenderer::class.java).toList()
@@ -816,8 +893,6 @@ private class SwingTerminalPane(
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 
         val lineMetrics = font.getLineMetrics("W", g2d.fontRenderContext)
-
-        docViewport.numLines = visibleRect.height / cellBounds.y
 
         var drawY = visibleRect.y
         docViewport.forEach { lineInfo ->
@@ -839,7 +914,7 @@ private class SwingTerminalPane(
                     for (emojiRenderer in emojiRenderers) {
                         if (emojiRenderer.render(
                             g2d,
-                            this@SwingTerminalPane,
+                            this@TerminalPane,
                             grapheme,
                                 Rectangle(drawX, drawY, graphemePixelWidth, cellBounds.y)
                         )) {
@@ -952,12 +1027,12 @@ private class SwingTerminalPane(
     }
 
     private fun initMouseListeners() {
-        ToolTipManager.sharedInstance().registerComponent(this@SwingTerminalPane)
+        ToolTipManager.sharedInstance().registerComponent(this@TerminalPane)
 
         addMouseMotionListener(object : MouseMotionAdapter() {
             override fun mouseMoved(e: MouseEvent) {
                 var nextCursor = Cursor.getDefaultCursor()
-                this@SwingTerminalPane.textIndexAtPoint(e.point.toLocalCoords())?.let { textIndex ->
+                this@TerminalPane.textIndexAtPoint(e.point.toLocalCoords())?.let { textIndex ->
                     if (getUriAtTextIndex(textIndex) != null) {
                         nextCursor = Cursor.getPredefinedCursor(HAND_CURSOR)
                     }
@@ -968,7 +1043,7 @@ private class SwingTerminalPane(
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                this@SwingTerminalPane.textIndexAtPoint(e.point.toLocalCoords())?.let { textIndex ->
+                this@TerminalPane.textIndexAtPoint(e.point.toLocalCoords())?.let { textIndex ->
                     getUriAtTextIndex(textIndex)?.let { uriUnderCursor ->
                         Desktop.getDesktop().browse(uriUnderCursor)
                     }
@@ -1081,6 +1156,9 @@ private class SwingTerminalPane(
         require(maxWidth > 0)
         if (text.isEmpty()) return
 
+        // The following logic will keep the window snapped at the bottom
+        val wasAtBottom = isStuckToBottom()
+
         val textPtr = TextPtr(text)
         do {
             when (textPtr.currChar) {
@@ -1112,21 +1190,18 @@ private class SwingTerminalPane(
         } while (textPtr.increment())
 
         uriState.assertValidState()
-        docViewport.invalidate()
-
-        // The following logic will keep the window snapped at the bottom
-        val scrollPane = scrollPane!!
-        val verticalScrollBar = scrollPane.verticalScrollBar
-        val model = verticalScrollBar.model
-        val wasAtBottom = (model.value + model.extent) >= model.maximum
+        mutableDocViewport.invalidate()
 
         revalidate()
         repaint()
 
         if (wasAtBottom || forceScrollToBottom) {
-            SwingUtilities.invokeLater {
-                model.value = model.maximum
-            }
+            stickToBottom()
         }
+
+        textProcessedListeners.forEach { it() }
     }
 }
+
+private fun TerminalPane.stickToBottom() { topLineIndex = maxTopLineIndex }
+private fun TerminalPane.isStuckToBottom() = topLineIndex == maxTopLineIndex
