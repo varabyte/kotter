@@ -135,6 +135,20 @@ class LiveMapTest {
         override fun hashCode(): Int = arrayOf(key, value).contentHashCode()
     }
 
+    // The following code was forked from the Kotlin 2.3.x stdlib, because we don't have it in the older version of
+    // Kotlin that we're using to build to Kotter. We may be able to pull this out someday, but also, we are only using
+    // it inside this test and not in our actual broader project, so I won't lose sleep over this getting left behind.
+    // See also: https://youtrack.jetbrains.com/issue/KT-81997
+    // And: https://youtrack.jetbrains.com/issue/KT-87473
+    private class DetachedMapEntry<out K, out V>(override val key: K, override val value: V) : Map.Entry<K, V> {
+        override fun equals(other: Any?): Boolean = other is Map.Entry<*, *> && key == other.key && value == other.value
+        override fun hashCode(): Int = arrayOf(key, value).contentHashCode()
+        override fun toString(): String = "$key=$value"
+    }
+    private fun <K, V> Map.Entry<K, V>.copy(): Map.Entry<K, V> {
+        return (this as? DetachedMapEntry) ?: DetachedMapEntry(this.key, this.value)
+    }
+
     @Test
     fun `live map entries property works`() = testSession {
         val numSquares = liveMapOf<Int, Int>()
