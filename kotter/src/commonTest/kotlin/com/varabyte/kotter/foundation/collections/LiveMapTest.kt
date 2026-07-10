@@ -11,6 +11,20 @@ import com.varabyte.truthish.assertThat
 import com.varabyte.truthish.assertThrows
 import kotlin.test.Test
 
+// The following code was forked from the Kotlin 2.3.x stdlib, because we don't have it in the older version of
+// Kotlin that we're using to build to Kotter. We may be able to pull this out someday, but also, we are only using
+// it inside this test and not in our actual broader project, so I won't lose sleep over this getting left behind.
+// See also: https://youtrack.jetbrains.com/issue/KT-81997
+// And: https://youtrack.jetbrains.com/issue/KT-87473
+private class DetachedMapEntry<out K, out V>(override val key: K, override val value: V) : Map.Entry<K, V> {
+    override fun equals(other: Any?): Boolean = other is Map.Entry<*, *> && key == other.key && value == other.value
+    override fun hashCode(): Int = arrayOf(key, value).contentHashCode()
+    override fun toString(): String = "$key=$value"
+}
+private fun <K, V> Map.Entry<K, V>.copy(): Map.Entry<K, V> {
+    return (this as? DetachedMapEntry) ?: DetachedMapEntry(this.key, this.value)
+}
+
 class LiveMapTest {
 
     @Test
@@ -154,16 +168,14 @@ class LiveMapTest {
         assertThat(entries.size).isEqualTo(10)
         assertThat(numSquares.size).isEqualTo(entries.size)
 
-        // Originally, this intentionally tested
-        // entries.removeAll(entries.filter { it.key % 2 == 0 })
-        // but currently this crashes on K/N: https://youtrack.jetbrains.com/issue/KT-87473
-        entries.removeAll { it.key % 2 == 0 } // Remove all evens
+        // `map { it.copy() }` necessary to avoid crash on K/N
+        // See also: https://youtrack.jetbrains.com/issue/KT-87473
+        entries.removeAll(entries.filter { it.key % 2 == 0 }.map { it.copy() })
         assertThat(entries.size).isEqualTo(5)
 
-        // Originally, this intentionally tested
-        // entries.retainAll(entries.filter { it.key <= 5 })
-        // but currently this crashes on K/N: https://youtrack.jetbrains.com/issue/KT-87473
-        entries.retainAll { it.key <= 5 }
+        // `map { it.copy() }` necessary to avoid crash on K/N
+        // See also: https://youtrack.jetbrains.com/issue/KT-87473
+        entries.retainAll(entries.filter { it.key <= 5 }.map { it.copy() })
         assertThat(entries.size).isEqualTo(3)
 
         with(entries.iterator()) {
