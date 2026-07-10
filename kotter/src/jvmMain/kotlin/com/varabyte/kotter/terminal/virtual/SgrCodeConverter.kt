@@ -244,29 +244,26 @@ internal class SgrCodeConverter(private val defaultForeground: Color, private va
             }
 
             else -> {
-                val optionalCodes = code.parts.optionalCodes ?: return null
                 var attrSetModifier: (MutableAttributeSet.() -> Unit)? = null
-                if (code.parts.numericCode == Ansi.Csi.Codes.Sgr.Colors.FG_NUMERIC) {
-                    val color = if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.TRUECOLOR_SUBCODE) {
+
+                fun Ansi.Csi.Code.optionalCodesToColorOrNull(): Color? {
+                    val optionalCodes = parts.optionalCodes ?: return null
+                    return if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.TRUECOLOR_SUBCODE) {
                         Color(optionalCodes[1], optionalCodes[2], optionalCodes[3])
                     } else if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.LOOKUP_SUBCODE) {
                         IndexedColors[optionalCodes[1]]
                     } else {
                         null
                     }
+                }
 
+                if (code.parts.numericCode == Ansi.Csi.Codes.Sgr.Colors.FG_NUMERIC) {
+                    val color = code.optionalCodesToColorOrNull()
                     if (color != null) {
                         attrSetModifier = { setInverseAwareForeground(color) }
                     }
                 } else if (code.parts.numericCode == Ansi.Csi.Codes.Sgr.Colors.BG_NUMERIC) {
-                    val color = if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.TRUECOLOR_SUBCODE) {
-                        Color(optionalCodes[1], optionalCodes[2], optionalCodes[3])
-                    } else if (optionalCodes[0] == Ansi.Csi.Codes.Sgr.Colors.LOOKUP_SUBCODE) {
-                        IndexedColors[optionalCodes[1]]
-                    } else {
-                        null
-                    }
-
+                    val color = code.optionalCodesToColorOrNull()
                     if (color != null) {
                         attrSetModifier = { setInverseAwareBackground(color) }
                     }
