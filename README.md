@@ -1465,29 +1465,56 @@ Bringing it all together, if you wanted to iterate a text string that might cont
 loop would generally look like this:
 
 ```kotlin
-// Iterating forward
+///// Iterating forwards
+
 var currIndex = 0
-var currWidth = 0
 while (currIndex < str.length) {
     val graphemeLen = textMetrics.graphemeClusterLengthAt(str, currIndex)
-    val grapheme = textMetrics.substring(currIndex, currIndex + graphemeLen)
+    val grapheme = str.substring(currIndex, currIndex + graphemeLen)
     // Do something with the grapheme here
-    currWidth += textMetrics.renderWidthOf(grapheme)
-    currIndex += nextGraphemeLen
+    currIndex += graphemeLen
 }
+```
+```kotlin
+///// Iterating backwards
 
-// Iterating backwards
 var currIndex = string.length - 1
-var currWidth = 0
 while (currIndex >= 0) {
     val graphemeStart = textMetrics.graphemeStartIndex(str, currIndex)
     val graphemeLen = textMetrics.graphemeClusterLengthAt(str, graphemeStart)
-    val grapheme = textMetrics.substring(currIndex, graphemeStart + graphemeLen)
+    val grapheme = str.substring(graphemeStart, graphemeStart + graphemeLen)
     // Do something with the grapheme here
-    currWidth += textMetrics.renderWidthOf(grapheme)
     currIndex = graphemeStart - 1
 }
 ```
+
+The text metrics class actually provides an extension convenience method for grapheme iteration:
+`graphemesOf(str, range)`. You can use this method to iterate through graphemes in a string with much less boilerplate. The range can even take
+a negative direction, for reverse iteration, or you can use the `reversed()` method as well.
+
+```kotlin
+///// Iterating forwards
+
+textMetrics.graphemesOf(str).forEach { grapheme ->
+    // Do something with the grapheme here
+}
+```
+```kotlin
+///// Iterating backwards
+
+// Approach #1: reversed
+textMetrics.graphemesOf(str).reversed().forEach { grapheme ->
+    // Do something with the grapheme here
+}
+
+// Approach #2: downTo
+textMetrics.graphemesOf(str, str.lastIndex downTo 0).forEach { grapheme ->
+  // Do something with the grapheme here
+}
+```
+
+For the backwards iteration example above, the `reversed` approach is simpler, but if you are iterating in reverse over
+a smaller subset of the input `str`, the `downTo` version likely reads better.
 
 #### Truncating text
 

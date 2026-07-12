@@ -26,14 +26,14 @@ class TextMetricsTest {
     fun `grapheme utility methods work`() {
         val tm = TextMetrics()
 
-        val graphemeRichText = "aiueo💩あいうえお\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66end"
+        val graphemeRichText = "aeiou💩あいうえお\uD83D\uDC68\u200D\uD83D\uDC69\u200D\uD83D\uDC67\u200D\uD83D\uDC66end"
 
         val expectedGraphemes = mutableListOf(
             "a" to 1,
-            "i" to 1,
-            "u" to 1,
             "e" to 1,
+            "i" to 1,
             "o" to 1,
+            "u" to 1,
             "💩" to 2,
             "あ" to 1,
             "い" to 1,
@@ -196,5 +196,75 @@ class TextMetricsTest {
         assertThat(tm.isEmoji("\uD83C\uDDFA\uD83C\uDDF8")).isTrue() // 🇺🇸
         assertThat(tm.isEmoji("⚠\uFE0F")).isTrue() // ⚠️
         assertThat(tm.isEmoji("⌛")).isTrue()
+    }
+
+    @Test
+    fun `text iteration works`() {
+        val tm = TextMetrics()
+
+        // Full string iteration
+        run {
+            val sb = StringBuilder()
+            tm.graphemesOf("hello").forEach { grapheme ->
+                sb.append(grapheme)
+            }
+            assertThat(sb.toString()).isEqualTo("hello")
+        }
+        run {
+            val sb = StringBuilder()
+            tm.graphemesOf("hello").reversed().forEach { grapheme ->
+                sb.append(grapheme)
+            }
+            assertThat(sb.toString()).isEqualTo("olleh")
+        }
+
+        // Partial string iteration
+        run {
+            val sb = StringBuilder()
+            tm.graphemesOf("hello", 1..3).forEach { grapheme ->
+                sb.append(grapheme)
+            }
+            assertThat(sb.toString()).isEqualTo("ell")
+        }
+        run {
+            val sb = StringBuilder()
+            tm.graphemesOf("hello", 1..3).reversed().forEach { grapheme ->
+                sb.append(grapheme)
+            }
+            assertThat(sb.toString()).isEqualTo("lle")
+        }
+
+        // Complex Unicode iteration
+        run {
+            val graphemesWithUnicode = listOf(
+                "a",
+                "e",
+                "i",
+                "o",
+                "u",
+                "💩",
+                "あ",
+                "い",
+                "う",
+                "え",
+                "お",
+                "👨‍👩‍👧‍👦",
+                "e",
+                "n",
+                "d"
+            )
+
+            val graphemesOut = mutableListOf<String>()
+            tm.graphemesOf(graphemesWithUnicode.joinToString("")).forEach { grapheme ->
+                graphemesOut.add(grapheme)
+            }
+            assertThat(graphemesOut).containsAllIn(graphemesWithUnicode).inOrder()
+
+            graphemesOut.clear()
+            tm.graphemesOf(graphemesWithUnicode.joinToString("")).reversed().forEach { grapheme ->
+                graphemesOut.add(grapheme)
+            }
+            assertThat(graphemesOut).containsAllIn(graphemesWithUnicode.reversed()).inOrder()
+        }
     }
 }

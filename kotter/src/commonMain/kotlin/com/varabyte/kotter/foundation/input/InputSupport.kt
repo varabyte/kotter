@@ -10,6 +10,7 @@ import com.varabyte.kotter.runtime.concurrent.*
 import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.text.*
 import com.varabyte.kotter.runtime.terminal.TextMetrics
+import com.varabyte.kotter.runtime.terminal.graphemesOf
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -329,31 +330,24 @@ private fun String.getLineEndIndex(cursorIndex: Int): Int {
 }
 
 private fun String.getLineOffsetFromIndex(textMetrics: TextMetrics, index: Int): Int {
-    var currIndex = getLineStartIndex(index)
     var offset = 0
-
-    while (currIndex < index) {
-        val nextGraphemeLen = textMetrics.graphemeClusterLengthAt(this, currIndex)
-        offset += textMetrics.renderWidthOf(this.subSequence(currIndex, currIndex + nextGraphemeLen))
-        currIndex += nextGraphemeLen
+    textMetrics.graphemesOf(this, getLineStartIndex(index) until index).forEach { grapheme ->
+        offset += textMetrics.renderWidthOf(grapheme)
     }
 
     return offset
 }
 
 private fun String.getLineIndexFromOffset(textMetrics: TextMetrics, startIndex: Int, endIndex: Int, offset: Int): Int {
-    var currIndex = startIndex
     var offsetRemaining = offset
-
-    while (offsetRemaining > 0 && currIndex < endIndex) {
-        val nextGraphemeLen = textMetrics.graphemeClusterLengthAt(this, currIndex)
-        val nextRenderWidth = textMetrics.renderWidthOf(this.subSequence(currIndex, currIndex + nextGraphemeLen))
-        if (nextRenderWidth > offsetRemaining) break
-        offsetRemaining -= nextRenderWidth
-        currIndex += nextGraphemeLen
+    var lineIndex = startIndex
+    textMetrics.graphemesOf(this, startIndex until endIndex).forEach { grapheme ->
+        val renderWidth = textMetrics.renderWidthOf(grapheme)
+        if (renderWidth > offsetRemaining) return@forEach
+        offsetRemaining -= renderWidth
+        lineIndex += grapheme.length
     }
-
-    return currIndex.coerceAtMost(endIndex)
+    return lineIndex.coerceAtMost(endIndex)
 }
 
 private fun String.insertAtCursorIndex(cursorIndex: Int, c: Char): String {

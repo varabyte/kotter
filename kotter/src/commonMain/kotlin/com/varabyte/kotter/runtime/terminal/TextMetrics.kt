@@ -1,5 +1,7 @@
 package com.varabyte.kotter.runtime.terminal
 
+import kotlin.math.absoluteValue
+
 // Zero Width Joiner (https://en.wikipedia.org/wiki/Zero-width_joiner)
 private const val ZWJ_CODEPOINT = 0x200D
 private const val FIRST_PRINTABLE_CHAR_CODEPOINT = 0x20
@@ -219,6 +221,56 @@ fun TextMetrics.renderWidthOf(str: CharSequence, startIndex: Int, endIndex: Int)
 fun TextMetrics.isEmoji(str: CharSequence, index: Int = 0): Boolean {
     return isEmoji(str.codePointAt(index))
 }
+
+class GraphemesSequence(
+    private val tm: TextMetrics,
+    private val str: CharSequence,
+    private val range: IntProgression,
+) : Sequence<String> {
+    init {
+        require(range.step.absoluteValue == 1) { "Non-contiguous ranges are not supported" }
+    }
+    private val isAscending = range.step > 0
+
+    override fun iterator(): Iterator<String> = object : Iterator<String> {
+        private var currIndex = range.first
+
+        override fun next(): String {
+            return if (isAscending) {
+                val graphemeLen = tm.graphemeClusterLengthAt(str, currIndex)
+                val grapheme = str.substring(currIndex, currIndex + graphemeLen)
+                currIndex += graphemeLen
+                grapheme
+            }
+            else {
+                val graphemeStart = tm.graphemeStartIndex(str, currIndex)
+                val graphemeLen = tm.graphemeClusterLengthAt(str, graphemeStart)
+                val grapheme = str.substring(graphemeStart, graphemeStart + graphemeLen)
+                currIndex = graphemeStart - 1
+                grapheme
+            }
+        }
+
+        override fun hasNext(): Boolean {
+            return if (isAscending) {
+                (currIndex <= range.last && currIndex <= str.lastIndex)
+            } else {
+                (currIndex >= range.last && currIndex >= 0)
+            }
+        }
+    }
+
+    fun reversed(): GraphemesSequence {
+        return GraphemesSequence(tm, str, range.reversed())
+    }
+}
+
+/**
+ * Iterator over the graphemes in a string, taking care to group Unicode clusters correctly.
+ *
+ * You can also call [reversed][GraphemesSequence.reversed] on the returned sequence, for efficient reverse iteration.
+ */
+fun TextMetrics.graphemesOf(str: CharSequence, range: IntProgression = str.indices) = GraphemesSequence(this, str, range)
 
 enum class TruncateAt {
     START,
