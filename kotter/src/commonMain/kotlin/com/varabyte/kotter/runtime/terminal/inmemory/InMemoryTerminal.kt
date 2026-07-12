@@ -105,7 +105,7 @@ class InMemoryTerminal(size: TerminalSize? = null) : Terminal {
 
         val textPtr = TextPtr(text)
         while (textPtr.remainingLength > 0) {
-            val textPtrCopy = TextPtr(textPtr)
+            val textPtrCopy = textPtr.copy()
             if (skipOverEscapeCode(textPtrCopy)) {
                 val numCharsToAddWithoutUpdatingWidth = textPtrCopy.charIndex - textPtr.charIndex
                 builder.append(textPtr.substring(numCharsToAddWithoutUpdatingWidth))

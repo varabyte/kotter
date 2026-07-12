@@ -13,7 +13,7 @@ import kotlin.math.min
  * @property text The text wrapped by / pointed to by this class.
  */
 class TextPtr(val text: CharSequence, charIndex: Int = 0) {
-    constructor(other: TextPtr) : this(other.text, other.charIndex)
+    fun copy(text: CharSequence = this.text, charIndex: Int = this.charIndex) = TextPtr(text, charIndex)
 
     /**
      * The current character index we are pointing at.
@@ -113,6 +113,23 @@ class TextPtr(val text: CharSequence, charIndex: Int = 0) {
      */
     fun decrementUntil(whileCondition: (Char) -> Boolean): Boolean {
         return decrementWhile { !whileCondition(it) }
+    }
+
+    override fun toString(): String {
+        return buildString {
+            append("TextPtr[charIndex = $charIndex, text = \"")
+            if (charIndex > 0) {
+                append("…")
+            }
+            val textPreviewLen = 16
+            val lastIndex = charIndex + textPreviewLen
+            val clippedText = text.subSequence(charIndex, lastIndex.coerceAtMost(text.lastIndex))
+            append(clippedText)
+            if (lastIndex < text.lastIndex) {
+                append("…")
+            }
+            append("\"]")
+        }
     }
 }
 

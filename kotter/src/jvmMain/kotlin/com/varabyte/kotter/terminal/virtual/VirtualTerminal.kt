@@ -5,6 +5,7 @@ import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.internal.text.TextPtr
 import com.varabyte.kotter.runtime.internal.text.substring
 import com.varabyte.kotter.runtime.terminal.*
+import com.varabyte.kotter.terminal.virtual.internal.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharedFlow
@@ -16,15 +17,15 @@ import java.awt.Cursor.HAND_CURSOR
 import java.awt.datatransfer.DataFlavor
 import java.awt.event.*
 import java.awt.event.WindowEvent.WINDOW_CLOSING
+import java.awt.font.FontRenderContext
+import java.awt.geom.AffineTransform
 import java.awt.geom.Point2D
 import java.net.URI
 import java.net.URISyntaxException
 import java.nio.file.Path
-import java.util.ServiceLoader
+import java.util.*
 import javax.swing.*
-import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicScrollBarUI
-import javax.swing.text.*
 import kotlin.io.path.exists
 import kotlin.math.roundToInt
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
@@ -51,6 +52,49 @@ private val ANSI_TO_SWING_COLORS = mapOf(
 
 internal fun AnsiColor.toSwingColor(): Color = ANSI_TO_SWING_COLORS.getValue(this)
 
+private inline fun <reified T> Component.findAncestor(): T? {
+    var c: Component? = this
+    while (c != null) {
+        if (c is T) return c
+        c = c.parent
+    }
+    return null
+}
+
+private val Component.window get() = findAncestor<Window>()
+private val Component.scrollPane get() = findAncestor<JScrollPane>()
+
+// Data that doesn't require doing a String substring memory allocation
+private class LineSection(
+    val range: IntRange,
+    val renderWidth: Int,
+)
+private val LineSection.length get() = range.last - range.first + 1
+
+private fun CharSequence.sectionsForWidth(textMetrics: TextMetrics, width: Int): Sequence<LineSection> {
+    // Widest grapheme is width 2, so as long as we don't go less than that, we can simplify logic a little
+    check(width >= 2)
+    val str = this
+    return sequence {
+        var currIndex = 0
+        var startIndex = 0
+        var lineRenderWidth = 0
+        fun createMetadata() = LineSection(startIndex until currIndex, lineRenderWidth)
+        while (currIndex < str.length) {
+            val graphemeLen = textMetrics.graphemeClusterLengthAt(str, currIndex)
+            val graphemeRenderWidth = textMetrics.renderWidthOf(str, currIndex, currIndex + graphemeLen)
+            if (lineRenderWidth + graphemeRenderWidth > width) {
+                yield(createMetadata())
+                startIndex = currIndex
+                lineRenderWidth = 0
+            }
+            currIndex += graphemeLen
+            lineRenderWidth += graphemeRenderWidth
+        }
+        yield(createMetadata())
+    }
+}
+
 /**
  * A [Terminal] implementation backed by Swing.
  *
@@ -60,8 +104,9 @@ internal fun AnsiColor.toSwingColor(): Color = ANSI_TO_SWING_COLORS.getValue(thi
  * An instance cannot be created manually. See [VirtualTerminal.create] instead.
  */
 class VirtualTerminal private constructor(
-    private val pane: SwingTerminalPane, override val width: Int, override val height: Int
+    private val pane: SwingTerminalPane, private val terminalSize: TerminalSize
 ) : Terminal {
+
     private class SleekScrollBarUI(
         private val _trackColor: Color,
         private val _thumbColor: Color
@@ -134,7 +179,6 @@ class VirtualTerminal private constructor(
          *   side of the terminal will be collapsed, resulting in a slightly tighter fit.
          * @param handleInterrupt If true, handle CTRL-C by closing the window.
          */
-        @Suppress("DEPRECATION")
         fun create(
             title: String = "Virtual Terminal",
             terminalSize: TerminalSize = TerminalSize.Default,
@@ -145,7 +189,7 @@ class VirtualTerminal private constructor(
             linkColor: AnsiColor = AnsiColor.CYAN,
             maxNumLines: Int = 1000,
             hideVerticalScrollbar: Boolean = false,
-            handleInterrupt: Boolean = true
+            handleInterrupt: Boolean = true,
         ): VirtualTerminal {
             require(terminalSize.width < TerminalSize.Unbounded.width && terminalSize.height < TerminalSize.Unbounded.height) {
                 "Neither width nor height in the virtual terminal size can be unbounded. Both must be set explicitly."
@@ -155,6 +199,7 @@ class VirtualTerminal private constructor(
                 ?.let { Font.createFont(Font.TRUETYPE_FONT, it.toFile()).deriveFont(Font.PLAIN, fontSize.toFloat()) }
                 ?: Font(Font.MONOSPACED, Font.PLAIN, fontSize)
             val pane = SwingTerminalPane(
+                terminalSize,
                 font,
                 fgColor.toSwingColor(),
                 bgColor.toSwingColor(),
@@ -162,28 +207,21 @@ class VirtualTerminal private constructor(
                 maxNumLines.coerceAtLeast(terminalSize.height)
             )
             pane.focusTraversalKeysEnabled = false // Don't handle TAB, we want to send it to the user
-            pane.text = buildString {
-                // Set initial text to a block of blank characters so pack will set it to the right size
-                for (h in 0 until terminalSize.height) {
-                    if (h > 0) appendLine()
-                    for (w in 0 until terminalSize.width) {
-                        append(' ')
-                    }
-                }
-            }
 
-            val terminal = VirtualTerminal(pane, terminalSize.width, terminalSize.height)
+            val terminal = VirtualTerminal(pane, terminalSize)
             SwingUtilities.invokeAndWait {
                 val frame = JFrame(title)
                 frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
 
-                frame.contentPane.add(JScrollPane(terminal.pane).apply {
-                    border = EmptyBorder(5, 5, 5, 5)
-                    foreground = fgColor.toSwingColor()
+                val borderWrapper = JPanel(BorderLayout()).apply {
+                    background = bgColor.toSwingColor()
+                    border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                    add(terminal.pane, BorderLayout.CENTER)
+                }
+                val scrollPane = JScrollPane(borderWrapper).apply {
+                    border = null // removes an annoying white line from the bottom of the view
                     background = bgColor.toSwingColor()
                     viewport.background = background
-                    viewportBorder = null
-                    border = EmptyBorder(5, 5, 5, 5)
 
                     val trackColor = bgColor.toSwingColor()
                     val thumbColor = fgColor.toSwingColor().let {
@@ -200,16 +238,24 @@ class VirtualTerminal private constructor(
                     // previously perfectly fit to suddenly end up interrupted and wrapped. Instead, we design a
                     // scrollbar UI that essentially is always there but is invisible (since it shares the same bg
                     // color as the regular pane) until the thumb appears.
-                    if (!hideVerticalScrollbar) {
-                        verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
+                    verticalScrollBarPolicy = if (hideVerticalScrollbar) {
+                        JScrollPane.VERTICAL_SCROLLBAR_NEVER
                     } else {
-                        verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_NEVER
+                        JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
                     }
-                })
+
+                    // Swing isn't setting up my scrollbar increments, I have no idea why
+                    horizontalScrollBar.unitIncrement = pane.cellBounds.x
+                    verticalScrollBar.unitIncrement = pane.cellBounds.y
+                    verticalScrollBar.addAdjustmentListener { event ->
+                        pane.handleScrollPositionChanged(event.value / pane.cellBounds.y)
+                    }
+                    viewport.scrollMode = JViewport.SIMPLE_SCROLL_MODE
+                }
+                frame.add(scrollPane)
                 frame.pack()
                 frame.setLocationRelativeTo(null)
 
-                terminal.pane.text = ""
                 if (handleInterrupt) {
                     terminal.pane.addKeyListener(object : KeyAdapter() {
                         override fun keyPressed(e: KeyEvent) {
@@ -258,64 +304,12 @@ class VirtualTerminal private constructor(
         }
     }
 
-    private inline fun <reified T> Component.findAncestor(): T? {
-        var c: Component? = this
-        while (c != null) {
-            if (c is T) return c
-            c = c.parent
-        }
-        return null
-    }
-
-    private val Component.window get() = findAncestor<Window>()
-    private val Component.scrollPane get() = findAncestor<JScrollPane>()
-
-    // Note: For some reason, sometimes the text pane doesn't scroll the bar all the way to the bottom
-    private fun BoundedRangeModel.isAtEnd() = value + extent + pane.font.size >= maximum
-
-    private var listenersAdded = false
-    private var userVScrollPos: Int? = null
-    private var userHScrollPos: Int? = null
+    override val width get() = terminalSize.width
+    override val height get() = terminalSize.height
 
     override fun write(text: String) {
         SwingUtilities.invokeLater {
-            // Here, we update our text pane causing it to repaint, but as a side effect, this screws with the
-            // vscroll and hscroll positions. If the user has intentionally set either of those values themselves,
-            // we should fight to keep them.
-            val scrollPane = pane.scrollPane!!
-            fun updateVScrollPos() {
-                userVScrollPos = null
-                scrollPane.verticalScrollBar.model.let { model ->
-                    if (!model.isAtEnd()) {
-                        userVScrollPos = model.value
-                    }
-                }
-            }
-
-            fun updateHScrollPos() {
-                userHScrollPos = null
-                scrollPane.horizontalScrollBar.model.let { model ->
-                    if (model.value > 0) {
-                        userHScrollPos = model.value
-                    }
-                }
-            }
-            if (!listenersAdded) {
-                scrollPane.verticalScrollBar.addAdjustmentListener { evt -> if (evt.valueIsAdjusting) updateVScrollPos() }
-                scrollPane.horizontalScrollBar.addAdjustmentListener { evt -> if (evt.valueIsAdjusting) updateHScrollPos() }
-                scrollPane.addMouseWheelListener { updateVScrollPos() }
-
-                listenersAdded = true
-            }
-
             pane.processAnsiText(text, width)
-
-            userVScrollPos?.let {
-                SwingUtilities.invokeLater { scrollPane.verticalScrollBar.model.value = it }
-            }
-            userHScrollPos?.let {
-                SwingUtilities.invokeLater { scrollPane.horizontalScrollBar.model.value = it }
-            }
         }
     }
 
@@ -358,6 +352,7 @@ class VirtualTerminal private constructor(
 
             pane.window!!.addWindowListener(object : WindowAdapter() {
                 override fun windowClosing(e: WindowEvent?) {
+                    ToolTipManager.sharedInstance().unregisterComponent(pane)
                     channel.close()
                 }
             })
@@ -370,9 +365,9 @@ class VirtualTerminal private constructor(
 
     override fun close() {
         SwingUtilities.invokeLater {
-            // There should always be two newlines before this final text so this looks good. Append them
-            // if they're not there!
-            val prependNewlines = "\n".repeat(2 - pane.text.takeLast(2).count { it == '\n' })
+            // There should always be a blank line before this final text so this looks good. Append newlines to make
+            // this happen if they're not there.
+            val prependNewlines = "\n".repeat(2 - pane.doc.lines.takeLast(2).count { it.isEmpty() })
             write("$prependNewlines(Application has ended. Press any key to continue.)")
         }
         pane.addKeyListener(object : KeyAdapter() {
@@ -388,190 +383,45 @@ class VirtualTerminal private constructor(
     override fun clear() = Unit
 }
 
-
-private fun Document.getText() = getText(0, length)
-
 private class SwingTerminalPane(
+    private var terminalSize: TerminalSize,
     font: Font,
     fgColor: Color,
     bgColor: Color,
     linkColor: Color,
     maxNumLines: Int
-) : JTextPane() {
-
-    // Our virtual terminal acts like there is always infinite horizontal space and text elements should never be
-    // wrapped. In fact, we handle wrapping outselves (in processAnsiText) so disable Swing's own attempt to do the same
-    // thing. (Swing apparently isn't aware of Unicode graphemes, and they force newlines in unexpected places for lines
-    // with emoji.)
-    // If this class isn't configured correctly, you get very weird horizontal scrollbar behavior, as the way I render
-    // elements doesn't match the model Swing has for those same elements.
-    private class NoWrapParagraphView(elem: Element) : ParagraphView(elem) {
-        override fun layout(width: Int, height: Int) {
-            super.layout(Short.MAX_VALUE.toInt(), height)
-        }
-
-        override fun getFlowSpan(index: Int): Int {
-            return Int.MAX_VALUE
-        }
-
-        override fun getMinimumSpan(axis: Int): Float {
-            return if (axis == X_AXIS) super.getPreferredSpan(axis) else super.getMinimumSpan(axis)
-        }
-    }
-
-    override fun getScrollableTracksViewportWidth() = false
-
-    /**
-     * A custom component that enforces all text, regardless of font, to conform to a grid.
-     *
-     * This lets us mix emoji, which come from non-monospace fonts, with the rest of our monospace text.
-     */
-    private class FixedGridLabelView(
-        private val textMetrics: TextMetrics,
-        private val emojiRenderers: List<EmojiRenderer>,
-        elem: Element,
-        private val cellBounds: Point,
-    ) : LabelView(elem) {
-
-        private val lineStroke = BasicStroke(1f) // Used for underline / strikethrough
-
-        override fun paint(g: Graphics, allocation: Shape) {
-            val g2d = g as Graphics2D
-            val doc = document
-            val p0 = startOffset
-            val p1 = endOffset
-            val text = doc.getText(p0, p1 - p0)
-
-            val bounds = allocation.bounds
-            var currentX = bounds.x.toFloat()
-            val lineMetrics = font.getLineMetrics(text, g2d.fontRenderContext)
-            val yBaseline = bounds.y + lineMetrics.ascent
-
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
-
-            g2d.font = font
-            background?.let { bgColor ->
-                g2d.color = bgColor
-                g2d.fillRect(bounds.x, bounds.y, bounds.width, bounds.height)
-            }
-            g2d.color = foreground
-
-            textMetrics.graphemesOf(text).forEach { grapheme ->
-                val numCells = textMetrics.renderWidthOf(grapheme)
-                val pixelWidth = (numCells * cellBounds.x).toFloat()
-
-                var graphemeRenderHandled = false
-                if (emojiRenderers.isNotEmpty() && textMetrics.isEmoji(grapheme)) {
-                    for (emojiRenderer in emojiRenderers) {
-                        if (emojiRenderer.render(
-                            g2d,
-                            container as JComponent,
-                            grapheme,
-                            Rectangle(currentX.roundToInt(), bounds.y, pixelWidth.roundToInt(), bounds.height)
-                        )) {
-                            graphemeRenderHandled = true
-                            break
-                        }
-                    }
-                }
-
-                if (!graphemeRenderHandled) {
-                    g2d.drawString(grapheme, currentX, yBaseline)
-                }
-
-                if (isUnderline || isStrikeThrough) {
-                    g2d.stroke = lineStroke
-
-                    if (isUnderline) {
-                        val underlineY = yBaseline + lineMetrics.underlineOffset + lineMetrics.underlineThickness
-                        g2d.drawLine(
-                            currentX.toInt(),
-                            underlineY.toInt(),
-                            (currentX + pixelWidth).toInt(),
-                            underlineY.toInt()
-                        )
-                    }
-
-                    if (isStrikeThrough) {
-                        val strikeY = yBaseline + lineMetrics.strikethroughOffset
-                        g2d.drawLine(
-                            currentX.toInt(),
-                            strikeY.toInt(),
-                            (currentX + pixelWidth).toInt(),
-                            strikeY.toInt()
-                        )
-                    }
-                }
-
-                currentX += numCells * cellBounds.x
-            }
-        }
-
-        override fun getPreferredSpan(axis: Int): Float {
-            return when (axis) {
-                X_AXIS -> {
-                    val text = document.getText(startOffset, endOffset - startOffset)
-                    (textMetrics.renderWidthOf(text) * cellBounds.x).toFloat()
-                }
-                Y_AXIS -> cellBounds.y.toFloat()
-                else -> super.getPreferredSpan(axis)
-            }
-        }
-
-        // There is no resizing our virtual terminal content. The text area always set to a fixed width for the life of
-        // the program. Also, overriding these prevents Swing from using its own non-Unicode/non-Emoji aware logic.
-        override fun getMinimumSpan(axis: Int) = getPreferredSpan(axis)
-        override fun getMaximumSpan(axis: Int) = getPreferredSpan(axis)
-    }
-
-    private class GridEditorKit(private val textMetrics: TextMetrics, private val cellBounds: Point) : StyledEditorKit() {
-        private val emojiRenderers = ServiceLoader.load(EmojiRenderer::class.java).toList()
-        override fun getViewFactory(): ViewFactory {
-            return ViewFactory { elem ->
-                when (elem.name) {
-                    AbstractDocument.ContentElementName -> FixedGridLabelView(textMetrics, emojiRenderers, elem, cellBounds)
-                    AbstractDocument.ParagraphElementName -> NoWrapParagraphView(elem)
-                    else -> super@GridEditorKit.getViewFactory().create(elem)
-                }
-            }
-        }
-    }
+) : JPanel(), Scrollable {
 
     private class UriState(private val linkColor: Color, private val bgColor: Color) {
         private var currUri: Pair<Int, URI>? = null
-        private var prevFgColor: Color? = null
-        private var prevBgColor: Color? = null
+        private lateinit var prevFgColor: Color
+        private lateinit var prevBgColor: Color
         private var prevIsUnderlined: Boolean = false
         private val uris = mutableMapOf<Pair<Int, Int>, URI>()
 
-        fun startDefiningUri(index: Int, uri: URI, attrs: MutableAttributeSet) {
+        fun startDefiningUri(index: Int, uri: URI, textStyle: MutableTextStyle) {
             check(currUri == null) { "Attempt to define a new URI without closing an old one." }
             currUri = index to uri
 
-            prevFgColor = StyleConstants.getForeground(attrs)
-            prevBgColor = StyleConstants.getBackground(attrs)
-            prevIsUnderlined = StyleConstants.isUnderline(attrs)
+            prevFgColor = textStyle.fgColor
+            prevBgColor = textStyle.bgColor
+            prevIsUnderlined = textStyle.isUnderline
 
-            StyleConstants.setForeground(attrs, linkColor)
-            StyleConstants.setBackground(attrs, bgColor)
-            StyleConstants.setUnderline(attrs, true)
+            textStyle.fgColor = linkColor
+            textStyle.bgColor = bgColor
+            textStyle.isUnderline = true
         }
 
-        fun finishDefiningUri(index: Int, attrs: MutableAttributeSet) {
+        fun finishDefiningUri(index: Int, textStyle: MutableTextStyle) {
             val currUri = currUri
             check(currUri != null) { "Attempt to finish a ULI that was never started" }
             check(currUri.first < index) { "Invalid offset when closing URI" }
             uris[currUri.first to index] = currUri.second
 
-            StyleConstants.setForeground(attrs, prevFgColor)
-            StyleConstants.setBackground(attrs, prevBgColor)
-            StyleConstants.setUnderline(attrs, prevIsUnderlined)
-
+            textStyle.fgColor = prevFgColor
+            textStyle.bgColor = prevBgColor
+            textStyle.isUnderline = prevIsUnderlined
             this.currUri = null
-            prevFgColor = null
-            prevBgColor = null
-            prevIsUnderlined = false
         }
 
         fun findUriAt(textIndex: Int): URI? {
@@ -588,46 +438,434 @@ private class SwingTerminalPane(
         }
     }
 
-    private val sgrCodeConverter: SgrCodeConverter
-    private val uriState = UriState(linkColor, bgColor)
+    interface Document {
+        val lines: List<CharSequence>
+        val lineStartIndices: List<Int>
+        val styles: DocumentStyles
+        val length: Int
+
+        /**
+         * Given a global text index into the document, return the line that it exists in, or -1 if not found.
+         */
+        fun lineContaining(textIndex: Int): Int
+    }
+
+    private class MutableDocument(defaultFgColor: Color, defaultBgColor: Color, private val maxNumLines: Int, private val textMetrics: TextMetrics): Document {
+        // mutableLines and lineStartIndices kept in sync separately instead of in a map or wrapper object so that
+        // override val lines will be efficient
+        private val mutableLines = mutableListOf<StringBuilder>()
+        private val mutableLineStartIndices = mutableListOf<Int>()
+        override val lines = mutableLines
+        override val lineStartIndices = mutableLineStartIndices
+        override val styles = MutableDocumentStyles(defaultFgColor, defaultBgColor)
+
+        // StringBuilder wrapper with caret index (needed by some ANSI commands), with some assumptions that we are
+        // editing the very last line in a list of string builders.
+        class LastLineEditor(
+            private val sb: StringBuilder,
+            private val lineStart: Int,
+            private val styles: MutableDocumentStyles,
+            private val textMetrics: TextMetrics
+        ) {
+            var cursorIndex = sb.length
+                set(value) {
+                    field = value.coerceIn(0, sb.length)
+                }
+
+            val length get() = sb.length
+            fun removeRange(fromInclusive: Int = cursorIndex, toExclusive: Int = sb.length) {
+                if (toExclusive > sb.length || fromInclusive !in 0 until toExclusive) return
+                sb.delete(fromInclusive, toExclusive)
+                if (cursorIndex > fromInclusive) {
+                    cursorIndex -= (cursorIndex - fromInclusive)
+                }
+                styles.removeRange(lineStart + fromInclusive, lineStart + toExclusive)
+            }
+
+            /**
+             * Add char [c] at [cursorIndex], appending if at the end of the line, and updating its associated style.
+             */
+            fun add(c: Char, style: TextStyle) {
+                if (cursorIndex < sb.lastIndex) {
+                    sb[cursorIndex++] = c
+                } else {
+                    sb.append(c)
+                    cursorIndex = sb.length
+                }
+                styles.put(lineStart + cursorIndex - 1, style)
+            }
+
+            /**
+             * Move the cursor back to the the start index of the final section AFTER splitting the string by width.
+             *
+             * In terminals, a user's original text will be auto-wrapped at terminal width boundaries. When an ANSI
+             * command directs the user to go back to the beginning of the line, they mean the _visual_ line, not the
+             * logical one.
+             *
+             * Ultimately, this method exists to make it easy to move the cursor to the start of the visual line,
+             * rather than the logical one.
+             */
+            fun moveCursorToLastSectionStart(width: Int) {
+                val lastSectionStartIndex = sb.sectionsForWidth(textMetrics, width).last().range.first
+                cursorIndex = lastSectionStartIndex
+            }
+        }
+
+        private var _lastLine: LastLineEditor? = null
+        val lastLine
+            get() = _lastLine ?: mutableLines.lastOrNull()
+                ?.let { LastLineEditor(it, mutableLineStartIndices.last(), styles, textMetrics) }.also { _lastLine = it }
+        override val length
+            get() = if (mutableLines.isNotEmpty()) {
+                mutableLineStartIndices.last() + mutableLines.last().length
+            } else 0
+
+        fun addLine(): LastLineEditor {
+            fun calculateLineStartFor(i: Int): Int {
+                return if (i == 0) 0 else (mutableLineStartIndices[i - 1] + mutableLines[i - 1].length)
+            }
+
+            val line = StringBuilder()
+            mutableLines.add(line)
+            mutableLineStartIndices.add(calculateLineStartFor(mutableLines.lastIndex))
+
+            if (mutableLines.size > maxNumLines) {
+                val firstLine = mutableLines.removeFirst()
+                val removedLineLength = firstLine.length
+                mutableLineStartIndices.removeFirst()
+                styles.removeRange(0 until removedLineLength)
+                for (i in mutableLineStartIndices.indices) {
+                    mutableLineStartIndices[i] -= removedLineLength
+                }
+            }
+
+            _lastLine = null
+            return lastLine!!
+        }
+
+        fun removeLast(): Boolean {
+            if (mutableLines.isEmpty()) return false
+            mutableLines.removeLast()
+            val lastLineStart = mutableLineStartIndices.removeLast()
+            styles.removeFrom(lastLineStart)
+            _lastLine = null
+            return true
+        }
+
+        override fun lineContaining(textIndex: Int): Int {
+            if (textIndex !in 0 until length) return -1
+            mutableLineStartIndices.binarySearch(textIndex).let { index ->
+                // binarySearch returns (-insertionpoint - 1) if not found, indicating where a value should go;
+                // inverting that and subtracting 2 is essentially (index - 1), which gives us the floor. So if we had a
+                // list like [0 80 160 240] and the user searched for 100, the method would indicate that we should
+                // insert that at index 2, by returning -3. -(-3) - 2 is 1, the index of 80, which is what we wanted.
+                return if (index >= 0) index else (-index - 2)
+            }
+        }
+    }
+
+    private fun MutableDocument.add(c: Char, style: TextStyle) {
+        val lastLine = lastLine ?: addLine()
+        if (c != '\n') {
+            lastLine.add(c, style)
+        } else {
+            addLine()
+        }
+    }
+
+    private class DocumentViewport(
+        private val doc: Document,
+        private val textMetrics: TextMetrics,
+        numLines: Int,
+        width: Int,
+        topLineIndex: Int = 0
+    ) {
+        /**
+         * Information about a line visible to the user.
+         *
+         * @property startIndex The _global_ index from the whole document that this line starts from. This value can be
+         *   used as a base offset allowing the caller to fetch the current text style using [DocumentStyles.at].
+         *
+         * @property renderWidth The render width of the line is NOT the width in pixels but the result of calling
+         *   [TextMetrics.renderWidthOf] on the entire string. To convert it into pixels, you would need to multiple
+         *   this value by the width of each cell in your render area.
+         */
+        class LineInfo(val line: String, val startIndex: Int, val renderWidth: Int)
+
+        /**
+         * A mapping of a line's final visual index (which autowrap may affect) to its original logical document line
+         * index.
+         *
+         * In other words, the key will always be greater than or equal to the value.
+         */
+        private val visualToLogicalIndices = TreeMap<Int, Int>()
+        private val visualIndexToLineStart = TreeMap<Int, Int>()
+        private val lineInfoCache = mutableMapOf<Int, LineInfo>()
+
+        var numLines = numLines
+            set(value) {
+                if (field != value) {
+                    field = value
+                    lineInfoCache.clear()
+                }
+            }
+
+        var width = width
+            set(value) {
+                if (field != value) {
+                    field = value
+                    invalidate()
+                }
+            }
+
+        var topLineIndex = topLineIndex
+            set(value) {
+                if (field != value) {
+                    field = value
+                    lineInfoCache.clear()
+                }
+            }
+
+        fun invalidate() {
+            _totalLineCount = null
+            visualToLogicalIndices.clear()
+            visualIndexToLineStart.clear()
+            lineInfoCache.clear()
+        }
+
+        private var _totalLineCount: Int? = null
+        val totalLineCount: Int get() = _totalLineCount ?: run {
+            updateVisualIndices()
+            _totalLineCount!!
+        }
+
+        private fun updateVisualIndices() {
+            if (_totalLineCount != null) return
+            check(visualToLogicalIndices.isEmpty() && visualIndexToLineStart.isEmpty())
+            _totalLineCount = 0
+            var visualLineIndex = 0
+            visualIndexToLineStart[0] = 0
+            doc.lines.forEachIndexed { logicalLineIndex, line ->
+                visualToLogicalIndices[visualLineIndex] = logicalLineIndex
+                val sections = line.sectionsForWidth(textMetrics, width)
+                sections.forEach { section ->
+                    // This line has information useful for the next line, so update it ahead of time. This will create
+                    // one extra entry for a final extra line that doesn't exist; that's fine
+                    visualIndexToLineStart[visualLineIndex + 1] = visualIndexToLineStart.getValue(visualLineIndex) + section.length
+                    visualLineIndex++
+                }
+                // All visual sections correspond to a single logical line which has a newline at the end of it which we
+                // account for here.
+                visualIndexToLineStart[visualLineIndex] = visualIndexToLineStart.getValue(visualLineIndex)
+                _totalLineCount = visualLineIndex
+            }
+        }
+
+        /**
+         * Fetch a [LineInfo] associated with the line index of _all_ text _after_ it was autowrapped.
+         *
+         */
+        private fun lineInfoForGlobalIndex(visualLineIndex: Int): LineInfo? {
+            check(_totalLineCount != null) // Only call this AFTER calling `updateVisualIndices` first!
+            if (visualLineIndex !in 0 until totalLineCount) return null
+
+            var lineInfo = lineInfoCache[visualLineIndex]
+            if (lineInfo == null) {
+                // if a logical line is so long it is broken up into 3 lines, and we request the 2nd line, and the cache
+                // isn't populated yet, we should fill the cache will all 3 lines right now
+                val floorVisualLineIndex = visualToLogicalIndices.floorKey(visualLineIndex) ?: return null
+                val logicalLineIndex = visualToLogicalIndices.getValue(floorVisualLineIndex)
+                val logicalLine = doc.lines[logicalLineIndex]
+                val sections = logicalLine.sectionsForWidth(textMetrics, width)
+                sections.forEachIndexed { i, section ->
+                    val visualLine = logicalLine.substring(section.range)
+                    lineInfoCache[floorVisualLineIndex + i] =
+                        LineInfo(
+                            visualLine,
+                            // "+ logicalLineIndex" means capture all preceeding newlines from the logical text as well
+                            visualIndexToLineStart.getValue(floorVisualLineIndex + i),
+                            section.renderWidth,
+                        )
+                }
+                lineInfo = lineInfoCache.getValue(visualLineIndex)
+            }
+            return lineInfo
+        }
+
+        /**
+         * Return a [LineInfo] associated with the visible line on screen.
+         *
+         * For example, if [lineIndex] is 2, that will be the third visible row on screen.
+         *
+         * This could be null if you are asking for a row past the final text in the document, e.g. a view that has
+         * five lines of text in a terminal of height 20, and you ask for index 18.
+         */
+        fun lineInfoFor(lineIndex: Int): LineInfo? {
+            if (lineIndex !in 0 until numLines) return null
+            updateVisualIndices()
+            return lineInfoForGlobalIndex(topLineIndex + lineIndex)
+        }
+
+        // Inline to allow breaking
+        inline fun forEach(block: (LineInfo) -> Unit) {
+            updateVisualIndices()
+            for (i in topLineIndex until topLineIndex + numLines) {
+                val lineInfo = lineInfoForGlobalIndex(i) ?: break
+                block(lineInfo)
+            }
+        }
+    }
+
     private val textMetrics = TextMetrics()
-    private val cellBounds: Point
+    private val mutableDoc = MutableDocument(fgColor, bgColor, maxNumLines, textMetrics)
+    val doc get(): Document = mutableDoc
+
+    private val uriState = UriState(linkColor, bgColor)
+    private val docViewport = DocumentViewport(doc, textMetrics, numLines = terminalSize.height, width = terminalSize.width)
+    /**
+     * The cumulative application of styles as we've processed ANSI style commands.
+     *
+     * Think of it like us having an active pen that at all times has its own color and text decoration state. This
+     * state is maintained even when the cursor is moved to a previous position.
+     */
+    private val activeTextStyle = mutableDoc.styles.createEmptyTextStyle()
+    private val sgrCodeProcessor = SgrCodeProcessor(activeTextStyle)
+    val cellBounds: Point
+    private val boldFont by lazy { font.deriveFont(Font.BOLD) }
 
     init {
-        with(getFontMetrics(font)) {
+        FontRenderContext(AffineTransform(), true, true).let { frc ->
+            val stringBounds = font.getStringBounds("W", frc)
+            val lineMetrics = font.getLineMetrics("W", frc)
             cellBounds = Point(
-                charWidth('W'),
-                getLineMetrics("W", graphics).height.toInt()
+                stringBounds.width.toInt(),
+                lineMetrics.height.toInt()
             )
         }
 
-        editorKit = GridEditorKit(textMetrics, cellBounds)
-        isEditable = false
+        isFocusable = true
+        isOpaque = true
         foreground = fgColor
         background = bgColor
         this.font = font
-        sgrCodeConverter = SgrCodeConverter(foreground, background)
-
-        (styledDocument as AbstractDocument).documentFilter = object : DocumentFilter() {
-            override fun insertString(fb: FilterBypass, offset: Int, string: String, attr: AttributeSet) {
-                super.insertString(fb, offset, string, attr)
-                val rootElement = styledDocument.defaultRootElement
-                val numLines = rootElement.elementCount
-                if (numLines > maxNumLines) {
-                    val lastLineIndex = numLines - maxNumLines - 1
-                    val lastLineOffset = rootElement.getElement(lastLineIndex).startOffset
-                    remove(fb, 0, lastLineOffset)
-                }
-            }
-        }
 
         initMouseListeners()
     }
 
+    override fun getPreferredSize(): Dimension {
+        return Dimension(
+            terminalSize.width * cellBounds.x,
+            maxOf(docViewport.totalLineCount, terminalSize.height) * cellBounds.y
+        )
+    }
+
+    override fun getMinimumSize(): Dimension {
+        return Dimension(10 * cellBounds.x, 2 * cellBounds.y)
+    }
+
+    private var lastTopLineIndex = -1
+    fun handleScrollPositionChanged(newTopLine: Int) {
+        if (newTopLine == lastTopLineIndex) return
+
+        docViewport.topLineIndex = newTopLine
+        lastTopLineIndex = newTopLine
+    }
+
+    override fun getPreferredScrollableViewportSize(): Dimension = preferredSize
+
+    // If the window gets horizontally smaller than the render area, actually move it left and right.
+    override fun getScrollableTracksViewportWidth() = false
+    // We fake vertical scrolling internally by updating the render area with text from different parts of our
+    // history. Setting this to true stops the JScrollPane from physically moving our panel up and down.
+    override fun getScrollableTracksViewportHeight() = true
+
+    override fun getScrollableUnitIncrement(visibleRect: Rectangle, orientation: Int, direction: Int): Int {
+        return if (orientation == SwingConstants.VERTICAL) cellBounds.y else cellBounds.x
+    }
+
+    override fun getScrollableBlockIncrement(visibleRect: Rectangle, orientation: Int, direction: Int): Int {
+        return if (orientation == SwingConstants.VERTICAL) visibleRect.height else visibleRect.width
+    }
+
+    private val emojiRenderers = ServiceLoader.load(EmojiRenderer::class.java).toList()
+    private val lineStroke by lazy { BasicStroke(1f) } // Used for underline / strikethrough
+    override fun paintComponent(g: Graphics) {
+        super.paintComponent(g)
+        val g2d = g as Graphics2D
+        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+
+        val lineMetrics = font.getLineMetrics("W", g2d.fontRenderContext)
+
+        docViewport.numLines = visibleRect.height / cellBounds.y
+
+        var drawY = visibleRect.y
+        docViewport.forEach { lineInfo ->
+            var drawX = visibleRect.x
+            var charIndex = 0
+            textMetrics.graphemesOf(lineInfo.line).forEach { grapheme ->
+                val textStyle = doc.styles.at(lineInfo.startIndex + charIndex)
+                g2d.font = if (textStyle.isBold) boldFont else font
+                val graphemePixelWidth = textMetrics.renderWidthOf(grapheme) * cellBounds.x
+
+                if (textStyle.activeBgColor != background) {
+                    g2d.color = textStyle.activeBgColor
+                    g2d.fillRect(drawX, drawY, graphemePixelWidth, cellBounds.y)
+                }
+                g2d.color = textStyle.activeFgColor
+
+                var graphemeRenderHandled = false
+                if (emojiRenderers.isNotEmpty() && textMetrics.isEmoji(grapheme)) {
+                    for (emojiRenderer in emojiRenderers) {
+                        if (emojiRenderer.render(
+                            g2d,
+                            this@SwingTerminalPane,
+                            grapheme,
+                                Rectangle(drawX, drawY, graphemePixelWidth, cellBounds.y)
+                        )) {
+                            graphemeRenderHandled = true
+                            break
+                        }
+                    }
+                }
+                if (!graphemeRenderHandled) {
+                    g2d.drawString(grapheme, drawX, (drawY + lineMetrics.ascent).roundToInt())
+                }
+
+                fun drawHorizontalLine(deltaY: Float) {
+                    g2d.stroke = lineStroke
+
+                    val x0 = drawX
+                    val x1 = drawX + graphemePixelWidth
+                    val y = (drawY + lineMetrics.ascent + deltaY).roundToInt()
+                    g2d.drawLine(x0, y, x1, y)
+                }
+
+                if (textStyle.isUnderline) {
+                    drawHorizontalLine(lineMetrics.underlineOffset)
+                }
+                if (textStyle.isStrikethrough) {
+                    drawHorizontalLine(lineMetrics.strikethroughOffset)
+                }
+
+                drawX += graphemePixelWidth
+                charIndex += grapheme.length
+            }
+            drawY += cellBounds.y
+        }
+   }
+
+    fun Point.toLocalCoords(): Point {
+        return Point(
+            x - visibleRect.x,
+            y - visibleRect.y
+        )
+    }
+
     private fun getWordAtTextIndex(textIndex: Int): String? {
-        val text = this.styledDocument.getText()
-        if (textIndex < 0 || textIndex >= text.length) return null
-        val textPtr = TextPtr(text, textIndex)
+        val lineIndex = doc.lineContaining(textIndex).takeIf { it >= 0 } ?: return null
+        val lineStart = doc.lineStartIndices[lineIndex]
+        val line = doc.lines[lineIndex]
+        val textPtr = TextPtr(line, textIndex - lineStart)
 
         fun Char.isBoundary() = isWhitespace() || isLowSurrogate() || isHighSurrogate()
 
@@ -659,32 +897,27 @@ private class SwingTerminalPane(
         }
     }
 
-    private fun JTextComponent.textIndexAtPoint(pt: Point2D): Int? {
-        val col = (pt.x / cellBounds.x).toInt()
+    private fun textIndexAtPoint(pt: Point2D): Int? {
         val row = (pt.y / cellBounds.y).toInt()
+        val lineInfo = docViewport.lineInfoFor(row) ?: return null
+        val col = (pt.x / cellBounds.x).toInt()
 
-        val lines = text.lines()
-
-        if (row >= lines.size) return null
-        if (col >= textMetrics.renderWidthOf(lines[row])) return null
+        if (col >= lineInfo.renderWidth) return null
 
         var textIndex = 0
-        val currLine = lines[row]
+        val currLine = lineInfo.line
         var x = 0
         while (x < col) {
             val graphemeLen = textMetrics.graphemeClusterLengthAt(currLine, textIndex)
             x += textMetrics.renderWidthOf(currLine, textIndex, textIndex + graphemeLen)
             textIndex += graphemeLen
         }
-        textIndex += lines.asSequence()
-            .take(row) // Take previous rows above us
-            .sumOf { it.length + 1 } // +1 since newline was stripped by lines() call
-
+        textIndex += lineInfo.startIndex // Adjust the textIndex to its global position in the document
         return textIndex
     }
 
     override fun getToolTipText(event: MouseEvent): String? {
-        val textIndex = textIndexAtPoint(event.point) ?: return null
+        val textIndex = textIndexAtPoint(event.point.toLocalCoords()) ?: return null
         val uriUnderCursor = getUriAtTextIndex(textIndex)
         if (uriUnderCursor != null) {
             val word = getWordAtTextIndex(textIndex)
@@ -698,16 +931,12 @@ private class SwingTerminalPane(
     }
 
     private fun initMouseListeners() {
-        // The existing mouse handlers set the cursor behind our back which mess with the repainting of the area
-        // Let's just disable them for now.
-        mouseListeners.toList().forEach { removeMouseListener(it) }
-        mouseMotionListeners.toList().forEach { removeMouseMotionListener(it) }
         ToolTipManager.sharedInstance().registerComponent(this@SwingTerminalPane)
 
         addMouseMotionListener(object : MouseMotionAdapter() {
             override fun mouseMoved(e: MouseEvent) {
                 var nextCursor = Cursor.getDefaultCursor()
-                this@SwingTerminalPane.textIndexAtPoint(e.point)?.let { textIndex ->
+                this@SwingTerminalPane.textIndexAtPoint(e.point.toLocalCoords())?.let { textIndex ->
                     if (getUriAtTextIndex(textIndex) != null) {
                         nextCursor = Cursor.getPredefinedCursor(HAND_CURSOR)
                     }
@@ -718,7 +947,7 @@ private class SwingTerminalPane(
 
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
-                this@SwingTerminalPane.textIndexAtPoint(e.point)?.let { textIndex ->
+                this@SwingTerminalPane.textIndexAtPoint(e.point.toLocalCoords())?.let { textIndex ->
                     getUriAtTextIndex(textIndex)?.let { uriUnderCursor ->
                         Desktop.getDesktop().browse(uriUnderCursor)
                     }
@@ -727,16 +956,16 @@ private class SwingTerminalPane(
         })
     }
 
-    private fun processEscapeCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
+    private fun processEscapeCode(textPtr: TextPtr): Boolean {
         if (!textPtr.increment()) return false
         return when (textPtr.currChar) {
-            Ansi.EscSeq.CSI -> processCsiCode(textPtr, doc, attrs)
-            Ansi.EscSeq.OSC -> processOscCode(textPtr, doc, attrs)
+            Ansi.EscSeq.CSI -> processCsiCode(textPtr)
+            Ansi.EscSeq.OSC -> processOscCode(textPtr)
             else -> false
         }
     }
 
-    private fun processCsiCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
+    private fun processCsiCode(textPtr: TextPtr): Boolean {
         if (!textPtr.increment()) return false
 
         val csiParts = Ansi.Csi.Code.parts(textPtr) ?: return false
@@ -745,25 +974,40 @@ private class SwingTerminalPane(
         val identifier = Ansi.Csi.Identifier.fromCode(csiCode) ?: return false
         return when (identifier) {
             Ansi.Csi.Identifiers.CursorPrevLine -> {
-                var numLines = csiCode.parts.numericCode ?: 1
-                with(TextPtr(doc.getText(), caretPosition)) {
-                    // First, move to beginning of this line
-                    if (currChar != '\n') {
-                        decrementUntil { it == '\n' }
+                // For this command, a value of N means go up N lines from the current line and set the cursor to the
+                // start.
+                //
+                // AAAAAAA
+                // BBBBBBB
+                // CCCCCCC
+                // DDDD|
+                //
+                // If we get "cursor prev line = 2" at the cursor position, that means we want the end state:
+                //
+                // AAAAAAA
+                // |BBBBBBB
+                //
+                // which means delete C and D lines and clear B
+                //
+                // NOTE: Technically we shouldn't delete the lines following the lines we move up from, but we can
+                // sidestep that for now because Kotter always follows this command with a line wipe. If we need to
+                // revisit this later, we'll cross that bridge when we get to it.
+                var numLinesToRemove = (csiCode.parts.numericCode ?: 1)
+                while (numLinesToRemove > 0) {
+                    val lastLine = mutableDoc.lastLine ?: break
+                    if (lastLine.length == 0) {
+                        mutableDoc.removeLast()
+                    } else {
+                        // If our cursor index is past the end of the line, that essentially means we are on the other
+                        // side of a visual newline, and on that side is an empty string. This happens when we have just
+                        // finished erasing a visual line. e.g. say we had "ABCDEFGH" with width 4, and we just wiped
+                        // out "EFGH", so our cursor is still on index 5 with the text set to "ABCD". In that case,
+                        // there's nothing to remove -- just move the cursor and we're done.
+                        val removeRequired = lastLine.cursorIndex < lastLine.length
+                        lastLine.moveCursorToLastSectionStart(terminalSize.width)
+                        if (removeRequired) { lastLine.removeRange() }
                     }
-                    while (numLines > 0) {
-                        if (!decrementUntil { it == '\n' }) {
-                            // We hit the beginning of the text area so just abort early
-                            break
-                        }
-                        --numLines
-                    }
-                    if (currChar == '\n') {
-                        // We're now at the beginning of the new line. Increment so we don't delete it too.
-                        increment()
-                    }
-                    caretPosition = charIndex
-                    doc.remove(caretPosition, doc.length - caretPosition)
+                    --numLinesToRemove
                 }
                 true
             }
@@ -771,10 +1015,7 @@ private class SwingTerminalPane(
             Ansi.Csi.Identifiers.EraseLine -> {
                 when (csiCode) {
                     Ansi.Csi.Codes.Erase.CursorToLineEnd -> {
-                        with(TextPtr(doc.getText(), caretPosition)) {
-                            incrementUntil { it == '\n' }
-                            doc.remove(caretPosition, charIndex - caretPosition)
-                        }
+                        mutableDoc.lastLine?.removeRange()
                         true
                     }
 
@@ -783,17 +1024,14 @@ private class SwingTerminalPane(
             }
 
             Ansi.Csi.Identifiers.Sgr -> {
-                sgrCodeConverter.convert(csiCode)?.let { modifyAttributes ->
-                    modifyAttributes(attrs)
-                    true
-                } ?: false
+                sgrCodeProcessor.process(csiCode)
             }
 
             else -> false
         }
     }
 
-    private fun processOscCode(textPtr: TextPtr, doc: Document, attrs: MutableAttributeSet): Boolean {
+    private fun processOscCode(textPtr: TextPtr): Boolean {
         if (!textPtr.increment()) return false
 
         val oscParts = Ansi.Osc.Code.parts(textPtr) ?: return false
@@ -805,9 +1043,9 @@ private class SwingTerminalPane(
                 // Anchor spec is `;(anchor-params);(uri)` if starting a URI block or `;;` if finishing one
                 val uriPart = oscCode.parts.params[1].takeIf { it.isNotBlank() }
                 if (uriPart != null) {
-                    uriState.startDefiningUri(doc.length, URI(uriPart), attrs)
+                    uriState.startDefiningUri(doc.length, URI(uriPart), activeTextStyle)
                 } else {
-                    uriState.finishDefiningUri(doc.length, attrs)
+                    uriState.finishDefiningUri(doc.length, activeTextStyle)
                 }
 
                 true
@@ -822,72 +1060,12 @@ private class SwingTerminalPane(
         require(maxWidth > 0)
         if (text.isEmpty()) return
 
-        val doc = styledDocument
-        val attrs = SimpleAttributeSet()
-        val stringBuilder = StringBuilder()
-        fun flush() {
-            if (stringBuilder.isEmpty()) return
-
-            // The contents of the string builder may not fit in the current width, so we need to force wrapping in that
-            // case. We do this here instead of while we are adding characters to the string builder, because due to
-            // Unicode graphemes consisting of multile chars, this is easier to do AFTER all the individual chars have
-            // been added.
-            run {
-                val docText = doc.getText()
-                var currLineWidth = 0
-                if (docText.isNotEmpty()) {
-                    with(TextPtr(docText, docText.length)) {
-                        decrementUntil { it == '\n' }
-                        // If not true we are at the start of the first line, so no need to step forward
-                        if (currChar == '\n') increment()
-
-                        while (remainingLength > 0) {
-                            val graphemeLen = textMetrics.graphemeClusterLengthAt(docText, charIndex)
-                            currLineWidth += textMetrics.renderWidthOf(docText, charIndex, charIndex + graphemeLen)
-                            repeat(graphemeLen) { increment() }
-                        }
-                    }
-                }
-
-                // Run through the string builder and insert "auto wrap" newlines where text would otherwise overflow.
-                var currIndex = 0
-                while (currIndex < stringBuilder.length) {
-                    val currChar = stringBuilder[currIndex]
-                    if (currChar == '\n') {
-                        currLineWidth = 0
-                        currIndex++
-                    } else {
-                        val graphemeLen = textMetrics.graphemeClusterLengthAt(stringBuilder, currIndex)
-                        val graphemeWidth = textMetrics.renderWidthOf(stringBuilder, currIndex, currIndex + graphemeLen)
-                        if (currLineWidth == 0 || currLineWidth + graphemeWidth <= maxWidth) {
-                            // Accept the grapheme if it fits. Note that we ALWAYS accept a grapheme at the start of a
-                            // newline because even though it should always fit, if somehow it doesn't (e.g. width=2 in
-                            // a terminal of width=1), we would get into an infinite loop pushing it to the next line
-                            // forever.
-                            currLineWidth += graphemeWidth
-                            currIndex += graphemeLen
-                        } else {
-                            // The most recent character doesn't fit. Inject a newline and re-evaluate this same
-                            // character on the fresh line during the next iteration.
-                            stringBuilder.insert(currIndex, '\n')
-                            currIndex++
-                            currLineWidth = 0
-                        }
-                    }
-                }
-            }
-
-            doc.insertString(caretPosition, stringBuilder.toString(), attrs)
-            stringBuilder.clear()
-        }
-
         val textPtr = TextPtr(text)
         do {
             when (textPtr.currChar) {
                 Ansi.CtrlChars.ESC -> {
-                    flush()
                     val prevCharIndex = textPtr.charIndex
-                    if (!processEscapeCode(textPtr, doc, attrs)) {
+                    if (!processEscapeCode(textPtr)) {
                         // Skip over escape byte or else error message will be interpreted as an ANSI command!
                         textPtr.charIndex = prevCharIndex + 1
                         val peek = textPtr.substring(7)
@@ -899,32 +1077,35 @@ private class SwingTerminalPane(
                 }
 
                 '\r' -> {
-                    with(TextPtr(doc.getText(), caretPosition)) {
-                        decrementWhile { it != '\n' }
-                        // Assuming we didn't hit the beginning of the string, we went too far by one
-                        if (charIndex > 0) increment()
-
-                        caretPosition = charIndex
-                    }
-                }
-
-                '\n' -> {
-                    stringBuilder.append(textPtr.currChar)
+                    mutableDoc.lastLine?.moveCursorToLastSectionStart(terminalSize.width)
                 }
 
                 Char.MIN_VALUE -> {
-                } // Ignore the null terminator, it's only a TextPtr/Document concept
+                    // Ignore the null terminator, it's only a TextPtr concept
+                }
+
                 else -> {
-                    stringBuilder.append(textPtr.currChar)
+                    mutableDoc.add(textPtr.currChar, activeTextStyle)
                 }
             }
         } while (textPtr.increment())
 
-        flush()
-
         uriState.assertValidState()
+        docViewport.invalidate()
+
+        // The following logic will keep the window snapped at the bottom
+        val scrollPane = scrollPane!!
+        val verticalScrollBar = scrollPane.verticalScrollBar
+        val model = verticalScrollBar.model
+        val wasAtBottom = (model.value + model.extent) >= model.maximum
 
         revalidate()
         repaint()
+
+        if (wasAtBottom) {
+            SwingUtilities.invokeLater {
+                model.value = model.maximum
+            }
+        }
     }
 }
