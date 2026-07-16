@@ -5,7 +5,9 @@ import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.text.ColorLayer.*
 
 fun main() = session {
-    section {
+    // Split into sections -- this should ensure text doesn't get clipped by most terminal heights.
+
+    section { // Basic font styles (no colors)
         bold { textLine("Bolded") }
         underline { textLine("Underlined") }
         strikethrough { textLine("Struck through") }
@@ -21,10 +23,10 @@ fun main() = session {
 
         textLine("Back to normal")
         textLine()
+    }.run()
 
-        textLine("Normal colors")
-
-        // nested syntax
+    section { // Colors
+        // Test nested syntax
         white(BG) {
             black {
                 textLine("Black on white")
@@ -49,12 +51,13 @@ fun main() = session {
         }
         textLine("Normal colors again")
         textLine()
+    }.run()
 
-        // Using reset
+    section { // All font styles together, and testing "clear*" methods
         blue()
         textLine("Blue text")
-        black(BG)
-        textLine("Blue on black")
+        white(BG)
+        textLine("Blue on white")
         clearColors()
         textLine("Normal colors again")
         textLine()
@@ -119,7 +122,10 @@ fun main() = session {
             }
         }
         textLine("Back to default again")
+        textLine()
+    }.run()
 
+    section { // Advanced features
         p {
             // This is more to make sure our virtual terminal handles emojis well than anything else, really
             textLine("Emoji test: \uD83D\uDE00\uD83D\uDC4B\uD83D\uDE80")
@@ -130,6 +136,10 @@ fun main() = session {
             text("Thank you for taking the time to ")
             link("https://github.com/varabyte/kotter", "learn Kotter")
             textLine("!")
+        }
+
+        p {
+            text("Raw URLs may also be supported by your terminal: https://github.com/varabyte/kotter")
         }
     }.run()
 }
