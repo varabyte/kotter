@@ -453,8 +453,8 @@ private class SwingTerminalPane(
     private class MutableDocument(defaultFgColor: Color, defaultBgColor: Color, private val maxNumLines: Int, private val textMetrics: TextMetrics): Document {
         // mutableLines and lineStartIndices kept in sync separately instead of in a map or wrapper object so that
         // override val lines will be efficient
-        private val mutableLines = mutableListOf<StringBuilder>()
-        private val mutableLineStartIndices = mutableListOf<Int>()
+        private val mutableLines = CircularList<StringBuilder>()
+        private val mutableLineStartIndices = CircularList<Int>()
         override val lines = mutableLines
         override val lineStartIndices = mutableLineStartIndices
         override val styles = MutableDocumentStyles(defaultFgColor, defaultBgColor)
