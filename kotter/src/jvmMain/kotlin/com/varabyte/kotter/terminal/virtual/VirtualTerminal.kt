@@ -27,6 +27,7 @@ import java.util.*
 import javax.swing.*
 import javax.swing.plaf.basic.BasicScrollBarUI
 import kotlin.io.path.exists
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
@@ -248,7 +249,10 @@ class VirtualTerminal private constructor(
                     horizontalScrollBar.unitIncrement = pane.cellBounds.x
                     verticalScrollBar.unitIncrement = pane.cellBounds.y
                     verticalScrollBar.addAdjustmentListener { event ->
-                        pane.handleScrollPositionChanged(event.value / pane.cellBounds.y)
+                        // If a user window resize results in a fractional number of rows, use ceiling rounding to bias
+                        // towards showing the bottom lines. Otherwise, when scrolled to the absolute end, standard
+                        // truncation can clip the final line entirely out of the viewport.
+                        pane.handleScrollPositionChanged(ceil(event.value.toFloat() / pane.cellBounds.y).toInt())
                     }
                     viewport.scrollMode = JViewport.SIMPLE_SCROLL_MODE
                 }
@@ -368,7 +372,11 @@ class VirtualTerminal private constructor(
             // There should always be a blank line before this final text so this looks good. Append newlines to make
             // this happen if they're not there.
             val prependNewlines = "\n".repeat(2 - pane.doc.lines.takeLast(2).count { it.isEmpty() })
-            write("$prependNewlines(Application has ended. Press any key to continue.)")
+            pane.processAnsiText(
+                "$prependNewlines(Application has ended. Press any key to continue.)",
+                width,
+                forceScrollToBottom = true
+            )
         }
         pane.addKeyListener(object : KeyAdapter() {
             override fun keyPressed(e: KeyEvent?) {
@@ -1055,7 +1063,7 @@ private class SwingTerminalPane(
         }
     }
 
-    fun processAnsiText(text: String, maxWidth: Int) {
+    fun processAnsiText(text: String, maxWidth: Int, forceScrollToBottom: Boolean = false) {
         require(SwingUtilities.isEventDispatchThread())
         require(maxWidth > 0)
         if (text.isEmpty()) return
@@ -1102,7 +1110,7 @@ private class SwingTerminalPane(
         revalidate()
         repaint()
 
-        if (wasAtBottom) {
+        if (wasAtBottom || forceScrollToBottom) {
             SwingUtilities.invokeLater {
                 model.value = model.maximum
             }
