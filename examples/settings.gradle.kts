@@ -11,7 +11,6 @@ includeBuild("..") {
 include(":anim")
 include(":blink")
 include(":border")
-include(":chatgpt")
 include(":clock")
 include(":compiler")
 include(":doomfire")
