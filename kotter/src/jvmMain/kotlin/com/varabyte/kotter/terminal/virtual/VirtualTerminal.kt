@@ -105,7 +105,7 @@ private fun CharSequence.sectionsForWidth(textMetrics: TextMetrics, width: Int):
  * An instance cannot be created manually. See [VirtualTerminal.create] instead.
  */
 class VirtualTerminal private constructor(
-    private val pane: SwingTerminalPane, private val terminalSize: TerminalSize
+    private val pane: SwingTerminalPane, private val terminalSize: TerminalSize, private val showExitPrompt: Boolean
 ) : Terminal {
 
     private class SleekScrollBarUI(
@@ -179,6 +179,9 @@ class VirtualTerminal private constructor(
          *   if there's no thumb indicator to tell you to scroll). When hidden, a small amount of space on the right
          *   side of the terminal will be collapsed, resulting in a slightly tighter fit.
          * @param handleInterrupt If true, handle CTRL-C by closing the window.
+         * @param showExitPrompt If true, show a prompt before the terminal process finishes, telling the user they
+         *   should press a key to continue. This also causes a scroll to the bottom of the window. If false, the window
+         *   will just exist.
          */
         fun create(
             title: String = "Virtual Terminal",
@@ -191,6 +194,7 @@ class VirtualTerminal private constructor(
             maxNumLines: Int = 1000,
             hideVerticalScrollbar: Boolean = false,
             handleInterrupt: Boolean = true,
+            showExitPrompt: Boolean = true,
         ): VirtualTerminal {
             require(terminalSize.width < TerminalSize.Unbounded.width && terminalSize.height < TerminalSize.Unbounded.height) {
                 "Neither width nor height in the virtual terminal size can be unbounded. Both must be set explicitly."
@@ -209,7 +213,7 @@ class VirtualTerminal private constructor(
             )
             pane.focusTraversalKeysEnabled = false // Don't handle TAB, we want to send it to the user
 
-            val terminal = VirtualTerminal(pane, terminalSize)
+            val terminal = VirtualTerminal(pane, terminalSize, showExitPrompt)
             SwingUtilities.invokeAndWait {
                 val frame = JFrame(title)
                 frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
@@ -368,23 +372,32 @@ class VirtualTerminal private constructor(
     override fun read() = charFlow
 
     override fun close() {
-        SwingUtilities.invokeLater {
-            // There should always be a blank line before this final text so this looks good. Append newlines to make
-            // this happen if they're not there.
-            val prependNewlines = "\n".repeat(2 - pane.doc.lines.takeLast(2).count { it.isEmpty() })
-            pane.processAnsiText(
-                "$prependNewlines(Application has ended. Press any key to continue.)",
-                width,
-                forceScrollToBottom = true
-            )
-        }
-        pane.addKeyListener(object : KeyAdapter() {
-            override fun keyPressed(e: KeyEvent?) {
-                with(pane.window!!) {
-                    dispatchEvent(WindowEvent(this, WINDOW_CLOSING))
-                }
+        fun dispatchWindowClosingEvent() {
+            with(pane.window!!) {
+                dispatchEvent(WindowEvent(this, WINDOW_CLOSING))
             }
-        })
+        }
+
+        if (showExitPrompt) {
+            SwingUtilities.invokeLater {
+                // There should always be a blank line before this final text so this looks good. Append newlines to make
+                // this happen if they're not there.
+                val prependNewlines = "\n".repeat(2 - pane.doc.lines.takeLast(2).count { it.isEmpty() })
+                pane.processAnsiText(
+                    "$prependNewlines(Application has ended. Press any key to continue.)",
+                    width,
+                    forceScrollToBottom = true
+                )
+            }
+            pane.addKeyListener(object : KeyAdapter() {
+                override fun keyPressed(e: KeyEvent) {
+                    dispatchWindowClosingEvent()
+                    e.consume()
+                }
+            })
+        } else {
+            dispatchWindowClosingEvent()
+        }
     }
 
     // No need to do anything; the virtual terminal starts up empty
