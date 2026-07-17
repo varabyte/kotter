@@ -107,9 +107,9 @@ fun main() = session {
         repeat(threads.size) { threadIndex ->
             jobs.add(scope.launch {
                 while (true) {
-                    val file = filesToCompile.removeFirstOrNull() ?: break
+                    val file = filesToCompile.withWriteLock { removeFirstOrNull() } ?: break
                     threads[threadIndex] = ThreadState.Working(file)
-                    delay(random.nextLong(250, 2000))
+                    delay(random.nextLong(250, 2000).milliseconds)
                     val succeeded = random.nextFloat() < 0.9f
                     val hasWarnings = random.nextFloat() < 0.4f
                     val warnings = mutableListOf<Report>()
