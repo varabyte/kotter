@@ -7,6 +7,7 @@ import com.varabyte.kotter.runtime.coroutines.*
 import com.varabyte.kotter.runtime.terminal.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -57,7 +58,8 @@ class Session internal constructor(
     /**
      * The size of the terminal that this session is attached to.
      */
-    val terminalSize: TerminalSize get() = TerminalSize(terminal.width, terminal.height)
+    var terminalSize by liveVarOf(TerminalSize(terminal.width, terminal.height))
+        private set
 
     /**
      * A way to access the current active section, if any.
@@ -67,7 +69,14 @@ class Session internal constructor(
      */
     val activeSection: Section? get() = data[ActiveSectionKey]
 
+    private val supervisorJob = Job()
+    private val coroutineScope = CoroutineScope(KotterDispatchers.IO + supervisorJob)
+
     init {
+        coroutineScope.launch {
+            terminal.events.sizeChanged.collect { newSize -> terminalSize = newSize }
+        }
+
         @Suppress("RemoveRedundantQualifierName") // Useful to show "Session.Lifecycle" for readability
         data.start(Session.Lifecycle)
     }
@@ -117,6 +126,7 @@ class Session internal constructor(
         @Suppress("RemoveRedundantQualifierName") // Useful to show "Session.Lifecycle" for readability
         if (data.isActive(Session.Lifecycle)) {
             data.stopAll()
+            supervisorJob.cancel()
             terminal.close()
         }
     }

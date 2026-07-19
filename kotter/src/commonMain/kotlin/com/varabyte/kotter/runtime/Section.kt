@@ -121,8 +121,8 @@ class MainRenderScope(renderer: Renderer<MainRenderScope>) : RenderScope(rendere
         override val parent = Section.Lifecycle
     }
 
-    val width get() = renderer.session.terminal.width
-    val height get() = renderer.session.terminal.height
+    val width get() = renderer.session.terminalSize.width
+    val height get() = renderer.session.terminalSize.height
 }
 
 /**
@@ -364,10 +364,6 @@ class Section internal constructor(val session: Session, private val render: Mai
         // Running might crash, and if so, we should still propagate the exception but only after we've cleaned up post
         // run.
         var deferredException: Exception? = null
-
-        coroutineScope.launch {
-            session.terminal.events.sizeChanged.collect { renderOnceAsync() }
-        }
 
         if (block != null) {
             val self = this
