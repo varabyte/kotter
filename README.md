@@ -50,8 +50,9 @@ Specifically, this library helps with:
 
 Kotter is multiplatform, supporting JVM and native targets.
 
-The next sections deal with setting Kotter up, but you may wish to jump straight
-[to the usage section ▼](#-usage) to immediately start learning about this library.
+> [!TIP]
+> The next sections deal with setting Kotter up, but you may wish to jump straight
+> [to the usage section ▼](#-usage) to immediately start learning about this library.
 
 ## 🐘 Gradle
 
