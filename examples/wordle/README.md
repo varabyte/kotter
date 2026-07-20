@@ -22,4 +22,4 @@ of code that took less than 30 minutes to figure out. If you squint at it right,
 according to the NYTimes! (Of course, there are additional factors, especially the social network effect and easy access
 to the game through web browsers with mobile support, but c'mon, it's fun to oversimplify).
 
-![Example in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-wordle.gif)
+![Example in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/wordle.webp)

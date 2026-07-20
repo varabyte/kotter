@@ -31,7 +31,7 @@ session {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-input.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/input.webp)
 
 *See also: [the game of life](examples/life), [snake](examples/snake), [sliding tiles](examples/sliding), [doom fire](examples/doomfire), and [Wordle](examples/wordle) implemented in Kotter!*
 
@@ -411,7 +411,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-calculating.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/calculating.webp)
 
 The `run` block runs as a suspend function, so you can call other suspend methods from within it.
 
@@ -493,7 +493,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-progress.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/progress.webp)
 
 #### LiveList
 
@@ -523,7 +523,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-files.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/files.webp)
 
 The `LiveList` class is thread safe, but you can still run into trouble if you access multiple values on the list one
 after the other, as a lock is released between each check. It's always possible that modifying the first property will
@@ -626,7 +626,7 @@ section {
 }.run { /* ... */ }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-enter-name.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/enter-name.webp)
 
 The input method automatically adds a cursor for you. It also handles keys like LEFT/RIGHT and HOME/END, moving the
 cursor back and forth between the bounds of the input string.
@@ -756,7 +756,7 @@ section {
 // "password" will be set to the actual password; user will only ever see "*"s
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-password.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/password.webp)
 
 ##### `customFormat`
 
@@ -774,7 +774,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-pin.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/pin.webp)
 
 #### Multiline Input
 
@@ -802,7 +802,7 @@ section {
   onInputEntered { sendMessage(input.trim()) }
 }
 ```
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-multiline.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/multiline.webp)
 
 #### Keypresses
 
@@ -884,7 +884,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-blink.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/blink.webp)
 
 With timers running, it's possible your `run` block will exit while things are in a state you didn't intend (e.g. in the
 above example with the blink effect still on). You should use the `onFinishing` event to handle this case:
@@ -932,7 +932,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-spinner.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/spinner.webp)
 
 When you reference an animation in a render for the first time, it kickstarts a timer automatically for you. In other
 words, all you have to do is treat your animation instance as if it were a string, and Kotter takes care of the rest!
@@ -982,7 +982,7 @@ section {
 }.runUntilSignal { /* ... */ }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-rainbow.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/rainbow.webp)
 
 #### One-shot animations
 
@@ -1008,7 +1008,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-one-shot.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/one-shot.webp)
 
 You can restart a one-shot animation by setting its `currFrame` property back to 0.
 
@@ -1163,7 +1163,7 @@ section {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/kotter-aside.gif)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/aside.webp)
 
 Asides are very useful if you have some long-running process that generates text as a side effect. You could imagine
 a compiler spitting out warnings and errors as it continues to process more code, or a test runner reporting failures
