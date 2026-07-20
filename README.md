@@ -550,6 +550,10 @@ section {
 The general rule of thumb is: use `withWriteLock` if you want to modify more than one property from the list at the same
 time within your `run` block.
 
+> [!CAUTION]
+> Some extension methods may call multiple methods under the hood. For example, `releaseFirstOrNull` calls `isEmpty`
+> first followed by `removeAt`. You should wrap that call in a write lock!
+
 > [!NOTE]
 > You don't have to worry about locking within a `section { ... }` block. Data access is already locked for you in that
 > context.
