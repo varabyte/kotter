@@ -93,7 +93,7 @@ class InputSupportTest {
                 input()
             }.runUntilInputEntered {
                 sendKeys(Keys.Eof)
-                delay(16)
+                delay(16.milliseconds)
                 enterPressed = true
                 sendKeys(Keys.Enter)
             }
@@ -107,7 +107,7 @@ class InputSupportTest {
                 input()
             }.runUntilInputEntered(abortOnEof = true) {
                 sendKeys(Keys.Eof)
-                delay(16)
+                delay(16.milliseconds)
                 enterPressed = true
                 sendKeys(Keys.Enter)
             }
@@ -138,7 +138,7 @@ class InputSupportTest {
                 input()
             }.runUntilInputEntered {
                 sendKeys(Keys.Eof)
-                delay(16)
+                delay(16.milliseconds)
                 enterPressed = true
                 sendKeys(Keys.Enter)
             }
