@@ -41,20 +41,52 @@ fun main() = session {
     )
 
     section {
-        textLine("Press SPACE to stretch to screen width (currently ${if (responsive) "on" else "off"})")
-        scopedState {
-            if (tableWidth == minTableWidth) color(Color.BRIGHT_BLACK)
-            textLine("Press LEFT to shrink the table / HOME to minimize")
+        fun pressKeyInfo(
+            key: String,
+            purpose: String,
+            currValue: String? = null,
+            isActive: Boolean = true,
+            highlightKey: Boolean = true,
+        ) {
+            text("Press ")
+            scopedState {
+                if (highlightKey) cyan()
+                text(key)
+            }
+            text(" to ")
+            text(purpose)
+            if (currValue != null) {
+                text(": ")
+                scopedState {
+                    if (isActive) green() else red()
+                    text(currValue)
+                }
+            }
+            textLine()
         }
-        scopedState {
-            if (tableWidth == responsiveTableWidth()) color(Color.BRIGHT_BLACK)
-            textLine("Press RIGHT to grow the table / END to maximize")
+        fun pressKeyInfo(key: String, purpose: String, isOn: Boolean) {
+            pressKeyInfo(key, purpose, if (isOn) "ON" else "OFF", isActive = isOn)
         }
-        textLine("Press BACKSPACE to toggle padding (currently ${if (usePadding) "on" else "off"})")
-        textLine("Press H to cycle horizontal separator types (currently \"${HorizontalSeparatorStrategyNames.getValue(horizontalSeparatorStrategy)}\")")
-        textLine("Press Q to quit")
-        textLine()
 
+        pressKeyInfo("SPACE", "stretch to screen width", responsive)
+        scopedState {
+            val enabled = tableWidth > minTableWidth
+            if (!enabled) black(isBright = true)
+            pressKeyInfo("LEFT", "shrink the table", highlightKey = enabled)
+            pressKeyInfo("HOME", "minimize the table", highlightKey = enabled)
+        }
+        scopedState {
+            val enabled = tableWidth < responsiveTableWidth()
+            if (!enabled) black(isBright = true)
+            pressKeyInfo("RIGHT", "grow the table", highlightKey = enabled)
+            pressKeyInfo("END", "maximize the table", highlightKey = enabled)
+        }
+
+        pressKeyInfo("BACKSPACE", "toggle padding", usePadding)
+        pressKeyInfo("H", "cycle horizontal separator types", HorizontalSeparatorStrategyNames.getValue(horizontalSeparatorStrategy))
+        pressKeyInfo("Q", "quit")
+
+        textLine()
 
         if (!responsive) {
             textLine("Target width: $tableWidth")
