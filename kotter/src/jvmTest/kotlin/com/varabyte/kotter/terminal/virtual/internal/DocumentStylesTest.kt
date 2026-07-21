@@ -68,11 +68,11 @@ class DocumentStylesTest {
     fun `inserting styles at older indices preserves existing state`() {
         val docStyles = MutableDocumentStyles(defaultFgColor = Color.WHITE, defaultBgColor = Color.BLACK)
         fun DocumentStyles.createColorString(length: Int): String {
-            val docStyles = this
+            val self = this
             return buildString {
                 for (i in 0 until length) {
                     append(
-                        when (docStyles.at(i).fgColor) {
+                        when (self.at(i).fgColor) {
                             Color.RED -> 'r'
                             Color.GREEN -> 'g'
                             Color.BLUE -> 'b'
@@ -167,11 +167,11 @@ class DocumentStylesTest {
     fun `removing ranges still preserves previous styles`() {
         val docStyles = MutableDocumentStyles(defaultFgColor = Color.WHITE, defaultBgColor = Color.BLACK)
         fun DocumentStyles.createColorString(length: Int): String {
-            val docStyles = this
+            val self = this
             return buildString {
                 for (i in 0 until length) {
                     append(
-                        when (docStyles.at(i).fgColor) {
+                        when (self.at(i).fgColor) {
                             Color.RED -> 'r'
                             Color.GREEN -> 'g'
                             Color.BLUE -> 'b'

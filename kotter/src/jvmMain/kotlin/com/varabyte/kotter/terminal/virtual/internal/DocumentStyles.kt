@@ -158,11 +158,11 @@ internal class MutableDocumentStyles(override val defaultFgColor: Color, overrid
 
         // If there were any styles still remaining AFTER the range we just deleted, that means we need to preserve the
         // last style in the range that was removed.
-        finalStyleInRange?.let { finalStyleInRange ->
+        finalStyleInRange?.let { preservedStyle ->
             if (trailingStyleExists && styles[fromInclusive] == null) {
                 val currStyle = styles.atOrBefore(fromInclusive)
-                if (currStyle != finalStyleInRange) {
-                    styles[fromInclusive] = finalStyleInRange
+                if (currStyle != preservedStyle) {
+                    styles[fromInclusive] = preservedStyle
                 }
             }
         }
