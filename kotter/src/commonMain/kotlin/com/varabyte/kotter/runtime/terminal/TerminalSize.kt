@@ -17,6 +17,8 @@ class TerminalSize(val width: Int, val height: Int) {
         require(width >= 1 && height >= 1) { "TerminalSize values must both be positive. Got: $width, $height" }
     }
 
+    fun copy(width: Int = this.width, height: Int = this.height): TerminalSize = TerminalSize(width, height)
+
     override fun equals(other: Any?): Boolean {
         return other is TerminalSize && other.width == width && other.height == height
     }

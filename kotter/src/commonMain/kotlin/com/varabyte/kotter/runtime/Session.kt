@@ -58,7 +58,7 @@ class Session internal constructor(
     /**
      * The size of the terminal that this session is attached to.
      */
-    var terminalSize by liveVarOf(TerminalSize(terminal.width, terminal.height))
+    var terminalSize = TerminalSize(terminal.width, terminal.height)
         private set
 
     /**

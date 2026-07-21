@@ -251,7 +251,7 @@ class SectionTest {
     }
 
     @Test
-    fun `section repainted on size changed`() = testSession(TerminalSize(100, 40)) { terminal ->
+    fun `section repainted on size changed`() = testSession(TerminalSize.Default) { terminal ->
         section {
             text("$width x $height")
         }.run {

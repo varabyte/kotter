@@ -13,6 +13,7 @@ import com.varabyte.kotter.runtime.internal.ansi.*
 import com.varabyte.kotter.runtime.internal.ansi.commands.*
 import com.varabyte.kotter.runtime.internal.text.*
 import com.varabyte.kotter.runtime.render.*
+import com.varabyte.kotter.runtime.terminal.TerminalSize
 import com.varabyte.kotter.runtime.terminal.TextMetrics
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -121,8 +122,21 @@ class MainRenderScope(renderer: Renderer<MainRenderScope>) : RenderScope(rendere
         override val parent = Section.Lifecycle
     }
 
-    val width get() = renderer.session.terminalSize.width
-    val height get() = renderer.session.terminalSize.height
+    private var responsiveTerminalSize: LiveVar<TerminalSize>? = null
+    private val terminalSize: TerminalSize
+        get() {
+            return (responsiveTerminalSize ?: run {
+                val terminalSize = renderer.session.liveVarOf(renderer.session.terminalSize)
+                renderer.session.activeSection?.coroutineScope?.launch {
+                    renderer.session.terminal.events.sizeChanged.collect { terminalSize.value = it }
+                }
+                responsiveTerminalSize = terminalSize
+                terminalSize
+            }).value
+        }
+
+    val width get() = terminalSize.width
+    val height get() = terminalSize.height
 }
 
 /**
