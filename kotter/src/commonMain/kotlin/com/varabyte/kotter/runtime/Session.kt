@@ -55,11 +55,17 @@ class Session internal constructor(
     val data = ConcurrentScopedData()
     val defaults = Defaults(this)
 
+    private var _terminalSize: TerminalSize? = null
     /**
      * The size of the terminal that this session is attached to.
      */
-    var terminalSize = TerminalSize(terminal.width, terminal.height)
-        private set
+    val terminalSize: TerminalSize
+        get() {
+            if (_terminalSize.let { it == null || (it.width != terminal.width || it.height != terminal.height) }) {
+                _terminalSize = TerminalSize(terminal.width, terminal.height)
+            }
+            return _terminalSize!!
+        }
 
     /**
      * A way to access the current active section, if any.
@@ -70,13 +76,8 @@ class Session internal constructor(
     val activeSection: Section? get() = data[ActiveSectionKey]
 
     private val supervisorJob = Job()
-    private val coroutineScope = CoroutineScope(KotterDispatchers.IO + supervisorJob)
 
     init {
-        coroutineScope.launch {
-            terminal.events.sizeChanged.collect { newSize -> terminalSize = newSize }
-        }
-
         @Suppress("RemoveRedundantQualifierName") // Useful to show "Session.Lifecycle" for readability
         data.start(Session.Lifecycle)
     }

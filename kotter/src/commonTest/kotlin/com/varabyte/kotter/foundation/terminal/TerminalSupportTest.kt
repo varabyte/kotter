@@ -21,6 +21,7 @@ class TerminalSupportTest {
         }.run {
             onTerminalSizeChanged {
                 isWideMode = shouldBeWideMode()
+                assertThat(terminalSize).isEqualTo(section.session.terminalSize)
             }
 
             blockUntilRenderMatches(terminal) {
