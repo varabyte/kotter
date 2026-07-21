@@ -97,6 +97,7 @@ fun main() = session {
         val targetWidth = if (responsive) responsiveTableWidth() else tableWidth
 
         // We will show a multi-column layout for wide screens, or a 1-column layout otherwise
+        val title = "Grocery List"
         if (targetWidth > 40) {
             grid(
                 Cols { fit(); fit(); star(minWidth = 5) },
@@ -105,7 +106,7 @@ fun main() = session {
                 paddingLeftRight = if (usePadding) 1 else 0,
                 horizontalSeparatorIndices = horizontalSeparatorStrategy
             ) {
-                cell(colSpan = 3, justification = Justification.CENTER) { bold(); text("Grocery List") }
+                cell(colSpan = 3, justification = Justification.CENTER) { bold(); text(title) }
                 cell { bold(); text("Item") }
                 cell { bold(); text("Price / lb.") }
                 cell { bold(); text("Notes") }
@@ -127,13 +128,13 @@ fun main() = session {
             }
         } else {
             grid(
-                Cols { star(minWidth = 5) },
+                Cols { star(minWidth = title.length) },
                 targetWidth = targetWidth,
                 characters = GridCharacters.Curved,
                 paddingLeftRight = if (usePadding) 1 else 0,
                 horizontalSeparatorIndices = horizontalSeparatorStrategy
             ) {
-                cell { bold(); text("Grocery List") }
+                cell { bold(); text(title) }
                 groceryItems.forEach { item ->
                     cell { cellMetrics ->
                         val firstLine = "${item.name} - ${item.price}"
