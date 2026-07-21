@@ -51,8 +51,8 @@ Specifically, this library helps with:
 Kotter is multiplatform, supporting JVM and native targets.
 
 > [!TIP]
-> The next sections deal with setting Kotter up, but you may wish to jump straight
-> [to the usage section ▼](#-usage) to immediately start learning about this library.
+> The next sections deal with setting Kotter up, but you may wish to 
+> [skip over them ▼](#book) and immediately start learning about this library.
 
 ## 🐘 Gradle
 
@@ -232,9 +232,8 @@ $ ../../gradlew linkDebugExecutableLinuxX64
 $ ./build/bin/linuxX64/debugExecutable/native.kexe
 ```
 
-## 📖 Usage
-
-### 👶 Basics
+<span id="book"></span>
+## 📖 Basics
 
 The following is equivalent to `println("Hello, World")`. In this simple case, it's definitely overkill!
 
