@@ -2,13 +2,12 @@ package com.varabyte.kotter.examples.grid
 
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.input.*
+import com.varabyte.kotter.foundation.terminal.onTerminalSizeChanged
 import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.runtime.terminal.EllipsisPresets
+import com.varabyte.kotter.runtime.terminal.truncateToWidth
 import com.varabyte.kotterx.grid.*
 import com.varabyte.kotterx.text.*
-
-private const val MIN_TABLE_WIDTH = 25
-private const val MAX_TABLE_WIDTH = 40
-private const val DEFAULT_TABLE_WIDTH = 30
 
 // NOTE: The order these strategies are declared matters and controls how they are cycled through
 private val HorizontalSeparatorStrategyNames = mapOf(
@@ -18,55 +17,141 @@ private val HorizontalSeparatorStrategyNames = mapOf(
     HorizontalSeparatorIndices.HeaderAndBottom to "Header and bottom",
 )
 
+class GroceryItem(
+    val name: String,
+    val price: String,
+    val notes: String? = null
+)
+
 fun main() = session {
-    var tableWidth by liveVarOf(DEFAULT_TABLE_WIDTH)
+    val minTableWidth = 10
+    val reservedHorizontalSpace = 15 // Avoid filling up the whole screen and leave a bit of breathing space
+    fun responsiveTableWidth() = (terminalSize.width - reservedHorizontalSpace).coerceAtLeast(minTableWidth)
+    var tableWidth by liveVarOf(responsiveTableWidth())
+    var responsive by liveVarOf(true)
     var usePadding by liveVarOf(true)
     var horizontalSeparatorStrategy by liveVarOf(HorizontalSeparatorIndices.All)
 
+    val groceryItems = listOf(
+        GroceryItem("bananas", "$0.59 / bunch", "Buy three bananas"),
+        GroceryItem("celery", "$0.99"),
+        GroceryItem("corn", "$3.00 / 4"),
+        GroceryItem("avocados", "$2.00 / 3"),
+        GroceryItem("ground beef", "$6.75 / lb", "Only buy 80/20; skip otherwise"),
+    )
+
     section {
+        textLine("Press SPACE to stretch to screen width (currently ${if (responsive) "on" else "off"})")
         scopedState {
-            if (tableWidth == MIN_TABLE_WIDTH) color(Color.BRIGHT_BLACK)
-            textLine("Press LEFT to shrink the table")
+            if (tableWidth == minTableWidth) color(Color.BRIGHT_BLACK)
+            textLine("Press LEFT to shrink the table / HOME to minimize")
         }
         scopedState {
-            if (tableWidth == MAX_TABLE_WIDTH) color(Color.BRIGHT_BLACK)
-            textLine("Press RIGHT to grow the table")
+            if (tableWidth == responsiveTableWidth()) color(Color.BRIGHT_BLACK)
+            textLine("Press RIGHT to grow the table / END to maximize")
         }
-        textLine("Press SPACE to toggle padding (currently ${if (usePadding) "on" else "off"})")
+        textLine("Press BACKSPACE to toggle padding (currently ${if (usePadding) "on" else "off"})")
         textLine("Press H to cycle horizontal separator types (currently \"${HorizontalSeparatorStrategyNames.getValue(horizontalSeparatorStrategy)}\")")
         textLine("Press Q to quit")
         textLine()
 
-        textLine("Target width: $tableWidth")
-        grid(
-            Cols { fit(); fixed(10, Justification.CENTER); star(minWidth = 5) },
-            targetWidth = tableWidth,
-            characters = GridCharacters.Curved,
-            paddingLeftRight = if (usePadding) 1 else 0,
-            maxCellHeight = 1,
-            horizontalSeparatorIndices = horizontalSeparatorStrategy
-        ) {
-            cell(colSpan = 3, justification = Justification.CENTER) { bold(); text("Grocery List") }
-            cell { bold(); text("Item") }
-            cell { bold(); text("Price / lb.") }
-            cell { bold(); text("Notes") }
-            cell { text("Butter") }
-            cell { text("$4.50") }
-            cell(row = nextEmptyCellRow + 1) { text("Tomatoes") }
-            cell { text("$0.99") }
-            cell { text("Skip if overripe") }
-            cell { text("Beef") }
-            cell { text("$2.99") }
-            cell { text("Angus, 80/20") }
+
+        if (!responsive) {
+            textLine("Target width: $tableWidth")
+        } else {
+            textLine("Responsive width: ${responsiveTableWidth()} (resize window to grow/shrink)")
+        }
+
+        val targetWidth = if (responsive) responsiveTableWidth() else tableWidth
+
+        // We will show a multi-column layout for wide screens, or a 1-column layout otherwise
+        if (targetWidth > 40) {
+            grid(
+                Cols { fit(); fit(); star(minWidth = 5) },
+                targetWidth = targetWidth,
+                characters = GridCharacters.Curved,
+                paddingLeftRight = if (usePadding) 1 else 0,
+                horizontalSeparatorIndices = horizontalSeparatorStrategy
+            ) {
+                cell(colSpan = 3, justification = Justification.CENTER) { bold(); text("Grocery List") }
+                cell { bold(); text("Item") }
+                cell { bold(); text("Price / lb.") }
+                cell { bold(); text("Notes") }
+                groceryItems.forEach { item ->
+                    cell { text(item.name) }
+                    cell { text(item.price) }
+                    cell { cellMetrics ->
+                        item.notes?.let {
+                            text(
+                                textMetrics.truncateToWidth(
+                                    it,
+                                    cellMetrics.width,
+                                    ellipsis = EllipsisPresets.SYMBOL
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            grid(
+                Cols { star(minWidth = 5) },
+                targetWidth = targetWidth,
+                characters = GridCharacters.Curved,
+                paddingLeftRight = if (usePadding) 1 else 0,
+                horizontalSeparatorIndices = horizontalSeparatorStrategy
+            ) {
+                cell { bold(); text("Grocery List") }
+                groceryItems.forEach { item ->
+                    cell { cellMetrics ->
+                        val firstLine = "${item.name} - ${item.price}"
+                        textLine(
+                            textMetrics.truncateToWidth(
+                                firstLine,
+                                cellMetrics.width,
+                                ellipsis = EllipsisPresets.SYMBOL
+                            )
+                        )
+                        item.notes?.let { notes ->
+                            black(isBright = true)
+                            textLine(
+                                textMetrics.truncateToWidth(
+                                    notes,
+                                    cellMetrics.width,
+                                    ellipsis = EllipsisPresets.SYMBOL
+                                )
+                            )
+                        }
+                    }
+                }
+            }
         }
     }.runUntilKeyPressed(Keys.Q) {
+        onTerminalSizeChanged { if (responsive) rerender() }
+
         onKeyPressed {
             when (key) {
-                Keys.Left -> if (tableWidth > MIN_TABLE_WIDTH) tableWidth--
-                Keys.Right -> if (tableWidth < MAX_TABLE_WIDTH) tableWidth++
-                Keys.Home -> tableWidth = MIN_TABLE_WIDTH
-                Keys.End -> tableWidth = MAX_TABLE_WIDTH
-                Keys.Space -> usePadding = !usePadding
+                Keys.Space -> {
+                    responsive = !responsive
+                    tableWidth = responsiveTableWidth()
+                }
+                Keys.Left -> {
+                    responsive = false
+                    if (tableWidth > minTableWidth) tableWidth--
+                }
+                Keys.Right -> {
+                    responsive = false
+                    if (tableWidth < responsiveTableWidth()) tableWidth++
+                }
+                Keys.Home -> {
+                    responsive = false
+                    tableWidth = minTableWidth
+                }
+                Keys.End -> {
+                    responsive = false
+                    tableWidth = responsiveTableWidth()
+                }
+                Keys.Backspace -> usePadding = !usePadding
                 Keys.H -> {
                     val currStrategyIndex = HorizontalSeparatorStrategyNames.keys.indexOf(horizontalSeparatorStrategy)
                     val nextStrategyIndex = (currStrategyIndex + 1) % HorizontalSeparatorStrategyNames.size
