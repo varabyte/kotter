@@ -22,6 +22,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlin.math.min
 
 internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
@@ -206,6 +207,28 @@ class Section internal constructor(val session: Session, private val render: Mai
                 renderRequested = true
                 renderOnceAsync()
             }
+        }
+    }
+
+    /**
+     * Waits for the currently requested or active render pass to finish executing if one is in progress.
+     *
+     * If a render pass was triggered immediately prior to this call (e.g., via a [LiveVar] update or [requestRerender]
+     * call), this method guarantees that the render pass has completed before resuming.
+     *
+     * If no render pass is active or queued, this method returns almost immediately.
+     *
+     * It is not expected that most end users will ever need this, but it can be very useful for tests!
+     */
+    suspend fun awaitActiveRender() {
+        renderLock.withLock {
+            // No-op. However, if someone called `requestRerender` before us, we want to make 100% sure that that
+            // finished and enqueued a render request before we continue
+        }
+
+        withContext(KotterDispatchers.Render) {
+            // No-op again. If a render is in progress, this waits until it finishes. This works because
+            // KotterDispatchers.Render is guaranteed to be a sequential dispatcher.
         }
     }
 

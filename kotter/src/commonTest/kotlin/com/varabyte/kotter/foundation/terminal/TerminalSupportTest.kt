@@ -6,9 +6,7 @@ import com.varabyte.kotter.runtime.terminal.TerminalSize
 import com.varabyte.kotterx.test.foundation.testSession
 import com.varabyte.kotterx.test.runtime.blockUntilRenderMatches
 import com.varabyte.truthish.assertThat
-import kotlinx.coroutines.delay
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.milliseconds
 
 class TerminalSupportTest {
     @Test
@@ -31,8 +29,7 @@ class TerminalSupportTest {
             }
 
             terminal.size = terminal.size.copy(width = 50)
-            // TODO: Rewrite Section render logic so we can eliminate this delay
-            delay(100.milliseconds)
+            section.awaitActiveRender()
 
             assertThat(renderCount).isEqualTo(1) // Not rerendered!
 
