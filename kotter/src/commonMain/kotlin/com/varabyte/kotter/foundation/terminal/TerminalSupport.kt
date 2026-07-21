@@ -27,13 +27,13 @@ class OnTerminalSizeChangedScope(val terminalSize: TerminalSize)
  * perhaps you need to make changes to an underlying data model as more or less size becomes available, and it's awkward
  * to do that inside a render loop.
  * ```
- * fun shouldUseWideLayout() = terminalSize.width > 50
- * var useDoubleLayout by liveVarOf(shouldUseDoubleLayout())
+ * fun shouldUseWideLayout() = terminalSize.width >= 50
+ * var useWideLayout by liveVarOf(shouldUseWideLayout())
  * section {
- *   if (useDoubleLayout) { /* ... */ }
+ *   if (useWideLayout) { /* ... */ }
  * }.runUntilKeysPressed(Keys.Q) {
  *   onTerminalSizeChanged {
- *      useDoubleLayout = shouldUseDoubleLayout()
+ *      useWideLayout = shouldUseWideLayout()
      }
  * }
  * ```

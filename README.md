@@ -1571,6 +1571,57 @@ object EllipsisPresets {
 textMetrics.truncateToWidth("Hello world", maxWidth = 8, ellipsis = EllipsisPresets.SYMBOL)
 ```
 
+### ↔️ Responsive UIs
+
+Kotter supports rerendering your section when the terminal window is resized. In fact, it's trivial!
+
+#### Session's width and height properties
+
+If you reference the `width` and/or `height` session variables anywhere inside your `section` block, then your
+application will automatically update when the parent window is resized:
+
+```kotlin
+section {
+    text("$width x $height")
+}.runUntilKeyPressed(Keys.Q)
+```
+
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/book/responsive.webp)
+
+Note that we choose a `run` method above that doesn't exit immediately (in this case, `runUntilKeyPressed`). Using
+`width` and `height` values do not keep the section alive! It just ensures that while it is running, it will rerender
+automatically if the window size changes.
+
+#### onTerminalSizeChanged
+
+Sometimes, you may want to respond to a resize event inside the run block and not the render block.
+
+For example, your application may only need to be partially responsive, e.g. changing only on specific width thresholds
+and not every single width value. Or perhaps you want to make changes to an underlying data model due to the size
+change, and it feels far more natural to do that in the run block than a render pass.
+
+For this, Kotter provides `onTerminalSizeChanged`:
+
+```kotlin
+fun shouldUseWideLayout() = terminalSize.width >= 50
+var useWideLayout by liveVarOf(shouldUseWideLayout())
+section {
+    if (useWideLayout) { /* ... */ }
+}.runUntilKeysPressed(Keys.Q) {
+    onTerminalSizeChanged { 
+        useWideLayout = shouldUseWideLayout()
+    }
+}
+```
+
+In the above case, this not only expresses the user's intention more clearly, but it also rerenders way less -- only
+when the width threshold passes from over 50 to under it.
+
+#### Examples
+
+For reference, you can look at the [grid](examples/grid) sample project, which changes its grid layout responsively
+based on the terminal's width.
+
 ## 🎓 Advanced
 
 ### 🔨 "Extending" Kotter
