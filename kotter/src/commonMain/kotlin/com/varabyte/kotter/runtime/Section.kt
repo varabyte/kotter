@@ -87,6 +87,18 @@ class RunScope(val section: Section, private val scope: CoroutineScope) : Sectio
     fun rerender() = section.requestRerender()
 
     /**
+     * Waits for the currently requested or active render pass to finish executing if one is in progress.
+     *
+     * If a render pass was triggered immediately prior to this call (e.g., via a [LiveVar] update or [requestRerender]
+     * call), this method guarantees that the render pass has completed before resuming.
+     *
+     * If no render pass is active or queued, this method returns almost immediately.
+     *
+     * It is not expected that most end users will ever need this, but it can be very useful for tests!
+     */
+    suspend fun awaitActiveRender() = section.awaitActiveRender()
+
+    /**
      * Block this method from continuing until [signal] is called.
      *
      * If [signal] is called before this method is, then it won't block at all.
@@ -210,17 +222,10 @@ class Section internal constructor(val session: Session, private val render: Mai
         }
     }
 
-    /**
-     * Waits for the currently requested or active render pass to finish executing if one is in progress.
-     *
-     * If a render pass was triggered immediately prior to this call (e.g., via a [LiveVar] update or [requestRerender]
-     * call), this method guarantees that the render pass has completed before resuming.
-     *
-     * If no render pass is active or queued, this method returns almost immediately.
-     *
-     * It is not expected that most end users will ever need this, but it can be very useful for tests!
-     */
-    suspend fun awaitActiveRender() {
+    // See docs for `RunScope.awaitActiveRender`, where the call is public
+    // Although the section provides the functionality, it only ever makes sense to call this from inside a run block.
+    // If you call it from a render pass, you will end up soft-locked!
+    internal suspend fun awaitActiveRender() {
         renderLock.withLock {
             // No-op. However, if someone called `requestRerender` before us, we want to make 100% sure that that
             // finished and enqueued a render request before we continue

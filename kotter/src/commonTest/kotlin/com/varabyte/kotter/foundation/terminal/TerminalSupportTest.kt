@@ -30,7 +30,7 @@ class TerminalSupportTest {
             }
 
             terminal.size = terminal.size.copy(width = 50)
-            section.awaitActiveRender()
+            awaitActiveRender()
 
             assertThat(renderCount).isEqualTo(1) // Not rerendered!
 
