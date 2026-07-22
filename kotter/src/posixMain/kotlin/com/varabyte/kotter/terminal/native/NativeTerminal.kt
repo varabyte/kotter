@@ -4,6 +4,7 @@ import com.varabyte.kotter.runtime.coroutines.KotterDispatchers
 import com.varabyte.kotter.runtime.internal.ansi.Ansi
 import com.varabyte.kotter.runtime.terminal.Terminal
 import com.varabyte.kotter.runtime.terminal.TerminalSize
+import com.varabyte.kotter.runtime.terminal.createOrReuse
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
@@ -54,18 +55,15 @@ actual class NativeTerminal : Terminal {
         signal(SIGWINCH, staticCFunction { _: Int -> windowChangeSignalReceived.value = 1 })
     }
 
-    override val width: Int
-        get() = memScoped {
-            val winsize = alloc<winsize>()
-            ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
-            winsize.ws_col.toInt()
-        }
-
-    override val height: Int
-        get() = memScoped {
-            val winsize = alloc<winsize>()
-            ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
-            winsize.ws_row.toInt()
+    private var _size: TerminalSize? = null
+    override val size: TerminalSize
+        get() {
+            return memScoped {
+                val winsize = alloc<winsize>()
+                ioctl(STDOUT_FILENO, TIOCGWINSZ, winsize.ptr)
+                _size.createOrReuse(winsize.ws_col.toInt(), winsize.ws_row.toInt())
+                    .also { _size = it }
+            }
         }
 
     private val mutableEvents = Terminal.MutableEvents()
@@ -89,7 +87,7 @@ actual class NativeTerminal : Terminal {
                     // `read` calls can get interrupted by signals before continuing. Check if a signal that we
                     // registered for was tripped.
                     if (windowChangeSignalReceived.compareAndSet(1, 0)) {
-                        mutableEvents.sizeChanged.emit(TerminalSize(width, height))
+                        mutableEvents.sizeChanged.emit(size)
                     }
 
                     if (closed) {

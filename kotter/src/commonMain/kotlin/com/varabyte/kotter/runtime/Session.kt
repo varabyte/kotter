@@ -55,17 +55,10 @@ class Session internal constructor(
     val data = ConcurrentScopedData()
     val defaults = Defaults(this)
 
-    private var _terminalSize: TerminalSize? = null
     /**
      * The size of the terminal that this session is attached to.
      */
-    val terminalSize: TerminalSize
-        get() {
-            if (_terminalSize.let { it == null || (it.width != terminal.width || it.height != terminal.height) }) {
-                _terminalSize = TerminalSize(terminal.width, terminal.height)
-            }
-            return _terminalSize!!
-        }
+    val terminalSize: TerminalSize get() = terminal.size
 
     /**
      * A way to access the current active section, if any.

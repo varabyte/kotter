@@ -280,14 +280,14 @@ class Section internal constructor(val session: Session, private val render: Mai
                 renderLock.withLock { renderRequested = false }
 
                 val clearBlockCommand = buildString {
-                    commandsCache.withNewlines(session.terminal.width).takeIf { it.isNotEmpty() }
+                    commandsCache.withNewlines(session.terminal.size.width).takeIf { it.isNotEmpty() }
                         ?.let { previouslyRenderedCommands ->
                             // To clear an existing block of 'n' lines, completely delete all but one of them, and then
                             // delete the last one down to the beginning (in other words, don't consume the \n of the
                             // previous line)
                             val numLinesToErase = min(
                                 previouslyRenderedCommands.count { it is NewlineCommand } + 1,
-                                session.terminal.height)
+                                session.terminal.size.height)
                             for (i in 0 until numLinesToErase) {
                                 append(WIPE_CURRENT_LINE_COMMAND)
                                 if (i < numLinesToErase - 1) {
@@ -323,7 +323,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                 session.terminal.write(
                     clearBlockCommand
                             + asideTextBuilder.toString()
-                            + commandsCache.withNewlines(session.terminal.width).toText(session.terminal.height)
+                            + commandsCache.withNewlines(session.terminal.size.width).toText(session.terminal.size.height)
                 )
 
                 onRendered.removeIf {

@@ -1,6 +1,7 @@
 package com.varabyte.kotter.runtime.terminal
 
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -13,9 +14,9 @@ interface Terminal {
         /**
          * A flow that emits a new [TerminalSize] whenever the terminal is resized.
          *
-         * After this event is triggered, [width] and [height] properties can be re-queried for new values.
+         * After this event is triggered, [size] property can be re-queried for new values.
          */
-        val sizeChanged: SharedFlow<TerminalSize>
+        val sizeChanged: Flow<TerminalSize>
     }
 
     /**
@@ -47,26 +48,21 @@ interface Terminal {
         val sizeChanged = createMutableFlow<TerminalSize>()
 
         fun asReadOnly() = object : Events {
-            override val sizeChanged: SharedFlow<TerminalSize> = this@MutableEvents.sizeChanged.asSharedFlow()
+            override val sizeChanged: Flow<TerminalSize> = this@MutableEvents.sizeChanged.asSharedFlow()
         }
     }
 
     val events: Events
 
     /**
-     * The width of the terminal.
+     * The size of the terminal.
      *
-     * Once this width is reached, newlines will be auto-appended. It will also be used in calculating how many
-     * lines to erase on repaint.
-     */
-    val width: Int
-
-    /**
-     * The height of the terminal.
+     * If any text runs past this size's width, newlines will be auto-appended. The width is also used to calculate how
+     * many lines to erase on repaint.
      *
-     * This is used to ensure we don't try to render more lines than what fit on the screen.
+     * If any lines are added past this size's height, earlier lines are dropped.
      */
-    val height: Int
+    val size: TerminalSize
 
     /**
      * Write some text to the underlying terminal.

@@ -218,7 +218,7 @@ class VirtualTerminal private constructor(
             val terminal = VirtualTerminal(pane, terminalSize, showExitPrompt)
             terminal.pane.addComponentListener(object : ComponentAdapter() {
                 override fun componentResized(e: ComponentEvent) {
-                    terminal.terminalSize = pane.terminalSize
+                    terminal.size = pane.terminalSize
                 }
             })
 
@@ -335,22 +335,20 @@ class VirtualTerminal private constructor(
         }
     }
 
-    var terminalSize = terminalSize
+    override var size = terminalSize
         set(value) {
             if (field != value) {
                 field = value
                 mutableEvents.sizeChanged.tryEmit(value)
             }
         }
-    override val width get() = terminalSize.width
-    override val height get() = terminalSize.height
 
     private var mutableEvents = Terminal.MutableEvents()
     override val events = mutableEvents.asReadOnly()
 
     override fun write(text: String) {
         SwingUtilities.invokeLater {
-            pane.processAnsiText(text, width)
+            pane.processAnsiText(text, size.width)
         }
     }
 
@@ -423,7 +421,7 @@ class VirtualTerminal private constructor(
                 val prependNewlines = "\n".repeat(2 - pane.doc.lines.takeLast(2).count { it.isEmpty() })
                 pane.processAnsiText(
                     "$prependNewlines(Application has ended. Press any key to continue.)",
-                    width,
+                    size.width,
                     forceScrollToBottom = true
                 )
             }

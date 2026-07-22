@@ -67,11 +67,12 @@ class SystemTerminal : Terminal {
             puts(InfoCmp.Capability.cursor_invisible)
         }
 
-    override val width: Int
-        get() = terminal.columns
-
-    override val height: Int
-        get() = terminal.rows
+    private var _size: TerminalSize? = null
+    override val size: TerminalSize
+        get() {
+            return _size.createOrReuse(terminal.columns, terminal.rows)
+                .also { _size = it }
+        }
 
     override fun write(text: String) {
         terminal.writer().print(text)

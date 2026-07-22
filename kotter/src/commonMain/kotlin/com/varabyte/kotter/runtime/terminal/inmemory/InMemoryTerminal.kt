@@ -68,15 +68,13 @@ class InMemoryTerminal(size: TerminalSize? = null) : Terminal {
         keys.forEach { keysFlow.emit(it) }
     }
 
-    var size = size ?: TerminalSize.Unbounded
+    override var size = size ?: TerminalSize.Unbounded
         set(value) {
             if (field != value) {
                 field = value
                 mutableEvents.sizeChanged.tryEmit(value)
             }
         }
-    override val width get() = size.width
-    override val height get() = size.height
 
     private val mutableEvents = Terminal.MutableEvents()
     override val events = mutableEvents.asReadOnly()
@@ -128,7 +126,7 @@ class InMemoryTerminal(size: TerminalSize? = null) : Terminal {
                 when (textPtr.currChar) {
                     '\n', '\r' -> appendAndResetCurrLineWidth(textPtr.currChar)
                     else -> {
-                        if (currLineWidth == width) appendAndResetCurrLineWidth('\n')
+                        if (currLineWidth == size.width) appendAndResetCurrLineWidth('\n')
                         builder.append(textPtr.currChar)
                         ++currLineWidth
                     }

@@ -83,18 +83,16 @@ actual class NativeTerminal : Terminal {
         printf("${Ansi.CtrlChars.ESC}${Ansi.EscSeq.CSI}?25l") // hide the cursor
     }
 
-    override val width: Int
-        get() = memScoped {
-            val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
-            GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
-            (csbi.srWindow.Right - csbi.srWindow.Left)
-        }
-
-    override val height: Int
-        get() = memScoped {
-            val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
-            GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
-            (csbi.srWindow.Bottom - csbi.srWindow.Top)
+    private var _size: TerminalSize? = null
+    override val size: TerminalSize
+        get() {
+            return memScoped {
+                val csbi = alloc<CONSOLE_SCREEN_BUFFER_INFO>()
+                GetConsoleScreenBufferInfo(stdOutHandle, csbi.ptr)
+                val w = csbi.srWindow.Right - csbi.srWindow.Left
+                val h = csbi.srWindow.Bottom - csbi.srWindow.Top
+                _size.createOrReuse(w, h).also { _size = it }
+            }
         }
 
     private val mutableEvents = Terminal.MutableEvents()
@@ -177,7 +175,7 @@ actual class NativeTerminal : Terminal {
                             for (i in 0 until numEventsRead.value.toInt()) {
                                 when (inputRecord.EventType.toInt()) {
                                     KEY_EVENT -> processKeyEvent(inputRecord.Event.KeyEvent)
-                                    WINDOW_BUFFER_SIZE_EVENT -> mutableEvents.sizeChanged.emit(TerminalSize(width, height))
+                                    WINDOW_BUFFER_SIZE_EVENT -> mutableEvents.sizeChanged.emit(size)
                                 }
                             }
                         } else {
