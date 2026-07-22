@@ -20,6 +20,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -131,26 +135,15 @@ class RunScope(val section: Section, private val scope: CoroutineScope) : Sectio
 /**
  * The main [RenderScope] used for rendering a section.
  */
-class MainRenderScope(renderer: Renderer<MainRenderScope>) : RenderScope(renderer) {
+class MainRenderScope(
+    renderer: Renderer<MainRenderScope>, private val provideTerminalSize: () -> TerminalSize
+) : RenderScope(renderer) {
     object Lifecycle : ConcurrentScopedData.Lifecycle {
         override val parent = Section.Lifecycle
     }
 
-    private var responsiveTerminalSize: LiveVar<TerminalSize>? = null
-    private val terminalSize: TerminalSize
-        get() {
-            return (responsiveTerminalSize ?: run {
-                val terminalSize = renderer.session.liveVarOf(renderer.session.terminalSize)
-                renderer.session.activeSection?.coroutineScope?.launch {
-                    renderer.session.terminal.events.sizeChanged.collect { terminalSize.value = it }
-                }
-                responsiveTerminalSize = terminalSize
-                terminalSize
-            }).value
-        }
-
-    val width get() = terminalSize.width
-    val height get() = terminalSize.height
+    val width get() = provideTerminalSize().width
+    val height get() = provideTerminalSize().height
 }
 
 /**
@@ -187,7 +180,17 @@ class Section internal constructor(val session: Session, private val render: Mai
      */
     val coroutineScope = CoroutineScope(KotterDispatchers.IO + supervisorJob)
 
-    internal val renderer = Renderer(session) { MainRenderScope(it) }
+    private val terminalSizeState: StateFlow<TerminalSize> by lazy {
+        renderer.session.terminal.events.sizeChanged
+            .onEach { requestRerender() }
+            .stateIn(
+                coroutineScope,
+                started = SharingStarted.Eagerly, // No need for Lazily here -- `by lazy` already does that
+                initialValue = renderer.session.terminal.size,
+            )
+    }
+
+    internal val renderer = Renderer(session) { MainRenderScope(it, provideTerminalSize = { terminalSizeState.value }) }
     private val renderLock = ReentrantLock()
 
     @GuardedBy("renderLock")
@@ -247,21 +250,10 @@ class Section internal constructor(val session: Session, private val render: Mai
      * However, in very rare cases (when a user is resizing the window), the width value may have changed since the
      * last render took place. So we keep enough information in here that we can invalidate the cache if we need to.
      */
-    private class CommandsCache(private val textMetrics: TextMetrics) {
-        private var lastCommandsRendered: List<TerminalCommand> = emptyList()
+    private class CommandsCache(commands: List<TerminalCommand>, private val textMetrics: TextMetrics) {
+        private var lastCommandsRendered = commands.toList() // Make a copy, it's ours now
         private var lastCommandsRenderedWithNewlines: List<TerminalCommand> = emptyList()
         private var lastWidth = -1
-
-        fun clear() {
-            lastCommandsRendered = emptyList()
-            lastCommandsRenderedWithNewlines = emptyList()
-            lastWidth = -1
-        }
-
-        fun setTo(commands: List<TerminalCommand>) {
-            clear()
-            lastCommandsRendered = commands.toList() // Make a copy, it's ours now
-        }
 
         fun withNewlines(width: Int): List<TerminalCommand> {
             if (lastWidth != width) {
@@ -271,7 +263,7 @@ class Section internal constructor(val session: Session, private val render: Mai
             return lastCommandsRenderedWithNewlines
         }
     }
-    private val commandsCache = CommandsCache(session.textMetrics)
+    private var commandsCache: CommandsCache? = null
 
     private fun renderOnceAsync(): Job {
         return CoroutineScope(KotterDispatchers.Render).launch {
@@ -280,52 +272,72 @@ class Section internal constructor(val session: Session, private val render: Mai
             session.data.lock.write {
                 renderLock.withLock { renderRequested = false }
 
-                val clearBlockCommand = buildString {
-                    commandsCache.withNewlines(session.terminal.size.width).takeIf { it.isNotEmpty() }
-                        ?.let { previouslyRenderedCommands ->
-                            // To clear an existing block of 'n' lines, completely delete all but one of them, and then
-                            // delete the last one down to the beginning (in other words, don't consume the \n of the
-                            // previous line)
-                            val numLinesToErase = min(
-                                previouslyRenderedCommands.count { it is NewlineCommand } + 1,
-                                session.terminal.size.height)
-                            for (i in 0 until numLinesToErase) {
-                                append(WIPE_CURRENT_LINE_COMMAND)
-                                if (i < numLinesToErase - 1) {
-                                    append(Ansi.Csi.Codes.Cursor.MoveToPrevLine.toFullEscapeCode())
+                // It's possible the width will get recalculated under us -- at which point, we sadly need to throw out
+                // our work and rerender, as previous autowrapping locations are invalided. This should be very rare
+                // though!
+                var textRendered = false
+                while (!textRendered) {
+                    val currTerminalSize = session.terminal.size
+
+                    val clearBlockCommand = buildString {
+                        commandsCache?.withNewlines(currTerminalSize.width)?.takeIf { it.isNotEmpty() }
+                            ?.let { previouslyRenderedCommands ->
+                                // To clear an existing block of 'n' lines, completely delete all but one of them, and then
+                                // delete the last one down to the beginning (in other words, don't consume the \n of the
+                                // previous line)
+                                val numLinesToErase = min(
+                                    previouslyRenderedCommands.count { it is NewlineCommand } + 1,
+                                    currTerminalSize.height)
+                                for (i in 0 until numLinesToErase) {
+                                    append(WIPE_CURRENT_LINE_COMMAND)
+                                    if (i < numLinesToErase - 1) {
+                                        append(Ansi.Csi.Codes.Cursor.MoveToPrevLine.toFullEscapeCode())
+                                    }
                                 }
                             }
-                        }
-                    commandsCache.clear()
-                }
-
-                val asideTextBuilder = StringBuilder()
-                session.data.get(AsideRendersKey) {
-                    if (this.isEmpty()) return@get
-
-                    forEach { renderer ->
-                        asideTextBuilder.append(renderer.commands.toText())
                     }
-                    // Only render asides once. Since we don't erase them, they'll be baked into the history.
-                    clear()
+
+                    val asideTextBuilder = StringBuilder()
+                    session.data.get(AsideRendersKey) {
+                        if (this.isEmpty()) return@get
+
+                        forEach { renderer ->
+                            asideTextBuilder.append(renderer.commands.toText())
+                        }
+                        // Only render asides once. Since we don't erase them, they'll be baked into the history.
+                        clear()
+                    }
+
+
+                    try {
+                        renderer.render(render)
+                    } catch (t: Throwable) {
+                        session.sectionExceptionHandler(t)
+                    }
+
+                    val commandsCache = CommandsCache(renderer.commands, session.textMetrics)
+                    val textToRender = clearBlockCommand +
+                            asideTextBuilder.toString() +
+                            commandsCache.withNewlines(currTerminalSize.width)
+                                .toText(currTerminalSize.height)
+
+                    // Ideally, the terminal size hasn't changed since we started this render loop. If so, we must
+                    // discard our results and try again.
+                    //
+                    // This check may be overkill! We saw the issue briefly during when the feature was first being
+                    // developed, but that might have been due to other bugs that have since been fixed, as we haven't
+                    // seen it recently. However, leaving this check in can protect against us issuing commands that
+                    // would definitely be stale and doesn't seem to hurt (besides additional complexity that is very
+                    // hard to test in the wild).
+                    //
+                    // For local testing, we added "&& (0..1).random() == 0" to the check, to at least make sure
+                    // rendering still works even if the check fails frequently.
+                    if (currTerminalSize == session.terminal.size) {
+                        session.terminal.write(textToRender)
+                        this@Section.commandsCache = commandsCache
+                        textRendered = true
+                   }
                 }
-
-
-                try {
-                    renderer.render(render)
-                } catch (t: Throwable) {
-                    session.sectionExceptionHandler(t)
-                }
-
-                commandsCache.setTo(renderer.commands)
-
-                // Send the whole set of instructions through `write` at once so the clear and updates are processed
-                // in one pass.
-                session.terminal.write(
-                    clearBlockCommand
-                            + asideTextBuilder.toString()
-                            + commandsCache.withNewlines(session.terminal.size.width).toText(session.terminal.size.height)
-                )
 
                 onRendered.removeIf {
                     val scope = OnRenderedScope()
