@@ -443,6 +443,5 @@ class Section internal constructor(val session: Session, private val render: Mai
         session.data.stop(Lifecycle)
 
         deferredException?.let { throw it }
-
     }
 }
