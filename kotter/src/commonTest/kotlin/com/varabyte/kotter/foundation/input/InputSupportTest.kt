@@ -164,6 +164,16 @@ class InputSupportTest {
     }
 
     @Test
+    fun `it is an exception to run two input calls with the same ID in the same block`() = testSession {
+        section {
+            input(id = "notunique")
+            assertThrows<IllegalStateException> {
+                input(id = "notunique", isActive = false)
+            }
+        }.run()
+    }
+
+    @Test
     fun `input initialText will have newlines stripped`() = testSession { terminal ->
         section {
             input(initialText = "No\n\nNewlines")
@@ -226,6 +236,24 @@ class InputSupportTest {
         // Verify that activation and deactivation events occurred
         runBlocking {
             wasActivated.await()
+            wasDeactivated.await()
+        }
+    }
+
+    @Test
+    fun `inputs are deactivated when rendered one frame and not the next`() = testSession {
+        var showInput by liveVarOf(true)
+        val wasDeactivated = CompletableDeferred<Unit>()
+
+        section {
+            if (showInput) input()
+        }.run {
+            onInputDeactivated {
+                // Auto-deactivated when section exists
+                wasDeactivated.complete(Unit)
+            }
+
+            showInput = false
             wasDeactivated.await()
         }
     }
