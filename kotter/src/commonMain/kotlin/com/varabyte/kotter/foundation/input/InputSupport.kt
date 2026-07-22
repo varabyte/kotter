@@ -410,8 +410,8 @@ private fun ConcurrentScopedData.prepareInput(
             }
 
             if (idsRenderedThisFrame.isEmpty()) {
-                // A minor touch, but always make sure the cursor starts from scratch anytime a new input method is
-                // called in the future
+                // If here, we stopped showing any inputs this frame. This is a minor touch, but make sure the cursor
+                // will start from scratch if a new input method is ever shown in the future.
                 cursorState.resetCursor()
             }
         }
@@ -1037,7 +1037,8 @@ private fun MainRenderScope.handleInput(
  * }
  * ```
  *
- * Usually you'll only need to call `input()` once in a whole section, but occasionally you may use more than one.
+ * Usually you'll only need to call `input()` once in a whole section, but occasionally you may use more than one. When
+ * you do, you should be sure to give each input its own unique ID.
  *
  * There are two main cases:
  *
@@ -1055,8 +1056,8 @@ private fun MainRenderScope.handleInput(
  * }
  * ```
  *
- * In this case, you should ensure that each input has a unique ID, so that Kotter realizes that a new input has gotten
- * focus, and can show its last known value.
+ * By supplying each input with its own ID, Kotter can realize that the input being rendered this frame is different
+ * from what was being last frame.
  *
  * **2 - Multiple inputs are shown at the same time.**
  * ```
@@ -1070,7 +1071,7 @@ private fun MainRenderScope.handleInput(
  * ```
  *
  * In addition to using unique IDs per input, you should make sure your logic works so that at most only one of them is
- * active at a time. If you call `input()` twice in a single section with both being active, it'll throw a runtime
+ * active at a time. If you call `input()` twice in a single section with both being active, Kotter will throw a runtime
  * exception.
  *
  * @param completer Optional logic for suggesting auto-completions based on what the user typed in. See
