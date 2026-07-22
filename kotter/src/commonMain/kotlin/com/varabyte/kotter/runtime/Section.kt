@@ -89,8 +89,9 @@ class RunScope(val section: Section, private val scope: CoroutineScope) : Sectio
     /**
      * Waits for the currently requested or active render pass to finish executing if one is in progress.
      *
-     * If a render pass was triggered immediately prior to this call (e.g., via a [LiveVar] update or [requestRerender]
-     * call), this method guarantees that the render pass has completed before resuming.
+     * If a render pass was triggered immediately prior to this call (e.g., via a [LiveVar] update or
+     * [requestRerender][Section.requestRerender] call), this method guarantees that the render pass has completed
+     * before resuming.
      *
      * If no render pass is active or queued, this method returns almost immediately.
      *
