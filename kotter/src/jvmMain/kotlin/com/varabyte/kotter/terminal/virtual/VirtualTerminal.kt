@@ -815,6 +815,23 @@ private class TerminalPane(
         }
     }
 
+    /**
+     * Adjustments we can cache that will let us fix up a grapheme that doesn't fit in normal cell bounds.
+     *
+     * Sometimes, a user may specify a character that comes from a fallback system font because it's not found in our
+     * main monospace font. At that point, there's a decent chance it won't fit inside our cell!
+     *
+     * In that case, we strip away any space around the character and see if it fits then. If not, then we scale it.
+     * However, getting this information in the first place is expensive, so we cache intermediate values to avoid
+     * repeated calculations.
+     */
+    private class GlyphBounds(
+        /** The offset position of the core glyph. */
+        val x: Double,
+        /** The width of the core glyph. */
+        val width: Double,
+    )
+
     private val textProcessedListeners = mutableListOf<() -> Unit>()
     fun addTextProcessedListener(block: () -> Unit) { textProcessedListeners.add(block) }
 
@@ -868,8 +885,8 @@ private class TerminalPane(
             val stringBounds = font.getStringBounds("W", frc)
             val lineMetrics = font.getLineMetrics("W", frc)
             cellBounds = Point(
-                stringBounds.width.toInt(),
-                lineMetrics.height.toInt()
+                stringBounds.width.roundToInt(),
+                lineMetrics.height.roundToInt()
             )
         }
 
@@ -913,6 +930,16 @@ private class TerminalPane(
 
     private val emojiRenderers = ServiceLoader.load(EmojiRenderer::class.java).toList()
     private val lineStroke by lazy { BasicStroke(1f) } // Used for underline / strikethrough
+    private val glyphBoundsCache by lazy {
+        val initialCapacity = 32
+        val loadFactor = 0.75f
+        val accessOrder = true // Delete stale glyphs first
+        object : LinkedHashMap<String, GlyphBounds>(initialCapacity, loadFactor, accessOrder) {
+            override fun removeEldestEntry(eldest: Map.Entry<String, GlyphBounds>): Boolean {
+                return size > 256
+            }
+        }
+    }
     override fun paintComponent(g: Graphics) {
         super.paintComponent(g)
         val g2d = g as Graphics2D
@@ -935,45 +962,103 @@ private class TerminalPane(
                 } else font
 
                 val graphemePixelWidth = textMetrics.renderWidthOf(grapheme) * cellBounds.x
+                if (graphemePixelWidth > 0) {
+                    if (textStyle.activeBgColor != background) {
+                        g2d.color = textStyle.activeBgColor
+                        g2d.fillRect(drawX, drawY, graphemePixelWidth, cellBounds.y)
+                    }
+                    g2d.color = textStyle.activeFgColor
 
-                if (textStyle.activeBgColor != background) {
-                    g2d.color = textStyle.activeBgColor
-                    g2d.fillRect(drawX, drawY, graphemePixelWidth, cellBounds.y)
-                }
-                g2d.color = textStyle.activeFgColor
-
-                var graphemeRenderHandled = false
-                if (emojiRenderers.isNotEmpty() && textMetrics.isEmoji(grapheme)) {
-                    for (emojiRenderer in emojiRenderers) {
-                        if (emojiRenderer.render(
-                            g2d,
-                            this@TerminalPane,
-                            grapheme,
-                                Rectangle(drawX, drawY, graphemePixelWidth, cellBounds.y)
-                        )) {
-                            graphemeRenderHandled = true
-                            break
+                    var graphemeRenderHandled = false
+                    if (emojiRenderers.isNotEmpty() && textMetrics.isEmoji(grapheme)) {
+                        for (emojiRenderer in emojiRenderers) {
+                            if (emojiRenderer.render(
+                                    g2d,
+                                    this@TerminalPane,
+                                    grapheme,
+                                    Rectangle(drawX, drawY, graphemePixelWidth, cellBounds.y)
+                                )
+                            ) {
+                                graphemeRenderHandled = true
+                                break
+                            }
                         }
                     }
-                }
-                if (!graphemeRenderHandled) {
-                    g2d.drawString(grapheme, drawX, (drawY + lineMetrics.ascent).roundToInt())
-                }
+                    if (!graphemeRenderHandled) {
+                        val targetY = (drawY + lineMetrics.ascent).roundToInt()
+                        val actualWidth = g2d.fontMetrics.stringWidth(grapheme)
 
-                fun drawHorizontalLine(deltaY: Float) {
-                    g2d.stroke = lineStroke
+                        if (actualWidth <= graphemePixelWidth) {
+                            g2d.drawString(grapheme, drawX, targetY)
+                        } else {
+                            // If here, we have a glyph that probably comes from a system fallback font. At this point,
+                            // we can't guarantee anything about its metrics or that it will even fit into a cell. So
+                            // let's do some tricks to make sure it does.
 
-                    val x0 = drawX
-                    val x1 = drawX + graphemePixelWidth
-                    val y = (drawY + lineMetrics.ascent + deltaY).roundToInt()
-                    g2d.drawLine(x0, y, x1, y)
-                }
+                            // Creating glyphs is expensive -- so do it as little as possible and cache results!
+                            val glyphBounds = glyphBoundsCache.getOrPut(grapheme) {
+                                val glyphVector = g2d.font.createGlyphVector(g2d.fontRenderContext, grapheme)
+                                val glyphMetrics = glyphVector.getGlyphMetrics(0)
+                                val bounds = glyphMetrics.bounds2D
 
-                if (textStyle.isUnderline) {
-                    drawHorizontalLine(lineMetrics.underlineOffset)
-                }
-                if (textStyle.isStrikethrough) {
-                    drawHorizontalLine(lineMetrics.strikethroughOffset)
+                                // Lie a little bit about the glyph, adding at least one blank space on each side. This
+                                // makes is so the final rendered glyphs won't be jammed touching next to each other.
+                                GlyphBounds(x = bounds.x - 1.0, width = bounds.width + 2.0)
+                            }
+
+                            val prevClip = g2d.clip
+                            val prevTransform = g2d.transform
+
+                            // Guarantee that nothing will draw out of bounds even if we screwed up our logic!
+                            g2d.clipRect(drawX, drawY, graphemePixelWidth, cellBounds.y)
+
+                            when {
+                                glyphBounds.width == 0.0 -> {
+                                    // I don't expect this to actually happen, but if we get here, it means we have a
+                                    // blank glyph. Just replace it with a space and move on; and now we don't have to
+                                    // worry about 0 width glyphs in the remaining branches!
+                                    g2d.drawString(" ", drawX, targetY)
+                                }
+                                glyphBounds.width <= graphemePixelWidth -> {
+                                    // The glyph with text stripped fits in our bounds. Perhaps the original glyph just
+                                    // had *a bit* too much space in it. Render directly but where we control the
+                                    // spacing around the character.
+                                    val centerShift = (graphemePixelWidth - glyphBounds.width) / 2
+                                    val offsetX = drawX - glyphBounds.x + centerShift
+
+                                    g2d.drawString(grapheme, offsetX.roundToInt(), targetY)
+                                }
+                                else -> {
+                                    // Glyph does NOT fit within the cell -- so we need to squish it.
+                                    val scaleX = graphemePixelWidth / glyphBounds.width
+                                    g2d.translate(drawX, targetY)
+                                    // NOTE: We don't care about Y height because, in theory, it should fit fine since
+                                    // the fallback font should still have the same font size as our monospace font.
+                                    g2d.scale(scaleX, 1.0)
+                                    g2d.drawString(grapheme, -glyphBounds.x.roundToInt(), 0)
+                                }
+                            }
+
+                            g2d.transform = prevTransform
+                            g2d.clip = prevClip
+                        }
+                    }
+
+                    fun drawHorizontalLine(deltaY: Float) {
+                        g2d.stroke = lineStroke
+
+                        val x0 = drawX
+                        val x1 = drawX + graphemePixelWidth
+                        val y = (drawY + lineMetrics.ascent + deltaY).roundToInt()
+                        g2d.drawLine(x0, y, x1, y)
+                    }
+
+                    if (textStyle.isUnderline) {
+                        drawHorizontalLine(lineMetrics.underlineOffset)
+                    }
+                    if (textStyle.isStrikethrough) {
+                        drawHorizontalLine(lineMetrics.strikethroughOffset)
+                    }
                 }
 
                 drawX += graphemePixelWidth
