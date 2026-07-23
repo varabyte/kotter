@@ -22,14 +22,14 @@ import com.varabyte.kotter.runtime.terminal.*
  */
 fun Iterable<() -> Terminal>.firstSuccess(): Terminal {
     val creationErrors = mutableListOf<Exception>()
-    return this.asSequence().mapNotNull { createTerminal ->
+    return this.firstNotNullOfOrNull { createTerminal ->
         try {
             createTerminal()
         } catch (ex: Exception) {
             creationErrors.add(ex)
             null
         }
-    }.firstOrNull() ?: error(
+    } ?: error(
         "No terminals could successfully be created. Encountered exceptions:\n\t{${
             creationErrors.joinToString(
                 "\n\t"
