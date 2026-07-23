@@ -643,9 +643,29 @@ private class TerminalPane(
          */
         class LineInfo(val line: String, val startIndex: Int, val renderWidth: Int)
 
-        val numLines: Int
-        val topLineIndex: Int
+        /**
+         * The total number of all visual lines.
+         *
+         * A _visual line_ is tied to a _logical line_ but it can be broken up after auto-wrapped newlines have been
+         * inserted due to width breaks.
+         *
+         * In other words, this isn't just the number of lines visible inside this viewport, but the whole size of all
+         * lines that this viewport will provide a window into.
+         */
         val totalLineCount: Int
+
+        /** The maximum number of lines this viewport can contain. */
+        val rows: Int
+
+        /**
+         * The index of the top line _in visual indices_.
+         *
+         * In other words, an index into _all_ lines _after_ newlines have been auto-appended to the original logical
+         * text.
+         *
+         * Put more simply, this should be a value between 0 and ([totalLineCount] - [rows]).
+         */
+        val topLineIndex: Int
 
         /**
          * Return a [LineInfo] associated with the visible line on screen.
@@ -662,8 +682,8 @@ private class TerminalPane(
     private class MutableDocumentViewport(
         private val doc: Document,
         private val textMetrics: TextMetrics,
-        numLines: Int,
-        width: Int,
+        rows: Int,
+        columns: Int,
         topLineIndex: Int = 0
     ) : DocumentViewport {
         /**
@@ -676,19 +696,31 @@ private class TerminalPane(
         private val visualIndexToLineStart = TreeMap<Int, Int>()
         private val lineInfoCache = mutableMapOf<Int, DocumentViewport.LineInfo>()
 
-        override var numLines = numLines
-            set(value) {
-                if (field != value) {
-                    field = value
-                    lineInfoCache.clear()
-                }
-            }
+        private var _totalLineCount: Int? = null
+        override val totalLineCount: Int get() = _totalLineCount ?: run {
+            updateVisualIndices()
+            _totalLineCount!!
+        }
 
-        var width = width
+        /**
+         * The total number of characters that can fit inside a row in this viewport.
+         *
+         * Just because characters could technically fit does not mean they can visually fit -- that depends on each
+         * character's render width.
+         */
+        var columns = columns
             set(value) {
                 if (field != value) {
                     field = value
                     invalidate()
+                }
+            }
+
+        override var rows = rows
+            set(value) {
+                if (field != value) {
+                    field = value
+                    lineInfoCache.clear()
                 }
             }
 
@@ -707,12 +739,6 @@ private class TerminalPane(
             lineInfoCache.clear()
         }
 
-        private var _totalLineCount: Int? = null
-        override val totalLineCount: Int get() = _totalLineCount ?: run {
-            updateVisualIndices()
-            _totalLineCount!!
-        }
-
         private fun updateVisualIndices() {
             if (_totalLineCount != null) return
             check(visualToLogicalIndices.isEmpty() && visualIndexToLineStart.isEmpty())
@@ -721,7 +747,7 @@ private class TerminalPane(
             visualIndexToLineStart[0] = 0
             doc.lines.forEachIndexed { logicalLineIndex, line ->
                 visualToLogicalIndices[visualLineIndex] = logicalLineIndex
-                val sections = line.sectionsForWidth(textMetrics, width)
+                val sections = line.sectionsForWidth(textMetrics, this@MutableDocumentViewport.columns)
                 sections.forEach { section ->
                     // This line has information useful for the next line, so update it ahead of time. This will create
                     // one extra entry for a final extra line that doesn't exist; that's fine
@@ -750,7 +776,7 @@ private class TerminalPane(
                 val floorVisualLineIndex = visualToLogicalIndices.floorKey(visualLineIndex) ?: return null
                 val logicalLineIndex = visualToLogicalIndices.getValue(floorVisualLineIndex)
                 val logicalLine = doc.lines[logicalLineIndex]
-                val sections = logicalLine.sectionsForWidth(textMetrics, width)
+                val sections = logicalLine.sectionsForWidth(textMetrics, this@MutableDocumentViewport.columns)
                 sections.forEachIndexed { i, section ->
                     val visualLine = logicalLine.substring(section.range)
                     lineInfoCache[floorVisualLineIndex + i] =
@@ -775,14 +801,14 @@ private class TerminalPane(
          * five lines of text in a terminal of height 20, and you ask for index 18.
          */
         override fun lineInfoFor(lineIndex: Int): DocumentViewport.LineInfo? {
-            if (lineIndex !in 0 until numLines) return null
+            if (lineIndex !in 0 until rows) return null
             updateVisualIndices()
             return lineInfoForGlobalIndex(topLineIndex + lineIndex)
         }
 
         override fun forEach(block: (DocumentViewport.LineInfo) -> Unit) {
             updateVisualIndices()
-            for (i in topLineIndex until topLineIndex + numLines) {
+            for (i in topLineIndex until topLineIndex + rows) {
                 val lineInfo = lineInfoForGlobalIndex(i) ?: break
                 block(lineInfo)
             }
@@ -796,8 +822,8 @@ private class TerminalPane(
         set(value) {
             if (field != value) {
                 field = value
-                mutableDocViewport.width = value.width
-                mutableDocViewport.numLines = value.height
+                mutableDocViewport.columns = value.width
+                mutableDocViewport.rows = value.height
                 repaint()
             }
         }
@@ -821,7 +847,7 @@ private class TerminalPane(
     val doc get(): Document = mutableDoc
 
     private val uriState = UriState(linkColor, bgColor)
-    private val mutableDocViewport = MutableDocumentViewport(doc, textMetrics, numLines = terminalSize.height, width = terminalSize.width)
+    private val mutableDocViewport = MutableDocumentViewport(doc, textMetrics, rows = terminalSize.height, columns = terminalSize.width)
     val docViewport: DocumentViewport = mutableDocViewport
 
     /**
