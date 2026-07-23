@@ -2,9 +2,12 @@ package com.varabyte.kotter.examples.nativ
 
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.text.*
+import com.varabyte.kotter.foundation.text.ColorLayer.BG
 
 fun main() = session {
-    section {
+    // Split into sections -- this should ensure text doesn't get clipped by most terminal heights.
+
+    section { // Basic font styles (no colors)
         bold { textLine("Bolded") }
         underline { textLine("Underlined") }
         strikethrough { textLine("Struck through") }
@@ -20,14 +23,14 @@ fun main() = session {
 
         textLine("Back to normal")
         textLine()
+    }.run()
 
-        textLine("Normal colors")
-
-        // nested syntax
-        white(ColorLayer.BG) {
+    section { // Colors
+        // Test nested syntax
+        white(BG) {
             black {
                 textLine("Black on white")
-                blue(ColorLayer.BG) {
+                blue(BG) {
                     textLine("Black on blue")
                 }
                 textLine("Black on white again")
@@ -43,17 +46,18 @@ fun main() = session {
         scopedState {
             red()
             textLine("Red text")
-            white(ColorLayer.BG)
+            white(BG)
             textLine("Red on white")
         }
         textLine("Normal colors again")
         textLine()
+    }.run()
 
-        // Using reset
+    section { // All font styles together, and testing "clear*" methods
         blue()
         textLine("Blue text")
-        black(ColorLayer.BG)
-        textLine("Blue on black")
+        white(BG)
+        textLine("Blue on white")
         clearColors()
         textLine("Normal colors again")
         textLine()
@@ -66,12 +70,12 @@ fun main() = session {
             clearBold()
             textLine("Underlined text")
             red()
-            blue(ColorLayer.BG)
+            blue(BG)
             textLine("Underlined red on blue text")
-            clearColor(ColorLayer.BG)
+            clearColor(BG)
             textLine("Underlined red text")
             clearUnderline()
-            green(ColorLayer.BG)
+            green(BG)
             textLine("Red on green text")
             clearColors()
             textLine("Normal colors again")
@@ -80,7 +84,7 @@ fun main() = session {
 
         // Using scoped clear methods
         scopedState {
-            blue(ColorLayer.BG)
+            blue(BG)
             red()
             textLine("Red on blue")
             clearColor {
@@ -93,7 +97,7 @@ fun main() = session {
         // Inverting colors
         scopedState {
             blue()
-            green(ColorLayer.BG)
+            green(BG)
             textLine("Blue on green")
             invert {
                 textLine("Green on blue (inverted)")
@@ -107,7 +111,7 @@ fun main() = session {
         bold {
             underline {
                 strikethrough {
-                    red(ColorLayer.BG) {
+                    red(BG) {
                         blue {
                             invert {
                                 textLine("All styles applied! (Red on blue)")
@@ -118,7 +122,10 @@ fun main() = session {
             }
         }
         textLine("Back to default again")
+        textLine()
+    }.run()
 
+    section { // Advanced features
         p {
             // This is more to make sure our virtual terminal handles emojis well than anything else, really
             textLine("Emoji test: \uD83D\uDE00\uD83D\uDC4B\uD83D\uDE80")
@@ -129,6 +136,10 @@ fun main() = session {
             text("Thank you for taking the time to ")
             link("https://github.com/varabyte/kotter", "learn Kotter")
             textLine("!")
+        }
+
+        p {
+            text("Raw URLs may also be supported by your terminal: https://github.com/varabyte/kotter")
         }
     }.run()
 }
