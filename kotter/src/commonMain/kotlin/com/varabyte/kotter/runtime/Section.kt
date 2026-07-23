@@ -27,7 +27,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import kotlin.math.min
 
 internal val ActiveSectionKey = Section.Lifecycle.createKey<Section>()
 internal val AsideRendersKey = Section.Lifecycle.createKey<MutableList<Renderer<AsideRenderScope>>>()
@@ -285,9 +284,7 @@ class Section internal constructor(val session: Session, private val render: Mai
                                 // To clear an existing block of 'n' lines, completely delete all but one of them, and then
                                 // delete the last one down to the beginning (in other words, don't consume the \n of the
                                 // previous line)
-                                val numLinesToErase = min(
-                                    previouslyRenderedCommands.count { it is NewlineCommand } + 1,
-                                    currTerminalSize.height)
+                                val numLinesToErase = previouslyRenderedCommands.count { it is NewlineCommand } + 1
                                 for (i in 0 until numLinesToErase) {
                                     append(WIPE_CURRENT_LINE_COMMAND)
                                     if (i < numLinesToErase - 1) {
