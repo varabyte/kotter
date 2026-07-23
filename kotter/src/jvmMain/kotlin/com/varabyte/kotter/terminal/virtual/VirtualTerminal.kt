@@ -860,6 +860,8 @@ private class TerminalPane(
     private val sgrCodeProcessor = SgrCodeProcessor(activeTextStyle)
     val cellBounds: Point
     private val boldFont by lazy { font.deriveFont(Font.BOLD) }
+    private val italicFont by lazy { font.deriveFont(Font.ITALIC) }
+    private val boldItalicFont by lazy { font.deriveFont(Font.BOLD + Font.ITALIC) }
 
     init {
         FontRenderContext(AffineTransform(), true, true).let { frc ->
@@ -924,7 +926,14 @@ private class TerminalPane(
             var charIndex = 0
             textMetrics.graphemesOf(lineInfo.line).forEach { grapheme ->
                 val textStyle = doc.styles.at(lineInfo.startIndex + charIndex)
-                g2d.font = if (textStyle.isBold) boldFont else font
+                g2d.font = if (textStyle.isBold && textStyle.isItalic) {
+                    boldItalicFont
+                } else if (textStyle.isBold) {
+                    boldFont
+                } else if (textStyle.isItalic) {
+                    italicFont
+                } else font
+
                 val graphemePixelWidth = textMetrics.renderWidthOf(grapheme) * cellBounds.x
 
                 if (textStyle.activeBgColor != background) {

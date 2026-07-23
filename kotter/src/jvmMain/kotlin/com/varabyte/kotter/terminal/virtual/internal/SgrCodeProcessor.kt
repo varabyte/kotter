@@ -106,6 +106,8 @@ internal class SgrCodeProcessor(private val textStyle: MutableTextStyle) {
             Ansi.Csi.Codes.Sgr.Colors.ClearInvert -> listOf(TextAttribute.Invert(false))
             Ansi.Csi.Codes.Sgr.Decorations.Bold -> listOf(TextAttribute.Bold(true))
             Ansi.Csi.Codes.Sgr.Decorations.ClearBold -> listOf(TextAttribute.Bold(false))
+            Ansi.Csi.Codes.Sgr.Decorations.Italic -> listOf(TextAttribute.Italic(true))
+            Ansi.Csi.Codes.Sgr.Decorations.ClearItalic -> listOf(TextAttribute.Italic(false))
             Ansi.Csi.Codes.Sgr.Decorations.Underline -> listOf(TextAttribute.Underline(true))
             Ansi.Csi.Codes.Sgr.Decorations.ClearUnderline -> listOf(TextAttribute.Underline(false))
             Ansi.Csi.Codes.Sgr.Decorations.Strikethrough -> listOf(TextAttribute.Strikethrough(true))

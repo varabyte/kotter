@@ -34,6 +34,7 @@ internal class SectionState(val parent: SectionState? = null) {
         var bgColor: TerminalCommand? = parentStyles?.bgColor
         var underlined: TerminalCommand? = parentStyles?.underlined
         var bolded: TerminalCommand? = parentStyles?.bolded
+        var italicized: TerminalCommand? = parentStyles?.italicized
         var struckThrough: TerminalCommand? = parentStyles?.struckThrough
         var inverted: TerminalCommand? = parentStyles?.inverted
     }
@@ -69,6 +70,10 @@ internal class SectionState(val parent: SectionState? = null) {
         if (deferred.bolded?.text != applied.bolded?.text) {
             applied.bolded = deferred.bolded
             renderer.appendCommand(applied.bolded ?: DecorationCommands.ClearBold)
+        }
+        if (deferred.italicized?.text != applied.italicized?.text) {
+            applied.italicized = deferred.italicized
+            renderer.appendCommand(applied.italicized ?: DecorationCommands.ClearItalic)
         }
         if (deferred.struckThrough?.text != applied.struckThrough?.text) {
             applied.struckThrough = deferred.struckThrough

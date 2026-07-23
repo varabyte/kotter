@@ -24,6 +24,7 @@ fun RenderScope.clearAll() {
     clearColors()
     clearUnderline()
     clearBold()
+    clearItalic()
     clearStrikethrough()
     clearInvert()
 }

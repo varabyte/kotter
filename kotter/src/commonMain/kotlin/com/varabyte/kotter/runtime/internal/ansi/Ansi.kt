@@ -132,10 +132,12 @@ object Ansi {
 
                 object Decorations {
                     val Bold = Code("1${Identifiers.Sgr}")
+                    val Italic = Code("3${Identifiers.Sgr}")
                     val Underline = Code("4${Identifiers.Sgr}")
                     val Strikethrough = Code("9${Identifiers.Sgr}")
 
                     val ClearBold = Code("22${Identifiers.Sgr}")
+                    val ClearItalic = Code("23${Identifiers.Sgr}")
                     val ClearUnderline = Code("24${Identifiers.Sgr}")
                     val ClearStrikethrough = Code("29${Identifiers.Sgr}")
                 }

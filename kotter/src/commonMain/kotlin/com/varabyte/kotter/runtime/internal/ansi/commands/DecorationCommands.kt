@@ -17,6 +17,18 @@ internal object DecorationCommands {
         }
     }
 
+    internal val Italic = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decorations.Italic) {
+        override fun applyTo(state: SectionState, renderer: Renderer<*>) {
+            state.deferred.italicized = this
+        }
+    }
+
+    internal val ClearItalic = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decorations.ClearItalic) {
+        override fun applyTo(state: SectionState, renderer: Renderer<*>) {
+            state.deferred.italicized = null
+        }
+    }
+
     internal val Underline = object : AnsiCsiCommand(Ansi.Csi.Codes.Sgr.Decorations.Underline) {
         override fun applyTo(state: SectionState, renderer: Renderer<*>) {
             state.deferred.underlined = this

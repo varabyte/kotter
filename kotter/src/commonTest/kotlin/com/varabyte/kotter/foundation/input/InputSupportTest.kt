@@ -600,6 +600,8 @@ class InputSupportTest {
             input(customFormat = {
                 if (!ch.isLetter()) {
                     bold()
+                } else if (ch == 'e') {
+                    italic()
                 }
             })
         }.runUntilInputEntered {
@@ -607,7 +609,8 @@ class InputSupportTest {
         }
 
         terminal.assertMatches {
-            text("hey"); bold(); text("*!"); clearBold(); text("you ")
+            text('h'); italic(); text('e'); clearItalic(); text('y')
+            bold(); text("*!"); clearBold(); text("you ")
         }
     }
 

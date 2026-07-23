@@ -9,6 +9,7 @@ fun main() = session {
 
     section { // Basic font styles (no colors)
         bold { textLine("Bolded") }
+        italic { textLine("Italicized") }
         underline { textLine("Underlined") }
         strikethrough { textLine("Struck through") }
 
@@ -109,12 +110,14 @@ fun main() = session {
         }
 
         bold {
-            underline {
-                strikethrough {
-                    red(BG) {
-                        blue {
-                            invert {
-                                textLine("All styles applied! (Red on blue)")
+            italic {
+                underline {
+                    strikethrough {
+                        red(BG) {
+                            blue {
+                                invert {
+                                    textLine("All styles applied! (Red on blue)")
+                                }
                             }
                         }
                     }

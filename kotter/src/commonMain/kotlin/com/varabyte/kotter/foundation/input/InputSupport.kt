@@ -849,6 +849,8 @@ class CustomFormatScope(val input: String, val index: Int, val isActive: Boolean
         private set
     internal var isBold: Boolean = false
         private set
+    internal var isItalic: Boolean = false
+        private set
     internal var isUnderline: Boolean = false
         private set
     internal var isStrikethrough: Boolean = false
@@ -861,7 +863,7 @@ class CustomFormatScope(val input: String, val index: Int, val isActive: Boolean
      */
     val ch: Char = input[index]
 
-    internal val changed get() = fgColor != null || bgColor != null || isBold || isUnderline || isStrikethrough
+    internal val changed get() = fgColor != null || bgColor != null || isBold || isItalic || isUnderline || isStrikethrough
 
     fun color(color: Color, layer: ColorLayer = ColorLayer.FG) {
         when (layer) {
@@ -872,6 +874,10 @@ class CustomFormatScope(val input: String, val index: Int, val isActive: Boolean
 
     fun bold() {
         isBold = true
+    }
+
+    fun italic() {
+        isItalic = true
     }
 
     fun underline() {
@@ -969,6 +975,7 @@ private fun MainRenderScope.handleInput(
                             if (format.fgColor != null) color(format.fgColor!!)
                             if (format.bgColor != null) color(format.bgColor!!, layer = ColorLayer.BG)
                             if (format.isBold) bold()
+                            if (format.isItalic) italic()
                             if (format.isUnderline) underline()
                             if (format.isStrikethrough) strikethrough()
                         }

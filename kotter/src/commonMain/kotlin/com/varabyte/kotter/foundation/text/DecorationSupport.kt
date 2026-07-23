@@ -28,6 +28,30 @@ fun RenderScope.bold(scopedBlock: RenderScope.() -> Unit) {
 }
 
 /**
+ * Marks the current scope so that any text after this point will be italicized.
+ */
+fun RenderScope.italic() {
+    applyCommand(DecorationCommands.Italic)
+}
+
+/**
+ * Clears a previous call to [bold].
+ */
+fun RenderScope.clearItalic() {
+    applyCommand(DecorationCommands.ClearItalic)
+}
+
+/**
+ * Creates a new scope within which any text will be bolded.
+ */
+fun RenderScope.italic(scopedBlock: RenderScope.() -> Unit) {
+    scopedState {
+        italic()
+        scopedBlock()
+    }
+}
+
+/**
  * Marks the current scope so that any text after this point will be underlined.
  */
 fun RenderScope.underline() {

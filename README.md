@@ -331,9 +331,7 @@ section {
 
 ![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/images/kotter-text-ex-4.png)
 
-> [!NOTE]
-> Italics functionality is not currently exposed, as it is not a standard feature and is inconsistently supported across
-> terminals.
+Italic text is also supported via the `italic` / `clearItalic` methods.
 
 You can also define links:
 

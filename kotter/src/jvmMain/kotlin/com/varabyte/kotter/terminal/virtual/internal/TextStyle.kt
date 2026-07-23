@@ -16,6 +16,9 @@ internal sealed interface TextAttribute {
     class Invert(val value: Boolean) : TextAttribute {
         override fun applyInto(style: MutableTextStyle) { style.isInvert = value }
     }
+    class Italic(val value: Boolean) : TextAttribute {
+        override fun applyInto(style: MutableTextStyle) { style.isItalic = value }
+    }
     class Strikethrough(val value: Boolean) : TextAttribute {
         override fun applyInto(style: MutableTextStyle) { style.isStrikethrough = value }
     }
@@ -32,6 +35,7 @@ internal interface TextStyle {
     val bgColor: AwtColor
     val isBold: Boolean
     val isInvert: Boolean
+    val isItalic: Boolean
     val isStrikethrough: Boolean
     val isUnderline: Boolean
 
@@ -40,6 +44,7 @@ internal interface TextStyle {
         bgColor: AwtColor? = null,
         isBold: Boolean? = null,
         isInvert: Boolean? = null,
+        isItalic: Boolean? = null,
         isStrikethrough: Boolean? = null,
         isUnderlined: Boolean? = null
     ): TextStyle
@@ -55,6 +60,7 @@ internal class MutableTextStyle(val defaultFgColor: AwtColor, val defaultBgColor
     override var bgColor: AwtColor = defaultBgColor
     override var isBold: Boolean = false
     override var isInvert: Boolean = false
+    override var isItalic: Boolean = false
     override var isStrikethrough: Boolean = false
     override var isUnderline: Boolean = false
 
@@ -63,6 +69,7 @@ internal class MutableTextStyle(val defaultFgColor: AwtColor, val defaultBgColor
         bgColor = other.bgColor
         isBold = other.isBold
         isInvert = other.isInvert
+        isItalic = other.isItalic
         isStrikethrough = other.isStrikethrough
         isUnderline = other.isUnderline
     }
@@ -72,6 +79,7 @@ internal class MutableTextStyle(val defaultFgColor: AwtColor, val defaultBgColor
         bgColor: AwtColor?,
         isBold: Boolean?,
         isInvert: Boolean?,
+        isItalic: Boolean?,
         isStrikethrough: Boolean?,
         isUnderlined: Boolean?
     ): MutableTextStyle {
@@ -81,6 +89,7 @@ internal class MutableTextStyle(val defaultFgColor: AwtColor, val defaultBgColor
             this.bgColor = bgColor ?: self.bgColor
             this.isBold = isBold ?: self.isBold
             this.isInvert = isInvert ?: self.isInvert
+            this.isItalic = isItalic ?: self.isItalic
             this.isStrikethrough = isStrikethrough ?: self.isStrikethrough
             this.isUnderline = isUnderlined ?: self.isUnderline
         }
@@ -96,6 +105,7 @@ internal class MutableTextStyle(val defaultFgColor: AwtColor, val defaultBgColor
                 && bgColor == other.bgColor
                 && isBold == other.isBold
                 && isInvert == other.isInvert
+                && isItalic == other.isItalic
                 && isStrikethrough == other.isStrikethrough
                 && isUnderline == other.isUnderline
     }
@@ -108,6 +118,7 @@ internal class MutableTextStyle(val defaultFgColor: AwtColor, val defaultBgColor
             bgColor,
             isBold,
             isInvert,
+            isItalic,
             isStrikethrough,
             isUnderline
         ).contentHashCode()
