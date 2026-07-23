@@ -54,27 +54,27 @@ internal class SectionState(val parent: SectionState? = null) {
      * Any text rendered after will be using the styles maintained by this class instance.
      */
     fun applyTo(renderer: Renderer<*>) {
-        if (deferred.fgColor?.text !== applied.fgColor?.text) {
+        if (deferred.fgColor?.text != applied.fgColor?.text) {
             applied.fgColor = deferred.fgColor
             renderer.appendCommand(applied.fgColor ?: ColorCommands.Fg.Clear)
         }
-        if (deferred.bgColor?.text !== applied.bgColor?.text) {
+        if (deferred.bgColor?.text != applied.bgColor?.text) {
             applied.bgColor = deferred.bgColor
             renderer.appendCommand(applied.bgColor ?: ColorCommands.Bg.Clear)
         }
-        if (deferred.underlined?.text !== applied.underlined?.text) {
+        if (deferred.underlined?.text != applied.underlined?.text) {
             applied.underlined = deferred.underlined
             renderer.appendCommand(applied.underlined ?: DecorationCommands.ClearUnderline)
         }
-        if (deferred.bolded?.text !== applied.bolded?.text) {
+        if (deferred.bolded?.text != applied.bolded?.text) {
             applied.bolded = deferred.bolded
             renderer.appendCommand(applied.bolded ?: DecorationCommands.ClearBold)
         }
-        if (deferred.struckThrough?.text !== applied.struckThrough?.text) {
+        if (deferred.struckThrough?.text != applied.struckThrough?.text) {
             applied.struckThrough = deferred.struckThrough
             renderer.appendCommand(applied.struckThrough ?: DecorationCommands.ClearStrikethrough)
         }
-        if (deferred.inverted?.text !== applied.inverted?.text) {
+        if (deferred.inverted?.text != applied.inverted?.text) {
             applied.inverted = deferred.inverted
             renderer.appendCommand(applied.inverted ?: ColorCommands.ClearInvert)
         }
