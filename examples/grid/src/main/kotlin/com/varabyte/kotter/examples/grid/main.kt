@@ -70,13 +70,13 @@ fun main() = session {
 
         pressKeyInfo("SPACE", "stretch to screen width", responsive)
         scopedState {
-            val enabled = tableWidth > minTableWidth
+            val enabled = !responsive && tableWidth > minTableWidth
             if (!enabled) black(isBright = true)
             pressKeyInfo("LEFT", "shrink the table", highlightKey = enabled)
             pressKeyInfo("HOME", "minimize the table", highlightKey = enabled)
         }
         scopedState {
-            val enabled = tableWidth < responsiveTableWidth()
+            val enabled = !responsive && tableWidth < responsiveTableWidth()
             if (!enabled) black(isBright = true)
             pressKeyInfo("RIGHT", "grow the table", highlightKey = enabled)
             pressKeyInfo("END", "maximize the table", highlightKey = enabled)
@@ -91,7 +91,10 @@ fun main() = session {
         if (!responsive) {
             textLine("Target width: $tableWidth")
         } else {
-            textLine("Responsive width: ${responsiveTableWidth()} (resize window to grow/shrink)")
+            text("Responsive width: ${responsiveTableWidth()} ")
+            yellow {
+                textLine("(resize window to grow/shrink)")
+            }
         }
 
         val targetWidth = if (responsive) responsiveTableWidth() else tableWidth
@@ -160,7 +163,12 @@ fun main() = session {
             }
         }
     }.runUntilKeyPressed(Keys.Q) {
-        onTerminalSizeChanged { if (responsive) rerender() }
+        onTerminalSizeChanged {
+            if (responsive) {
+                tableWidth = responsiveTableWidth()
+            }
+            rerender() // Resize might affect instructions enabled state
+        }
 
         onKeyPressed {
             when (key) {
