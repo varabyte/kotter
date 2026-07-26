@@ -48,12 +48,21 @@ class ReentrantReadWriteLock {
 
             while (true) {
                 spinLock.withLock {
-                    val hasWriter = writerThread != null
-                    val hasPausedReaders = pausedReaderThreads.isNotEmpty()
+                    if (writerThread == null) {
+                        // If there's no writer at this point, we still want to play nice if one or more threads is
+                        // waiting in line to be one. In that case, we can spin for a little longer, giving it a chance
+                        // to run and finish.
+                        //
+                        // One exception is if we are an inner read inside an already running outer read! In that case,
+                        // if we try to be polite, then we'll wait for the write lock to start, and the write lock will
+                        // wait for our parent read that will never finish.
+                        val isNestedRead = readerCounts.containsKey(currThread)
+                        val hasPausedReaders = pausedReaderThreads.isNotEmpty()
 
-                    if (!hasWriter && !hasPausedReaders) {
-                        readerCounts[currThread] = (readerCounts[currThread] ?: 0) + 1
-                        return
+                        if (isNestedRead || !hasPausedReaders) {
+                            readerCounts[currThread] = (readerCounts[currThread] ?: 0) + 1
+                            return
+                        }
                     }
 
                     if (writerThread == currThread) {

@@ -6,7 +6,6 @@ import com.varabyte.truthish.assertThrows
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
-import kotlin.sequences.sequence
 import kotlin.test.Test
 
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
@@ -281,8 +280,6 @@ class ReentrantReadWriteLockTest {
             val lock = ReentrantReadWriteLock()
             val thread1InReadMode = CompletableDeferred<Unit>()
             val thread2InReadMode = CompletableDeferred<Unit>()
-            val thread1InWriteMode = CompletableDeferred<Unit>()
-            val thread2InWriteMode = CompletableDeferred<Unit>()
             val finished1 = CompletableDeferred<Unit>()
             val finished2 = CompletableDeferred<Unit>()
 
@@ -290,9 +287,7 @@ class ReentrantReadWriteLockTest {
                 lock.read {
                     thread1InReadMode.complete(Unit)
                     thread2InReadMode.await()
-                    lock.write {
-                        thread1InWriteMode.complete(Unit)
-                    }
+                    lock.write {}
                 }
                 finished1.complete(Unit)
             }
@@ -301,18 +296,72 @@ class ReentrantReadWriteLockTest {
                 lock.read {
                     thread2InReadMode.complete(Unit)
                     thread1InReadMode.await()
-                    lock.write {
-                        thread2InWriteMode.complete(Unit)
-                    }
+                    lock.write {}
                 }
                 finished2.complete(Unit)
             }
 
             joinAll(job1, job2)
+        } finally {
+            dispatcher1.close()
+            dispatcher2.close()
+        }
+    }
 
-            // This is probably not necessary, but let's be 100% sure both write blocks ran
-            assertThat(thread1InWriteMode.isCompleted).isTrue()
-            assertThat(thread2InWriteMode.isCompleted).isTrue()
+    @Test
+    fun nestedReadLockRequestDoesNotDeadlockWithNestedWriteRequest() = runTest {
+        // There was an earlier version of our code where we were trying to be nice and have any read requests detect
+        // if a write request was trying to happen, and if so, let it go first. However...
+        //
+        // If one threads is here, inside an outer read trying to request an inner read:
+        //
+        // ```
+        // lock.read {
+        //    lock.read { ... } <----
+        // }
+        // ```
+        //
+        // And the second thread is here, inside an outer read trying to request an inner write:
+        //
+        // ```
+        // lock.read {
+        //    lock.write { ... } <----
+        // }
+        // ```
+        //
+        // we would deadlock! Because the write lock would pause its current read lock, and then the other thread's
+        // read lock would detect that newly paused read thread, and then block, waiting for the other thread's write
+        // lock to happen.
+
+        val dispatcher1 = newFixedThreadPoolContext(1, "Thread 1")
+        val dispatcher2 = newFixedThreadPoolContext(1, "Thread 2")
+
+        try {
+            val lock = ReentrantReadWriteLock()
+            val thread1InReadMode = CompletableDeferred<Unit>()
+            val thread2InReadMode = CompletableDeferred<Unit>()
+            val finished1 = CompletableDeferred<Unit>()
+            val finished2 = CompletableDeferred<Unit>()
+
+            val job1 = launch(dispatcher1) {
+                lock.read {
+                    thread1InReadMode.complete(Unit)
+                    thread2InReadMode.await()
+                    lock.read {}
+                }
+                finished1.complete(Unit)
+            }
+
+            val job2 = launch(dispatcher2) {
+                lock.read {
+                    thread2InReadMode.complete(Unit)
+                    thread1InReadMode.await()
+                    lock.write {}
+                }
+                finished2.complete(Unit)
+            }
+
+            joinAll(job1, job2)
         } finally {
             dispatcher1.close()
             dispatcher2.close()
