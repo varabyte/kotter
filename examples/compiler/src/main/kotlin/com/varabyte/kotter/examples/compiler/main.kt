@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -107,6 +108,7 @@ fun main() = session {
         repeat(threads.size) { threadIndex ->
             jobs.add(scope.launch {
                 while (true) {
+                    // "removeFirstOrNull" is a combined "isEmpty" and "remove" check under the hood, so write lock it
                     val file = filesToCompile.withWriteLock { removeFirstOrNull() } ?: break
                     threads[threadIndex] = ThreadState.Working(file)
                     delay(random.nextLong(250, 2000).milliseconds)
@@ -152,7 +154,7 @@ fun main() = session {
         addTimer(10.milliseconds, repeat = true) {
             elapsedMs += this.elapsed.inWholeMilliseconds
         }
-        jobs.forEach { job -> job.join() }
+        jobs.joinAll()
         finished = true
     }
 }
