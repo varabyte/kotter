@@ -10,7 +10,7 @@ import kotlin.test.Test
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 class ReentrantLockTest {
     @Test
-    fun basicLockAndUnlockExecutesSequentially() {
+    fun `basic lock behavior works`() {
         val lock = ReentrantLock()
         var counter = 0
 
@@ -22,7 +22,7 @@ class ReentrantLockTest {
     }
 
     @Test
-    fun lockIsReentrantOnTheSameThread() {
+    fun `lock is reentrant on the same thread`() {
         val currThreadId = Thread.getId()
         val lock = ReentrantLock()
         var counter = 0
@@ -43,7 +43,7 @@ class ReentrantLockTest {
     }
 
     @Test
-    fun unlockWithoutLockThrowsException() {
+    fun `unlock without lock throws exception`() {
         val lock = ReentrantLock()
 
         // Calling unlock on an idle lock should throw an IllegalMonitorStateException
@@ -53,7 +53,7 @@ class ReentrantLockTest {
     }
 
     @Test
-    fun unlockingFromDifferentThreadThrowsException() = runTest {
+    fun `unlocking from different thread throws exception`() = runTest {
         // Use real threads and not fake coroutine threads because lock / unlock uses real thread IDs under the hood to
         // manage who owns any active read locks or write lock.
         val ownerDispatcher = newFixedThreadPoolContext(1, "Owner Thread")
@@ -91,7 +91,7 @@ class ReentrantLockTest {
     }
 
     @Test
-    fun lockBlocksOtherThreadsUntilReleased() = runTest {
+    fun `lock blocks other threads until released`() = runTest {
         // Use real threads and not fake coroutine threads because lock / unlock uses real thread IDs under the hood to
         // manage who owns any active read locks or write lock.
         val dispatcher1 = newFixedThreadPoolContext(1, "Thread 1")

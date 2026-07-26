@@ -11,7 +11,7 @@ import kotlin.test.Test
 @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 class ReentrantReadWriteLockTest {
     @Test
-    fun readLockCanBeUpgradedToWriteLock() {
+    fun `read lock can be upgraded to write lock`() {
         val lock = ReentrantReadWriteLock()
 
         lock.reader.lock()
@@ -19,7 +19,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun writeLockCanAlwaysAllowReadLock() {
+    fun `write lock can always allow read lock`() {
         val lock = ReentrantReadWriteLock()
 
         lock.writer.lock()
@@ -27,7 +27,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun attemptingToUnlockLocksYouDoNotHaveThrowsExceptions() {
+    fun `attempting to unlock locks you do not have throws exception`() {
         val lock = ReentrantReadWriteLock()
 
         lock.reader.lock()
@@ -53,7 +53,7 @@ class ReentrantReadWriteLockTest {
 
 
     @Test
-    fun canReleaseLocksInAnyOrder() {
+    fun `can release locks in any order`() {
         // In practice, people should be doing strictly nested locking,
         // e.g. "+R, +W, +R, -R, -W, -R"
         // but the algorithm can handle any order as long as the lock / unlocks are matched
@@ -103,7 +103,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun multipleConcurrentReadersAllowed() = runTest {
+    fun `multiple concurrent readers are allowed`() = runTest {
         // Use real threads and not fake coroutine threads because lock / unlock uses real thread IDs under the hood to
         // manage who owns any active read locks or write lock.
         val dispatchers = listOf(
@@ -150,7 +150,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun writerExcludesReaders() = runTest {
+    fun `writer excludes readers`() = runTest {
         // Use real threads and not fake coroutine threads because lock / unlock uses real thread IDs under the hood to
         // manage who owns any active read locks or write lock.
         val writeDispatcher = newFixedThreadPoolContext(1, "Writing thread")
@@ -206,7 +206,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun readLockIsReentrantOnSameThread() {
+    fun `read locks have consistent thread affinity`() {
         val currThreadId = Thread.getId()
         val lock = ReentrantReadWriteLock()
 
@@ -222,7 +222,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun writeLockIsReentrantOnSameThread() {
+    fun `write locks have consistent thread affinity`() {
         val currThreadId = Thread.getId()
         val lock = ReentrantReadWriteLock()
 
@@ -238,7 +238,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun writeLockCanAcquireReadLockOnSameThread() {
+    fun `mixed locks have consistent thread affinity`() {
         val currThreadId = Thread.getId()
         val lock = ReentrantReadWriteLock()
 
@@ -259,7 +259,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun twoThreadsCanConvertReadToWriteLocksAtTheSameTime() = runTest {
+    fun `two threads can convert read to write locks without deadlocking`() = runTest {
         // If two threads both do this:
         //   lock.read {
         //      lock.write { }
@@ -309,7 +309,7 @@ class ReentrantReadWriteLockTest {
     }
 
     @Test
-    fun nestedReadLockRequestDoesNotDeadlockWithNestedWriteRequest() = runTest {
+    fun `nested read lock request does not deadlock with nested write request`() = runTest {
         // There was an earlier version of our code where we were trying to be nice and have any read requests detect
         // if a write request was trying to happen, and if so, let it go first. However...
         //
