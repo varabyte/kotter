@@ -1,4 +1,4 @@
-![version: 1.3.1](https://img.shields.io/badge/kotter-v1.3.1-blue)
+![version: 1.4.0](https://img.shields.io/badge/kotter-v1.4.0-blue)
 ![kotter tests](https://github.com/varabyte/kotter/actions/workflows/gradle-test.yml/badge.svg?branch=main)
 ![kotter coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/bitspittle/1fab2b6fd23489bdea3f5d1f38e4dcb2/raw/kotter-coverage-badge.json)
 <a href="https://varabyte.github.io/kotter">
@@ -81,8 +81,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.varabyte.kotter:kotter:1.3.1")
-    testImplementation("com.varabyte.kotterx:kotter-test-support:1.3.1")
+    implementation("com.varabyte.kotter:kotter:1.4.0")
+    testImplementation("com.varabyte.kotterx:kotter-test-support:1.4.0")
 }
 
 application {
@@ -145,12 +145,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("com.varabyte.kotter:kotter:1.3.1")
+                implementation("com.varabyte.kotter:kotter:1.4.0")
             }
         }
         val commonTest by getting {
             dependencies {
-                implementation("com.varabyte.kotterx:kotter-test-support:1.3.1")
+                implementation("com.varabyte.kotterx:kotter-test-support:1.4.0")
             }
         }
     }
@@ -1989,8 +1989,8 @@ plugins {
 }
 
 dependencies {
-  implementation("com.varabyte.kotter:kotter:1.3.1")
-  implementation("com.varabyte.kotterx:twemoji:1.3.1")
+  implementation("com.varabyte.kotter:kotter:1.4.0")
+  implementation("com.varabyte.kotterx:twemoji:1.4.0")
 }
 
 // Mulitplatform project
@@ -2005,12 +2005,12 @@ kotlin {
   sourceSets {
     commonMain {
       dependencies {
-        implementation("com.varabyte.kotter:kotter:1.3.1")
+        implementation("com.varabyte.kotter:kotter:1.4.0")
       }
     }
     jvmMain {
       dependencies {
-        implementation("com.varabyte.kotterx:twemoji:1.3.1")
+        implementation("com.varabyte.kotterx:twemoji:1.4.0")
       }
     }
   }
