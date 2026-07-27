@@ -28,6 +28,7 @@ import javax.swing.*
 import javax.swing.border.EmptyBorder
 import javax.swing.plaf.basic.BasicScrollBarUI
 import kotlin.io.path.exists
+import kotlin.math.ceil
 import kotlin.math.roundToInt
 import com.varabyte.kotter.foundation.text.Color as AnsiColor
 
@@ -884,9 +885,12 @@ private class TerminalPane(
         FontRenderContext(AffineTransform(), true, true).let { frc ->
             val stringBounds = font.getStringBounds("W", frc)
             val lineMetrics = font.getLineMetrics("W", frc)
+            // Use `ceil`, not `roundToInt`, to ensure that we always have enough space in our cells to fit text. If
+            // text ends up not fitting in the bounds (e.g. due to a round down), we go into a slow path to create the
+            // glyph and squish it. Let's avoid that as much as possible!
             cellBounds = Point(
-                stringBounds.width.roundToInt(),
-                lineMetrics.height.roundToInt()
+                ceil(stringBounds.width).toInt(),
+                ceil(lineMetrics.height).toInt()
             )
         }
 
