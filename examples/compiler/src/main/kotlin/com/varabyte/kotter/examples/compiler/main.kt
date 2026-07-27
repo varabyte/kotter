@@ -100,8 +100,7 @@ fun main() = session {
             red { text("${results.filterIsInstance<CompileResult.Failure>().sumOf { it.errors.size }} error(s)") }
         }
     }.run {
-        // Use a random with a fixed seed for deterministic output.
-        val random = Random(1234)
+        val random = Random.Default
 
         val jobs = mutableListOf<Job>()
         val scope = CoroutineScope(SupervisorJob())
