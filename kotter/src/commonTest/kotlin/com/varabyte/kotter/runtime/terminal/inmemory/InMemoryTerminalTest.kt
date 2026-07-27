@@ -32,8 +32,8 @@ class InMemoryTerminalTest {
             "${Codes.Sgr.Colors.Fg.Blue}12345",
             "6",
             "${Codes.Sgr.Colors.Fg.White}12345",
-            "67",
-            "${Codes.Sgr.Reset}"
+            "67${Codes.Sgr.Reset}",
+            ""
         )
     }
 }

@@ -22,16 +22,15 @@ class LiveSetTest {
         assertThat(terminal.lines()).containsExactly(
             "1",
             "2",
-            "3",
-            "${Codes.Sgr.Reset}"
-                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(3)
+            "3${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(2)
                     + "\r${Codes.Erase.CursorToLineEnd}1",
             "2",
             "3",
             "4",
             "5",
-            "6",
-            "${Codes.Sgr.Reset}",
+            "6${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -53,16 +52,15 @@ class LiveSetTest {
             "Size: 0",
             "Contains: false",
             "Contains All: false",
-            "Is empty: true",
-            "${Codes.Sgr.Reset}"
-                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(5)
+            "Is empty: true${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(4)
                     + "\r${Codes.Erase.CursorToLineEnd}"
                     + "Set: [1, 2, 3]",
             "Size: 3",
             "Contains: true",
             "Contains All: true",
-            "Is empty: false",
-            "${Codes.Sgr.Reset}",
+            "Is empty: false${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -100,8 +98,8 @@ class LiveSetTest {
         }.run()
 
         assertThat(terminal.lines()).containsExactly(
-            "1, 3, 5",
-            "${Codes.Sgr.Reset}",
+            "1, 3, 5${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 

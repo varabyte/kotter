@@ -22,11 +22,32 @@ import kotlin.test.Test
 
 class SectionTest {
     @Test
-    fun `section always ends with a reset code and newline`() = testSession { terminal ->
+    fun `finished section always ends with a reset code and newline`() = testSession { terminal ->
         assertThat(terminal.buffer.toString()).isEmpty()
         section {}.run()
 
         assertThat(terminal.buffer.toString()).isEqualTo("${Codes.Sgr.Reset}\n")
+
+        terminal.clear()
+
+        section { text("Hello") }.run {
+            awaitActiveRender()
+            // No newline yet
+            assertThat(terminal.buffer.toString()).isEqualTo("Hello${Codes.Sgr.Reset}")
+        }
+        assertThat(terminal.buffer.toString()).isEqualTo("Hello${Codes.Sgr.Reset}\n")
+    }
+
+    @Test
+    fun `final newline is swallowed while section is active`() = testSession { terminal ->
+        assertThat(terminal.buffer.toString()).isEmpty()
+        section { textLine("Hello") }.run {
+            awaitActiveRender()
+            // No newline yet
+            assertThat(terminal.buffer.toString()).isEqualTo("Hello${Codes.Sgr.Reset}")
+        }
+
+        assertThat(terminal.buffer.toString()).isEqualTo("Hello${Codes.Sgr.Reset}\n")
     }
 
     @Test
@@ -187,8 +208,7 @@ class SectionTest {
             "12345",
             "6",
             "12345",
-            "67",
-            "${Codes.Sgr.Reset}",
+            "67${Codes.Sgr.Reset}",
             "",
         )
     }

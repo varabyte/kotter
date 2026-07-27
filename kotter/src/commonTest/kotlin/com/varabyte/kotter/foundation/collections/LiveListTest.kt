@@ -22,16 +22,15 @@ class LiveListTest {
         assertThat(terminal.lines()).containsExactly(
             "1",
             "2",
-            "3",
-            "${Codes.Sgr.Reset}"
-                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(3)
+            "3${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(2)
                     + "\r${Codes.Erase.CursorToLineEnd}1",
             "2",
             "3",
             "4",
             "5",
-            "6",
-            "${Codes.Sgr.Reset}",
+            "6${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -64,9 +63,8 @@ class LiveListTest {
             "Index of: -1",
             "Is empty: false",
             "Last index of: -1",
-            "Sublist: [1, 2]",
-            "${Codes.Sgr.Reset}"
-                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(9)
+            "Sublist: [1, 2]${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(8)
                     + "\r${Codes.Erase.CursorToLineEnd}"
                     + "List: [1, 2, 3, 4, 5, 6, 3]",
             "Size: 7",
@@ -76,8 +74,8 @@ class LiveListTest {
             "Index of: 2",
             "Is empty: false",
             "Last index of: 6",
-            "Sublist: [1, 2]",
-            "${Codes.Sgr.Reset}",
+            "Sublist: [1, 2]${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -122,8 +120,8 @@ class LiveListTest {
         assertThat(terminal.lines()).containsExactly(
             "Iterator: 1, 2, 3, 4, 5, 6",
             "List iterator (forward): 1, 2, 3, 4, 5, 6",
-            "List iterator (reverse): 6, 5, 4, 3, 2, 1",
-            "${Codes.Sgr.Reset}",
+            "List iterator (reverse): 6, 5, 4, 3, 2, 1${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
 
         // Test that listIterator can remove and set
@@ -145,12 +143,10 @@ class LiveListTest {
             }
 
             assertThat(terminal.lines()).containsExactly(
-                "1, 2, 3, 4, 5, 6",
-                "${Codes.Sgr.Reset}"
-                        + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}"
+                "1, 2, 3, 4, 5, 6${Codes.Sgr.Reset}"
                         + "\r${Codes.Erase.CursorToLineEnd}"
-                        + "1, 3, 5",
-                "${Codes.Sgr.Reset}",
+                        + "1, 3, 5${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
 
             var i = 9
@@ -168,8 +164,8 @@ class LiveListTest {
             }.run()
 
             assertThat(terminal.lines()).containsExactly(
-                "9, 8, 7, 6, 5, 4",
-                "${Codes.Sgr.Reset}",
+                "9, 8, 7, 6, 5, 4${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
         }
 
@@ -208,8 +204,8 @@ class LiveListTest {
             }.run()
 
             assertThat(terminal.lines()).containsExactly(
-                "9, 7, 5",
-                "${Codes.Sgr.Reset}",
+                "9, 7, 5${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
         }
 

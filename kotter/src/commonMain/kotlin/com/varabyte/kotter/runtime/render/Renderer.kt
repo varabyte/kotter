@@ -11,7 +11,11 @@ import com.varabyte.kotter.runtime.internal.ansi.commands.*
  * @property session The parent session this renderer is tied to. This class makes no use of it, but some places that
  *   work with a renderer do.
  */
-class Renderer<R : RenderScope>(val session: Session, private val createScope: (Renderer<R>) -> R) {
+class Renderer<R : RenderScope>(
+    val session: Session,
+    private val dropFinalNewline: Boolean = false,
+    private val createScope: (Renderer<R>) -> R
+) {
     private val _commands = mutableListOf<TerminalCommand>()
     internal val commands: List<TerminalCommand> = _commands
 
@@ -24,6 +28,10 @@ class Renderer<R : RenderScope>(val session: Session, private val createScope: (
         _commands.clear()
 
         createScope(this).render()
+
+        if (dropFinalNewline && _commands.lastOrNull() is NewlineCommand) {
+            _commands.removeLast()
+        }
 
         _commands.add(ResetCommand)
     }

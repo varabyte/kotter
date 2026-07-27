@@ -102,7 +102,7 @@ class OffscreenSupportTest {
     }
 
     @Test
-    fun `multipe renderers can be created at the same time`() = testSession { terminal ->
+    fun `multiple renderers can be created at the same time`() = testSession { terminal ->
         section {
             val buffer = offscreen {
                 textLine("Line #1")
@@ -133,8 +133,8 @@ class OffscreenSupportTest {
             "Line #2",
             "Line #3",
             "Line #3",
-            "Line #3",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "Line #3${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -150,8 +150,8 @@ class OffscreenSupportTest {
 
         assertThat(terminal.lines()).containsExactly(
             "Before offscreen",
-            "After offscreen",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "After offscreen${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -170,8 +170,8 @@ class OffscreenSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Before offscreen",
             "Test",
-            "After offscreen",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "After offscreen${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -188,8 +188,8 @@ class OffscreenSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Before offscreen",
             "Test", // renderDirectly adds a newline after the last line
-            "After offscreen",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "After offscreen${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -206,8 +206,8 @@ class OffscreenSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Before offscreen",
             "Test",
-            "After offscreen",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "After offscreen${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -231,8 +231,8 @@ class OffscreenSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "${Codes.Sgr.Colors.Fg.Red}red -- Inherited color (red) -- red",
             "red -- ${Codes.Sgr.Colors.Fg.Cyan}Local color (cyan)${Codes.Sgr.Colors.Fg.Red} -- red",
-            "red -- ${Codes.Sgr.Colors.Fg.Cyan}Still cyan${Codes.Sgr.Colors.Fg.Red} -- red",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "red -- ${Codes.Sgr.Colors.Fg.Cyan}Still cyan${Codes.Sgr.Colors.Fg.Red} -- red${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 }

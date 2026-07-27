@@ -39,17 +39,16 @@ class LiveMapTest {
         assertThat(terminal.lines()).containsExactly(
             "1 is spelled \"one\"",
             "2 is spelled \"two\"",
-            "3 is spelled \"three\"",
-            "${Codes.Sgr.Reset}"
-                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(3)
+            "3 is spelled \"three\"${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(2)
                     + "\r${Codes.Erase.CursorToLineEnd}"
                     + "1 is spelled \"one\"",
             "2 is spelled \"two\"",
             "3 is spelled \"three\"",
             "4 is spelled \"four\"",
             "5 is spelled \"five\"",
-            "6 is spelled \"six\"",
-            "${Codes.Sgr.Reset}",
+            "6 is spelled \"six\"${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -78,9 +77,8 @@ class LiveMapTest {
             "Is empty: false",
             "Contains key: false",
             "Contains value: false",
-            "Square of 2: 4",
-            "${Codes.Sgr.Reset}"
-                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(8)
+            "Square of 2: 4${Codes.Sgr.Reset}"
+                    + "\r${Codes.Erase.CursorToLineEnd}${Codes.Cursor.MoveToPrevLine}".repeat(7)
                     + "\r${Codes.Erase.CursorToLineEnd}"
                     + "Set: [1² = 1, 2² = 4, 3² = 9, 4² = 16, 5² = 25, 6² = 36]",
             "Keys: [1, 2, 3, 4, 5, 6]",
@@ -89,8 +87,8 @@ class LiveMapTest {
             "Is empty: false",
             "Contains key: true",
             "Contains value: true",
-            "Square of 2: 4",
-            "${Codes.Sgr.Reset}",
+            "Square of 2: 4${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 

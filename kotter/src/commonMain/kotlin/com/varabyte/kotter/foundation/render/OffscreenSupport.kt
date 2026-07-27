@@ -24,20 +24,17 @@ class OffscreenBuffer internal constructor(
     render: OffscreenRenderScope.() -> Unit
 ) {
     private val commands = run {
-        val offscreenRenderer =
-            Renderer(parentScope.renderer.session) { OffscreenRenderScope(it) }.apply {
-                render(render)
-            }
         // NOTES:
         // 1) The renderer always makes sure that a command block ends with a state reset, but we don't need that in an
         // offscreen buffer, as `OffscreenCommandRenderer` below manages state.
         // 2) A final newline, if present, shouldn't leak into the output. For example,
-        // `offscreen { lines.forEach { textLine(it } }` shouldn't create a trailing single empty line.
+        // `offscreen { lines.forEach { textLine(it) } }` shouldn't create a trailing single empty line.
+        val offscreenRenderer =
+            Renderer(parentScope.renderer.session, dropFinalNewline = true) { OffscreenRenderScope(it) }.apply {
+                render(render)
+            }
         check(offscreenRenderer.commands.last() == ResetCommand)
-        val toDrop = offscreenRenderer.commands.takeLast(2).count {
-            it === ResetCommand || it === TextCommands.Newline
-        }
-        offscreenRenderer.commands.dropLast(toDrop)
+        offscreenRenderer.commands.dropLast(1)
     }.withExplicitNewlines(parentScope.renderer.session.textMetrics, maxWidth)
 
     /**

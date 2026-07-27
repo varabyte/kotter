@@ -20,8 +20,8 @@ class BorderSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "┌────┐",
             "│Test│",
-            "└────┘",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "└────┘${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -39,8 +39,8 @@ class BorderSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "╔════╗",
             "║Test║",
-            "╚════╝",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "╚════╝${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -55,8 +55,8 @@ class BorderSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "┌────┐",
             "│Test│",
-            "└────┘",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "└────┘${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -70,8 +70,8 @@ class BorderSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "┌┐",
             "││",
-            "└┘",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "└┘${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -95,8 +95,8 @@ class BorderSupportTest {
             "│                              │",
             "│Loooooooooooooooooooooong line│",
             "│Short                         │",
-            "└──────────────────────────────┘",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "└──────────────────────────────┘${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -111,8 +111,8 @@ class BorderSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "╔════╗",
             "║Test║",
-            "╚════╝",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "╚════╝${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -129,8 +129,8 @@ class BorderSupportTest {
             "│        │",
             "│  Test  │",
             "│        │",
-            "└────────┘",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "└────────┘${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -159,8 +159,8 @@ class BorderSupportTest {
             "│X                 │",
             "│こんにちは世界(\uD83C\uDF0F)│",
             "│Y                 │",
-            "└──────────────────┘",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "└──────────────────┘${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 

@@ -20,14 +20,14 @@ class LinkSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "Hello there, you should ${
                 Ansi.Osc.Codes.openLink(Uri("https://example1.com")).toFullEscapeCode()
-            }click here${Ansi.Osc.Codes.CloseLink.toFullEscapeCode()}",
+            }click here${Ansi.Osc.Codes.CloseLink}",
             "You can define ${
-                Ansi.Osc.Codes.openLink(Uri("https://example2.com")).toFullEscapeCode()
-            }multiple links${Ansi.Osc.Codes.CloseLink.toFullEscapeCode()}!",
+                Ansi.Osc.Codes.openLink(Uri("https://example2.com"))
+            }multiple links${Ansi.Osc.Codes.CloseLink}!",
             "If display text not set, the uri is used: ${
-                Ansi.Osc.Codes.openLink(Uri("https://example3.com")).toFullEscapeCode()
-            }https://example3.com${Ansi.Osc.Codes.CloseLink.toFullEscapeCode()}",
-            "${Ansi.Csi.Codes.Sgr.Reset}"
+                Ansi.Osc.Codes.openLink(Uri("https://example3.com"))
+            }https://example3.com${Ansi.Osc.Codes.CloseLink}${Ansi.Csi.Codes.Sgr.Reset}",
+            ""
         ).inOrder()
     }
 

@@ -16,8 +16,8 @@ class TextSupportTest {
 
         assertThat(terminal.lines()).containsExactly(
             "Line 1",
-            "Line 2",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "Line 2${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -47,8 +47,8 @@ class TextSupportTest {
             // collected and applied in a somewhat arbitrary order that is implementation specific.
             "${Codes.Sgr.Colors.Fg.Red}${Codes.Sgr.Decorations.Bold}Bold red",
             "${Codes.Sgr.Colors.Fg.Green}${Codes.Sgr.Decorations.Underline}${Codes.Sgr.Decorations.ClearBold}Underline green",
-            "${Codes.Sgr.Colors.Fg.Blue}${Codes.Sgr.Decorations.ClearUnderline}${Codes.Sgr.Decorations.Strikethrough}Strikethrough blue",
-            "${Codes.Sgr.Reset}",
+            "${Codes.Sgr.Colors.Fg.Blue}${Codes.Sgr.Decorations.ClearUnderline}${Codes.Sgr.Decorations.Strikethrough}Strikethrough blue${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -94,8 +94,8 @@ class TextSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "${Codes.Sgr.Colors.Fg.truecolor(255, 0, 255)}RGB1",
             "${Codes.Sgr.Colors.Fg.truecolor(255, 255, 0)}RGB2",
-            "${Codes.Sgr.Colors.Fg.truecolor(hsvToRgb.r, hsvToRgb.g, hsvToRgb.b)}HSV",
-            "${Codes.Sgr.Reset}",
+            "${Codes.Sgr.Colors.Fg.truecolor(hsvToRgb.r, hsvToRgb.g, hsvToRgb.b)}HSV${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -123,8 +123,8 @@ class TextSupportTest {
             "${Codes.Sgr.Colors.Fg.BrightBlue}BRIGHT_BLUE",
             "${Codes.Sgr.Colors.Fg.BrightMagenta}BRIGHT_MAGENTA",
             "${Codes.Sgr.Colors.Fg.BrightCyan}BRIGHT_CYAN",
-            "${Codes.Sgr.Colors.Fg.BrightWhite}BRIGHT_WHITE",
-            "${Codes.Sgr.Reset}",
+            "${Codes.Sgr.Colors.Fg.BrightWhite}BRIGHT_WHITE${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -190,6 +190,13 @@ class TextSupportTest {
             }
         }.run()
 
+        // Newline from previous section will be shared by start of next section
+        section {
+            p {
+                textLine("Second section")
+            }
+        }.run()
+
         assertThat(terminal.lines()).containsExactly(
             "First paragraph", // No space above the first paragraph
             "",
@@ -198,8 +205,10 @@ class TextSupportTest {
             "Middle paragraph B",
             "",
             "Last paragraph",
-            "",
             "${Codes.Sgr.Reset}",
+            "Second section",
+            "${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 }

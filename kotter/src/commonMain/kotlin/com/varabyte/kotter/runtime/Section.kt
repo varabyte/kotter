@@ -189,7 +189,10 @@ class Section internal constructor(val session: Session, private val render: Mai
             )
     }
 
-    internal val renderer = Renderer(session) { MainRenderScope(it, provideTerminalSize = { terminalSizeState.value }) }
+    // While a section is active, we don't want to add a final newline because it could result in an unseemly blank
+    // line between the text and the bottom of the screen. When the section finishes rendering, however, we will add it
+    // back so that a new section will always appear on a new line.
+    internal val renderer = Renderer(session, dropFinalNewline = true) { MainRenderScope(it, provideTerminalSize = { terminalSizeState.value }) }
     private val renderLock = ReentrantLock()
 
     @GuardedBy("renderLock")
@@ -445,9 +448,8 @@ class Section internal constructor(val session: Session, private val render: Mai
         CoroutineScope(KotterDispatchers.Render).launch { allRendersFinished.complete(Unit) }
         runBlocking { allRendersFinished.await() }
 
-        if (!renderer.commands.finalTextCommandIsNewline) {
-            session.terminal.write("\n")
-        }
+        // Our section renderer strips the final newline while the section is active. Now that it is done, add it back!
+        session.terminal.write("\n")
 
         session.data.stop(Lifecycle)
 

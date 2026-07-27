@@ -25,8 +25,8 @@ class JustifiedSupportTest {
             "1       ",
             "12      ",
             "123     ",
-            "1       ",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "1       ${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
 
         // Run again, without right padding
@@ -47,8 +47,8 @@ class JustifiedSupportTest {
             "1",
             "12",
             "123",
-            "1",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "1${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -69,8 +69,8 @@ class JustifiedSupportTest {
             "   1    ",
             "   12   ",
             "  123   ",
-            "   1    ",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "   1    ${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
 
         // Run again, without right padding
@@ -91,8 +91,8 @@ class JustifiedSupportTest {
             "   1",
             "   12",
             "  123",
-            "   1",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "   1${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -113,8 +113,8 @@ class JustifiedSupportTest {
             "       1",
             "      12",
             "     123",
-            "       1",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "       1${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
 
         // Run again, without right padding (which is meaningless for right justified text but whatever!)
@@ -135,8 +135,8 @@ class JustifiedSupportTest {
             "       1",
             "      12",
             "     123",
-            "       1",
-            Codes.Sgr.Reset.toFullEscapeCode(),
+            "       1${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 
@@ -156,8 +156,8 @@ class JustifiedSupportTest {
             assertThat(terminal.lines()).containsExactly(
                 "1    ",
                 "12   ",
-                "123  ",
-                Codes.Sgr.Reset.toFullEscapeCode(),
+                "123  ${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
         }
 
@@ -175,8 +175,8 @@ class JustifiedSupportTest {
             assertThat(terminal.lines()).containsExactly(
                 "1  ",
                 "12 ",
-                "123",
-                Codes.Sgr.Reset.toFullEscapeCode(),
+                "123${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
         }
 
@@ -194,8 +194,8 @@ class JustifiedSupportTest {
             assertThat(terminal.lines()).containsExactly(
                 "  1  ",
                 " 12  ",
-                " 123 ",
-                Codes.Sgr.Reset.toFullEscapeCode(),
+                " 123 ${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
         }
 
@@ -213,8 +213,8 @@ class JustifiedSupportTest {
             assertThat(terminal.lines()).containsExactly(
                 " 1 ",
                 "12 ",
-                "123",
-                Codes.Sgr.Reset.toFullEscapeCode(),
+                "123${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
         }
 
@@ -232,8 +232,8 @@ class JustifiedSupportTest {
             assertThat(terminal.lines()).containsExactly(
                 "    1",
                 "   12",
-                "  123",
-                Codes.Sgr.Reset.toFullEscapeCode(),
+                "  123${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
         }
 
@@ -251,8 +251,8 @@ class JustifiedSupportTest {
             assertThat(terminal.lines()).containsExactly(
                 "  1",
                 " 12",
-                "123",
-                Codes.Sgr.Reset.toFullEscapeCode(),
+                "123${Codes.Sgr.Reset}",
+                "",
             ).inOrder()
         }
     }

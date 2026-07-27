@@ -21,8 +21,8 @@ class ShiftSupportTest {
         assertThat(terminal.lines()).containsExactly(
             "     1",
             "     23",
-            "     456",
-            "${Codes.Sgr.Reset}",
+            "     456${Codes.Sgr.Reset}",
+            "",
         ).inOrder()
     }
 }
