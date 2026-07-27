@@ -2,6 +2,8 @@ package com.varabyte.kotter.examples.splash
 
 import com.varabyte.kotter.foundation.*
 import com.varabyte.kotter.foundation.anim.*
+import com.varabyte.kotter.foundation.input.Keys
+import com.varabyte.kotter.foundation.input.runUntilKeyPressed
 import com.varabyte.kotter.foundation.text.*
 import com.varabyte.kotter.foundation.timer.*
 import com.varabyte.kotterx.text.*
@@ -26,7 +28,7 @@ fun main() = session {
     Thread.sleep(1000)
 
     // Thanks to https://patorjk.com/software/taag/#p=display&f=Larry%203D&t=Kotter for the text!
-    val productNameLines =
+    val titleLines =
         """
              __  __          __    __
             /\ \/\ \        /\ \__/\ \__
@@ -37,30 +39,30 @@ fun main() = session {
                 \/_/\/_/\/___/  \/__/ \/__/\/____/ \/_/
         """.trimIndent().split("\n")
 
-    val versionLines =
+    // https://patorjk.com/software/taag/#p=display&f=Big&t=CLI+LIBRARY
+    val subtitleLines =
         """
-               _         __     
-             /' \      /'__`\   
-            /\_, \    /\_\L\ \  
-            \/_/\ \   \/_/_\_<_ 
-               \ \ \  __/\ \L\ \
-                \ \_\/\_\ \____/
-                 \/_/\/_/\/___/ 
-          """.trimIndent().split("\n")
+              _____ _      _____   _      _____ ____  _____            _______     __
+             / ____| |    |_   _| | |    |_   _|  _ \|  __ \     /\   |  __ \ \   / /
+            | |    | |      | |   | |      | | | |_) | |__) |   /  \  | |__) \ \_/ /
+            | |    | |      | |   | |      | | |  _ <|  _  /   / /\ \ |  _  / \   /
+            | |____| |____ _| |_  | |____ _| |_| |_) | | \ \  / ____ \| | \ \  | |
+             \_____|______|_____| |______|_____|____/|_|  \_\/_/    \_\_|  \_\ |_|
+        """.trimIndent().split("\n")
 
     // 'length + 1' for num frames because we also include the empty string as a frame
-    val wipeRightTextAnim =
-        renderAnimOf(productNameLines.maxOf { it.length + 1 }, 40.milliseconds, looping = false) { frameIndex ->
-            for (y in productNameLines.indices) {
-                textLine(productNameLines[y].take(frameIndex))
+    val wipeRightTitleAnim =
+        renderAnimOf(titleLines.maxOf { it.length + 1 }, 40.milliseconds, looping = false) { frameIndex ->
+            for (y in titleLines.indices) {
+                textLine(titleLines[y].take(frameIndex))
             }
         }
-    val scrollUpTextAnim = renderAnimOf(versionLines.size, 200.milliseconds, looping = false) { frameIndex ->
-        for (i in 0 until (versionLines.size - frameIndex - 1)) {
+    val scrollUpSubtitleAnim = renderAnimOf(subtitleLines.size, 300.milliseconds, looping = false) { frameIndex ->
+        for (i in 0 until (subtitleLines.size - frameIndex - 1)) {
             textLine()
         }
         for (i in 0..frameIndex) {
-            textLine(versionLines[i])
+            textLine(subtitleLines[i])
         }
     }
 
@@ -72,29 +74,37 @@ fun main() = session {
     }
 
     var colorAnim by liveVarOf<RenderAnim?>(null)
+
+    val titleWidth = titleLines.maxOf { it.length }
+    val subtitleWidth = subtitleLines.maxOf { it.length }
+    var runSubtitleAnimation by liveVarOf(false)
     section {
         colorAnim?.invoke(this)
 
-        textLine()
         // Splash text looks better if it's not hugging the left
-        shiftRight(20) {
-            wipeRightTextAnim(this)
-
-            // The version string should appear at the bottom right
-            shiftRight(23) {
-                scrollUpTextAnim(this)
+        shiftRight((width - titleWidth).coerceAtLeast(0) / 2) {
+            wipeRightTitleAnim(this)
+        }
+        if (runSubtitleAnimation) {
+            textLine()
+            shiftRight((width - subtitleWidth).coerceAtLeast(0) / 2) {
+                scrollUpSubtitleAnim(this)
             }
         }
     }.runUntilSignal {
-        addTimer(maxOf(scrollUpTextAnim.totalDuration, wipeRightTextAnim.totalDuration)) {
-            colorAnim = rainbowAnim
+        // Show the title first, then the subtitle. And wait a beat after the title finishes showing; it feels better.
+        addTimer(wipeRightTitleAnim.totalDuration + 1.seconds) {
+            runSubtitleAnimation = true
+            addTimer(scrollUpSubtitleAnim.totalDuration) {
+                colorAnim = rainbowAnim
 
-            // Enjoy some rainbow colors looping for a little while, then fade out
-            addTimer(3.seconds) {
-                colorAnim = fadeOutAnim
+                // Enjoy some rainbow colors looping for a little while, then fade out
+                addTimer(3.seconds) {
+                    colorAnim = fadeOutAnim
 
-                addTimer(fadeOutAnim.totalDuration) {
-                    signal()
+                    addTimer(fadeOutAnim.totalDuration) {
+                        signal()
+                    }
                 }
             }
         }
