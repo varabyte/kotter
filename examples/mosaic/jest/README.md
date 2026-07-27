@@ -2,4 +2,4 @@ An example which a more complicated layout with fairly rich, dynamic behavior an
 
 Compare with: https://github.com/JakeWharton/mosaic/tree/trunk/samples/jest
 
-![Example in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/jest.webp)
+![Example in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/examples/jest.webp)

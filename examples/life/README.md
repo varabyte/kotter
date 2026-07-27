@@ -5,4 +5,4 @@ using `rerender()` to manually repaint the screen.
 
 See also: https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
 
-![Example in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/life.webp)
+![Example in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/examples/life.webp)

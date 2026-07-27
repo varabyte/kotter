@@ -31,7 +31,7 @@ session {
 }
 ```
 
-![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/input.webp)
+![Code sample in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/examples/input.webp)
 
 *See also: [the game of life](examples/life), [snake](examples/snake), [sliding tiles](examples/sliding), [doom fire](examples/doomfire), and [Wordle](examples/wordle) implemented in Kotter!*
 

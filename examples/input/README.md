@@ -1,3 +1,3 @@
 A basic example which demonstrates input handling.
 
-![Example in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/input.webp)
+![Example in action](https://github.com/varabyte/media/raw/main/kotter/screencasts/examples/input.webp)
