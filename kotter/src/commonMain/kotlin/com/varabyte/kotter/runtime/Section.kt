@@ -321,11 +321,11 @@ class Section internal constructor(val session: Session, private val render: Mai
                     // Ideally, the terminal size hasn't changed since we started this render loop. If so, we must
                     // discard our results and try again.
                     //
-                    // This check may be overkill! We saw the issue briefly during when the feature was first being
-                    // developed, but that might have been due to other bugs that have since been fixed, as we haven't
-                    // seen it recently. However, leaving this check in can protect against us issuing commands that
-                    // would definitely be stale and doesn't seem to hurt (besides additional complexity that is very
-                    // hard to test in the wild).
+                    // This check may be overkill! We saw the issue briefly during when the "terminal resized event"
+                    // feature was first being developed, but that might have been due to other bugs that have since
+                    // been fixed, as we haven't seen it recently. However, leaving this check in can protect against us
+                    // issuing commands that would definitely be stale and doesn't seem to hurt (besides additional
+                    // complexity that is very hard to test in the wild).
                     //
                     // For local testing, we added "&& (0..1).random() == 0" to the check, to at least make sure
                     // rendering still works even if the check fails frequently.
