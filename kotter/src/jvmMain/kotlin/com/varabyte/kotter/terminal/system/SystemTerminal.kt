@@ -45,7 +45,7 @@ class SystemTerminal : Terminal {
             handle(Signal.INT) { exitProcess(130) } // 130 == 128+2, where 2 == SIGINT
 
             handle(Signal.WINCH) {
-                mutableEvents.sizeChanged.tryEmit(TerminalSize(columns, rows))
+                mutableEvents.sizeChanged.tryEmit(TerminalSize(width, height))
             }
 
             val disabledPrintStream = PrintStream(object : OutputStream() {
@@ -70,7 +70,7 @@ class SystemTerminal : Terminal {
     private var _size: TerminalSize? = null
     override val size: TerminalSize
         get() {
-            return _size.createOrReuse(terminal.columns, terminal.rows)
+            return _size.createOrReuse(terminal.width, terminal.height)
                 .also { _size = it }
         }
 
