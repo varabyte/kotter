@@ -5,6 +5,7 @@ on:
   release:
     types:
       - published
+  workflow_dispatch:
 
 jobs:
   build:
@@ -27,7 +28,7 @@ jobs:
 
       - name: Init temporary repo in docs folder
         run: |
-          cd kotter/docs/build/dokka/html
+          cd ${{github.workspace}}/docs/build/dokka/html
           git init
           git add -A
           git config --local user.email "action@github.com"
@@ -40,4 +41,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: gh-pages
           force: true
-          directory: ./kotter/build/dokka/html
+          directory: ${{github.workspace}}/docs/build/dokka/html
