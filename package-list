@@ -1,0 +1,42 @@
+$dokka.format:html-v1
+$dokka.linkExtension:html
+$dokka.location:com.varabyte.kotter.terminal.native/NativeTerminal/clear/#/PointingToDeclaration/kotter/com.varabyte.kotter.terminal.native/-native-terminal/[win]clear.html
+$dokka.location:com.varabyte.kotter.terminal.native/NativeTerminal/close/#/PointingToDeclaration/kotter/com.varabyte.kotter.terminal.native/-native-terminal/[win]close.html
+$dokka.location:com.varabyte.kotter.terminal.native/NativeTerminal/events/#/PointingToDeclaration/kotter/com.varabyte.kotter.terminal.native/-native-terminal/[win]events.html
+$dokka.location:com.varabyte.kotter.terminal.native/NativeTerminal/read/#/PointingToDeclaration/kotter/com.varabyte.kotter.terminal.native/-native-terminal/[win]read.html
+$dokka.location:com.varabyte.kotter.terminal.native/NativeTerminal/size/#/PointingToDeclaration/kotter/com.varabyte.kotter.terminal.native/-native-terminal/[win]size.html
+$dokka.location:com.varabyte.kotter.terminal.native/NativeTerminal/write/#kotlin.String/PointingToDeclaration/kotter/com.varabyte.kotter.terminal.native/-native-terminal/[win]write.html
+module:kotter
+com.varabyte.kotter.foundation
+com.varabyte.kotter.foundation.anim
+com.varabyte.kotter.foundation.collections
+com.varabyte.kotter.foundation.input
+com.varabyte.kotter.foundation.render
+com.varabyte.kotter.foundation.shutdown
+com.varabyte.kotter.foundation.terminal
+com.varabyte.kotter.foundation.text
+com.varabyte.kotter.foundation.timer
+com.varabyte.kotter.platform.concurrent.locks
+com.varabyte.kotter.platform.internal.ref
+com.varabyte.kotter.platform.net
+com.varabyte.kotter.runtime
+com.varabyte.kotter.runtime.concurrent
+com.varabyte.kotter.runtime.coroutines
+com.varabyte.kotter.runtime.internal.ansi
+com.varabyte.kotter.runtime.internal.text
+com.varabyte.kotter.runtime.render
+com.varabyte.kotter.runtime.terminal
+com.varabyte.kotter.runtime.terminal.inmemory
+com.varabyte.kotter.terminal.native
+com.varabyte.kotter.terminal.system
+com.varabyte.kotter.terminal.virtual
+com.varabyte.kotter.terminal.virtual.internal
+com.varabyte.kotterx.decorations
+com.varabyte.kotterx.grid
+com.varabyte.kotterx.text
+com.varabyte.kotterx.util
+com.varabyte.kotterx.util.collections
+module:kotter-test-support
+com.varabyte.kotterx.test.foundation
+com.varabyte.kotterx.test.runtime
+com.varabyte.kotterx.test.terminal

@@ -1,0 +1,375 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Session</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    Kotter docs
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":kotter/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":kotter/commonMain" data-filter=":kotter/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+                <a class="navigation-controls--btn navigation-controls--btn_homepage" id="homepage-link" href="https://github.com/varabyte/kotter"></a>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    Kotter docs
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="kotter::com.varabyte.kotter.runtime/Session///PointingToDeclaration//915532700">
+  <div class="breadcrumbs"><a href="../../index.html">kotter</a><span class="delimiter">/</span><a href="../index.html">com.varabyte.kotter.runtime</a><span class="delimiter">/</span><span class="current">Session</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>Session</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">Session</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/varabyte/kotter/tree/main/kotter/src/commonMain/kotlin/com/varabyte/kotter/runtime/Session.kt#L23">source</a>)</span></span></div><p class="paragraph">A Kotter session.</p><p class="paragraph">This class represents the lifetime of a Kotter application.</p><p class="paragraph">When a session exits, all data associated with it will be released.</p><p class="paragraph">You cannot create an instance manually. Instead, use <a href="../../com.varabyte.kotter.foundation/session.html">session</a>.</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION,EXTENSION_PROPERTY,EXTENSION_FUNCTION">Members &amp; Extensions</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="-340734958%2FClasslikes%2F915532700" anchor-label="Defaults" id="-340734958%2FClasslikes%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-defaults/index.html"><span><span>Defaults</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-340734958%2FClasslikes%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">class </span><a href="-defaults/index.html">Defaults</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">session<span class="token operator">: </span><a href="index.html">Session</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">A home for default values that will be shared across all sections.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="495071348%2FClasslikes%2F915532700" anchor-label="Lifecycle" id="495071348%2FClasslikes%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-lifecycle/index.html"><span><span>Lifecycle</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="495071348%2FClasslikes%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">object </span><a href="-lifecycle/index.html">Lifecycle</a> : <a href="../../com.varabyte.kotter.runtime.concurrent/-concurrent-scoped-data/-lifecycle/index.html">ConcurrentScopedData.Lifecycle</a></div><div class="brief "><p class="paragraph">A long-lived lifecycle that sticks around for the length of the entire session.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1265553748%2FProperties%2F915532700" anchor-label="activeSection" id="-1265553748%2FProperties%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="active-section.html"><span>active</span><wbr><span><span>Section</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1265553748%2FProperties%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="active-section.html">activeSection</a><span class="token operator">: </span><a href="../-section/index.html">Section</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">A way to access the current active section, if any.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1429570427%2FProperties%2F915532700" anchor-label="data" id="-1429570427%2FProperties%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="data.html"><span><span>data</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1429570427%2FProperties%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="data.html">data</a><span class="token operator">: </span><a href="../../com.varabyte.kotter.runtime.concurrent/-concurrent-scoped-data/index.html">ConcurrentScopedData</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-906055771%2FProperties%2F915532700" anchor-label="defaultPageSize" id="-906055771%2FProperties%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_PROPERTY" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.input/default-page-size.html"><span>default</span><wbr><span>Page</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-906055771%2FProperties%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">var </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.input/default-page-size.html">defaultPageSize</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div><div class="brief "><p class="paragraph">The default page size for multiline inputs.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="330653149%2FProperties%2F915532700" anchor-label="defaults" id="330653149%2FProperties%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="defaults.html"><span><span>defaults</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="330653149%2FProperties%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="defaults.html">defaults</a><span class="token operator">: </span><a href="-defaults/index.html">Session.Defaults</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-730482446%2FProperties%2F915532700" anchor-label="terminalSize" id="-730482446%2FProperties%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="terminal-size.html"><span>terminal</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-730482446%2FProperties%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="terminal-size.html">terminalSize</a><span class="token operator">: </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal-size/index.html">TerminalSize</a></div><div class="brief "><p class="paragraph">The size of the terminal that this session is attached to.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2077820875%2FProperties%2F915532700" anchor-label="textMetrics" id="-2077820875%2FProperties%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="text-metrics.html"><span>text</span><wbr><span><span>Metrics</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2077820875%2FProperties%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="text-metrics.html">textMetrics</a><span class="token operator">: </span><a href="../../com.varabyte.kotter.runtime.terminal/-text-metrics/index.html">TextMetrics</a></div><div class="brief "><p class="paragraph">A global text metrics instance for measuring Unicode text.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1115151294%2FFunctions%2F915532700" anchor-label="addShutdownHook" id="1115151294%2FFunctions%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.shutdown/add-shutdown-hook.html"><span>add</span><wbr><span>Shutdown</span><wbr><span><span>Hook</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1115151294%2FFunctions%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.shutdown/add-shutdown-hook.html"><span class="token function">addShutdownHook</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">dispose<span class="token operator">: </span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Add some dispose logic, tied to the top-level session, which should run if the user tries to exit the application via Ctrl-C.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-127290280%2FFunctions%2F915532700" anchor-label="liveListOf" id="-127290280%2FFunctions%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html"><span>live</span><wbr><span>List</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-127290280%2FFunctions%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">inline </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html">T</a><span class="token operator">&gt; </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html"><span class="token function">liveListOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">elements<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html">T</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.collections/-live-list/index.html">LiveList</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html">T</a><span class="token operator">&gt;</span></div><br><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html">T</a><span class="token operator">&gt; </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html"><span class="token function">liveListOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>elements<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html">T</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.collections/-live-list/index.html">LiveList</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-list-of.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Create a <a href="../../com.varabyte.kotter.foundation.collections/-live-list/index.html">LiveList</a> whose scope is tied to this session.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2089196428%2FFunctions%2F915532700" anchor-label="liveMapOf" id="-2089196428%2FFunctions%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html"><span>live</span><wbr><span>Map</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2089196428%2FFunctions%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">K</a><span class="token punctuation">, </span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">V</a><span class="token operator">&gt; </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html"><span class="token function">liveMapOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">elements<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">K</a><span class="token punctuation">, </span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">V</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.collections/-live-map/index.html">LiveMap</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">K</a><span class="token punctuation">, </span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">V</a><span class="token operator">&gt;</span></div><br><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">K</a><span class="token punctuation">, </span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">V</a><span class="token operator">&gt; </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html"><span class="token function">liveMapOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>elements<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-pair/index.html">Pair</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">K</a><span class="token punctuation">, </span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">V</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.collections/-live-map/index.html">LiveMap</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">K</a><span class="token punctuation">, </span><a href="../../com.varabyte.kotter.foundation.collections/live-map-of.html">V</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Create a <a href="../../com.varabyte.kotter.foundation.collections/-live-map/index.html">LiveMap</a> whose scope is tied to this session.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1916522684%2FFunctions%2F915532700" anchor-label="liveSetOf" id="1916522684%2FFunctions%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html"><span>live</span><wbr><span>Set</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1916522684%2FFunctions%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">inline </span><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html">T</a><span class="token operator">&gt; </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html"><span class="token function">liveSetOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">elements<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-iterable/index.html">Iterable</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html">T</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.collections/-live-set/index.html">LiveSet</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html">T</a><span class="token operator">&gt;</span></div><br><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html">T</a><span class="token operator">&gt; </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html"><span class="token function">liveSetOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">vararg </span>elements<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html">T</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.collections/-live-set/index.html">LiveSet</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation.collections/live-set-of.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Create a <a href="../../com.varabyte.kotter.foundation.collections/-live-set/index.html">LiveSet</a> whose scope is tied to this session.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="355953404%2FFunctions%2F915532700" anchor-label="liveVarOf" id="355953404%2FFunctions%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation/live-var-of.html"><span>live</span><wbr><span>Var</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="355953404%2FFunctions%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation/live-var-of.html">T</a><span class="token operator">&gt; </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation/live-var-of.html"><span class="token function">liveVarOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation/live-var-of.html">T</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation/-live-var/index.html">LiveVar</a><span class="token operator">&lt;</span><a href="../../com.varabyte.kotter.foundation/live-var-of.html">T</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Create a <a href="../../com.varabyte.kotter.foundation/-live-var/index.html">LiveVar</a> whose scope is tied to this session.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1019302399%2FFunctions%2F915532700" anchor-label="renderAnimOf" id="-1019302399%2FFunctions%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.anim/render-anim-of.html"><span>render</span><wbr><span>Anim</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1019302399%2FFunctions%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.anim/render-anim-of.html"><span class="token function">renderAnimOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">template<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.anim/-render-anim/-template/index.html">RenderAnim.Template</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.anim/-render-anim/index.html">RenderAnim</a></div><br><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.anim/render-anim-of.html"><span class="token function">renderAnimOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">numFrames<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">frameDuration<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token operator"> = </span>defaults.animDuration<span class="token punctuation">, </span></span><span class="parameter ">looping<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span><span class="token punctuation">, </span></span><span class="parameter ">handler<span class="token operator">: </span><a href="../../com.varabyte.kotter.runtime.render/-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.anim/-render-anim/index.html">RenderAnim</a></div><div class="brief "><p class="paragraph">Instantiate a <a href="../../com.varabyte.kotter.foundation.anim/-render-anim/index.html">RenderAnim</a> tied to the current <a href="index.html">Session</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1806061818%2FFunctions%2F915532700" anchor-label="section" id="-1806061818%2FFunctions%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="section.html"><span><span>section</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1806061818%2FFunctions%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="section.html"><span class="token function">section</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">render<span class="token operator">: </span><a href="../-main-render-scope/index.html">MainRenderScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-section/index.html">Section</a></div><div class="brief "><p class="paragraph">Create a Kotter section.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1817204179%2FFunctions%2F915532700" anchor-label="textAnimOf" id="1817204179%2FFunctions%2F915532700" data-filterable-set=":kotter/commonMain"></a>
+          <div class="table-row table-row_content" data-togglable="EXTENSION_FUNCTION" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.varabyte.kotter.foundation.anim/text-anim-of.html"><span>text</span><wbr><span>Anim</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1817204179%2FFunctions%2F915532700"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.anim/text-anim-of.html"><span class="token function">textAnimOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">template<span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.anim/-text-anim/-template/index.html">TextAnim.Template</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.anim/-text-anim/index.html">TextAnim</a></div><br><div class="symbol monospace"><span class="token keyword">fun </span><a href="index.html">Session</a><span class="token punctuation">.</span><a href="../../com.varabyte.kotter.foundation.anim/text-anim-of.html"><span class="token function">textAnimOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">frames<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">frameDuration<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.time/-duration/index.html">Duration</a><span class="token operator"> = </span>defaults.animDuration<span class="token punctuation">, </span></span><span class="parameter ">looping<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a><span class="token operator"> = </span><span class="token boolean">true</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../../com.varabyte.kotter.foundation.anim/-text-anim/index.html">TextAnim</a></div><div class="brief "><p class="paragraph">Instantiate a <a href="../../com.varabyte.kotter.foundation.anim/-text-anim/index.html">TextAnim</a> tied to the current <a href="index.html">Session</a>.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>Copyright © 2026 Varabyte</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

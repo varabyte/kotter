@@ -1,0 +1,289 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>NativeTerminal</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    Kotter docs
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector native-like" data-active="" aria-pressed="true" data-filter=":kotter/nativeMain">native</button>
+                <button class="platform-tag platform-selector native-like" data-active="" aria-pressed="true" data-filter=":kotter/posixMain">posix</button>
+                <button class="platform-tag platform-selector native-like" data-active="" aria-pressed="true" data-filter=":kotter/winMain">win</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option native-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":kotter/nativeMain" data-filter=":kotter/nativeMain">
+                                <span class="checkbox--icon"></span>
+                                native
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option native-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":kotter/posixMain" data-filter=":kotter/posixMain">
+                                <span class="checkbox--icon"></span>
+                                posix
+                            </label>
+                        </li>
+                        <li role="option" class="dropdown--option platform-selector-option native-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":kotter/winMain" data-filter=":kotter/winMain">
+                                <span class="checkbox--icon"></span>
+                                win
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+                <a class="navigation-controls--btn navigation-controls--btn_homepage" id="homepage-link" href="https://github.com/varabyte/kotter"></a>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    Kotter docs
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="kotter::com.varabyte.kotter.terminal.native/NativeTerminal///PointingToDeclaration//-1369305326">
+  <div class="breadcrumbs"><a href="../../index.html">kotter</a><span class="delimiter">/</span><a href="../index.html">com.varabyte.kotter.terminal.native</a><span class="delimiter">/</span><span class="current">NativeTerminal</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Native</span><wbr><span><span>Terminal</span></span></h1>
+    <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+      <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/nativeMain" data-filterable-set=":kotter/nativeMain" data-active="" data-toggle=":kotter/nativeMain">native</button><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-toggle=":kotter/posixMain">posix</button><button class="platform-bookmark" data-filterable-current=":kotter/winMain" data-filterable-set=":kotter/winMain" data-toggle=":kotter/winMain">win</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/nativeMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">class </span><a href="index.html">NativeTerminal</a> : <a href="../../com.varabyte.kotter.runtime.terminal/-terminal/index.html">Terminal</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/varabyte/kotter/tree/main/kotter/src/nativeMain/kotlin/com/varabyte/kotter/terminal/native/NativeTerminal.kt#L5">source</a>)</span></span></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">class </span><a href="index.html">NativeTerminal</a> : <a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/index.html">Terminal</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/varabyte/kotter/tree/main/kotter/src/posixMain/kotlin/com/varabyte/kotter/terminal/native/NativeTerminal.kt#L27">source</a>)</span></span></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/winMain"><div class="symbol monospace"><span class="token keyword">actual </span><span class="token keyword">class </span><a href="index.html">NativeTerminal</a> : <a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/index.html">Terminal</a><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/varabyte/kotter/tree/main/kotter/src/winMain/kotlin/com/varabyte/kotter/terminal/native/NativeTerminal.kt#L47">source</a>)</span></span></div></div>    </div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="-1852050350%2FConstructors%2F-1369305326" anchor-label="NativeTerminal" id="-1852050350%2FConstructors%2F-1369305326" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-native-terminal.html"><span>Native</span><wbr><span><span>Terminal</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1852050350%2FConstructors%2F-1369305326"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/nativeMain" data-filterable-set=":kotter/nativeMain" data-active="" data-toggle=":kotter/nativeMain">native</button><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-toggle=":kotter/posixMain">posix</button><button class="platform-bookmark" data-filterable-current=":kotter/winMain" data-filterable-set=":kotter/winMain" data-toggle=":kotter/winMain">win</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/nativeMain"><div class="symbol monospace"><span class="token keyword">expect </span><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/winMain"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="732403248%2FProperties%2F-1369305326" anchor-label="events" id="732403248%2FProperties%2F-1369305326" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/events.html"><span><span>events</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="732403248%2FProperties%2F-1369305326"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/nativeMain" data-filterable-set=":kotter/nativeMain" data-active="" data-toggle=":kotter/nativeMain">native</button><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-toggle=":kotter/posixMain">posix</button><button class="platform-bookmark" data-filterable-current=":kotter/winMain" data-filterable-set=":kotter/winMain" data-toggle=":kotter/winMain">win</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/nativeMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal/events.html">events</a><span class="token operator">: </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal/-events/index.html">Terminal.Events</a></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="[posix]events.html">events</a><span class="token operator">: </span><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/-events/index.html">Terminal.Events</a></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/winMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="[win]events.html">events</a><span class="token operator">: </span><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/-events/index.html">Terminal.Events</a></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1151353109%2FProperties%2F746581060" anchor-label="origTermios" id="1151353109%2FProperties%2F746581060" data-filterable-set=":kotter/posixMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="orig-termios.html"><span>orig</span><wbr><span><span>Termios</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1151353109%2FProperties%2F746581060"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-active="" data-toggle=":kotter/posixMain">posix</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">val </span><a href="orig-termios.html">origTermios</a><span class="token operator">: </span><span data-unresolved-link="platform.posix/termios///PointingToDeclaration/">termios</span></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1889219168%2FProperties%2F-1369305326" anchor-label="size" id="1889219168%2FProperties%2F-1369305326" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/size.html"><span><span>size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1889219168%2FProperties%2F-1369305326"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/nativeMain" data-filterable-set=":kotter/nativeMain" data-active="" data-toggle=":kotter/nativeMain">native</button><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-toggle=":kotter/posixMain">posix</button><button class="platform-bookmark" data-filterable-current=":kotter/winMain" data-filterable-set=":kotter/winMain" data-toggle=":kotter/winMain">win</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/nativeMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">val </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal/size.html">size</a><span class="token operator">: </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal-size/index.html">TerminalSize</a></div><div class="brief "><p class="paragraph">The size of the terminal.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="[posix]size.html">size</a><span class="token operator">: </span><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal-size/index.html">TerminalSize</a></div><div class="brief "><p class="paragraph">The size of the terminal.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/winMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">val </span><a href="[win]size.html">size</a><span class="token operator">: </span><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal-size/index.html">TerminalSize</a></div><div class="brief "><p class="paragraph">The size of the terminal.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1256537392%2FFunctions%2F-1369305326" anchor-label="clear" id="1256537392%2FFunctions%2F-1369305326" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/clear.html"><span><span>clear</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1256537392%2FFunctions%2F-1369305326"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/nativeMain" data-filterable-set=":kotter/nativeMain" data-active="" data-toggle=":kotter/nativeMain">native</button><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-toggle=":kotter/posixMain">posix</button><button class="platform-bookmark" data-filterable-current=":kotter/winMain" data-filterable-set=":kotter/winMain" data-toggle=":kotter/winMain">win</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/nativeMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal/clear.html"><span class="token function">clear</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clear the current terminal, removing all text written there so far.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="[posix]clear.html"><span class="token function">clear</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clear the current terminal, removing all text written there so far.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/winMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="[win]clear.html"><span class="token function">clear</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clear the current terminal, removing all text written there so far.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-758237424%2FFunctions%2F-1369305326" anchor-label="close" id="-758237424%2FFunctions%2F-1369305326" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/close.html"><span><span>close</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-758237424%2FFunctions%2F-1369305326"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/nativeMain" data-filterable-set=":kotter/nativeMain" data-active="" data-toggle=":kotter/nativeMain">native</button><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-toggle=":kotter/posixMain">posix</button><button class="platform-bookmark" data-filterable-current=":kotter/winMain" data-filterable-set=":kotter/winMain" data-toggle=":kotter/winMain">win</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/nativeMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal/close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Shut down this terminal, releasing any resources.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="[posix]close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Shut down this terminal, releasing any resources.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/winMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="[win]close.html"><span class="token function">close</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Shut down this terminal, releasing any resources.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1493933494%2FFunctions%2F-1369305326" anchor-label="read" id="1493933494%2FFunctions%2F-1369305326" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/read.html"><span><span>read</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1493933494%2FFunctions%2F-1369305326"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/nativeMain" data-filterable-set=":kotter/nativeMain" data-active="" data-toggle=":kotter/nativeMain">native</button><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-toggle=":kotter/posixMain">posix</button><button class="platform-bookmark" data-filterable-current=":kotter/winMain" data-filterable-set=":kotter/winMain" data-toggle=":kotter/winMain">win</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/nativeMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal/read.html"><span class="token function">read</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/SharedFlow///PointingToDeclaration/">SharedFlow</span><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return a hot <span data-unresolved-link="kotlinx.coroutines.flow/SharedFlow///PointingToDeclaration/">SharedFlow</span> which will get triggered with characters read in by the underlying terminal, often input typed in by a user.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="[posix]read.html"><span class="token function">read</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/SharedFlow///PointingToDeclaration/">SharedFlow</span><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return a hot <span data-unresolved-link="kotlinx.coroutines.flow/SharedFlow///PointingToDeclaration/">SharedFlow</span> which will get triggered with characters read in by the underlying terminal, often input typed in by a user.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/winMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="[win]read.html"><span class="token function">read</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><span data-unresolved-link="kotlinx.coroutines.flow/SharedFlow///PointingToDeclaration/">SharedFlow</span><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Return a hot <span data-unresolved-link="kotlinx.coroutines.flow/SharedFlow///PointingToDeclaration/">SharedFlow</span> which will get triggered with characters read in by the underlying terminal, often input typed in by a user.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-498722124%2FFunctions%2F-1369305326" anchor-label="write" id="-498722124%2FFunctions%2F-1369305326" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain"></a>
+          <div class="table-row table-row_content" data-filterable-current=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain" data-filterable-set=":kotter/nativeMain,:kotter/posixMain,:kotter/winMain">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../../kotter/com.varabyte.kotter.runtime.terminal/-terminal/write.html"><span><span>write</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-498722124%2FFunctions%2F-1369305326"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted  with-platform-tabs" data-platform-hinted="data-platform-hinted">
+                    <div class="platform-bookmarks-row" data-toggle-list="data-toggle-list"><button class="platform-bookmark" data-filterable-current=":kotter/nativeMain" data-filterable-set=":kotter/nativeMain" data-active="" data-toggle=":kotter/nativeMain">native</button><button class="platform-bookmark" data-filterable-current=":kotter/posixMain" data-filterable-set=":kotter/posixMain" data-toggle=":kotter/posixMain">posix</button><button class="platform-bookmark" data-filterable-current=":kotter/winMain" data-filterable-set=":kotter/winMain" data-toggle=":kotter/winMain">win</button></div>
+<div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/nativeMain"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">fun </span><a href="../../com.varabyte.kotter.runtime.terminal/-terminal/write.html"><span class="token function">write</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">text<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Write some text to the underlying terminal.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/posixMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="[posix]write.html"><span class="token function">write</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">text<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Write some text to the underlying terminal.</p></div></div><div class="content sourceset-dependent-content" data-togglable=":kotter/winMain"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="[win]write.html"><span class="token function">write</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">text<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Write some text to the underlying terminal.</p></div></div>                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>Copyright © 2026 Varabyte</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

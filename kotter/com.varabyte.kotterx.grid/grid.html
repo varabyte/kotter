@@ -1,0 +1,118 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>grid</title>
+<link href="../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../styles/style.css" rel="Stylesheet">
+<link href="../../styles/main.css" rel="Stylesheet">
+<link href="../../styles/prism.css" rel="Stylesheet">
+<link href="../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../index.html" tabindex="1">
+                    Kotter docs
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector common-like" data-active="" aria-pressed="true" data-filter=":kotter/commonMain">common</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option common-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":kotter/commonMain" data-filter=":kotter/commonMain">
+                                <span class="checkbox--icon"></span>
+                                common
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+                <a class="navigation-controls--btn navigation-controls--btn_homepage" id="homepage-link" href="https://github.com/varabyte/kotter"></a>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    Kotter docs
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="member" id="content" pageids="kotter::com.varabyte.kotterx.grid//grid/com.varabyte.kotter.runtime.render.RenderScope#com.varabyte.kotterx.grid.Cols#kotlin.Int?#com.varabyte.kotterx.grid.GridCharacters#kotlin.Int#com.varabyte.kotterx.text.Justification#kotlin.Int#com.varabyte.kotterx.util.collections.Indices#kotlin.Function1[com.varabyte.kotterx.grid.GridScope,kotlin.Unit]/PointingToDeclaration//915532700">
+  <div class="breadcrumbs"><a href="../index.html">kotter</a><span class="delimiter">/</span><a href="index.html">com.varabyte.kotterx.grid</a><span class="delimiter">/</span><span class="current">grid</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span><span>grid</span></span></h1>
+  </div>
+  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":kotter/commonMain"><div class="symbol monospace"><span class="token keyword">fun </span><a href="../com.varabyte.kotter.runtime.render/-render-scope/index.html">RenderScope</a><span class="token punctuation">.</span><a href="grid.html"><span class="token function">grid</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cols<span class="token operator">: </span><a href="-cols/index.html">Cols</a><span class="token punctuation">, </span></span><span class="parameter ">targetWidth<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator">?</span><span class="token operator"> = </span>null<span class="token punctuation">, </span></span><span class="parameter ">characters<span class="token operator">: </span><a href="-grid-characters/index.html">GridCharacters</a><span class="token operator"> = </span>section.session.defaults.gridStyle<span class="token punctuation">, </span></span><span class="parameter ">paddingLeftRight<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span><span class="token constant">0</span><span class="token punctuation">, </span></span><span class="parameter ">justification<span class="token operator">: </span><a href="../com.varabyte.kotterx.text/-justification/index.html">Justification</a><span class="token operator"> = </span>Justification.LEFT<span class="token punctuation">, </span></span><span class="parameter ">maxCellHeight<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token operator"> = </span>Int.MAX_VALUE<span class="token punctuation">, </span></span><span class="parameter ">horizontalSeparatorIndices<span class="token operator">: </span><a href="../com.varabyte.kotterx.util.collections/-indices/index.html">Indices</a><span class="token operator"> = </span>HorizontalSeparatorIndices.All<span class="token punctuation">, </span></span><span class="parameter ">render<span class="token operator">: </span><a href="-grid-scope/index.html">GridScope</a><span class="token punctuation">.</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator"> -&gt; </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-unit/index.html">Unit</a></span></span><span class="token punctuation">)</span><span class="source-link-wrapper"><span class="source-link" data-element-type="source-link">(<a href="https://github.com/varabyte/kotter/tree/main/kotter/src/commonMain/kotlin/com/varabyte/kotterx/grid/GridSupport.kt#L506">source</a>)</span></span></div><p class="paragraph">Declare a grid of cells.</p><p class="paragraph">With grids, you define columns explicitly. Rows are added automatically as needed.</p><p class="paragraph">Here, we create a grid of two 7-width columns:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">grid(Cols(7, 7), paddingLeftRight = 1) {<br>  cell { textLine("Cell 1a") }<br>  cell { textLine("Cell 1b") }<br>  cell { textLine("Cell 2a") }<br>  cell { textLine("Cell 2b") }<br>}</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">which renders:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">+---------+---------+<br>| Cell 1a | Cell 1b |<br>+---------+---------+<br>| Cell 2a | Cell 2b |<br>+---------+---------+</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">It's worth noting that the final width of the grid above is actually 21, not 14, because of the extra border characters (3) and padding (4). When declaring column widths, you are describing the widths for the non-padded contents of the cells <i>only</i>.</p><p class="paragraph">By default, a newly declared cell will search from left-to-right then top-to-bottom for the next empty slot <i>after</i> the last cell you declared. You can also specify the specific row and column you want a cell to apply to, especially useful for skipping over cells you want to leave empty:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">grid(Cols(7, 7), paddingLeftRight = 1) {<br>  cell { textLine("Cell 1a") }<br>  cell(row = 1, col = 1) { textLine("Cell 2b") }<br>}</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">which renders:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">+---------+---------+<br>| Cell 1a |         |<br>+---------+---------+<br>|         | Cell 2b |<br>+---------+---------+</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">Note in the above example that the <code class="lang-kotlin">row</code> and <code class="lang-kotlin">col</code> parameters are 0-indexed.</p><p class="paragraph">If the contents of a cell can't fit, it will insert newlines:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">grid(Cols(6, 3)) {<br>  cell { textLine("Hello grid!") }<br>  cell { textLine("Hi!") }<br>}</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">which renders:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">+------+---+<br>|Hello |Hi!|<br>|grid! |   |<br>+------+---+</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">Another thing demonstrated above is that the height of the whole row is determined by the tallest one. You can pass in <a href="grid.html">maxCellHeight</a> to limit how tall this can get.</p><p class="paragraph">There are also <strong>fit-sized</strong> columns (which calculate their size based on the longest element in the column) and <strong>star-sized</strong> columns (which take up the remaining space after all other columns have been calculated). If you declare one or more star-sized columns, you should also be sure to set the <a href="grid.html">targetWidth</a> parameter which is used in calculating their widths.</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">// Fit, 4, * (targetWidth=15, padding=1)<br>// Fit here is 3, so * is 15 - 4 - 3 = 8<br>+-----+------+----------+<br>| 1   | 1234 | 12345678 |<br>+-----+------+----------+<br>| 23  |      |          |<br>+-----+------+----------+<br>| 456 |      |          |<br>+-----+------+----------+</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">For grids with only fixed-width columns, using the convenience constructor that takes widths directly (as we did in the examples above) is recommended. Otherwise, users should leverage the builder constructor, which offers more control and is the only way to declare star and fit columns.</p><p class="paragraph">Using the builder constructor, the declaration for the above table is:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">grid(Cols { fit(); fixed(4); star() }, targetWidth = 15, paddingLeftRight = 1) {<br>  // ...<br>}</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">Finally, cells take optional <code class="lang-kotlin">rowSpan</code> and <code class="lang-kotlin">colSpan</code> parameters so the user can declare that they should cover multiple spaces:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">grid(Cols(4, 4, 4)) {<br>  cell(rowSpan = 2, colSpan = 2) {<br>    textLine("Top"); textLine("left"); textLine("cell")<br>  }<br>  // Declare a third row for this example to demonstrate how<br>  // rowSpan in this case stops on the second row.<br>  cell(row = 2)<br>}</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><p class="paragraph">which renders:</p><div class="sample-container"><pre><code class="block lang-kotlin" theme="idea">+----+----+----+<br>|Top      |    |<br>|left     +----+<br>|cell     |    |<br>+----+----+----+<br>|    |    |    |<br>+----+----+----+</code></pre><span class="copy-tooltip"><div class="copy-popup-wrapper popup-to-left"><span class="copy-popup-icon"></span><span>Content copied to clipboard</span></div><span class="copy-icon"></span></span></div><h4 class="tableheader">Parameters</h4><div class="table"><div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>cols</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The column specification for the grid.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>target</span><wbr><span><span>Width</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The target width to render this grid at. This value has no meaning if there are no star-sized columns in this grid; however, if there is at least one, the user should set it or else all star-sized columns will be set to 1. It's worth noting that this target width doesn't include padding or space for border walls, so the final rendered size of the grid will be larger than this value.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>characters</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The characters used to render the grid's border.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>padding</span><wbr><span>Left</span><wbr><span><span>Right</span></span></u></div></span></div><div><div class="title"><p class="paragraph">If set, adds some additional padding at the start and end of every cell. This space will be added in addition to the width of the cell, so e.g. <code class="lang-kotlin">Cols(1)</code> with <code class="lang-kotlin">paddingLeftRight = 2</code> will actually render as width 5.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>justification</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The default justification to use for all cells. You can override this value on a case-by case basis by passing in a value to the <code class="lang-kotlin">justification</code> parameter of <code class="lang-kotlin">cell</code> call, or for the entire column by passing in a justification value when building the columns specification (e.g. <code class="lang-kotlin">Cols { fit(justification = CENTER) }</code>)</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>max</span><wbr><span>Cell</span><wbr><span><span>Height</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The maximum height to allow cells to grow to, which can happen if a cell contains many newlines or a "*" column gets squished a lot, forcing newlines to be inserted.</p></div></div></div></div><div class="table-row table-row_content" data-filterable-current=":kotter/commonMain" data-filterable-set=":kotter/commonMain"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span>horizontal</span><wbr><span>Separator</span><wbr><span><span>Indices</span></span></u></div></span></div><div><div class="title"><p class="paragraph">Which horizontal separators to include when rendering this grid. While rendering all is the default aesthetic, a user may want to remove many or all separators to maximize how much data can fit in limited vertical space. Note that the first index represents the very top of the grid and the last index represents the bottom. So if your table has 3 rows in it, then 0 is the top, 1 and 2 are the row separators, and 3 is the bottom. Note that several default <a href="-horizontal-separator-indices/index.html">HorizontalSeparatorIndices</a> are provided for your convenience.</p></div></div></div></div></div></div></div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>Copyright © 2026 Varabyte</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
