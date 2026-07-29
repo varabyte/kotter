@@ -184,7 +184,7 @@ class VirtualTerminal private constructor(
          * @param handleInterrupt If true, handle CTRL-C by closing the window.
          * @param showExitPrompt If true, show a prompt before the terminal process finishes, telling the user they
          *   should press a key to continue. This also causes a scroll to the bottom of the window. If false, the window
-         *   will just exist.
+         *   will just exit.
          */
         fun create(
             title: String = "Virtual Terminal",
