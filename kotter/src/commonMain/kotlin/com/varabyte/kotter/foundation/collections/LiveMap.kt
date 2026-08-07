@@ -1,9 +1,12 @@
 package com.varabyte.kotter.foundation.collections
 
-import com.varabyte.kotter.foundation.*
-import com.varabyte.kotter.platform.concurrent.locks.*
-import com.varabyte.kotter.platform.internal.concurrent.annotations.*
-import com.varabyte.kotter.runtime.*
+import com.varabyte.kotter.foundation.LiveVar
+import com.varabyte.kotter.foundation.liveVarOf
+import com.varabyte.kotter.platform.concurrent.locks.read
+import com.varabyte.kotter.platform.concurrent.locks.write
+import com.varabyte.kotter.platform.internal.concurrent.annotations.GuardedBy
+import com.varabyte.kotter.platform.internal.concurrent.annotations.ThreadSafe
+import com.varabyte.kotter.runtime.Session
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -42,10 +45,31 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
         }
     }
 
-    @Suppress("ConvertArgumentToSet")
-    private inner class SafeMutableEntries<K, V>(private val wrapped: MutableSet<MutableMap.MutableEntry<K, V>>): MutableSet<MutableMap.MutableEntry<K, V>> {
+    private inner class LiveMutableEntry<K, V>(private val wrapped: MutableMap.MutableEntry<K, V>) : MutableMap.MutableEntry<K, V> {
+        override fun setValue(newValue: V): V = write { wrapped.setValue(newValue) }
+
+        override val key: K get() = read { wrapped.key }
+        override val value: V get() = read { wrapped.value }
+
+        override fun equals(other: Any?): Boolean = read {
+            other is Map.Entry<*, *> && wrapped.key == other.key && wrapped.value == other.value
+        }
+        override fun hashCode(): Int = read { wrapped.hashCode() }
+        override fun toString() = read { wrapped.toString() }
+    }
+
+    @Suppress("ConvertArgumentToSet") // Just pass the same argument down to the delegate entries
+    private inner class SafeMutableEntries(
+        private val wrapped: MutableSet<MutableMap.MutableEntry<K, V>>
+    ) : MutableSet<MutableMap.MutableEntry<K, V>> {
         override fun iterator(): MutableIterator<MutableMap.MutableEntry<K, V>> {
-            return SafeMutableIterator(wrapped.iterator())
+            return object : MutableIterator<MutableMap.MutableEntry<K, V>> {
+                private val wrapped = delegateMap.iterator()
+
+                override fun remove() = write { wrapped.remove() }
+                override fun next(): MutableMap.MutableEntry<K, V> = read { LiveMutableEntry(wrapped.next()) }
+                override fun hasNext(): Boolean = read { wrapped.hasNext() }
+            }
         }
 
         override fun add(element: MutableMap.MutableEntry<K, V>): Boolean {
@@ -68,21 +92,11 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
             return write { wrapped.retainAll(elements) }
         }
 
-        override fun clear() {
-            write { wrapped.clear() }
-        }
+        override fun clear() = write { wrapped.clear() }
 
-        override val size: Int
-            get() = read { wrapped.size }
-
-        override fun isEmpty(): Boolean {
-            return read { wrapped.isEmpty()}
-        }
-
-        override fun contains(element: MutableMap.MutableEntry<K, V>): Boolean {
-            return read { wrapped.contains(element) }
-        }
-
+        override val size: Int get() = read { wrapped.size }
+        override fun isEmpty(): Boolean = read { wrapped.isEmpty() }
+        override fun contains(element: MutableMap.MutableEntry<K, V>): Boolean = read { wrapped.contains(element) }
         override fun containsAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean {
             return read { wrapped.containsAll(elements) }
         }

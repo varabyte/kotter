@@ -26,7 +26,6 @@ private fun <K, V> Map.Entry<K, V>.copy(): Map.Entry<K, V> {
 }
 
 class LiveMapTest {
-
     @Test
     fun `live map repaints section on change`() = testSession { terminal ->
         val numNames = liveMapOf(1 to "one", 2 to "two", 3 to "three")
@@ -292,5 +291,25 @@ class LiveMapTest {
 
         assertThat(values).isEmpty()
         assertThat(numSquares).isEmpty()
+    }
+
+    @Test
+    fun `can edit live map values via its mutable entry class`() = testSession { terminal ->
+        val numNames = liveMapOf(1 to "one")
+
+        section {
+            text(numNames.getValue(1))
+        }.run {
+            awaitActiveRender()
+            terminal.assertMatches {
+                text("one")
+            }
+
+            numNames.entries.single().setValue("uno")
+        }
+
+        terminal.assertMatches {
+            text("uno")
+        }
     }
 }
