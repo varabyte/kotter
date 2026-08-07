@@ -107,6 +107,11 @@ class LiveSet<T> internal constructor(private val session: Session, vararg eleme
     override fun retainAll(elements: Collection<T>) = write { delegateSet.retainAll(elements) }
     override fun removeAll(elements: Collection<T>) = write { delegateSet.removeAll(elements) }
     override fun remove(element: T) = write { delegateSet.remove(element) }
+
+    // `Any` overrides
+    override fun equals(other: Any?): Boolean = read { delegateSet == other }
+    override fun hashCode(): Int = read { delegateSet.hashCode() }
+    override fun toString(): String = read { delegateSet.toString() }
 }
 
 /** Create a [LiveSet] whose scope is tied to this session. */

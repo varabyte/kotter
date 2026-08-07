@@ -100,6 +100,10 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
         override fun containsAll(elements: Collection<MutableMap.MutableEntry<K, V>>): Boolean {
             return read { wrapped.containsAll(elements) }
         }
+
+        override fun equals(other: Any?): Boolean = read { wrapped == other }
+        override fun hashCode(): Int = read { wrapped.hashCode() }
+        override fun toString(): String = read { wrapped.toString() }
     }
 
     @Suppress("ConvertArgumentToSet")
@@ -146,6 +150,10 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
         override fun containsAll(elements: Collection<T>): Boolean {
             return read { wrapped.containsAll(elements) }
         }
+
+        override fun equals(other: Any?): Boolean = read { wrapped == other }
+        override fun hashCode(): Int = read { wrapped.hashCode() }
+        override fun toString(): String = read { wrapped.toString() }
     }
 
     @Suppress("ConvertArgumentToSet")
@@ -192,6 +200,8 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
         override fun containsAll(elements: Collection<T>): Boolean {
             return read { wrapped.containsAll(elements) }
         }
+
+        override fun toString(): String = read { wrapped.toString() }
     }
 
     // LiveVar already has a lot of nice logic for updating the render block as necessary, so we delegate to it to
@@ -258,6 +268,11 @@ class LiveMap<K, V> internal constructor(private val session: Session, vararg el
     override fun remove(key: K) = write { delegateMap.remove(key) }
     override fun putAll(from: Map<out K, V>) = write { delegateMap.putAll(from) }
     override fun put(key: K, value: V) = write { delegateMap.put(key, value) }
+
+    // `Any` overrides
+    override fun equals(other: Any?): Boolean = read { delegateMap == other }
+    override fun hashCode(): Int = read { delegateMap.hashCode() }
+    override fun toString(): String = read { delegateMap.toString() }
 }
 
 /** Create a [LiveMap] whose scope is tied to this session. */

@@ -155,6 +155,11 @@ class LiveList<T> internal constructor(private val session: Session, vararg elem
     override fun removeAt(index: Int): T = write { delegateList.removeAt(index) }
     override fun retainAll(elements: Collection<T>): Boolean = write { delegateList.retainAll(elements) }
     override fun set(index: Int, element: T): T = write { delegateList.set(index, element) }
+
+    // `Any` overrides
+    override fun equals(other: Any?): Boolean = read { delegateList == other }
+    override fun hashCode(): Int = read { delegateList.hashCode() }
+    override fun toString(): String = read { delegateList.toString() }
 }
 
 /** Create a [LiveList] whose scope is tied to this session. */
