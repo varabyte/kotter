@@ -1,6 +1,7 @@
 import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
+    id("compiler-setup")
     id("kotter-publication")
     id("dokka-convention")
     alias(libs.plugins.kotlinx.atomicfu)

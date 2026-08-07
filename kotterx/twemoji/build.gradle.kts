@@ -1,4 +1,5 @@
 plugins {
+    id("compiler-setup")
     id("kotter-publication")
 }
 
